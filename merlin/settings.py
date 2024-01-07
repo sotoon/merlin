@@ -13,6 +13,10 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("MERLIN_SECRET_KEY")
+SECRET_KEY = os.getenv("MERLIN_SECRET_KEY", "1234")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -152,3 +156,8 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
 }
+
+BEPA_TOKEN_URL = os.getenv("BEPA_TOKEN_URL", "https://bepa.sotoon.ir/token")
+BEPA_USER_INFO_URL = os.getenv("BEPA_USER_INFO_URL", "https://bepa.sotoon.ir/userinfo")
+BEPA_CLIENT_ID = os.getenv("BEPA_CLIENT_ID", "")
+BEPA_CLIENT_SECRET = os.getenv("BEPA_CLIENT_SECRET", "")

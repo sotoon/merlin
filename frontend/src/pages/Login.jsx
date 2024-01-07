@@ -11,18 +11,34 @@ const Login = () => {
     try {
       const userData = { email, password };
       const response = await loginService(userData);
-      console.log(`response status: ${response.status} response data: ${response.data}`)
+      console.log(`response status: ${response.status} response data: ${response.data}`);
       localStorage.setItem('token', response.data.tokens.access);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
+
+  const handleBepaLogin = () => {
+    const baseAuthUrl = process.env.REACT_APP_BEPA_AUTH_URL;
+    const clientId = process.env.REACT_APP_CLIENT_ID;
+    const callbackUrl = process.env.REACT_APP_BEPA_CALLBACK_URL;
+    const bepaAuthUrl = `${baseAuthUrl}?client_id=${clientId}&redirect_uri=${callbackUrl}&response_type=code`;
+    window.location.href = bepaAuthUrl;
+  }
 
   return (
     <Container component="main" maxWidth="xs">
       <Typography component="h1" variant="h5">
         Sign in
       </Typography>
+      <Button
+        type="button"
+        fullWidth
+        variant='contained'
+        color="primary"
+        onClick={handleBepaLogin}>
+        Login with Bepa
+      </Button>
       <form onSubmit={handleSubmit} noValidate>
         <TextField
           variant="outlined"
