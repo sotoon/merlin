@@ -32,15 +32,10 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        username_or_email = request.data.get("username_or_email")
+        email = request.data.get("email")
         password = request.data.get("password")
 
-        if "@" in username_or_email:
-            kwargs = {"email": username_or_email}
-        else:
-            kwargs = {"username": username_or_email}
-
-        user = User.objects.filter(**kwargs).first()
+        user = User.objects.filter(email=email).first()
 
         if user and user.check_password(password):
             refresh = RefreshToken.for_user(user)
@@ -53,7 +48,6 @@ class LoginView(APIView):
                 },
             }
             return Response(data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
-            )
+        return Response(
+            {"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
+        )
