@@ -6,6 +6,7 @@ import { TextField, Button, Typography, Container } from '@mui/material';
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
 
@@ -16,7 +17,7 @@ const Signup = () => {
       return;
     }
     try {
-      const userData = { email, password };
+      const userData = { username, email, password };
       const response = await signupService(userData);
       console.log(`response status: ${response.status} response data: ${response.data}`)
       navigate("/login")
@@ -32,13 +33,23 @@ const Signup = () => {
       </Typography>
       <form onSubmit={handleSubmit} noValidate>
         <TextField
+          variant='outlined'
+          margin='normal'
+          required
+          fullWidth
+          label="Username"
+          autoComplete='username'
+          autoFocus
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <TextField
           variant="outlined"
           margin="normal"
           required
           fullWidth
           label="Email Address"
           autoComplete="email"
-          autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
