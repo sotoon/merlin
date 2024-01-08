@@ -17,3 +17,13 @@ export const loginService = async (userData) => {
     console.error(error)
   }
 };
+
+export const exchangeCodeForToken = async (code) => {
+    try {
+        const response = await API.post('/bepa-callback/', { code });
+        return response;
+    } catch (error) {
+        console.error(error)
+    }
+};
+
