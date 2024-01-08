@@ -1,12 +1,16 @@
-import React from 'react';
-import { ThemeProvider, createTheme} from '@mui/material/styles';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import BepaCallback from './pages/BepaCallback';
-import Home from './pages/Home';
+import React from "react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import BepaCallback from "./pages/BepaCallback";
 import Layout from "./components/Layout";
-import './App.css';
+import "./App.css";
 
 const theme = createTheme();
 
@@ -16,9 +20,9 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route exact path='/' Component={Home}/>
-            <Route path='/login' Component={Login}/>
-            <Route path='/signup' Component={Signup}/>
+            <Route exact path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" Component={Login} />
+            <Route path="/signup" Component={Signup} />
             <Route path="/bepa-callback" Component={BepaCallback} />
           </Routes>
         </Layout>

@@ -21,7 +21,7 @@ const Signup = () => {
       const userData = { username, email, password };
       const response = await signupService(userData);
       console.log(
-        `response status: ${response.status} response data: ${response.data}`
+        `response status: ${response.status} response data: ${response.data}`,
       );
       navigate("/login");
     } catch (error) {
