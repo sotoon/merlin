@@ -10,13 +10,32 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
 import Layout from "./components/Layout";
+import { CssBaseline } from "@mui/material";
 import "./App.css";
 
-const theme = createTheme();
+const theme = createTheme({
+  palette: {
+    background: {
+      default: "#ECECEC", // Light gray background
+      paper: "#FFFFFF", // White paper background
+    },
+    primary: {
+      main: "#2196F3", // Classic Blue
+    },
+    secondary: {
+      main: "#FF9800", // Orange
+    },
+    mode: "light",
+  },
+  typography: {
+    fontFamily: "Roboto, sans-serif",
+  },
+});
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <Router>
         <Layout>
           <Routes>

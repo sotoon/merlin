@@ -7,12 +7,12 @@ const Layout = ({ children }) => {
   return (
     <>
       <AppBar position="static">
-        <Toolbar>
+        <Toolbar color="primary">
           <Typography
             variant="h6"
             noWrap
             component="a"
-            href="/home"
+            href="/"
             flexGrow={1}
             textDecoration="none"
             sx={{
