@@ -39,3 +39,8 @@ export const refreshToken = async () => {
     console.error(error);
   }
 };
+
+export const verifyToken = async (token) => {
+  const response = await API.post("/verify-token/", { token });
+  return response.data;
+};

@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { signupService } from "../services/authservice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { TextField, Button, Typography } from "@mui/material";
 import CentralizedPaper from "../components/CentralizedPaper";
 import HowToRegSharpIcon from "@mui/icons-material/HowToRegSharp";
+import { UserContext } from "../contexts/UserContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { user } = useContext(UserContext);
   const navigate = useNavigate();
+
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +28,9 @@ const Signup = () => {
       const userData = { username, email, password };
       const response = await signupService(userData);
       console.log(
-        `response status: ${response.status} response data: ${response.data}`,
+        `response status: ${response.status} response data: ${JSON.stringify(
+          response.data,
+        )}`,
       );
       navigate("/login");
     } catch (error) {

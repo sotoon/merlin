@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
 import Dashboard from "./pages/Dashboard";
 import BaseLayout from "./components/BaseLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { CssBaseline } from "@mui/material";
 import { UserProvider } from "./contexts/UserContext";
 import "./App.css";
@@ -46,7 +47,14 @@ function App() {
               <Route path="/login" Component={Login} />
               <Route path="/signup" Component={Signup} />
               <Route path="/bepa-callback" Component={BepaCallback} />
-              <Route path="/dashboard" Component={Dashboard} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </BaseLayout>
         </Router>
