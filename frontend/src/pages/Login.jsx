@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { loginService } from "../services/authservice";
 import CentralizedPaper from "../components/CentralizedPaper";
 import { TextField, Button, Typography } from "@mui/material";
+import PowerSharp from "@mui/icons-material/PowerSharp";
+import LockOpenSharp from "@mui/icons-material/LockOpenSharp";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -37,9 +39,12 @@ const Login = () => {
       <Button
         type="button"
         fullWidth
+        margin="normal"
         variant="contained"
-        color="primary"
+        color="secondary"
         onClick={handleBepaLogin}
+        sx={{ mt: 2, mb: 1 }}
+        startIcon={<PowerSharp />}
       >
         Login with Bepa
       </Button>
@@ -66,7 +71,13 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button type="submit" fullWidth variant="contained" color="primary">
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          color="primary"
+          startIcon={<LockOpenSharp />}
+        >
           Sign In
         </Button>
       </form>

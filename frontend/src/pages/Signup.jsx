@@ -3,6 +3,7 @@ import { signupService } from "../services/authservice";
 import { useNavigate } from "react-router-dom";
 import { TextField, Button, Typography } from "@mui/material";
 import CentralizedPaper from "../components/CentralizedPaper";
+import HowToRegSharpIcon from "@mui/icons-material/HowToRegSharp";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -76,7 +77,13 @@ const Signup = () => {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
-        <Button type="submit" fullWidth variant="contained" color="primary">
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          color="primary"
+          startIcon={<HowToRegSharpIcon />}
+        >
           Sign Up
         </Button>
       </form>
