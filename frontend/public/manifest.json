@@ -1,0 +1,8 @@
+{
+  "short_name": "Sotoon PMS",
+  "name": "Merlin - Sotoon Performance Management System",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
