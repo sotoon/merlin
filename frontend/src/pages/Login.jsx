@@ -13,7 +13,7 @@ const Login = () => {
       const userData = { email, password };
       const response = await loginService(userData);
       console.log(
-        `response status: ${response.status} response data: ${response.data}`
+        `response status: ${response.status} response data: ${response.data}`,
       );
       localStorage.setItem("token", response.data.tokens.access);
     } catch (error) {
