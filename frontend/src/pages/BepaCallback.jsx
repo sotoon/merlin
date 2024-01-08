@@ -22,7 +22,8 @@ const BepaCallback = () => {
     if (code) {
       exchangeCodeForToken(code)
         .then((response) => {
-          localStorage.setItem("token", response.data.access);
+          localStorage.setItem("accessToken", response.data.access);
+          localStorage.setItem("refreshToken", response.data.refresh);
           navigate("/dashboard");
         })
         .catch((error) => {

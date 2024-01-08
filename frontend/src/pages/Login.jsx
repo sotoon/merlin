@@ -17,7 +17,8 @@ const Login = () => {
       console.log(
         `response status: ${response.status} response data: ${response.data}`,
       );
-      localStorage.setItem("token", response.data.tokens.access);
+      localStorage.setItem("accessToken", response.data.tokens.access);
+      localStorage.setItem("refreshToken", response.data.tokens.refresh);
     } catch (error) {
       console.error(error);
     }

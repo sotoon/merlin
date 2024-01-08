@@ -26,3 +26,16 @@ export const exchangeCodeForToken = async (code) => {
     console.error(error);
   }
 };
+
+export const refreshToken = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  try {
+    const response = await API.post("/login/refresh/", {
+      refresh: refreshToken,
+    });
+    localStorage.setItem("accessToken", response.data.access);
+    return response.data.access;
+  } catch (error) {
+    console.error(error);
+  }
+};
