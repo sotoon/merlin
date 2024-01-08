@@ -1,27 +1,29 @@
-import React, { useState } from 'react';
-import { signupService } from '../services/authservice';
+import React, { useState } from "react";
+import { signupService } from "../services/authservice";
 import { useNavigate } from "react-router-dom";
-import { TextField, Button, Typography } from '@mui/material';
-import CentralizedPaper from '../components/CentralizedPaper';
+import { TextField, Button, Typography } from "@mui/material";
+import CentralizedPaper from "../components/CentralizedPaper";
 
 const Signup = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Passwords do not match!")
+      alert("Passwords do not match!");
       return;
     }
     try {
       const userData = { username, email, password };
       const response = await signupService(userData);
-      console.log(`response status: ${response.status} response data: ${response.data}`)
-      navigate("/login")
+      console.log(
+        `response status: ${response.status} response data: ${response.data}`
+      );
+      navigate("/login");
     } catch (error) {
       console.error(error);
     }
@@ -34,12 +36,12 @@ const Signup = () => {
       </Typography>
       <form onSubmit={handleSubmit} noValidate>
         <TextField
-          variant='outlined'
-          margin='normal'
+          variant="outlined"
+          margin="normal"
           required
           fullWidth
           label="Username"
-          autoComplete='username'
+          autoComplete="username"
           autoFocus
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -74,12 +76,7 @@ const Signup = () => {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          color="primary"
-        >
+        <Button type="submit" fullWidth variant="contained" color="primary">
           Sign Up
         </Button>
       </form>
