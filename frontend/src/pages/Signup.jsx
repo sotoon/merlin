@@ -5,6 +5,7 @@ import { TextField, Button, Typography } from "@mui/material";
 import CentralizedPaper from "../components/CentralizedPaper";
 import HowToRegSharpIcon from "@mui/icons-material/HowToRegSharp";
 import { UserContext } from "../contexts/UserContext";
+import { ErrorContext } from "../contexts/ErrorContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { user } = useContext(UserContext);
+  const { setErrorMessage } = useContext(ErrorContext);
   const navigate = useNavigate();
 
   if (user) {
@@ -35,6 +37,7 @@ const Signup = () => {
       navigate("/login");
     } catch (error) {
       console.error(error);
+      setErrorMessage("Something went wrong. Please try again later.");
     }
   };
 
