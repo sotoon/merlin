@@ -12,3 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField()

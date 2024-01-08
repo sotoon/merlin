@@ -2,9 +2,11 @@ import React, { useContext } from "react";
 import { AppBar, Toolbar, Typography, Container, Button } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
+import useAuth from "../hooks/useAuth";
 import PropTypes from "prop-types";
 
 const BaseLayout = ({ children }) => {
+  useAuth();
   const { user } = useContext(UserContext);
 
   return (

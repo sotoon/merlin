@@ -5,9 +5,12 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider
+      value={{ user, setUser, isAuthCheckComplete, setIsAuthCheckComplete }}
+    >
       {children}
     </UserContext.Provider>
   );

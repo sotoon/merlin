@@ -4,14 +4,18 @@ import CentralizedPaper from "../components/CentralizedPaper";
 import { TextField, Button, Typography } from "@mui/material";
 import PowerSharp from "@mui/icons-material/PowerSharp";
 import LockOpenSharp from "@mui/icons-material/LockOpenSharp";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { setUser } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +23,9 @@ const Login = () => {
       const userData = { email, password };
       const response = await loginService(userData);
       console.log(
-        `response status: ${response.status} response data: ${response.data}`,
+        `response status: ${response.status} response data: ${JSON.stringify(
+          response.data,
+        )}`,
       );
       localStorage.setItem("accessToken", response.data.tokens.access);
       localStorage.setItem("refreshToken", response.data.tokens.refresh);
@@ -28,7 +34,8 @@ const Login = () => {
         email: response.data.email,
       };
       setUser(user);
-      navigate("/dashboard");
+      const { from } = location.state || { from: { pathname: "/" } };
+      navigate(from);
     } catch (error) {
       console.error(error);
     }
