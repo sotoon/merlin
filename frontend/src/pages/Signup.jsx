@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { signupService } from '../services/authservice';
 import { useNavigate } from "react-router-dom";
-import { TextField, Button, Typography, Container } from '@mui/material';
+import { TextField, Button, Typography } from '@mui/material';
+import CentralizedPaper from '../components/CentralizedPaper';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ const Signup = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <CentralizedPaper>
       <Typography component="h1" variant="h5">
         Sign up
       </Typography>
@@ -82,7 +83,7 @@ const Signup = () => {
           Sign Up
         </Button>
       </form>
-    </Container>
+    </CentralizedPaper>
   );
 };
 

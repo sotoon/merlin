@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { loginService } from "../services/authservice";
-import { TextField, Button, Typography, Container } from '@mui/material';
+import CentralizedPaper from "../components/CentralizedPaper";
+import { TextField, Button, Typography } from '@mui/material';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ const Login = () => {
   }
 
   return (
-    <Container component="main" maxWidth="xs">
+    <CentralizedPaper>
       <Typography component="h1" variant="h5">
         Sign in
       </Typography>
@@ -71,7 +72,7 @@ const Login = () => {
           Sign In
         </Button>
       </form>
-    </Container>
+    </CentralizedPaper>
   );
 };
 

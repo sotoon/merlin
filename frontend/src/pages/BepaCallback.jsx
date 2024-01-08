@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { exchangeCodeForToken } from '../services/authservice';
-import { CircularProgress, Typography, Container }  from '@mui/material';
+import { CircularProgress, Typography }  from '@mui/material';
+import CentralizedPaper from '../components/CentralizedPaper';
 
 const BepaCallback = () => {
     const location = useLocation();
@@ -34,7 +35,7 @@ const BepaCallback = () => {
     }, [location, navigate]);
 
     return (
-        <Container component="main" maxWidth="xs">
+        <CentralizedPaper>
             <CircularProgress
                 color="primary"
                 variant="indeterminate"
@@ -43,7 +44,7 @@ const BepaCallback = () => {
             <Typography variant="h5" component="h1">
                Connecting to bepa... 
             </Typography>
-        </Container>
+        </CentralizedPaper>
     );
 };
 
