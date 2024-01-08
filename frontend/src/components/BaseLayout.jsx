@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useContext } from "react";
 import { AppBar, Toolbar, Typography, Container, Button } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import { UserContext } from "../contexts/UserContext";
 import PropTypes from "prop-types";
 
-const Layout = ({ children }) => {
+const BaseLayout = ({ children }) => {
+  const { user } = useContext(UserContext);
+
   return (
     <>
-      <AppBar position="static">
+      <AppBar
+        position="sticky"
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
         <Toolbar color="primary">
           <Typography
             variant="h6"
@@ -27,12 +33,20 @@ const Layout = ({ children }) => {
           >
             Merlin
           </Typography>
-          <Button color="inherit" component={RouterLink} to="/login">
-            Login
-          </Button>
-          <Button color="inherit" component={RouterLink} to="/signup">
-            Signup
-          </Button>
+          {user ? (
+            <Typography variant="subtitle1">
+              Welcome, {user.username}
+            </Typography>
+          ) : (
+            <>
+              <Button color="inherit" component={RouterLink} to="/login">
+                Login
+              </Button>
+              <Button color="inherit" component={RouterLink} to="/signup">
+                Signup
+              </Button>
+            </>
+          )}
         </Toolbar>
       </AppBar>
       <Container>{children}</Container>
@@ -40,8 +54,8 @@ const Layout = ({ children }) => {
   );
 };
 
-Layout.propTypes = {
+BaseLayout.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export default Layout;
+export default BaseLayout;

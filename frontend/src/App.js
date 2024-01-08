@@ -9,8 +9,10 @@ import {
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
-import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import BaseLayout from "./components/BaseLayout";
 import { CssBaseline } from "@mui/material";
+import { UserProvider } from "./contexts/UserContext";
 import "./App.css";
 
 const theme = createTheme({
@@ -34,19 +36,22 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Layout>
-          <Routes>
-            <Route exact path="/" element={<Navigate to="/login" />} />
-            <Route path="/login" Component={Login} />
-            <Route path="/signup" Component={Signup} />
-            <Route path="/bepa-callback" Component={BepaCallback} />
-          </Routes>
-        </Layout>
-      </Router>
-    </ThemeProvider>
+    <UserProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <BaseLayout>
+            <Routes>
+              <Route exact path="/" element={<Navigate to="/login" />} />
+              <Route path="/login" Component={Login} />
+              <Route path="/signup" Component={Signup} />
+              <Route path="/bepa-callback" Component={BepaCallback} />
+              <Route path="/dashboard" Component={Dashboard} />
+            </Routes>
+          </BaseLayout>
+        </Router>
+      </ThemeProvider>
+    </UserProvider>
   );
 }
 

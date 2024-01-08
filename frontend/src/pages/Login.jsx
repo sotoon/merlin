@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { loginService } from "../services/authservice";
 import CentralizedPaper from "../components/CentralizedPaper";
 import { TextField, Button, Typography } from "@mui/material";
 import PowerSharp from "@mui/icons-material/PowerSharp";
 import LockOpenSharp from "@mui/icons-material/LockOpenSharp";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../contexts/UserContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,6 +23,12 @@ const Login = () => {
       );
       localStorage.setItem("accessToken", response.data.tokens.access);
       localStorage.setItem("refreshToken", response.data.tokens.refresh);
+      const user = {
+        username: response.data.username,
+        email: response.data.email,
+      };
+      setUser(user);
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
     }
