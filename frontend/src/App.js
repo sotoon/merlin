@@ -14,6 +14,8 @@ import BaseLayout from "./components/BaseLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CssBaseline } from "@mui/material";
 import { UserProvider } from "./contexts/UserContext";
+import { ErrorProvider } from "./contexts/ErrorContext";
+import ErrorSnackbar from "./components/ErrorSnackbar";
 import "./App.css";
 
 const theme = createTheme({
@@ -38,27 +40,30 @@ const theme = createTheme({
 function App() {
   return (
     <UserProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <BaseLayout>
-            <Routes>
-              <Route exact path="/" element={<Navigate to="/login" />} />
-              <Route path="/login" Component={Login} />
-              <Route path="/signup" Component={Signup} />
-              <Route path="/bepa-callback" Component={BepaCallback} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </BaseLayout>
-        </Router>
-      </ThemeProvider>
+      <ErrorProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
+            <BaseLayout>
+              <Routes>
+                <Route exact path="/" element={<Navigate to="/login" />} />
+                <Route path="/login" Component={Login} />
+                <Route path="/signup" Component={Signup} />
+                <Route path="/bepa-callback" Component={BepaCallback} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </BaseLayout>
+          </Router>
+        </ThemeProvider>
+        <ErrorSnackbar />
+      </ErrorProvider>
     </UserProvider>
   );
 }

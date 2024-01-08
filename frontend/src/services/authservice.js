@@ -6,6 +6,7 @@ export const signupService = async (userData) => {
     return response;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -15,6 +16,7 @@ export const loginService = async (userData) => {
     return response;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -24,6 +26,7 @@ export const exchangeCodeForToken = async (code) => {
     return response;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
@@ -37,6 +40,7 @@ export const refreshToken = async () => {
     return response.data.access;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 
