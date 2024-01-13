@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
 import Dashboard from "./pages/Dashboard";
 import Notes from "./pages/Notes";
+import NewNote from "./pages/NewNote";
 import BaseLayout from "./components/BaseLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CssBaseline } from "@mui/material";
@@ -80,6 +81,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Notes noteType="Personal" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/new-note"
+                  element={
+                    <ProtectedRoute>
+                      <NewNote />
                     </ProtectedRoute>
                   }
                 />
