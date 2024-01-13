@@ -1,9 +1,30 @@
 import React from "react";
-import { Drawer, List, ListItem, ListItemText, Toolbar } from "@mui/material";
+import {
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
+  Toolbar,
+} from "@mui/material";
 import { Container } from "@mui/system";
 import PropTypes from "prop-types";
+import { Link as RouterLink } from "react-router-dom";
 
 const drawerWidth = 240;
+const drawerOptions = [
+  {
+    text: "Goals",
+    link: "/goals",
+  },
+  {
+    text: "Meeting Notes",
+    link: "/meeting-notes",
+  },
+  {
+    text: "Personal Notes",
+    link: "/personal-notes",
+  },
+];
 
 const DashboardLayout = ({ children }) => {
   return (
@@ -21,15 +42,15 @@ const DashboardLayout = ({ children }) => {
       >
         <Toolbar />
         <List>
-          <ListItem button>
-            <ListItemText primary="Option 1" />
-          </ListItem>
-          <ListItem button>
-            <ListItemText primary="Option 2" />
-          </ListItem>
-          <ListItem button>
-            <ListItemText primary="Option 3" />
-          </ListItem>
+          {drawerOptions.map((drawerOption) => (
+            <ListItemButton
+              key={drawerOption.text}
+              components={RouterLink}
+              to={drawerOption.link}
+            >
+              <ListItemText primary={drawerOption.text} />
+            </ListItemButton>
+          ))}
         </List>
       </Drawer>
       <Container>

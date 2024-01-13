@@ -1,4 +1,4 @@
-.PHONY: fmt lint set-hooks test  deps deps-dev
+.PHONY: fmt lint set-hooks test  deps deps-dev run-server run-client
 
 GIT = git
 COMMIT := $(shell $(GIT) rev-parse HEAD)
@@ -23,3 +23,9 @@ lint:
 
 test:
 	python manage.py test --noinput
+
+run-server:
+	python manage.py runserver
+
+run-client:
+	cd frontend && npm run start
