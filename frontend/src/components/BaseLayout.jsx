@@ -71,7 +71,11 @@ const BaseLayout = ({ children }) => {
           )}
         </Toolbar>
       </AppBar>
-      <Container>{children}</Container>
+      <Container
+        sx={{ display: "flex", flexDirection: "column", height: "100vh" }}
+      >
+        {children}
+      </Container>
     </>
   );
 };

@@ -53,7 +53,7 @@ const DashboardLayout = ({ children }) => {
           ))}
         </List>
       </Drawer>
-      <Container>
+      <Container component="main" sx={{ flex: 1, width: "100%" }}>
         <Toolbar />
         {children}
       </Container>
