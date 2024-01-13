@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
 import Dashboard from "./pages/Dashboard";
+import Notes from "./pages/Notes";
 import BaseLayout from "./components/BaseLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CssBaseline } from "@mui/material";
@@ -55,6 +56,30 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/goals"
+                  element={
+                    <ProtectedRoute>
+                      <Notes noteType="Goal" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/meeting-notes"
+                  element={
+                    <ProtectedRoute>
+                      <Notes noteType="Meeting" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/personal-notes"
+                  element={
+                    <ProtectedRoute>
+                      <Notes noteType="Personal" />
                     </ProtectedRoute>
                   }
                 />
