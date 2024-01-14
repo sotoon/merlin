@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from api.models import Note
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,3 +18,20 @@ class UserSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
+
+
+class NoteSerializer(serializers.ModelSerializer):
+    owner = serializers.PrimaryKeyRelatedField(
+        default=serializers.CurrentUserDefault(), read_only=True
+    )
+
+    class Meta:
+        model = Note
+        fields = ("id", "owner", "title", "content", "date", "type")
+        read_only_fields = ["id"]
+
+    def validate(self, data):
+        if not self.instance:
+            owner = self.context["request"].user
+            data["owner"] = owner
+        return super().validate(data)
