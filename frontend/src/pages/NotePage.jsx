@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   TextField,
   Button,
@@ -7,17 +7,46 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
+import { createNote, getNote, updateNote } from "../services/noteservice";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ReactQuill from "react-quill"; // Import the ReactQuill component
 import "react-quill/dist/quill.snow.css";
+import { ErrorContext } from "../contexts/ErrorContext";
 
-const NewNote = () => {
+const NotePage = () => {
+  const { noteId } = useParams();
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
     return savedData
       ? JSON.parse(savedData)
       : { title: "", content: "", date: "", type: "" };
   });
+  const navigate = useNavigate();
+  const { setErrorMessage } = useContext(ErrorContext);
+
+  useEffect(() => {
+    const fetchNoteData = async () => {
+      try {
+        const response = await getNote(noteId);
+        console.log(
+          `response status: ${response.status} response data: ${JSON.stringify(
+            response.data,
+          )}`,
+        );
+        setFormData(response.data);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Something went wrong. Please try again later.");
+      }
+    };
+    console.debug(`note Id is: ${noteId}`);
+    if (noteId) {
+      fetchNoteData();
+    }
+  }, [noteId]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -32,15 +61,35 @@ const NewNote = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // TODO: Add code to send formData to your backend API
-    console.log(formData);
+    try {
+      if (noteId) {
+        const response = await updateNote(formData, noteId);
+        console.log(
+          `response status: ${response.status} response data: ${JSON.stringify(
+            response.data,
+          )}`,
+        );
+      } else {
+        const response = await createNote(formData);
+        console.log(
+          `response status: ${response.status} response data: ${JSON.stringify(
+            response.data,
+          )}`,
+        );
+      }
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Something went wrong. Please try again later.");
+    }
   };
 
   useEffect(() => {
-    localStorage.setItem("noteFormData", JSON.stringify(formData));
+    if (!noteId) {
+      localStorage.setItem("noteFormData", JSON.stringify(formData));
+    }
   }, [formData]);
 
   return (
@@ -106,4 +155,4 @@ const NewNote = () => {
   );
 };
 
-export default NewNote;
+export default NotePage;

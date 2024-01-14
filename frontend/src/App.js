@@ -10,8 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
 import Dashboard from "./pages/Dashboard";
-import Notes from "./pages/Notes";
-import NewNote from "./pages/NewNote";
+import NotesPage from "./pages/NotesPage";
 import BaseLayout from "./components/BaseLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CssBaseline } from "@mui/material";
@@ -19,6 +18,7 @@ import { UserProvider } from "./contexts/UserContext";
 import { ErrorProvider } from "./contexts/ErrorContext";
 import ErrorSnackbar from "./components/ErrorSnackbar";
 import "./App.css";
+import NotePage from "./pages/NotePage";
 
 const theme = createTheme({
   palette: {
@@ -64,7 +64,7 @@ function App() {
                   path="/goals"
                   element={
                     <ProtectedRoute>
-                      <Notes noteType="Goal" />
+                      <NotesPage noteType="Goal" />
                     </ProtectedRoute>
                   }
                 />
@@ -72,7 +72,7 @@ function App() {
                   path="/meeting-notes"
                   element={
                     <ProtectedRoute>
-                      <Notes noteType="Meeting" />
+                      <NotesPage noteType="Meeting" />
                     </ProtectedRoute>
                   }
                 />
@@ -80,15 +80,15 @@ function App() {
                   path="/personal-notes"
                   element={
                     <ProtectedRoute>
-                      <Notes noteType="Personal" />
+                      <NotesPage noteType="Personal" />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/new-note"
+                  path="/notes/:noteId?"
                   element={
                     <ProtectedRoute>
-                      <NewNote />
+                      <NotePage />
                     </ProtectedRoute>
                   }
                 />
