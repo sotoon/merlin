@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  Fab,
-  Typography,
-  Container,
-  Grid,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Fab, Typography, Container, Grid, Divider } from "@mui/material";
 import DashboardLayout from "../components/DashboardLayout";
 import PropTypes from "prop-types";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
+import NoteCard from "../components/NoteCard";
 import { getNotes } from "../services/noteservice";
 import { Link as RouterLink } from "react-router-dom";
 import { ErrorContext } from "../contexts/ErrorContext";
@@ -39,22 +33,17 @@ const NotesPage = ({ noteType }) => {
   return (
     <DashboardLayout>
       <Container>
-        <Typography variant="h4">My {noteType} Notes</Typography>
+        <Typography variant="h4">{noteType} Notes</Typography>
+        <Divider sx={{ mb: 2, mt: 2 }} />
         <Grid container spacing={2}>
           {notes.map((note, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <RouterLink to={`/notes/${note.id}`}>
-                <Card
-                  sx={{
-                    width: "100%",
-                    marginBottom: (theme) => theme.spacing(2),
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="body1">{note.title}</Typography>
-                  </CardContent>
-                </Card>
-              </RouterLink>
+            <Grid item xs={12} sm={12} md={12} key={index}>
+              <NoteCard
+                id={note.id}
+                title={note.title}
+                body={note.content}
+                date={note.date}
+              />
             </Grid>
           ))}
         </Grid>

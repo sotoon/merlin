@@ -1,10 +1,12 @@
 import React from "react";
 import {
+  Divider,
   Drawer,
   List,
   ListItemButton,
   ListItemText,
   Toolbar,
+  Typography,
 } from "@mui/material";
 import { Container } from "@mui/system";
 import PropTypes from "prop-types";
@@ -13,15 +15,15 @@ import { Link as RouterLink } from "react-router-dom";
 const drawerWidth = 240;
 const drawerOptions = [
   {
-    text: "Goals",
+    text: "🚀 Goals",
     link: "/goals",
   },
   {
-    text: "Meeting Notes",
+    text: "👥 Meeting Notes",
     link: "/meeting-notes",
   },
   {
-    text: "Personal Notes",
+    text: "📝 Personal Notes",
     link: "/personal-notes",
   },
 ];
@@ -41,6 +43,10 @@ const DashboardLayout = ({ children }) => {
         }}
       >
         <Toolbar />
+        <Typography component="h1" variant="h6" sx={{ mt: 2, mb: 0.5, ml: 1 }}>
+          Notes
+        </Typography>
+        <Divider />
         <List>
           {drawerOptions.map((drawerOption) => (
             <ListItemButton
@@ -52,8 +58,14 @@ const DashboardLayout = ({ children }) => {
             </ListItemButton>
           ))}
         </List>
+        <Divider />
       </Drawer>
-      <Container component="main" sx={{ flex: 1, width: "100%" }}>
+      <Container
+        component="main"
+        sx={{
+          flex: 1,
+        }}
+      >
         <Toolbar />
         {children}
       </Container>
