@@ -9,7 +9,6 @@ import {
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
-import Dashboard from "./pages/Dashboard";
 import NotesPage from "./pages/NotesPage";
 import BaseLayout from "./components/BaseLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -56,7 +55,7 @@ function App() {
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <Navigate to="/goals" />
                     </ProtectedRoute>
                   }
                 />
