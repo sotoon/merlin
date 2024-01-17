@@ -25,7 +25,7 @@ test:
 	python manage.py test --noinput
 
 run-server:
-	python manage.py runserver
+	DJANGO_SETTINGS_MODULE=merlin.settings.development python manage.py runserver
 
 run-client:
 	cd frontend && npm run start
