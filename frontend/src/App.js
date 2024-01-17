@@ -9,7 +9,7 @@ import {
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
-import Dashboard from "./pages/Dashboard";
+import NotesPage from "./pages/NotesPage";
 import BaseLayout from "./components/BaseLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CssBaseline } from "@mui/material";
@@ -17,6 +17,7 @@ import { UserProvider } from "./contexts/UserContext";
 import { ErrorProvider } from "./contexts/ErrorContext";
 import ErrorSnackbar from "./components/ErrorSnackbar";
 import "./App.css";
+import NotePage from "./pages/NotePage";
 
 const theme = createTheme({
   palette: {
@@ -54,7 +55,39 @@ function App() {
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <Dashboard />
+                      <Navigate to="/goals" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/goals"
+                  element={
+                    <ProtectedRoute>
+                      <NotesPage noteType="Goal" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/meeting-notes"
+                  element={
+                    <ProtectedRoute>
+                      <NotesPage noteType="Meeting" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/personal-notes"
+                  element={
+                    <ProtectedRoute>
+                      <NotesPage noteType="Personal" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/notes/:noteId?"
+                  element={
+                    <ProtectedRoute>
+                      <NotePage />
                     </ProtectedRoute>
                   }
                 />
