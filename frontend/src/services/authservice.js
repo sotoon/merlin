@@ -22,7 +22,7 @@ export const loginService = async (userData) => {
 
 export const exchangeCodeForToken = async (code) => {
   try {
-    const response = await API.post("/bepa-callback/", { code });
+    const response = await API.get(`/bepa-callback?code=${code}`);
     return response;
   } catch (error) {
     console.error(error);

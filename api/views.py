@@ -71,8 +71,12 @@ class BepaCallbackView(APIView):
             "code": code,
             "client_id": settings.BEPA_CLIENT_ID,
             "client_secret": settings.BEPA_CLIENT_SECRET,
+            "redirect_uri": settings.BEPA_REDIRECT_URI,
         }
-        token_response = requests.post(settings.BEPA_TOKEN_URL, data=token_data)
+        token_request_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        token_response = requests.post(
+            settings.BEPA_TOKEN_URL, data=token_data, headers=token_request_headers
+        )
         token_json = token_response.json()
 
         if "error" in token_json:
@@ -85,7 +89,7 @@ class BepaCallbackView(APIView):
         )
         user_info = user_info_response.json()
 
-        username = user_info.get("preferred_username")
+        username = user_info.get("name")
         email = user_info.get("email")
 
         user, created = User.objects.get_or_create(

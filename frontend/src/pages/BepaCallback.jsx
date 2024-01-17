@@ -18,7 +18,16 @@ const BepaCallback = () => {
       return query;
     };
 
-    const { code } = parseQuery(location.search);
+    const { code, state } = parseQuery(location.search);
+
+    const storedStateValue = sessionStorage.getItem("stateValue");
+
+    if (!storedStateValue || !state || storedStateValue !== state) {
+      console.error("Invalid State!");
+      setErrorMessage("Couldn't connect to bepa!");
+      navigate("/login");
+      return;
+    }
 
     if (code) {
       exchangeCodeForToken(code)
