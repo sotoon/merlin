@@ -46,9 +46,13 @@ const Login = () => {
 
   const handleBepaLogin = () => {
     const baseAuthUrl = process.env.REACT_APP_BEPA_AUTH_URL;
-    const clientId = process.env.REACT_APP_CLIENT_ID;
-    const callbackUrl = process.env.REACT_APP_BEPA_CALLBACK_URL;
-    const bepaAuthUrl = `${baseAuthUrl}?client_id=${clientId}&redirect_uri=${callbackUrl}&response_type=code`;
+    const clientId = encodeURIComponent(process.env.REACT_APP_CLIENT_ID);
+    const callbackUrl = encodeURIComponent(
+      process.env.REACT_APP_BEPA_CALLBACK_URL,
+    );
+    const stateValue = Math.random().toString(36).substring(7);
+    sessionStorage.setItem("stateValue", stateValue);
+    const bepaAuthUrl = `${baseAuthUrl}/?next=/openid-v2/authorize/%3Fclient_id%3D${clientId}%26redirect_uri%3D${callbackUrl}%26response_type%3Dcode%26scope%3Daddress%2Bphone%2Bopenid%2Bprofile%2Bemail%26state%3D${stateValue}%26`;
     window.location.href = bepaAuthUrl;
   };
 
