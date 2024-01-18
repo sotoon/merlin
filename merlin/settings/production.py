@@ -4,7 +4,7 @@ DEBUG = False
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "merlin",
         "USER": "merlin",
         "PASSWORD": os.environ.get("MERLIN_DATABASE_PASSWORD", ""),

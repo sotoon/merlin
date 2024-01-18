@@ -13,4 +13,6 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "merlin.wsgi:application"]
+ENV DJANGO_SETTINGS_MODULE=merlin.settings.production
+
+CMD python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 merlin.wsgi:application
