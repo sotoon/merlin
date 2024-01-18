@@ -8,7 +8,7 @@ services:
     volumes:
       - /var/data/merlin:/var/lib/postgresql/data
 
-  merlin-dashboard:
+  api:
     image: <backend-image-name>
     ports:
       - "8000:8000"
@@ -17,11 +17,11 @@ services:
     env_file:
       - .env
 
-  merlin-web:
+  web:
     image: <frontend-image-name>
     ports:
-      - "3000:3000"
+      - "5000:5000"
     depends_on:
-      - merlin-dashboard
+      - api
     env_file:
       - .env
