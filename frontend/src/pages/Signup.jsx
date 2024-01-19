@@ -44,9 +44,9 @@ const Signup = () => {
   return (
     <CentralizedPaper>
       <Typography component="h1" variant="h5">
-        Sign up
+        ثبت نام
       </Typography>
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} noValidate dir="ltr">
         <TextField
           variant="outlined"
           margin="normal"
@@ -95,7 +95,7 @@ const Signup = () => {
           color="primary"
           startIcon={<HowToRegSharpIcon />}
         >
-          Sign Up
+          ثبت نام
         </Button>
       </form>
     </CentralizedPaper>

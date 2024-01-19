@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:16
+    env_file:
+      - .env
+    volumes:
+      - /var/data/merlin:/var/lib/postgresql/data
+
+  api:
+    image: <backend-image-name>
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+
+  web:
+    image: <frontend-image-name>
+    ports:
+      - "5000:5000"
+    depends_on:
+      - api
+    env_file:
+      - .env

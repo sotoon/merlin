@@ -56,7 +56,7 @@ const NoteCard = ({ id, title, body, date }) => {
 };
 
 NoteCard.propTypes = {
-  id: PropTypes.string,
+  id: PropTypes.number,
   title: PropTypes.string,
   body: PropTypes.string,
   date: PropTypes.string,
