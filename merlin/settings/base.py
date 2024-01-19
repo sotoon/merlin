@@ -170,3 +170,5 @@ BEPA_USER_INFO_URL = os.getenv("BEPA_USER_INFO_URL", "https://bepa.sotoon.ir/use
 BEPA_CLIENT_ID = os.getenv("BEPA_CLIENT_ID", "")
 BEPA_CLIENT_SECRET = os.getenv("BEPA_CLIENT_SECRET", "")
 BEPA_REDIRECT_URI = os.getenv("BEPA_REDIRECT_URI", "")
+
+SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")

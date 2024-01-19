@@ -64,9 +64,11 @@ const BaseLayout = ({ children }) => {
               <Button color="inherit" component={RouterLink} to="/login">
                 ورود
               </Button>
-              <Button color="inherit" component={RouterLink} to="/signup">
-                ثبت‌نام
-              </Button>
+              {process.env.REACT_APP_SIGNUP_DISABLED !== "true" && (
+                <Button color="inherit" component={RouterLink} to="/signup">
+                  ثبت‌نام
+                </Button>
+              )}
             </>
           )}
         </Toolbar>
