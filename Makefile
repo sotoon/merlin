@@ -1,6 +1,10 @@
-.PHONY: fmt lint set-hooks test  deps deps-dev run-server run-client
+.PHONY: fmt lint test deps deps-dev run-server run-client
+.PHONY: docker-build-frontend docker-push-frontend docker-build-backend docker-push-backend
 
 GIT = git
+IMAGE_NAME ?= registry/merlin
+FRONTEND_IMAGE_NAME := $(IMAGE_NAME)/frontend
+BACKEND_IMAGE_NAME := $(IMAGE_NAME)/backend
 COMMIT := $(shell $(GIT) rev-parse HEAD)
 VERSION ?= $(shell $(GIT) describe --tags ${COMMIT} 2> /dev/null || echo "$(COMMIT)")
 TOFMT_FILES := $(shell find -iname \*.py -not \( \
@@ -29,3 +33,19 @@ run-server:
 
 run-client:
 	cd frontend && npm run start
+
+docker-build-frontend:
+	cd frontend && docker build --tag $(FRONTEND_IMAGE_NAME):$(VERSION) .
+	docker tag $(FRONTEND_IMAGE_NAME):$(VERSION) $(FRONTEND_IMAGE_NAME):latest
+
+docker-push-frontend:
+	docker push $(FRONTEND_IMAGE_NAME):$(VERSION)
+	docker push $(FRONTEND_IMAGE_NAME):latest
+
+docker-build-backend:
+	docker build --tag $(BACKEND_IMAGE_NAME):$(VERSION) .
+	docker tag $(BACKEND_IMAGE_NAME):$(VERSION) $(BACKEND_IMAGE_NAME):latest
+
+docker-push-backend:
+	docker push $(BACKEND_IMAGE_NAME):$(VERSION)
+	docker push $(BACKEND_IMAGE_NAME):latest

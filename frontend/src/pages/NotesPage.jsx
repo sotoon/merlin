@@ -4,11 +4,19 @@ import DashboardLayout from "../components/DashboardLayout";
 import PropTypes from "prop-types";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
 import NoteCard from "../components/NoteCard";
+import Loading from "../components/Loading";
 import { getNotes } from "../services/noteservice";
 import { Link as RouterLink } from "react-router-dom";
 import { ErrorContext } from "../contexts/ErrorContext";
 
+const NoteTypeTitles = {
+  Goal: "اهداف",
+  Meeting: "جلسات",
+  Personal: "شخصی",
+};
+
 const NotesPage = ({ noteType }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState([]);
   const { setErrorMessage } = useContext(ErrorContext);
 
@@ -25,15 +33,27 @@ const NotesPage = ({ noteType }) => {
       } catch (error) {
         console.error(error);
         setErrorMessage("A Problem occurred. Please try again later.");
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchNotesData();
   }, []);
 
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <Loading description={"در حال دریافت اطلاعات"} />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <Container>
-        <Typography variant="h4">{noteType} Notes</Typography>
+        <Typography variant="h4">
+          یادداشت‌های {NoteTypeTitles[noteType]}
+        </Typography>
         <Divider sx={{ mb: 2, mt: 2 }} />
         <Grid container spacing={2}>
           {notes.map((note, index) => (
@@ -55,7 +75,7 @@ const NotesPage = ({ noteType }) => {
           sx={{
             position: "fixed",
             bottom: (theme) => theme.spacing(10),
-            right: (theme) => theme.spacing(10),
+            left: (theme) => theme.spacing(10),
             transform: "scale(1.2)",
           }}
         >

@@ -53,7 +53,7 @@ const BaseLayout = ({ children }) => {
           {user ? (
             <>
               <Typography variant="subtitle1">
-                Welcome, {user.username}
+                خوش آمدید, {user.username}
               </Typography>
               <IconButton aria-label="logout" onClick={handleLogout}>
                 <PowerSettingsNewSharpIcon color="inherit" fontSize="large" />
@@ -62,10 +62,10 @@ const BaseLayout = ({ children }) => {
           ) : (
             <>
               <Button color="inherit" component={RouterLink} to="/login">
-                Login
+                ورود
               </Button>
               <Button color="inherit" component={RouterLink} to="/signup">
-                Signup
+                ثبت‌نام
               </Button>
             </>
           )}
