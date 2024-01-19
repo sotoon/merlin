@@ -59,7 +59,7 @@ const Login = () => {
   return (
     <CentralizedPaper>
       <Typography component="h1" variant="h5">
-        Sign in
+        ورود به سامانه ارزیابی عملکرد
       </Typography>
       <Button
         type="button"
@@ -71,9 +71,9 @@ const Login = () => {
         sx={{ mt: 2, mb: 1 }}
         startIcon={<PowerSharp />}
       >
-        Login with Bepa
+        ورود با بپا
       </Button>
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} noValidate dir="ltr">
         <TextField
           variant="outlined"
           margin="normal"
@@ -103,7 +103,7 @@ const Login = () => {
           color="primary"
           startIcon={<LockOpenSharp />}
         >
-          Sign In
+          ورود
         </Button>
       </form>
     </CentralizedPaper>
