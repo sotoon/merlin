@@ -258,15 +258,14 @@ const NotePage = () => {
             },
           }}
           onChange={handleChange}
-          fullWidth
           margin="normal"
           sx={{ mt: 2 }}
         />
         <FormControl
-          fullWidth
           margin="normal"
           errors={Boolean(errors.type)}
           helperText={errors.type}
+          sx={{ mr: 5, minWidth: "50px" }}
         >
           <InputLabel
             id="type-select-label"
@@ -296,7 +295,12 @@ const NotePage = () => {
             </FormHelperText>
           )}
         </FormControl>
-        <Button type="submit" variant="contained" color="primary">
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          sx={{ display: "flex" }}
+        >
           Submit
         </Button>
       </form>

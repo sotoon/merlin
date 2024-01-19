@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
@@ -7,13 +7,40 @@ import {
   CardActions,
   Typography,
   Divider,
+  IconButton,
 } from "@mui/material";
 import { marked } from "marked";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { deleteNote } from "../services/noteservice";
+import { useNavigate } from "react-router";
+import { ErrorContext } from "../contexts/ErrorContext";
 import PropTypes from "prop-types";
 
 const NoteCard = ({ id, title, body, date }) => {
+  const { setErrorMessage } = useContext(ErrorContext);
+  const navigate = useNavigate();
   const removeMarkdown = (markdownText) => {
     return marked(markdownText).replace(/<\/?[^>]+(>|$)/g, "\n"); // Remove HTML tags
+  };
+
+  const handleDelete = (event) => {
+    event.preventDefault(); // Prevent default action
+    event.stopPropagation(); // Stop event propagation
+    const deleteCurrentNote = async () => {
+      try {
+        const response = await deleteNote(id);
+        console.log(
+          `response status: ${response.status} response data: ${JSON.stringify(
+            response.data,
+          )}`,
+        );
+        navigate(0);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Something went wrong. Please try again later.");
+      }
+    };
+    deleteCurrentNote();
   };
 
   return (
@@ -46,9 +73,20 @@ const NoteCard = ({ id, title, body, date }) => {
           sx={{ marginTop: "auto", justifyContent: "flex-end" }}
           disableSpacing
         >
-          <Typography variant="caption" color="textSecondary">
+          <Typography variant="caption" color="textSecondary" sx={{ flex: 1 }}>
             {date}
           </Typography>
+          <IconButton
+            color="inherit"
+            onClick={(event) => handleDelete(event)}
+            sx={{
+              "&:hover": {
+                color: "#FF9800", // Change this to the desired hover color
+              },
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
         </CardActions>
       </Card>
     </RouterLink>
