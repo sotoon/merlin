@@ -8,6 +8,7 @@ import {
   InputLabel,
   Typography,
   Divider,
+  FormHelperText,
 } from "@mui/material";
 import { createNote, getNote, updateNote } from "../services/noteservice";
 import { useParams } from "react-router-dom";
@@ -24,6 +25,7 @@ Quill.register(Font, true);
 
 const NotePage = () => {
   const { noteId } = useParams();
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(noteId ? true : false);
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
@@ -36,6 +38,17 @@ const NotePage = () => {
   let isProgrammaticUpdate = false;
 
   const quillRef = useRef(null);
+
+  const validate = (data) => {
+    let tempErrors = {};
+    if (!data.title) tempErrors.title = "عنوان الزامی است.";
+    if (!data.date) tempErrors.date = "تاریخ الزامی است.";
+    if (!data.type) tempErrors.type = "نوع الزامی است.";
+    // Add more validation rules as needed
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+
   useEffect(() => {
     if (quillRef.current) {
       const quill = quillRef.current.getEditor();
@@ -75,6 +88,7 @@ const NotePage = () => {
   }, [noteId]);
 
   const handleChange = (e) => {
+    setErrors({ ...errors, [e.target.name]: "" });
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -106,26 +120,28 @@ const NotePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (noteId) {
-        const response = await updateNote(formData, noteId);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-      } else {
-        const response = await createNote(formData);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
+    if (validate(formData)) {
+      try {
+        if (noteId) {
+          const response = await updateNote(formData, noteId);
+          console.log(
+            `response status: ${
+              response.status
+            } response data: ${JSON.stringify(response.data)}`,
+          );
+        } else {
+          const response = await createNote(formData);
+          console.log(
+            `response status: ${
+              response.status
+            } response data: ${JSON.stringify(response.data)}`,
+          );
+        }
+        navigate("/dashboard");
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Something went wrong. Please try again later.");
       }
-      navigate("/dashboard");
-    } catch (error) {
-      console.error(error);
-      setErrorMessage("Something went wrong. Please try again later.");
     }
   };
 
@@ -156,6 +172,8 @@ const NotePage = () => {
           name="title"
           value={formData.title}
           onChange={handleChange}
+          error={Boolean(errors.title)}
+          helperText={errors.title}
           fullWidth
           margin="normal"
           sx={{ mb: 2 }}
@@ -227,6 +245,8 @@ const NotePage = () => {
           type="date"
           label="تاریخ"
           name="date"
+          error={Boolean(errors.date)}
+          helperText={errors.date}
           value={formData.date}
           InputLabelProps={{
             shrink: true,
@@ -242,7 +262,12 @@ const NotePage = () => {
           margin="normal"
           sx={{ mt: 2 }}
         />
-        <FormControl fullWidth margin="normal">
+        <FormControl
+          fullWidth
+          margin="normal"
+          errors={Boolean(errors.type)}
+          helperText={errors.type}
+        >
           <InputLabel
             id="type-select-label"
             style={{
@@ -265,6 +290,11 @@ const NotePage = () => {
             <MenuItem value="Meeting">جلسه</MenuItem>
             <MenuItem value="Personal">شخصی</MenuItem>
           </Select>
+          {errors.type && (
+            <FormHelperText sx={{ color: (theme) => theme.palette.error.main }}>
+              {errors.type}
+            </FormHelperText>
+          )}
         </FormControl>
         <Button type="submit" variant="contained" color="primary">
           Submit
