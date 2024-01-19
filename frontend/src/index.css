@@ -40,6 +40,15 @@
   font-family: 'iranyekanwebregular', sans-serif; /* Ensure 'Yekan' font is loaded in your project */
 }
 
+.ql-editor {
+  overflow-y: scroll;
+  resize: vertical;
+}
+
+.ql-editor {
+  min-height: 150px;
+}
+
 
 body {
   margin: 0;

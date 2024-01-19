@@ -25,6 +25,7 @@ Quill.register(Font, true);
 
 const NotePage = () => {
   const { noteId } = useParams();
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(noteId ? true : false);
   const [formData, setFormData] = useState(() => {
@@ -235,9 +236,8 @@ const NotePage = () => {
             "script",
           ]}
           style={{
-            height: "200px",
             width: "100%",
-            marginBottom: 50,
+            marginBottom: 10,
             direction: "ltr",
           }}
         />
