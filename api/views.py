@@ -20,6 +20,8 @@ class SignupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
+            refresh["username"] = user.username
+            refresh["email"] = user.email
             data = {
                 "username": user.username,
                 "email": user.email,
@@ -43,6 +45,8 @@ class LoginView(APIView):
 
         if user and user.check_password(password):
             refresh = RefreshToken.for_user(user)
+            refresh["username"] = user.username
+            refresh["email"] = user.email
             data = {
                 "username": user.username,
                 "email": user.email,
@@ -101,6 +105,8 @@ class BepaCallbackView(APIView):
             user.save()
 
         refresh = RefreshToken.for_user(user)
+        refresh["username"] = user.username
+        refresh["email"] = user.email
         data = {
             "refresh": str(refresh),
             "access": str(refresh.access_token),
