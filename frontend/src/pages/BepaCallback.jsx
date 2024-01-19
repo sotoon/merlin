@@ -42,7 +42,7 @@ const BepaCallback = () => {
           navigate("/login");
         });
     } else {
-      // navigate('/login');
+      navigate("/login");
     }
   }, [location, navigate]);
 

@@ -10,7 +10,7 @@ const CentralizedPaper = ({ children }) => {
       justifyContent="center"
       style={{ minHeight: "90vh" }}
     >
-      <Grid item xs={12} sm={6} md={4} margin="auto">
+      <Grid item xs={12} sm={6} md={4} lg={3} margin="auto">
         <Paper style={{ padding: "20px" }}>{children}</Paper>
       </Grid>
     </Grid>

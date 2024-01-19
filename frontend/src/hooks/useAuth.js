@@ -33,7 +33,7 @@ const useAuth = () => {
       setIsAuthCheckComplete(true);
     };
     checkAuth();
-  }, [setUser, setIsAuthCheckComplete]);
+  }, [setUser, setIsAuthCheckComplete, localStorage.getItem("accessToken")]);
 
   return null;
 };
