@@ -39,3 +39,13 @@ export const updateNote = async (noteData, id) => {
     throw error;
   }
 };
+
+export const deleteNote = async (id) => {
+  try {
+    const response = await API.delete(`/notes/${id}/`);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
