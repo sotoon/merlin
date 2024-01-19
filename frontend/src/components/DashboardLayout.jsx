@@ -15,15 +15,15 @@ import { Link as RouterLink } from "react-router-dom";
 const drawerWidth = 240;
 const drawerOptions = [
   {
-    text: "🚀 Goals",
+    text: "🚀 اهداف",
     link: "/goals",
   },
   {
-    text: "👥 Meeting Notes",
+    text: "👥 جلسات",
     link: "/meeting-notes",
   },
   {
-    text: "📝 Personal Notes",
+    text: "📝 یادداشت‌های شخصی",
     link: "/personal-notes",
   },
 ];
@@ -33,9 +33,11 @@ const DashboardLayout = ({ children }) => {
     <>
       <Drawer
         variant="permanent"
+        anchor="right"
         sx={{
           width: drawerWidth,
           flexShrink: 0,
+          right: 0, // Position the drawer on the right
           "& .MuiDrawer-paper": {
             width: drawerWidth,
             boxSizing: "border-box",
@@ -44,17 +46,20 @@ const DashboardLayout = ({ children }) => {
       >
         <Toolbar />
         <Typography component="h1" variant="h6" sx={{ mt: 2, mb: 0.5, ml: 1 }}>
-          Notes
+          یادداشت‌ها
         </Typography>
         <Divider />
         <List>
           {drawerOptions.map((drawerOption) => (
             <ListItemButton
               key={drawerOption.text}
-              components={RouterLink}
+              component={RouterLink}
               to={drawerOption.link}
             >
-              <ListItemText primary={drawerOption.text} />
+              <ListItemText
+                primary={drawerOption.text}
+                sx={{ textAlign: "right" }}
+              />
             </ListItemButton>
           ))}
         </List>
@@ -64,6 +69,7 @@ const DashboardLayout = ({ children }) => {
         component="main"
         sx={{
           flex: 1,
+          marginLeft: drawerWidth, // Add margin to the main content to avoid overlap
         }}
       >
         <Toolbar />

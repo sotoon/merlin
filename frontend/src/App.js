@@ -34,7 +34,7 @@ const theme = createTheme({
     mode: "light",
   },
   typography: {
-    fontFamily: "Roboto, sans-serif",
+    fontFamily: "iranyekanwebregular, sans-serif",
   },
 });
 
@@ -63,7 +63,7 @@ function App() {
                   path="/goals"
                   element={
                     <ProtectedRoute>
-                      <NotesPage noteType="Goal" />
+                      <NotesPage key="goals" noteType="Goal" />
                     </ProtectedRoute>
                   }
                 />
@@ -71,7 +71,7 @@ function App() {
                   path="/meeting-notes"
                   element={
                     <ProtectedRoute>
-                      <NotesPage noteType="Meeting" />
+                      <NotesPage key="meeting-notes" noteType="Meeting" />
                     </ProtectedRoute>
                   }
                 />
@@ -79,7 +79,7 @@ function App() {
                   path="/personal-notes"
                   element={
                     <ProtectedRoute>
-                      <NotesPage noteType="Personal" />
+                      <NotesPage key="personal-notes" noteType="Personal" />
                     </ProtectedRoute>
                   }
                 />
