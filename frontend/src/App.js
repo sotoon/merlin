@@ -49,7 +49,9 @@ function App() {
               <Routes>
                 <Route exact path="/" element={<Navigate to="/login" />} />
                 <Route path="/login" Component={Login} />
-                <Route path="/signup" Component={Signup} />
+                {process.env.REACT_APP_SIGNUP_DISABLED !== "true" && (
+                  <Route path="/signup" Component={Signup} />
+                )}
                 <Route path="/bepa-callback" Component={BepaCallback} />
                 <Route
                   path="/dashboard"
