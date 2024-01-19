@@ -36,7 +36,7 @@ const DashboardLayout = ({ children }) => {
         width: "100%",
       }}
     >
-      <Box sx={{ width: drawerWidth, flexShrink: 0 }}>
+      <Box sx={{ flexShrink: 0 }}>
         <Drawer
           variant="permanent"
           anchor="right"
