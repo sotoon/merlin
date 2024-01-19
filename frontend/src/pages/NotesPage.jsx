@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Fab, Typography, Box, Grid, Divider } from "@mui/material";
+import { Fab, Typography, Grid, Divider } from "@mui/material";
 import DashboardLayout from "../components/DashboardLayout";
 import PropTypes from "prop-types";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
@@ -50,24 +50,22 @@ const NotesPage = ({ noteType }) => {
 
   return (
     <DashboardLayout>
-      <Box sx={{ maxWidth: "1000px" }}>
-        <Typography variant="h4">
-          یادداشت‌های {NoteTypeTitles[noteType]}
-        </Typography>
-        <Divider sx={{ mb: 2, mt: 2 }} />
-        <Grid container spacing={2}>
-          {notes.map((note, index) => (
-            <Grid item xs={12} sm={12} md={12} key={index}>
-              <NoteCard
-                id={note.id}
-                title={note.title}
-                body={note.content}
-                date={note.date}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+      <Typography variant="h4">
+        یادداشت‌های {NoteTypeTitles[noteType]}
+      </Typography>
+      <Divider sx={{ mb: 2, mt: 2 }} />
+      <Grid container spacing={2}>
+        {notes.map((note, index) => (
+          <Grid item xs={12} sm={12} md={12} key={index}>
+            <NoteCard
+              id={note.id}
+              title={note.title}
+              body={note.content}
+              date={note.date}
+            />
+          </Grid>
+        ))}
+      </Grid>
       <RouterLink to="/notes">
         <Fab
           color="secondary"
