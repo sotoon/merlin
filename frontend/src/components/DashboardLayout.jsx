@@ -7,8 +7,8 @@ import {
   ListItemText,
   Toolbar,
   Typography,
+  Box,
 } from "@mui/material";
-import { Container } from "@mui/system";
 import PropTypes from "prop-types";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -30,52 +30,64 @@ const drawerOptions = [
 
 const DashboardLayout = ({ children }) => {
   return (
-    <>
-      <Drawer
-        variant="permanent"
-        anchor="right"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          right: 0, // Position the drawer on the right
-          "& .MuiDrawer-paper": {
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+      }}
+    >
+      <Box sx={{ width: drawerWidth, flexShrink: 0 }}>
+        <Drawer
+          variant="permanent"
+          anchor="right"
+          sx={{
             width: drawerWidth,
-            boxSizing: "border-box",
-          },
-        }}
-      >
-        <Toolbar />
-        <Typography component="h1" variant="h6" sx={{ mt: 2, mb: 0.5, ml: 1 }}>
-          یادداشت‌ها
-        </Typography>
-        <Divider />
-        <List>
-          {drawerOptions.map((drawerOption) => (
-            <ListItemButton
-              key={drawerOption.text}
-              component={RouterLink}
-              to={drawerOption.link}
-            >
-              <ListItemText
-                primary={drawerOption.text}
-                sx={{ textAlign: "right" }}
-              />
-            </ListItemButton>
-          ))}
-        </List>
-        <Divider />
-      </Drawer>
-      <Container
+            flexShrink: 0,
+            "& .MuiDrawer-paper": {
+              width: drawerWidth,
+              boxSizing: "border-box",
+            },
+          }}
+        >
+          <Toolbar />
+          <Typography
+            component="h1"
+            variant="h6"
+            sx={{ mt: 2, mb: 0.5, ml: 1 }}
+          >
+            یادداشت‌ها
+          </Typography>
+          <Divider />
+          <List>
+            {drawerOptions.map((drawerOption) => (
+              <ListItemButton
+                key={drawerOption.text}
+                component={RouterLink}
+                to={drawerOption.link}
+              >
+                <ListItemText
+                  primary={drawerOption.text}
+                  sx={{ textAlign: "right" }}
+                />
+              </ListItemButton>
+            ))}
+          </List>
+          <Divider />
+        </Drawer>
+      </Box>
+      <Box
         component="main"
         sx={{
-          flex: 1,
-          marginLeft: drawerWidth, // Add margin to the main content to avoid overlap
+          flexGrow: 1,
+          width: `100%`,
+          marginRight: 0,
+          p: 3,
         }}
       >
         <Toolbar />
         {children}
-      </Container>
-    </>
+      </Box>
+    </Box>
   );
 };
 

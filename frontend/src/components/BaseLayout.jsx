@@ -3,9 +3,9 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Container,
   Button,
   IconButton,
+  Box,
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
@@ -73,11 +73,9 @@ const BaseLayout = ({ children }) => {
           )}
         </Toolbar>
       </AppBar>
-      <Container
-        sx={{ display: "flex", flexDirection: "column", height: "100vh" }}
-      >
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
         {children}
-      </Container>
+      </Box>
     </>
   );
 };
