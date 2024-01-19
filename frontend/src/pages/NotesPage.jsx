@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Fab, Typography, Container, Grid, Divider } from "@mui/material";
+import { Fab, Typography, Box, Grid, Divider } from "@mui/material";
 import DashboardLayout from "../components/DashboardLayout";
 import PropTypes from "prop-types";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
@@ -50,7 +50,7 @@ const NotesPage = ({ noteType }) => {
 
   return (
     <DashboardLayout>
-      <Container>
+      <Box sx={{ maxWidth: "1000px" }}>
         <Typography variant="h4">
           یادداشت‌های {NoteTypeTitles[noteType]}
         </Typography>
@@ -67,7 +67,7 @@ const NotesPage = ({ noteType }) => {
             </Grid>
           ))}
         </Grid>
-      </Container>
+      </Box>
       <RouterLink to="/notes">
         <Fab
           color="secondary"
