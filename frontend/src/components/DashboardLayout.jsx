@@ -82,6 +82,7 @@ const DashboardLayout = ({ children }) => {
           width: `100%`,
           marginRight: 0,
           p: 3,
+          maxWidth: "1200px",
         }}
       >
         <Toolbar />
