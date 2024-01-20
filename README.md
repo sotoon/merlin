@@ -1,6 +1,6 @@
 # Merlin
 
-[![License](https://img.shields.io/badge/Licensce-GNU-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/sotoon/merlin)](https://github.com/sotoon/merlin)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/sotoon/merlin)](https://github.com/sotoon/merlin/pulls)
 
@@ -64,4 +64,4 @@ If you would like to contribute to the project, follow the guidelines in [CONTRI
 
 ## License
 
-This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [BSD 3-Clause License](LICENSE).
