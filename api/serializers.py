@@ -27,8 +27,8 @@ class NoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Note
-        fields = ("id", "owner", "title", "content", "date", "type")
-        read_only_fields = ["id"]
+        fields = ("uuid", "owner", "title", "content", "date", "type")
+        read_only_fields = ["uuid"]
 
     def validate(self, data):
         if not self.instance:

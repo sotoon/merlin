@@ -134,6 +134,7 @@ class VerifyTokenView(GenericAPIView):
 
 
 class NoteViewSet(viewsets.ModelViewSet):
+    lookup_field = "uuid"
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
     search_fields = ["type"]
