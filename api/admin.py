@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Chapter, Department, Note, Team
+from api.models import Chapter, Department, Note, Team, User
 
 
 @admin.register(Department)
@@ -60,6 +60,36 @@ class TeamAdmin(admin.ModelAdmin):
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__username", "leader__email"]
     search_help_text = "جستجو در نام تیم، نام دپارتمان، نام لیدر، ایمیل لیدر "
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    date_hierarchy = "date_updated"
+    list_display = (
+        "username",
+        "email",
+        "name",
+        "phone",
+        "department",
+        "chapter",
+        "team",
+        "leader",
+        "date_created",
+        "date_updated",
+    )
+    fields = (
+        "uuid",
+        "username",
+        "name",
+        "phone",
+        ("email", "gmail"),
+        ("department", "chapter", "team", "leader"),
+        ("date_created", "date_updated"),
+    )
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "username")
+    search_fields = ["username", "email", "name", "phone"]
+    search_help_text = "جستجو در نام کاربر، ایمیل، نام، موبایل"
 
 
 @admin.register(Note)
