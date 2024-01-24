@@ -1,6 +1,6 @@
 import uuid
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -18,9 +18,35 @@ class MerlinBaseModel(models.Model):
         abstract = True
 
 
+class User(MerlinBaseModel, AbstractUser):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    gmail = models.CharField(max_length=256, default="", verbose_name="جیمیل")
+    phone = models.CharField(max_length=256, default="", verbose_name="موبایل")
+    department = models.ForeignKey(
+        "Department", on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
+    )
+    chapter = models.ForeignKey(
+        "Chapter", on_delete=models.SET_NULL, null=True, verbose_name="چپتر"
+    )
+    team = models.ForeignKey(
+        "Team", on_delete=models.SET_NULL, null=True, verbose_name="تیم"
+    )
+    leader = models.ForeignKey(
+        "User", on_delete=models.SET_NULL, null=True, verbose_name="لیدر"
+    )
+    REQUIRED_FIELDS = ["email"]
+
+    def __str__(self):
+        return self.username
+
+    class Meta:
+        verbose_name = "کاربر"
+        verbose_name_plural = "کاربران"
+
+
 class Department(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
-    description = models.TextField(verbose_name="توضیحات")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
 
     class Meta:
         verbose_name = "دپارتمان"
@@ -35,8 +61,14 @@ class Chapter(MerlinBaseModel):
     department = models.ForeignKey(
         Department, on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
     )
-    leader = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="لیدر")
-    description = models.TextField(verbose_name="توضیحات")
+    leader = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="chapter_leader",
+        verbose_name="لیدر",
+    )
+    description = models.TextField(blank=True, verbose_name="توضیحات")
 
     class Meta:
         verbose_name = "چپتر"
@@ -51,8 +83,14 @@ class Team(MerlinBaseModel):
     department = models.ForeignKey(
         Department, on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
     )
-    leader = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="لیدر")
-    description = models.TextField(verbose_name="توضیحات")
+    leader = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="team_leader",
+        verbose_name="لیدر",
+    )
+    description = models.TextField(blank=True, verbose_name="توضیحات")
 
     class Meta:
         verbose_name = "تیم"
