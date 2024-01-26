@@ -35,7 +35,6 @@ API.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    localStorage.clear();
     // eslint-disable-next-line no-undef
     return Promise.reject(error);
   },

@@ -19,6 +19,7 @@ import ErrorSnackbar from "./components/ErrorSnackbar";
 import "./App.css";
 import NotePage from "./pages/NotePage";
 import ProfilePage from "./pages/ProfilePage";
+import MyTeamPage from "./pages/MyTeamPage";
 
 const theme = createTheme({
   palette: {
@@ -58,36 +59,20 @@ function App() {
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <Navigate to="/goals" />
+                      <Navigate to="/notes?noteType=Goal" />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/goals"
+                  path="/notes"
                   element={
                     <ProtectedRoute>
-                      <NotesPage key="goals" noteType="Goal" />
+                      <NotesPage key="notes" />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/meeting-notes"
-                  element={
-                    <ProtectedRoute>
-                      <NotesPage key="meeting-notes" noteType="Meeting" />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/personal-notes"
-                  element={
-                    <ProtectedRoute>
-                      <NotesPage key="personal-notes" noteType="Personal" />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/notes/:noteId?"
+                  path="/note/:noteId?"
                   element={
                     <ProtectedRoute>
                       <NotePage />
@@ -99,6 +84,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-team"
+                  element={
+                    <ProtectedRoute>
+                      <MyTeamPage />
                     </ProtectedRoute>
                   }
                 />

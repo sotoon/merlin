@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,10 +8,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Note, User
+from api.models import Note, Team, User
 from api.serializers import (
     NoteSerializer,
     ProfileSerializer,
+    TeamSerializer,
     TokenSerializer,
     UserSerializer,
 )
@@ -156,9 +158,29 @@ class NoteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     search_fields = ["type"]
 
+    def get_object(self):
+        uuid = self.kwargs["uuid"]
+        note = get_object_or_404(Note, uuid=uuid)
+        return note
+
     def get_queryset(self):
-        queryset = Note.objects.filter(owner=self.request.user).distinct()
+        username = self.request.query_params.get("user")
+        notes_owner = (
+            User.objects.get(username=username) if username else self.request.user
+        )
+        queryset = Note.objects.filter(owner=notes_owner).distinct()
         type = self.request.query_params.get("type")
         if type:
             queryset = queryset.filter(type=type)
         return queryset
+
+
+class MyTeamsView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TeamSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        teams = Team.objects.prefetch_related("user_set").filter(leader=user)
+        serializer = TeamSerializer(teams, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
