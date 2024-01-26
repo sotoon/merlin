@@ -3,7 +3,7 @@ import { UserContext } from "../contexts/UserContext";
 import { jwtDecode } from "jwt-decode";
 import { verifyToken } from "../services/authservice";
 import { useNavigate } from "react-router-dom";
-import { getMyTeams } from "../services/teamservice";
+import { getMyTeam } from "../services/teamservice";
 
 const useAuth = () => {
   const { user, setUser, setIsAuthCheckComplete, setIsLeader } =
@@ -41,7 +41,7 @@ const useAuth = () => {
     const checkIsLeader = async () => {
       if (user) {
         try {
-          const response = await getMyTeams();
+          const response = await getMyTeam();
           if (response.data.length > 0) {
             setIsLeader(true);
           }

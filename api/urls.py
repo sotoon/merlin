@@ -14,7 +14,7 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("verify-token/", views.VerifyTokenView.as_view(), name="verify-token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
-    path("my-teams/", views.MyTeamsView.as_view(), name="my-teams"),
+    path("my-team/", views.MyTeamView.as_view(), name="my-team"),
     path("", include(router.urls)),
 ]
 

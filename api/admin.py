@@ -13,6 +13,18 @@ class DepartmentAdmin(admin.ModelAdmin):
     search_fields = ["name"]
     search_help_text = "جستجو در نام دپارتمان"
 
+    def has_add_permission(self, request):
+        return request.user.is_staff
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
@@ -37,6 +49,18 @@ class ChapterAdmin(admin.ModelAdmin):
     search_fields = ["name", "department__name", "leader__username", "leader__email"]
     search_help_text = "جستجو در نام چپتر، نام دپارتمان، نام لیدر، ایمیل لیدر "
 
+    def has_add_permission(self, request):
+        return request.user.is_staff
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
@@ -60,6 +84,18 @@ class TeamAdmin(admin.ModelAdmin):
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__username", "leader__email"]
     search_help_text = "جستجو در نام تیم، نام دپارتمان، نام لیدر، ایمیل لیدر "
+
+    def has_add_permission(self, request):
+        return request.user.is_staff
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
 
 
 @admin.register(User)
@@ -91,6 +127,18 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ["username", "email", "name", "phone"]
     search_help_text = "جستجو در نام کاربر، ایمیل، نام، موبایل"
 
+    def has_add_permission(self, request):
+        return request.user.is_staff
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
@@ -107,3 +155,15 @@ class NoteAdmin(admin.ModelAdmin):
     ordering = ("-date_updated", "title")
     search_fields = ["title", "owner__username", "owner__email"]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده"
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser

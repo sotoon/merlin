@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Note, Team, User
+from api.models import Note, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -65,11 +65,3 @@ class ProfileSerializer(serializers.ModelSerializer):
             "team",
             "leader",
         ]
-
-
-class TeamSerializer(serializers.ModelSerializer):
-    user_set = ProfileSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Team
-        fields = ["uuid", "name", "user_set"]
