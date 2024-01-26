@@ -307,14 +307,16 @@ const NotePage = () => {
             </FormHelperText>
           )}
         </FormControl>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          sx={{ display: "flex" }}
-        >
-          Submit
-        </Button>
+        {!isReadOnly && (
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ display: "flex" }}
+          >
+            Submit
+          </Button>
+        )}
       </form>
     </DashboardLayout>
   );
