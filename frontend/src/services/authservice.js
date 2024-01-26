@@ -48,3 +48,13 @@ export const verifyToken = async (token) => {
   const response = await API.post("/verify-token/", { token });
   return response.data;
 };
+
+export const getProfileData = async () => {
+  const response = await API.get("/profile/");
+  return response;
+};
+
+export const updateProfile = async (profileData) => {
+  const response = await API.patch("/profile/", profileData);
+  return response;
+};

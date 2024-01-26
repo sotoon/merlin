@@ -34,3 +34,32 @@ class NoteSerializer(serializers.ModelSerializer):
             owner = self.context["request"].user
             data["owner"] = owner
         return super().validate(data)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    department = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    chapter = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    team = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    leader = serializers.SlugRelatedField(read_only=True, slug_field="name")
+
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "email",
+            "name",
+            "gmail",
+            "phone",
+            "department",
+            "chapter",
+            "team",
+            "leader",
+        )
+        read_only_fields = [
+            "username",
+            "email",
+            "department",
+            "chapter",
+            "team",
+            "leader",
+        ]

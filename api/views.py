@@ -1,14 +1,19 @@
 import requests
 from django.conf import settings
 from rest_framework import status, viewsets
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from api.models import Note, User
-from api.serializers import NoteSerializer, TokenSerializer, UserSerializer
+from api.serializers import (
+    NoteSerializer,
+    ProfileSerializer,
+    TokenSerializer,
+    UserSerializer,
+)
 
 
 class SignupView(APIView):
@@ -130,6 +135,19 @@ class VerifyTokenView(GenericAPIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class ProfileView(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
 
 class NoteViewSet(viewsets.ModelViewSet):
