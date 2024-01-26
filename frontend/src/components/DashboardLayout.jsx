@@ -13,7 +13,7 @@ import PropTypes from "prop-types";
 import { Link as RouterLink } from "react-router-dom";
 
 const drawerWidth = 240;
-const drawerOptions = [
+const noteOptions = [
   {
     text: "🚀 اهداف",
     link: "/goals",
@@ -25,6 +25,13 @@ const drawerOptions = [
   {
     text: "📝 یادداشت‌های شخصی",
     link: "/personal-notes",
+  },
+];
+
+const personalOptions = [
+  {
+    text: "👤 پروفایل",
+    link: "/profile",
   },
 ];
 
@@ -59,7 +66,29 @@ const DashboardLayout = ({ children }) => {
           </Typography>
           <Divider />
           <List>
-            {drawerOptions.map((drawerOption) => (
+            {noteOptions.map((noteOption) => (
+              <ListItemButton
+                key={noteOption.text}
+                component={RouterLink}
+                to={noteOption.link}
+              >
+                <ListItemText
+                  primary={noteOption.text}
+                  sx={{ textAlign: "right" }}
+                />
+              </ListItemButton>
+            ))}
+          </List>
+          <Typography
+            component="h1"
+            variant="h6"
+            sx={{ mt: 2, mb: 0.5, ml: 1 }}
+          >
+            شخصی
+          </Typography>
+          <Divider />
+          <List>
+            {personalOptions.map((drawerOption) => (
               <ListItemButton
                 key={drawerOption.text}
                 component={RouterLink}
@@ -72,7 +101,6 @@ const DashboardLayout = ({ children }) => {
               </ListItemButton>
             ))}
           </List>
-          <Divider />
         </Drawer>
       </Box>
       <Box
