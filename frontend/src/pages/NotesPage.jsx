@@ -1,21 +1,24 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Fab, Typography, Grid, Divider } from "@mui/material";
 import DashboardLayout from "../components/DashboardLayout";
-import PropTypes from "prop-types";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
 import NoteCard from "../components/NoteCard";
 import Loading from "../components/Loading";
 import { getNotes } from "../services/noteservice";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { ErrorContext } from "../contexts/ErrorContext";
 
 const NoteTypeTitles = {
   Goal: "اهداف",
   Meeting: "جلسات",
   Personal: "شخصی",
+  "": "",
 };
 
-const NotesPage = ({ noteType }) => {
+const NotesPage = () => {
+  const [searchParams] = useSearchParams();
+  const noteType = searchParams.get("noteType") || "";
+  const username = searchParams.get("user") || "";
   const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState([]);
   const { setErrorMessage } = useContext(ErrorContext);
@@ -23,7 +26,7 @@ const NotesPage = ({ noteType }) => {
   useEffect(() => {
     const fetchNotesData = async () => {
       try {
-        const response = await getNotes(noteType);
+        const response = await getNotes(noteType, username);
         console.log(
           `response status: ${response.status} response data: ${JSON.stringify(
             response.data,
@@ -38,7 +41,7 @@ const NotesPage = ({ noteType }) => {
       }
     };
     fetchNotesData();
-  }, []);
+  }, [searchParams]);
 
   if (isLoading) {
     return (
@@ -51,7 +54,8 @@ const NotesPage = ({ noteType }) => {
   return (
     <DashboardLayout>
       <Typography variant="h4">
-        یادداشت‌های {NoteTypeTitles[noteType]}
+        یادداشت‌ها{noteType ? "ی" : ""} {NoteTypeTitles[noteType]}
+        {username ? `از کاربر ${username}` : ""}
       </Typography>
       <Divider sx={{ mb: 2, mt: 2 }} />
       <Grid container spacing={2}>
@@ -66,7 +70,7 @@ const NotesPage = ({ noteType }) => {
           </Grid>
         ))}
       </Grid>
-      <RouterLink to="/notes">
+      <RouterLink to="/note">
         <Fab
           color="secondary"
           aria-label="Add Note"
@@ -82,10 +86,6 @@ const NotesPage = ({ noteType }) => {
       </RouterLink>
     </DashboardLayout>
   );
-};
-
-NotesPage.propTypes = {
-  noteType: PropTypes.string.isRequired,
 };
 
 export default NotesPage;

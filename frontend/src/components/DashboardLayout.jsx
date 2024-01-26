@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Divider,
   Drawer,
@@ -11,20 +11,21 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { Link as RouterLink } from "react-router-dom";
+import { UserContext } from "../contexts/UserContext";
 
 const drawerWidth = 240;
 const noteOptions = [
   {
     text: "🚀 اهداف",
-    link: "/goals",
+    link: "/notes?noteType=Goal",
   },
   {
-    text: "👥 جلسات",
-    link: "/meeting-notes",
+    text: "🤝 جلسات",
+    link: "/notes?noteType=Meeting",
   },
   {
     text: "📝 یادداشت‌های شخصی",
-    link: "/personal-notes",
+    link: "/notes?noteType=Personal",
   },
 ];
 
@@ -32,10 +33,17 @@ const personalOptions = [
   {
     text: "👤 پروفایل",
     link: "/profile",
+    leaderCondition: false,
+  },
+  {
+    text: "👥 تیم من",
+    link: "/my-team",
+    leaderCondition: true,
   },
 ];
 
 const DashboardLayout = ({ children }) => {
+  const { isLeader } = useContext(UserContext);
   return (
     <Box
       sx={{
@@ -88,18 +96,21 @@ const DashboardLayout = ({ children }) => {
           </Typography>
           <Divider />
           <List>
-            {personalOptions.map((drawerOption) => (
-              <ListItemButton
-                key={drawerOption.text}
-                component={RouterLink}
-                to={drawerOption.link}
-              >
-                <ListItemText
-                  primary={drawerOption.text}
-                  sx={{ textAlign: "right" }}
-                />
-              </ListItemButton>
-            ))}
+            {personalOptions.map(
+              (drawerOption) =>
+                (!drawerOption.leaderCondition || isLeader) && (
+                  <ListItemButton
+                    key={drawerOption.text}
+                    component={RouterLink}
+                    to={drawerOption.link}
+                  >
+                    <ListItemText
+                      primary={drawerOption.text}
+                      sx={{ textAlign: "right" }}
+                    />
+                  </ListItemButton>
+                ),
+            )}
           </List>
         </Drawer>
       </Box>

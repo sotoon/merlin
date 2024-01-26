@@ -1,13 +1,15 @@
 import requests
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Note, User
+from api.models import Note, NoteType, User
 from api.serializers import (
     NoteSerializer,
     ProfileSerializer,
@@ -156,9 +158,48 @@ class NoteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     search_fields = ["type"]
 
+    def get_object(self):
+        uuid = self.kwargs["uuid"]
+        note = get_object_or_404(Note, uuid=uuid)
+        if note.owner == self.request.user or (
+            note.owner.leader == self.request.user and note.type != NoteType.Personal
+        ):
+            return note
+        raise PermissionDenied("You don't have permission to access this note.")
+
+    def update(self, request, *args, **kwargs):
+        if self.get_object().owner != self.request.user:
+            raise PermissionDenied("You don't have permission to update this note.")
+        return super().update(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if self.get_object().owner != self.request.user:
+            raise PermissionDenied("You don't have permission to update this note.")
+        return super().create(request, *args, **kwargs)
+
     def get_queryset(self):
-        queryset = Note.objects.filter(owner=self.request.user).distinct()
+        username = self.request.query_params.get("user")
+        if username:
+            notes_owner = User.objects.get(username=username)
+            queryset = (
+                Note.objects.filter(owner=notes_owner)
+                .exclude(type=NoteType.Personal)
+                .distinct()
+            )
+        else:
+            queryset = Note.objects.filter(owner=self.request.user).distinct()
         type = self.request.query_params.get("type")
         if type:
             queryset = queryset.filter(type=type)
         return queryset
+
+
+class MyTeamView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        team_users = User.objects.filter(leader=user)
+        serializer = self.get_serializer(team_users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

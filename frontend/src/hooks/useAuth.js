@@ -3,9 +3,11 @@ import { UserContext } from "../contexts/UserContext";
 import { jwtDecode } from "jwt-decode";
 import { verifyToken } from "../services/authservice";
 import { useNavigate } from "react-router-dom";
+import { getMyTeam } from "../services/teamservice";
 
 const useAuth = () => {
-  const { setUser, setIsAuthCheckComplete } = useContext(UserContext);
+  const { user, setUser, setIsAuthCheckComplete, setIsLeader } =
+    useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +36,22 @@ const useAuth = () => {
     };
     checkAuth();
   }, [setUser, setIsAuthCheckComplete, localStorage.getItem("accessToken")]);
+
+  useEffect(() => {
+    const checkIsLeader = async () => {
+      if (user) {
+        try {
+          const response = await getMyTeam();
+          if (response.data.length > 0) {
+            setIsLeader(true);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+    checkIsLeader();
+  }, [user]);
 
   return null;
 };
