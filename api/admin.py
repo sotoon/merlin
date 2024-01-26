@@ -146,7 +146,7 @@ class NoteAdmin(admin.ModelAdmin):
     list_display = ("title", "type", "owner", "date", "date_created", "date_updated")
     fields = (
         "uuid",
-        "title",
+        ("title", "type"),
         ("owner", "date"),
         "content",
         ("date_created", "date_updated"),
