@@ -45,7 +45,7 @@ const NoteCard = ({ id, title, body, date }) => {
 
   return (
     <RouterLink
-      to={`/notes/${id}`}
+      to={`/note/${id}`}
       component="div"
       style={{ textDecoration: "none", color: "inherit" }}
     >

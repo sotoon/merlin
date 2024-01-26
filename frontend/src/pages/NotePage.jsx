@@ -18,6 +18,7 @@ import ReactQuill from "react-quill"; // Import the ReactQuill component
 import "react-quill/dist/quill.snow.css";
 import Loading from "../components/Loading";
 import { ErrorContext } from "../contexts/ErrorContext";
+import { UserContext } from "../contexts/UserContext";
 const Quill = ReactQuill.Quill;
 const Font = Quill.import("formats/font");
 Font.whitelist = ["yekan", "sans-serif"]; // Add your fonts here
@@ -28,6 +29,7 @@ const NotePage = () => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(noteId ? true : false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
     return savedData
@@ -36,6 +38,7 @@ const NotePage = () => {
   });
   const navigate = useNavigate();
   const { setErrorMessage } = useContext(ErrorContext);
+  const { user } = useContext(UserContext);
   let isProgrammaticUpdate = false;
 
   const quillRef = useRef(null);
@@ -76,6 +79,9 @@ const NotePage = () => {
           )}`,
         );
         setFormData(response.data);
+        if (response.data.owner !== user.username) {
+          setIsReadOnly(true);
+        }
       } catch (error) {
         console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
@@ -86,7 +92,7 @@ const NotePage = () => {
     if (noteId) {
       fetchNoteData();
     }
-  }, [noteId]);
+  }, [noteId, user]);
 
   const handleChange = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -174,11 +180,12 @@ const NotePage = () => {
           value={formData.title}
           onChange={handleChange}
           error={Boolean(errors.title)}
-          helperText={errors.title}
+          helpertext={errors.title}
           fullWidth
           margin="normal"
           sx={{ mb: 2 }}
           InputProps={{
+            readOnly: isReadOnly,
             style: {
               textAlign: "right", // Align input text to the right
               direction: "rtl", // Set input text direction to right-to-left
@@ -198,6 +205,7 @@ const NotePage = () => {
           value={formData.content}
           onChange={handleContentChange}
           placeholder="محتوا"
+          readOnly={isReadOnly}
           modules={{
             toolbar: [
               ["bold", "italic", "underline", "strike"], // basic formatting
@@ -246,8 +254,11 @@ const NotePage = () => {
           label="تاریخ"
           name="date"
           error={Boolean(errors.date)}
-          helperText={errors.date}
+          helpertext={errors.date}
           value={formData.date}
+          InputProps={{
+            readOnly: isReadOnly,
+          }}
           InputLabelProps={{
             shrink: true,
             style: {
@@ -263,8 +274,8 @@ const NotePage = () => {
         />
         <FormControl
           margin="normal"
-          errors={Boolean(errors.type)}
-          helperText={errors.type}
+          errors={errors}
+          helpertext={errors.type}
           sx={{ mr: 5, minWidth: "50px" }}
         >
           <InputLabel
@@ -284,6 +295,7 @@ const NotePage = () => {
             onChange={handleChange}
             labelId="type-select-label"
             label="Type"
+            disabled={isReadOnly}
           >
             <MenuItem value="Goal">هدف</MenuItem>
             <MenuItem value="Meeting">جلسه</MenuItem>

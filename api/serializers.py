@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Note, User
+from api.models import Note, Team, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,8 +20,8 @@ class TokenSerializer(serializers.Serializer):
 
 
 class NoteSerializer(serializers.ModelSerializer):
-    owner = serializers.PrimaryKeyRelatedField(
-        default=serializers.CurrentUserDefault(), read_only=True
+    owner = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(), read_only=True, slug_field="username"
     )
 
     class Meta:
@@ -45,6 +45,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            "uuid",
             "username",
             "email",
             "name",
@@ -56,6 +57,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "leader",
         )
         read_only_fields = [
+            "uuid",
             "username",
             "email",
             "department",
@@ -63,3 +65,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             "team",
             "leader",
         ]
+
+
+class TeamSerializer(serializers.ModelSerializer):
+    user_set = ProfileSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Team
+        fields = ["uuid", "name", "user_set"]

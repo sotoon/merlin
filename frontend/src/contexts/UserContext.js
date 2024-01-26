@@ -6,10 +6,18 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
+  const [isLeader, setIsLeader] = useState(false);
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, isAuthCheckComplete, setIsAuthCheckComplete }}
+      value={{
+        user,
+        setUser,
+        isAuthCheckComplete,
+        setIsAuthCheckComplete,
+        isLeader,
+        setIsLeader,
+      }}
     >
       {children}
     </UserContext.Provider>
