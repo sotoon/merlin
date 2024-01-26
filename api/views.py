@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Note, User
+from api.models import Note, NoteType, User
 from api.serializers import (
     NoteSerializer,
     ProfileSerializer,
@@ -161,7 +161,9 @@ class NoteViewSet(viewsets.ModelViewSet):
     def get_object(self):
         uuid = self.kwargs["uuid"]
         note = get_object_or_404(Note, uuid=uuid)
-        if note.owner == self.request.user or note.owner.leader == self.request.user:
+        if note.owner == self.request.user or (
+            note.owner.leader == self.request.user and note.type != NoteType.Personal
+        ):
             return note
         raise PermissionDenied("You don't have permission to access this note.")
 
@@ -177,10 +179,15 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         username = self.request.query_params.get("user")
-        notes_owner = (
-            User.objects.get(username=username) if username else self.request.user
-        )
-        queryset = Note.objects.filter(owner=notes_owner).distinct()
+        if username:
+            notes_owner = User.objects.get(username=username)
+            queryset = (
+                Note.objects.filter(owner=notes_owner)
+                .exclude(type=NoteType.Personal)
+                .distinct()
+            )
+        else:
+            queryset = Note.objects.filter(owner=self.request.user).distinct()
         type = self.request.query_params.get("type")
         if type:
             queryset = queryset.filter(type=type)
