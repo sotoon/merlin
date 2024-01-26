@@ -19,7 +19,7 @@ class MerlinBaseModel(models.Model):
 
 
 class User(MerlinBaseModel, AbstractUser):
-    name = models.CharField(max_length=256, verbose_name="نام")
+    name = models.CharField(max_length=256, default="", verbose_name="نام")
     gmail = models.CharField(max_length=256, default="", verbose_name="جیمیل")
     phone = models.CharField(max_length=256, default="", verbose_name="موبایل")
     department = models.ForeignKey(

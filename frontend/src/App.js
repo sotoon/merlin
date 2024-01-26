@@ -18,6 +18,7 @@ import { ErrorProvider } from "./contexts/ErrorContext";
 import ErrorSnackbar from "./components/ErrorSnackbar";
 import "./App.css";
 import NotePage from "./pages/NotePage";
+import ProfilePage from "./pages/ProfilePage";
 
 const theme = createTheme({
   palette: {
@@ -90,6 +91,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <NotePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
                     </ProtectedRoute>
                   }
                 />
