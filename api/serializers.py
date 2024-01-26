@@ -1,7 +1,6 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from api.models import Note
+from api.models import Note, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,11 +26,40 @@ class NoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Note
-        fields = ("id", "owner", "title", "content", "date", "type")
-        read_only_fields = ["id"]
+        fields = ("uuid", "owner", "title", "content", "date", "type")
+        read_only_fields = ["uuid"]
 
     def validate(self, data):
         if not self.instance:
             owner = self.context["request"].user
             data["owner"] = owner
         return super().validate(data)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    department = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    chapter = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    team = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    leader = serializers.SlugRelatedField(read_only=True, slug_field="name")
+
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "email",
+            "name",
+            "gmail",
+            "phone",
+            "department",
+            "chapter",
+            "team",
+            "leader",
+        )
+        read_only_fields = [
+            "username",
+            "email",
+            "department",
+            "chapter",
+            "team",
+            "leader",
+        ]

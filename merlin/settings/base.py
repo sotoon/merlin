@@ -125,9 +125,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "fa"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Tehran"
 
 USE_I18N = True
 
@@ -136,8 +136,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -172,3 +172,5 @@ BEPA_CLIENT_SECRET = os.getenv("BEPA_CLIENT_SECRET", "")
 BEPA_REDIRECT_URI = os.getenv("BEPA_REDIRECT_URI", "")
 
 SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
+
+AUTH_USER_MODEL = "api.User"

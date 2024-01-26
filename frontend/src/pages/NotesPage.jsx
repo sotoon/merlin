@@ -58,7 +58,7 @@ const NotesPage = ({ noteType }) => {
         {notes.map((note, index) => (
           <Grid item xs={12} sm={12} md={12} key={index}>
             <NoteCard
-              id={note.id}
+              id={note.uuid}
               title={note.title}
               body={note.content}
               date={note.date}
