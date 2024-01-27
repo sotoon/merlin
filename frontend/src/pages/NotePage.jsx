@@ -14,14 +14,14 @@ import { createNote, getNote, updateNote } from "../services/noteservice";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
-import ReactQuill from "react-quill"; // Import the ReactQuill component
+import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Loading from "../components/Loading";
 import { ErrorContext } from "../contexts/ErrorContext";
 import { UserContext } from "../contexts/UserContext";
 const Quill = ReactQuill.Quill;
 const Font = Quill.import("formats/font");
-Font.whitelist = ["yekan", "sans-serif"]; // Add your fonts here
+Font.whitelist = ["yekan", "sans-serif"];
 Quill.register(Font, true);
 
 const NotePage = () => {
@@ -48,7 +48,6 @@ const NotePage = () => {
     if (!data.title) tempErrors.title = "عنوان الزامی است.";
     if (!data.date) tempErrors.date = "تاریخ الزامی است.";
     if (!data.type) tempErrors.type = "نوع الزامی است.";
-    // Add more validation rules as needed
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -187,15 +186,15 @@ const NotePage = () => {
           InputProps={{
             readOnly: isReadOnly,
             style: {
-              textAlign: "right", // Align input text to the right
-              direction: "rtl", // Set input text direction to right-to-left
+              textAlign: "right",
+              direction: "rtl",
             },
           }}
           InputLabelProps={{
             style: {
-              textAlign: "right", // Align label text to the right
-              right: 0, // Position label to the right
-              left: "auto", // Override default left positioning
+              textAlign: "right",
+              right: 0,
+              left: "auto",
               marginRight: 20,
             },
           }}
@@ -208,18 +207,18 @@ const NotePage = () => {
           readOnly={isReadOnly}
           modules={{
             toolbar: [
-              ["bold", "italic", "underline", "strike"], // basic formatting
-              [{ header: 1 }, { header: 2 }], // headers
-              [{ list: "ordered" }, { list: "bullet" }], // lists
+              ["bold", "italic", "underline", "strike"],
+              [{ header: 1 }, { header: 2 }],
+              [{ list: "ordered" }, { list: "bullet" }],
               [{ script: "sub" }, { script: "super" }],
               [{ size: ["small", false, "large", "huge"] }],
-              [{ indent: "-1" }, { indent: "+1" }], // indentation
-              [{ direction: "rtl" }], // text direction
+              [{ indent: "-1" }, { indent: "+1" }],
+              [{ direction: "rtl" }],
               [{ align: [] }],
-              [{ header: [1, 2, 3, 4, 5, 6, false] }], // custom header values
-              [{ color: [] }, { background: [] }], // text and background color
-              [{ font: Font.whitelist }], // font family
-              ["link", "image", "blockquote", "code-block"], // links, media, blockquote, code block
+              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+              [{ color: [] }, { background: [] }],
+              [{ font: Font.whitelist }],
+              ["link", "image", "blockquote", "code-block"],
             ],
           }}
           formats={[
@@ -262,9 +261,9 @@ const NotePage = () => {
           InputLabelProps={{
             shrink: true,
             style: {
-              textAlign: "right", // Align label text to the right
-              right: 0, // Position label to the right
-              left: "auto", // Override default left positioning
+              textAlign: "right",
+              right: 0,
+              left: "auto",
               marginRight: 20,
             },
           }}
@@ -281,9 +280,9 @@ const NotePage = () => {
           <InputLabel
             id="type-select-label"
             style={{
-              textAlign: "right", // Align label text to the right
-              right: 0, // Position label to the right
-              left: "auto", // Override default left positioning
+              textAlign: "right",
+              right: 0,
+              left: "auto",
               marginRight: 35,
             }}
           >

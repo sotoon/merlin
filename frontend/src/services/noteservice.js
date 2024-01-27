@@ -34,9 +34,9 @@ export const getNote = async (id) => {
   }
 };
 
-export const updateNote = async (noteData, id) => {
+export const updateNote = async (noteData, uuid) => {
   try {
-    const response = await API.put(`/notes/${id}/`, noteData);
+    const response = await API.put(`/notes/${uuid}/`, noteData);
     return response;
   } catch (error) {
     console.error(error);
@@ -44,9 +44,9 @@ export const updateNote = async (noteData, id) => {
   }
 };
 
-export const deleteNote = async (id) => {
+export const deleteNote = async (uuid) => {
   try {
-    const response = await API.delete(`/notes/${id}/`);
+    const response = await API.delete(`/notes/${uuid}/`);
     return response;
   } catch (error) {
     console.error(error);

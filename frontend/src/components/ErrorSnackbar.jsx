@@ -1,4 +1,3 @@
-// ErrorSnackbar.js
 import React, { useContext } from "react";
 import { Snackbar, Alert } from "@mui/material";
 import { ErrorContext } from "../contexts/ErrorContext";
