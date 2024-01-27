@@ -4,13 +4,13 @@ import {
   Card,
   CardHeader,
   CardContent,
-  CardActions,
   Typography,
+  CardActions,
   Divider,
 } from "@mui/material";
 import PropTypes from "prop-types";
 
-const MemberCard = ({ name, email }) => {
+const MemberCard = ({ name, email, team }) => {
   return (
     <RouterLink
       to={`/notes?username=${name}&useremail=${email}`}
@@ -34,7 +34,7 @@ const MemberCard = ({ name, email }) => {
               whiteSpace: "nowrap",
             }}
           >
-            {name}
+            تیم {team}
           </Typography>
         </CardContent>
         <CardActions
@@ -53,6 +53,13 @@ const MemberCard = ({ name, email }) => {
 MemberCard.propTypes = {
   name: PropTypes.string,
   email: PropTypes.string,
+  team: PropTypes.string,
+};
+
+MemberCard.defaultProps = {
+  name: "",
+  email: "",
+  team: "",
 };
 
 export default MemberCard;
