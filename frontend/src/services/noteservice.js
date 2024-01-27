@@ -10,11 +10,11 @@ export const createNote = async (noteData) => {
   }
 };
 
-export const getNotes = async (noteType, username) => {
+export const getNotes = async (noteType, userEmail) => {
   try {
     let url = noteType ? `/notes/?type=${noteType}` : "/notes/";
-    if (username) {
-      url += url.includes("?") ? `&user=${username}` : `?user=${username}`;
+    if (userEmail) {
+      url += url.includes("?") ? `&user=${userEmail}` : `?user=${userEmail}`;
     }
     const response = await API.get(url);
     return response;

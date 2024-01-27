@@ -32,7 +32,7 @@ const Login = () => {
       localStorage.setItem("accessToken", response.data.tokens.access);
       localStorage.setItem("refreshToken", response.data.tokens.refresh);
       const user = {
-        username: response.data.username,
+        name: response.data.name,
         email: response.data.email,
       };
       setUser(user);
