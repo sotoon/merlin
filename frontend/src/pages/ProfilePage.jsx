@@ -8,6 +8,7 @@ import {
   Divider,
   Snackbar,
   Alert,
+  Chip,
 } from "@mui/material";
 import Loading from "../components/Loading";
 import { ErrorContext } from "../contexts/ErrorContext";
@@ -90,6 +91,26 @@ const ProfilePage = () => {
       <Typography variant="h6" gutterBottom>
         ایمیل سازمانی: {formData.email}
       </Typography>
+      <Chip
+        label={`دپارتمان: ${formData.department}`}
+        color="primary"
+        sx={{ fontSize: "large" }}
+      />
+      <Chip
+        label={`چپتر: ${formData.chapter}`}
+        color="secondary"
+        sx={{ margin: 1, fontSize: "large" }}
+      />
+      <Chip
+        label={`تیم: ${formData.team}`}
+        color="success"
+        sx={{ margin: 1, fontSize: "large" }}
+      />
+      <Chip
+        label={`لیدر: ${formData.leader}`}
+        color="error"
+        sx={{ margin: 1, fontSize: "large" }}
+      />
       <form onSubmit={handleSubmit}>
         <TextField
           label="نام"
@@ -160,18 +181,6 @@ const ProfilePage = () => {
             },
           }}
         />
-        <Typography variant="h6" gutterBottom>
-          دپارتمان: {formData.department}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          چپتر: {formData.chapter}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          تیم: {formData.team}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          لیدر: {formData.leader}
-        </Typography>
         <Button
           type="submit"
           variant="contained"
