@@ -167,6 +167,40 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
 }
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {"format": "[{asctime}] [{levelname}] {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.request": {
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.server": {
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}
+
 BEPA_TOKEN_URL = os.getenv("BEPA_TOKEN_URL", "https://bepa.sotoon.ir/token")
 BEPA_USER_INFO_URL = os.getenv("BEPA_USER_INFO_URL", "https://bepa.sotoon.ir/userinfo")
 BEPA_CLIENT_ID = os.getenv("BEPA_CLIENT_ID", "")
