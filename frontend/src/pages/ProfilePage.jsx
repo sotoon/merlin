@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import Loading from "../components/Loading";
 import { ErrorContext } from "../contexts/ErrorContext";
+import { UserContext } from "../contexts/UserContext";
+import { verifyToken } from "../services/authservice";
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +26,7 @@ const ProfilePage = () => {
     team: "",
     leader: "",
   });
+  const { setUser } = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(true);
   const { setErrorMessage } = useContext(ErrorContext);
   const [isSubmitSnackbarOpen, setIsSubmitSnackbarOpen] = useState(false);
@@ -64,6 +67,9 @@ const ProfilePage = () => {
           )}`,
         );
         setIsSubmitSnackbarOpen(true);
+        const token = localStorage.getItem("accessToken");
+        const user = await verifyToken(token);
+        setUser(user);
       } catch (error) {
         console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
