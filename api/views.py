@@ -26,10 +26,10 @@ class SignupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
-            refresh["username"] = user.username
+            refresh["name"] = user.name
             refresh["email"] = user.email
             data = {
-                "username": user.username,
+                "name": user.name,
                 "email": user.email,
                 "tokens": {
                     "refresh": str(refresh),
@@ -51,10 +51,10 @@ class LoginView(APIView):
 
         if user and user.check_password(password):
             refresh = RefreshToken.for_user(user)
-            refresh["username"] = user.username
+            refresh["name"] = user.name
             refresh["email"] = user.email
             data = {
-                "username": user.username,
+                "name": user.name,
                 "email": user.email,
                 "tokens": {
                     "refresh": str(refresh),
@@ -99,19 +99,17 @@ class BepaCallbackView(APIView):
         )
         user_info = user_info_response.json()
 
-        username = user_info.get("name")
+        name = user_info.get("name")
         email = user_info.get("email")
 
-        user, created = User.objects.get_or_create(
-            username=username, defaults={"email": email}
-        )
+        user, created = User.objects.get_or_create(name=name, defaults={"email": email})
 
         if created:
             user.set_unusable_password()
             user.save()
 
         refresh = RefreshToken.for_user(user)
-        refresh["username"] = user.username
+        refresh["name"] = user.name
         refresh["email"] = user.email
         data = {
             "refresh": str(refresh),
@@ -178,9 +176,9 @@ class NoteViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def get_queryset(self):
-        username = self.request.query_params.get("user")
-        if username:
-            notes_owner = User.objects.get(username=username)
+        user_email = self.request.query_params.get("user")
+        if user_email:
+            notes_owner = User.objects.get(email=user_email)
             queryset = (
                 Note.objects.filter(owner=notes_owner)
                 .exclude(type=NoteType.Personal)

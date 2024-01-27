@@ -18,7 +18,8 @@ const NoteTypeTitles = {
 const NotesPage = () => {
   const [searchParams] = useSearchParams();
   const noteType = searchParams.get("noteType") || "";
-  const username = searchParams.get("user") || "";
+  const userEmail = searchParams.get("useremail") || "";
+  const userName = searchParams.get("username") || "";
   const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState([]);
   const { setErrorMessage } = useContext(ErrorContext);
@@ -26,7 +27,7 @@ const NotesPage = () => {
   useEffect(() => {
     const fetchNotesData = async () => {
       try {
-        const response = await getNotes(noteType, username);
+        const response = await getNotes(noteType, userEmail);
         console.log(
           `response status: ${response.status} response data: ${JSON.stringify(
             response.data,
@@ -55,7 +56,7 @@ const NotesPage = () => {
     <DashboardLayout>
       <Typography variant="h4">
         یادداشت‌ها{noteType ? "ی" : ""} {NoteTypeTitles[noteType]}
-        {username ? `از کاربر ${username}` : ""}
+        {userName ? `از کاربر ${userName}` : ""}
       </Typography>
       <Divider sx={{ mb: 2, mt: 2 }} />
       <Grid container spacing={2}>

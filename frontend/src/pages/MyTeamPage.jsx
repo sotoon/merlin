@@ -47,11 +47,7 @@ const MyTeamPage = () => {
         {team.map((user, index) => (
           <>
             <Grid item xs={12} sm={6} md={4} key={index}>
-              <MemberCard
-                username={user.username}
-                name={user.name}
-                email={user.email}
-              />
+              <MemberCard name={user.name} email={user.email} />
             </Grid>
           </>
         ))}
