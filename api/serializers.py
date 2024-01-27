@@ -21,7 +21,7 @@ class TokenSerializer(serializers.Serializer):
 
 class NoteSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault(), read_only=True, slug_field="username"
+        default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
     )
 
     class Meta:
@@ -46,7 +46,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "uuid",
-            "username",
             "email",
             "name",
             "gmail",
@@ -58,7 +57,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
         read_only_fields = [
             "uuid",
-            "username",
             "email",
             "department",
             "chapter",
