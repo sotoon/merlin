@@ -37,7 +37,7 @@ class User(MerlinBaseModel, AbstractUser):
     REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
-        return self.username
+        return self.name
 
     class Meta:
         verbose_name = "کاربر"

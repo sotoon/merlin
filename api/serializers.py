@@ -6,9 +6,9 @@ from api.models import Note, User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "email", "password")
+        fields = ("uuid", "name", "email", "password")
         write_only_fields = ["password"]
-        read_only_fields = ["id"]
+        read_only_fields = ["uuid"]
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)

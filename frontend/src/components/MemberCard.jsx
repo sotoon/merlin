@@ -10,16 +10,16 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 
-const MemberCard = ({ username, name, email }) => {
+const MemberCard = ({ name, email }) => {
   return (
     <RouterLink
-      to={`/notes?user=${username}`}
+      to={`/notes?username=${name}&useremail=${email}`}
       component="div"
       style={{ textDecoration: "none", color: "inherit" }}
     >
       <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <CardHeader
-          title={<Typography variant="h6">{username}</Typography>}
+          title={<Typography variant="h6">{name}</Typography>}
           sx={{ backgroundColor: "#0D47A1", color: "#FFFFFF" }}
         />
         <Divider />
@@ -52,7 +52,6 @@ const MemberCard = ({ username, name, email }) => {
 
 MemberCard.propTypes = {
   name: PropTypes.string,
-  username: PropTypes.string,
   email: PropTypes.string,
 };
 

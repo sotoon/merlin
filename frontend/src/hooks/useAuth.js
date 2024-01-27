@@ -16,9 +16,9 @@ const useAuth = () => {
       if (token) {
         try {
           const payload = jwtDecode(token);
-          if (payload.username && payload.email) {
+          if (payload.name && payload.email) {
             setUser({
-              username: payload.username,
+              name: payload.name,
               email: payload.email,
             });
           } else {
