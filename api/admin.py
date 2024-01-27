@@ -46,7 +46,7 @@ class ChapterAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
-    search_fields = ["name", "department__name", "leader__username", "leader__email"]
+    search_fields = ["name", "department__name", "leader__name", "leader__email"]
     search_help_text = "جستجو در نام چپتر، نام دپارتمان، نام لیدر، ایمیل لیدر "
 
     def has_add_permission(self, request):
@@ -82,7 +82,7 @@ class TeamAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
-    search_fields = ["name", "department__name", "leader__username", "leader__email"]
+    search_fields = ["name", "department__name", "leader__name", "leader__email"]
     search_help_text = "جستجو در نام تیم، نام دپارتمان، نام لیدر، ایمیل لیدر "
 
     def has_add_permission(self, request):
@@ -102,7 +102,6 @@ class TeamAdmin(admin.ModelAdmin):
 class UserAdmin(admin.ModelAdmin):
     date_hierarchy = "date_updated"
     list_display = (
-        "username",
         "email",
         "name",
         "phone",
@@ -115,7 +114,6 @@ class UserAdmin(admin.ModelAdmin):
     )
     fields = (
         "uuid",
-        "username",
         "name",
         "phone",
         ("email", "gmail"),
@@ -123,9 +121,9 @@ class UserAdmin(admin.ModelAdmin):
         ("date_created", "date_updated"),
     )
     readonly_fields = ("uuid", "date_created", "date_updated")
-    ordering = ("-date_created", "username")
-    search_fields = ["username", "email", "name", "phone"]
-    search_help_text = "جستجو در نام کاربر، ایمیل، نام، موبایل"
+    ordering = ("-date_created", "email")
+    search_fields = ["email", "name", "phone"]
+    search_help_text = "جستجو در نام کاربر، ایمیل، موبایل"
 
     def has_add_permission(self, request):
         return request.user.is_staff
@@ -153,7 +151,7 @@ class NoteAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_updated", "title")
-    search_fields = ["title", "owner__username", "owner__email"]
+    search_fields = ["title", "owner__name", "owner__email"]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده"
 
     def has_add_permission(self, request):

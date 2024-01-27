@@ -53,7 +53,7 @@ const BaseLayout = ({ children }) => {
           {user ? (
             <>
               <Typography variant="subtitle1">
-                خوش آمدید, {user.username}
+                خوش آمدید, {user.name}
               </Typography>
               <IconButton aria-label="logout" onClick={handleLogout}>
                 <PowerSettingsNewSharpIcon color="inherit" fontSize="large" />

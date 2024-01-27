@@ -79,7 +79,7 @@ const NotePage = () => {
           )}`,
         );
         setFormData(response.data);
-        if (response.data.owner !== user.username) {
+        if (response.data.owner !== user.email) {
           setIsReadOnly(true);
         }
       } catch (error) {

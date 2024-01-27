@@ -14,7 +14,6 @@ import { ErrorContext } from "../contexts/ErrorContext";
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({
-    username: "",
     name: "",
     email: "",
     gmail: "",
@@ -88,9 +87,6 @@ const ProfilePage = () => {
     <DashboardLayout>
       <Typography variant="h4">ویرایش پروفایل</Typography>
       <Divider sx={{ mb: 2, mt: 2 }} />
-      <Typography variant="h6" gutterBottom>
-        نام کاربری: {formData.username}
-      </Typography>
       <Typography variant="h6" gutterBottom>
         ایمیل سازمانی: {formData.email}
       </Typography>
