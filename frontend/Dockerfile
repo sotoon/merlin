@@ -6,11 +6,11 @@ COPY package*.json ./
 
 RUN npm install --loglevel verbose
 
+RUN npm install -g serve
+
 COPY . .
 
 RUN npm run build
-
-RUN npm install -g serve
 
 EXPOSE 5000
 
