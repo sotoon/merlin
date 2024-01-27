@@ -179,6 +179,8 @@ class NoteViewSet(viewsets.ModelViewSet):
         user_email = self.request.query_params.get("user")
         if user_email:
             notes_owner = User.objects.get(email=user_email)
+            if notes_owner.leader != self.request.user:
+                raise PermissionDenied("You don't have permission to access this note.")
             queryset = (
                 Note.objects.filter(owner=notes_owner)
                 .exclude(type=NoteType.Personal)
