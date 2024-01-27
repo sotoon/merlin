@@ -16,19 +16,19 @@ import { useNavigate } from "react-router";
 import { ErrorContext } from "../contexts/ErrorContext";
 import PropTypes from "prop-types";
 
-const NoteCard = ({ id, title, body, date }) => {
+const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
   const { setErrorMessage } = useContext(ErrorContext);
   const navigate = useNavigate();
   const removeMarkdown = (markdownText) => {
-    return marked(markdownText).replace(/<\/?[^>]+(>|$)/g, "\n"); // Remove HTML tags
+    return marked(markdownText).replace(/<\/?[^>]+(>|$)/g, "\n");
   };
 
   const handleDelete = (event) => {
-    event.preventDefault(); // Prevent default action
-    event.stopPropagation(); // Stop event propagation
+    event.preventDefault();
+    event.stopPropagation();
     const deleteCurrentNote = async () => {
       try {
-        const response = await deleteNote(id);
+        const response = await deleteNote(uuid);
         console.log(
           `response status: ${response.status} response data: ${JSON.stringify(
             response.data,
@@ -45,7 +45,7 @@ const NoteCard = ({ id, title, body, date }) => {
 
   return (
     <RouterLink
-      to={`/note/${id}`}
+      to={`/note/${uuid}`}
       component="div"
       style={{ textDecoration: "none", color: "inherit" }}
     >
@@ -76,17 +76,19 @@ const NoteCard = ({ id, title, body, date }) => {
           <Typography variant="caption" color="textSecondary" sx={{ flex: 1 }}>
             {date}
           </Typography>
-          <IconButton
-            color="inherit"
-            onClick={(event) => handleDelete(event)}
-            sx={{
-              "&:hover": {
-                color: "#FF9800", // Change this to the desired hover color
-              },
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
+          {!isReadOnly && (
+            <IconButton
+              color="inherit"
+              onClick={(event) => handleDelete(event)}
+              sx={{
+                "&:hover": {
+                  color: "#FF9800",
+                },
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          )}
         </CardActions>
       </Card>
     </RouterLink>
@@ -94,10 +96,19 @@ const NoteCard = ({ id, title, body, date }) => {
 };
 
 NoteCard.propTypes = {
-  id: PropTypes.number,
+  uuid: PropTypes.string,
   title: PropTypes.string,
   body: PropTypes.string,
   date: PropTypes.string,
+  isReadOnly: PropTypes.bool,
+};
+
+NoteCard.defaultProps = {
+  uuid: "",
+  title: "",
+  body: "",
+  data: "",
+  isReadOnly: false,
 };
 
 export default NoteCard;
