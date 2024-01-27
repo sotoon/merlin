@@ -19,20 +19,30 @@ class MerlinBaseModel(models.Model):
 
 
 class User(MerlinBaseModel, AbstractUser):
-    name = models.CharField(max_length=256, default="", verbose_name="نام")
-    gmail = models.CharField(max_length=256, default="", verbose_name="جیمیل")
-    phone = models.CharField(max_length=256, default="", verbose_name="موبایل")
+    name = models.CharField(
+        max_length=256, default="", blank=True, null=True, verbose_name="نام"
+    )
+    gmail = models.CharField(
+        max_length=256, default="", blank=True, null=True, verbose_name="جیمیل"
+    )
+    phone = models.CharField(
+        max_length=256, default="", blank=True, null=True, verbose_name="موبایل"
+    )
     department = models.ForeignKey(
-        "Department", on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
+        "Department",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="دپارتمان",
     )
     chapter = models.ForeignKey(
-        "Chapter", on_delete=models.SET_NULL, null=True, verbose_name="چپتر"
+        "Chapter", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="چپتر"
     )
     team = models.ForeignKey(
-        "Team", on_delete=models.SET_NULL, null=True, verbose_name="تیم"
+        "Team", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="تیم"
     )
     leader = models.ForeignKey(
-        "User", on_delete=models.SET_NULL, null=True, verbose_name="لیدر"
+        "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
     REQUIRED_FIELDS = ["email"]
 
