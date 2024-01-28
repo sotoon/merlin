@@ -175,8 +175,6 @@ class NoteViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        if self.get_object().owner != self.request.user:
-            raise PermissionDenied("You don't have permission to update this note.")
         return super().create(request, *args, **kwargs)
 
     def get_queryset(self):
