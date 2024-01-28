@@ -25,6 +25,9 @@ class DepartmentAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return request.user.is_staff
 
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_staff
+
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
@@ -61,6 +64,9 @@ class ChapterAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return request.user.is_staff
 
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_staff
+
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
@@ -95,6 +101,9 @@ class TeamAdmin(admin.ModelAdmin):
         return request.user.is_staff
 
     def has_module_permission(self, request):
+        return request.user.is_staff
+
+    def has_delete_permission(self, request, obj=None):
         return request.user.is_staff
 
 
@@ -137,6 +146,9 @@ class UserAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return request.user.is_staff
 
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_staff
+
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
@@ -164,4 +176,7 @@ class NoteAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
     def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
