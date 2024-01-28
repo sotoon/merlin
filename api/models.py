@@ -19,6 +19,7 @@ class MerlinBaseModel(models.Model):
 
 
 class User(MerlinBaseModel, AbstractUser):
+    email = models.EmailField(unique=True, verbose_name="ایمیل سازمانی")
     name = models.CharField(
         max_length=256, default="", blank=True, null=True, verbose_name="نام"
     )
@@ -44,10 +45,17 @@ class User(MerlinBaseModel, AbstractUser):
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
-    REQUIRED_FIELDS = ["email"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        return self.email
+
+    def save(self, *args, **kwargs):
+        self.username = self.email
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "کاربر"

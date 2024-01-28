@@ -104,8 +104,10 @@ class BepaCallbackView(APIView):
 
         user, created = User.objects.get_or_create(email=email)
 
-        if created:
+        if not user.name:
             user.name = name
+
+        if created:
             user.set_unusable_password()
             user.save()
 
