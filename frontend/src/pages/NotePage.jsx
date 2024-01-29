@@ -11,8 +11,7 @@ import {
   FormHelperText,
 } from "@mui/material";
 import { createNote, getNote, updateNote } from "../services/noteservice";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -32,9 +31,11 @@ const NotePage = () => {
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
-    return savedData
-      ? JSON.parse(savedData)
-      : { title: "", content: "", date: "", type: "" };
+    const emptyData = { title: "", content: "", date: "", type: "" };
+    if (noteId) {
+      return emptyData;
+    }
+    return savedData ? JSON.parse(savedData) : emptyData;
   });
   const navigate = useNavigate();
   const { setErrorMessage } = useContext(ErrorContext);
@@ -143,7 +144,8 @@ const NotePage = () => {
             } response data: ${JSON.stringify(response.data)}`,
           );
         }
-        navigate("/dashboard");
+        localStorage.removeItem("noteFormData");
+        navigate(`/notes?noteType=${formData.type}`);
       } catch (error) {
         console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
