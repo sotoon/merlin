@@ -40,7 +40,7 @@ const MyTeamPage = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <Typography variant="h4">تیم من</Typography>
       <Divider sx={{ mb: 2, mt: 2 }} />
       <Grid container spacing={2}>
@@ -56,7 +56,7 @@ const MyTeamPage = () => {
           </>
         ))}
       </Grid>
-    </DashboardLayout>
+    </>
   );
 };
 

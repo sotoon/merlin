@@ -11,7 +11,7 @@ import Signup from "./pages/Signup";
 import BepaCallback from "./pages/BepaCallback";
 import NotesPage from "./pages/NotesPage";
 import BaseLayout from "./components/BaseLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardLayout from "./components/DashboardLayout";
 import { CssBaseline } from "@mui/material";
 import { UserProvider } from "./contexts/UserContext";
 import { ErrorProvider } from "./contexts/ErrorContext";
@@ -58,41 +58,41 @@ function App() {
                 <Route
                   path="/dashboard"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <Navigate to="/notes?noteType=Goal" />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/notes"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <NotesPage key="notes" />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/note/:noteId?"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <NotePage />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/profile"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <ProfilePage />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/my-team"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <MyTeamPage />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
               </Routes>

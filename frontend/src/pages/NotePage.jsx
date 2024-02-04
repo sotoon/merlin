@@ -246,7 +246,7 @@ const NotePage = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <Typography variant="h4">
         {" "}
         {noteId ? "ویرایش" : "ایجاد"} یادداشت
@@ -511,7 +511,7 @@ const NotePage = () => {
           </Grid>
         </>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -56,7 +56,7 @@ const NotesPage = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <Typography variant="h4">
         یادداشت‌ها{noteType ? "ی" : ""} {NoteTypeTitles[noteType]}
         {userName ? `از کاربر ${userName}` : ""}
@@ -89,7 +89,7 @@ const NotesPage = () => {
           <AddSharpIcon sx={{ transform: "scale(1.4)" }} />
         </Fab>
       </RouterLink>
-    </DashboardLayout>
+    </>
   );
 };
 

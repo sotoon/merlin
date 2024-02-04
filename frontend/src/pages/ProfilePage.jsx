@@ -91,7 +91,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <Typography variant="h4">ویرایش پروفایل</Typography>
       <Divider sx={{ mb: 2, mt: 2 }} />
       <Typography variant="h6" gutterBottom>
@@ -209,7 +209,7 @@ const ProfilePage = () => {
           تغییرات با موفقیت ثبت شد
         </Alert>
       </Snackbar>
-    </DashboardLayout>
+    </>
   );
 };
 
