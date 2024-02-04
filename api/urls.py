@@ -1,12 +1,15 @@
 from django.conf import settings
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from api import views
 
-router = DefaultRouter()
+router = routers.DefaultRouter()
 router.register(r"notes", views.NoteViewSet, basename="note")
+
+feedbacks_router = routers.NestedDefaultRouter(router, r"notes", lookup="note")
+feedbacks_router.register(r"feedbacks", views.FeedbackViewSet, basename="feedbacks")
 
 urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
@@ -17,6 +20,7 @@ urlpatterns = [
     path("my-team/", views.MyTeamView.as_view(), name="my-team"),
     path("users/", views.UsersView.as_view(), name="users"),
     path("", include(router.urls)),
+    path("", include(feedbacks_router.urls)),
 ]
 
 if settings.SIGNUP_DISABLED != "true":

@@ -58,3 +58,15 @@ export const deleteNote = async (uuid) => {
     throw error;
   }
 };
+
+export const createFeedback = async (feedbackContent, noteUUid) => {
+  try {
+    const response = await API.post(`/notes/${noteUUid}/feedbacks/`, {
+      content: feedbackContent,
+    });
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

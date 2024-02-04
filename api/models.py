@@ -153,3 +153,16 @@ class Note(MerlinBaseModel):
 
     def __str__(self):
         return self.title
+
+
+class Feedback(MerlinBaseModel):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
+    content = models.TextField(verbose_name="محتوا")
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+
+    class Meta:
+        verbose_name = "فیدبک"
+        verbose_name_plural = "فیدبک‌ها"
+
+    def __str__(self):
+        return f"{self.owner} - {self.note}"
