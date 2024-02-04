@@ -122,6 +122,7 @@ class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
     MEETING = "Meeting", "جلسه"
     Personal = "Personal", "شخصی"
+    TASK = "Task", "فعالیت"
 
     @classmethod
     def default(cls):
@@ -138,6 +139,12 @@ class Note(MerlinBaseModel):
         choices=NoteType.choices,
         default=NoteType.default(),
         verbose_name="نوع",
+    )
+    mentioned_users = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="mentioned_users",
+        verbose_name="کاربران منشن شده",
     )
 
     class Meta:

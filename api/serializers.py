@@ -19,23 +19,6 @@ class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
 
 
-class NoteSerializer(serializers.ModelSerializer):
-    owner = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
-    )
-
-    class Meta:
-        model = Note
-        fields = ("uuid", "owner", "title", "content", "date", "type")
-        read_only_fields = ["uuid"]
-
-    def validate(self, data):
-        if not self.instance:
-            owner = self.context["request"].user
-            data["owner"] = owner
-        return super().validate(data)
-
-
 class ProfileSerializer(serializers.ModelSerializer):
     department = serializers.SlugRelatedField(read_only=True, slug_field="name")
     chapter = serializers.SlugRelatedField(read_only=True, slug_field="name")
@@ -63,3 +46,31 @@ class ProfileSerializer(serializers.ModelSerializer):
             "team",
             "leader",
         ]
+
+
+class NoteSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
+    )
+    mentioned_users = serializers.SlugRelatedField(
+        many=True, required=False, queryset=User.objects.all(), slug_field="email"
+    )
+
+    class Meta:
+        model = Note
+        fields = (
+            "uuid",
+            "owner",
+            "title",
+            "content",
+            "date",
+            "type",
+            "mentioned_users",
+        )
+        read_only_fields = ["uuid"]
+
+    def validate(self, data):
+        if not self.instance:
+            owner = self.context["request"].user
+            data["owner"] = owner
+        return super().validate(data)

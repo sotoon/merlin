@@ -27,6 +27,10 @@ const noteOptions = [
     text: "📝 یادداشت‌های شخصی",
     link: "/notes?noteType=Personal",
   },
+  {
+    text: "🛠️ فعالیت‌ها",
+    link: "/notes?noteType=Task",
+  },
 ];
 
 const personalOptions = [

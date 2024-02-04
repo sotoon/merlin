@@ -3,7 +3,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -152,6 +152,14 @@ class ProfileView(RetrieveUpdateAPIView):
         user = self.get_object()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+
+class UsersView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        return User.objects.all()
 
 
 class NoteViewSet(viewsets.ModelViewSet):

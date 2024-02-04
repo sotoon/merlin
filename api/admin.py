@@ -159,9 +159,10 @@ class NoteAdmin(admin.ModelAdmin):
         ("title", "type"),
         ("owner", "date"),
         "content",
+        "mentioned_users",
         ("date_created", "date_updated"),
     )
-    readonly_fields = ("uuid", "date_created", "date_updated")
+    readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")
     ordering = ("-date_updated", "title")
     search_fields = ["title", "owner__name", "owner__email"]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده"

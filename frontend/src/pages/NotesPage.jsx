@@ -12,6 +12,7 @@ const NoteTypeTitles = {
   Goal: "اهداف",
   Meeting: "جلسات",
   Personal: "شخصی",
+  Task: "فعالیت‌ها",
   "": "",
 };
 

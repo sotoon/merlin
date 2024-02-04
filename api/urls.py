@@ -15,6 +15,7 @@ urlpatterns = [
     path("verify-token/", views.VerifyTokenView.as_view(), name="verify-token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
     path("my-team/", views.MyTeamView.as_view(), name="my-team"),
+    path("users/", views.UsersView.as_view(), name="users"),
     path("", include(router.urls)),
 ]
 
