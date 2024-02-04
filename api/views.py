@@ -171,8 +171,11 @@ class NoteViewSet(viewsets.ModelViewSet):
     def get_object(self):
         uuid = self.kwargs["uuid"]
         note = get_object_or_404(Note, uuid=uuid)
-        if note.owner == self.request.user or (
-            note.owner.leader == self.request.user and note.type != NoteType.Personal
+        current_user = self.request.user
+        if (
+            note.owner == current_user
+            or (note.owner.leader == current_user and note.type != NoteType.Personal)
+            or (current_user in note.mentioned_users.all())
         ):
             return note
         raise PermissionDenied("You don't have permission to access this note.")
@@ -187,6 +190,7 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_email = self.request.query_params.get("user")
+        retrieve_mentions = self.request.query_params.get("retrieve_mentions")
         if user_email:
             notes_owner = User.objects.get(email=user_email)
             if notes_owner.leader != self.request.user:
@@ -197,7 +201,12 @@ class NoteViewSet(viewsets.ModelViewSet):
                 .distinct()
             )
         else:
-            queryset = Note.objects.filter(owner=self.request.user).distinct()
+            if retrieve_mentions:
+                queryset = Note.objects.filter(
+                    mentioned_users=self.request.user
+                ).distinct()
+            else:
+                queryset = Note.objects.filter(owner=self.request.user).distinct()
         type = self.request.query_params.get("type")
         if type:
             queryset = queryset.filter(type=type)
