@@ -82,6 +82,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         slug_field="email",
     )
+    owner_name = serializers.CharField(source='owner.name', read_only=True)
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
     class Meta:
@@ -89,6 +90,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         fields = (
             "uuid",
             "owner",
+            "owner_name",
             "note",
             "content",
         )

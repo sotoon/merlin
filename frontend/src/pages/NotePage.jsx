@@ -10,12 +10,17 @@ import {
   Divider,
   FormHelperText,
   Autocomplete,
+  Card,
+  CardHeader,
+  CardContent,
+  Grid,
 } from "@mui/material";
 import {
   createNote,
   getNote,
   updateNote,
   createFeedback,
+  getFeedbacks,
 } from "../services/noteservice";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
@@ -37,7 +42,8 @@ const NotePage = () => {
   const [isLoading, setIsLoading] = useState(noteId ? true : false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [mentionedUsers, setMentionedUsers] = useState([]);
-  const [feedbackContent, setFeedbackContent] = useState("");
+  const [newFeedbackContent, setNewFeedbackContent] = useState("");
+  const [feedbacks, setFeedbacks] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
@@ -84,6 +90,20 @@ const NotePage = () => {
   }, []);
 
   useEffect(() => {
+    const fetchNoteFeedbacks = async () => {
+      try {
+        const response = await getFeedbacks(noteId);
+        console.log(
+          `response status: ${response.status} response data: ${JSON.stringify(
+            response.data,
+          )}`,
+        );
+        setFeedbacks(response.data);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Something went wrong. Please try again later.");
+      }
+    };
     const fetchNoteData = async () => {
       try {
         const response = await getNote(noteId);
@@ -100,6 +120,8 @@ const NotePage = () => {
         );
         if (response.data.owner !== user.email) {
           setIsReadOnly(true);
+        } else {
+          fetchNoteFeedbacks();
         }
       } catch (error) {
         console.error(error);
@@ -196,7 +218,7 @@ const NotePage = () => {
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await createFeedback(feedbackContent, noteId);
+      const response = await createFeedback(newFeedbackContent, noteId);
       console.log(
         `response status: ${response.status} response data: ${JSON.stringify(
           response.data,
@@ -412,9 +434,9 @@ const NotePage = () => {
             <TextField
               label="فیدبک"
               name="feedback"
-              value={feedbackContent}
+              value={newFeedbackContent}
               placeholder="نوشتن فیدبک"
-              onChange={(e) => setFeedbackContent(e.target.value)}
+              onChange={(e) => setNewFeedbackContent(e.target.value)}
               multiline
               fullWidth
               rows={4}
@@ -446,6 +468,47 @@ const NotePage = () => {
               Submit
             </Button>
           </form>
+        </>
+      )}
+      {!isReadOnly && (
+        <>
+          <Typography variant="h4" sx={{ mt: 5 }}>
+            فیدبک‌ها
+          </Typography>
+          <Divider sx={{ mb: 2, mt: 2 }} />
+
+          <Grid container spacing={2}>
+            {feedbacks.map((feedback, index) => (
+              <Grid item xs={12} sm={12} md={12} key={index}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <CardHeader
+                    title={
+                      <Typography variant="h6">
+                        {feedback.owner_name}
+                      </Typography>
+                    }
+                    sx={{ backgroundColor: "#0D47A1", color: "#FFFFFF" }}
+                  />
+                  <Divider />
+                  <CardContent sx={{ flex: "1 0 auto" }}>
+                    <Typography
+                      variant="body"
+                      color="textSecondary"
+                      component="div"
+                    >
+                      {feedback.content}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </>
       )}
     </DashboardLayout>

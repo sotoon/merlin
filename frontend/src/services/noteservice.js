@@ -70,3 +70,13 @@ export const createFeedback = async (feedbackContent, noteUUid) => {
     throw error;
   }
 };
+
+export const getFeedbacks = async (noteUUid) => {
+  try {
+    const response = await API.get(`/notes/${noteUUid}/feedbacks/`);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
