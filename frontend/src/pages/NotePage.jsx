@@ -9,10 +9,12 @@ import {
   Typography,
   Divider,
   FormHelperText,
+  Autocomplete,
 } from "@mui/material";
 import { createNote, getNote, updateNote } from "../services/noteservice";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
+import { getAllUsers } from "../services/teamservice";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Loading from "../components/Loading";
@@ -29,6 +31,8 @@ const NotePage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(noteId ? true : false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [mentionedUsers, setMentionedUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
     const emptyData = { title: "", content: "", date: "", type: "" };
@@ -51,6 +55,10 @@ const NotePage = () => {
     if (!data.type) tempErrors.type = "نوع الزامی است.";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
+  };
+
+  const handleMentionChange = (_, value) => {
+    setMentionedUsers(value);
   };
 
   useEffect(() => {
@@ -79,6 +87,11 @@ const NotePage = () => {
           )}`,
         );
         setFormData(response.data);
+        setMentionedUsers(
+          response.data.mentioned_users.map((item) => {
+            return { name: "", email: item };
+          }),
+        );
         if (response.data.owner !== user.email) {
           setIsReadOnly(true);
         }
@@ -93,6 +106,25 @@ const NotePage = () => {
       fetchNoteData();
     }
   }, [noteId, user]);
+
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const response = await getAllUsers();
+        console.log(
+          `response status: ${response.status} response data: ${JSON.stringify(
+            response.data,
+          )}`,
+        );
+        setAllUsers(response.data);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Something went wrong. Please try again later.");
+      }
+    };
+
+    fetchAllUsers();
+  }, []);
 
   const handleChange = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -129,6 +161,8 @@ const NotePage = () => {
     e.preventDefault();
     if (validate(formData)) {
       try {
+        formData.mentioned_users = mentionedUsers.map((item) => item.email);
+        console.log(`sending form data: ${formData}`);
         if (noteId) {
           const response = await updateNote(formData, noteId);
           console.log(
@@ -301,6 +335,7 @@ const NotePage = () => {
             <MenuItem value="Goal">هدف</MenuItem>
             <MenuItem value="Meeting">جلسه</MenuItem>
             <MenuItem value="Personal">شخصی</MenuItem>
+            <MenuItem value="Task">فعالیت</MenuItem>
           </Select>
           {errors.type && (
             <FormHelperText sx={{ color: (theme) => theme.palette.error.main }}>
@@ -308,6 +343,34 @@ const NotePage = () => {
             </FormHelperText>
           )}
         </FormControl>
+
+        <Autocomplete
+          multiple
+          id="user-autocomplete"
+          options={allUsers}
+          disabled={isReadOnly}
+          getOptionLabel={(option) => `${option.name}(${option.email})`}
+          isOptionEqualToValue={(option, value) => option.email == value.email}
+          onChange={handleMentionChange}
+          value={mentionedUsers}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="منشن‌ شوندگان"
+              variant="outlined"
+              sx={{ mt: 2, mb: 2 }}
+              InputLabelProps={{
+                style: {
+                  textAlign: "right",
+                  right: 0,
+                  left: "auto",
+                  marginRight: 20,
+                },
+              }}
+            />
+          )}
+        />
+
         {!isReadOnly && (
           <Button
             type="submit"
