@@ -44,6 +44,11 @@ const personalOptions = [
     link: "/my-team",
     leaderCondition: true,
   },
+  {
+    text: "💬 منشن‌ها",
+    link: "/notes?retrieve_mentions=true",
+    leaderCondition: false,
+  },
 ];
 
 const DashboardLayout = ({ children }) => {
