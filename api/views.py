@@ -9,8 +9,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Note, NoteType, User
+from api.models import Feedback, Note, NoteType, User
 from api.serializers import (
+    FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
     TokenSerializer,
@@ -222,3 +223,47 @@ class MyTeamView(GenericAPIView):
         team_users = User.objects.filter(leader=user)
         serializer = self.get_serializer(team_users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class FeedbackViewSet(viewsets.ModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = FeedbackSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"note_uuid": self.kwargs.get("note_uuid", None)})
+        return context
+
+    def get_note(self):
+        return get_object_or_404(
+            Note,
+            uuid=self.kwargs["note_uuid"],
+        )
+
+    def get_object(self):
+        uuid = self.kwargs["uuid"]
+        feedback = get_object_or_404(Feedback, uuid=uuid)
+        current_user = self.request.user
+        if feedback.note == self.get_note() and feedback.note.owner == current_user:
+            return feedback
+        raise PermissionDenied("You don't have permission to access this feedback.")
+
+    def get_queryset(self):
+        if self.request.user != self.get_note().owner:
+            raise PermissionDenied("You don't have permission to access this feedback.")
+        return Feedback.objects.filter(note=self.get_note())
+
+    def create(self, request, *args, **kwargs):
+        current_user = self.request.user
+        if (
+            self.get_note().owner.leader != current_user
+            and current_user not in self.get_note().mentioned_users.all()
+        ):
+            raise PermissionDenied("You don't have permission to create feedback.")
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if self.get_object().owner != self.request.user:
+            raise PermissionDenied("You don't have permission to update this feedback.")
+        return super().update(request, *args, **kwargs)

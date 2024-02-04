@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Chapter, Department, Note, Team, User
+from api.models import Chapter, Department, Feedback, Note, Team, User
 
 
 @admin.register(Department)
@@ -166,6 +166,32 @@ class NoteAdmin(admin.ModelAdmin):
     ordering = ("-date_updated", "title")
     search_fields = ["title", "owner__name", "owner__email"]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده"
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    date_hierarchy = "date_updated"
+    list_display = ("uuid", "owner", "note", "date_created", "date_updated")
+    fields = ("uuid", ("owner", "note"), "content", ("date_created", "date_updated"))
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "uuid")
+    search_fields = ["owner__name", "owner__email", "note__title"]
+    search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت"
 
     def has_add_permission(self, request):
         return request.user.is_superuser

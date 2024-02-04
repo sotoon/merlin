@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Note, User
+from api.models import Feedback, Note, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -74,3 +74,35 @@ class NoteSerializer(serializers.ModelSerializer):
             owner = self.context["request"].user
             data["owner"] = owner
         return super().validate(data)
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        queryset=User.objects.all(),
+        slug_field="email",
+    )
+    note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+
+    class Meta:
+        model = Feedback
+        fields = (
+            "uuid",
+            "owner",
+            "note",
+            "content",
+        )
+        read_only_fields = ["uuid"]
+
+    def validate(self, data):
+        note_uuid = self.context["note_uuid"]
+        data["note"] = Note.objects.get(uuid=note_uuid)
+        return super().validate(data)
+
+    def create(self, validated_data):
+        user = validated_data["owner"]
+        note = validated_data["note"]
+        content = validated_data["content"]
+        feedback = Feedback.objects.create(owner=user, note=note, content=content)
+        feedback.save()
+        return feedback

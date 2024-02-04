@@ -11,7 +11,12 @@ import {
   FormHelperText,
   Autocomplete,
 } from "@mui/material";
-import { createNote, getNote, updateNote } from "../services/noteservice";
+import {
+  createNote,
+  getNote,
+  updateNote,
+  createFeedback,
+} from "../services/noteservice";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { getAllUsers } from "../services/teamservice";
@@ -32,6 +37,7 @@ const NotePage = () => {
   const [isLoading, setIsLoading] = useState(noteId ? true : false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [mentionedUsers, setMentionedUsers] = useState([]);
+  const [feedbackContent, setFeedbackContent] = useState("");
   const [allUsers, setAllUsers] = useState([]);
   const [formData, setFormData] = useState(() => {
     const savedData = localStorage.getItem("noteFormData");
@@ -184,6 +190,22 @@ const NotePage = () => {
         console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
       }
+    }
+  };
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await createFeedback(feedbackContent, noteId);
+      console.log(
+        `response status: ${response.status} response data: ${JSON.stringify(
+          response.data,
+        )}`,
+      );
+      navigate(`/dashboard`);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Something went wrong. Please try again later.");
     }
   };
 
@@ -382,6 +404,50 @@ const NotePage = () => {
           </Button>
         )}
       </form>
+      {isReadOnly && (
+        <>
+          <Typography variant="h4">نوشتن فیدبک</Typography>
+          <Divider sx={{ mb: 2, mt: 2 }} />
+          <form onSubmit={handleFeedbackSubmit}>
+            <TextField
+              label="فیدبک"
+              name="feedback"
+              value={feedbackContent}
+              placeholder="نوشتن فیدبک"
+              onChange={(e) => setFeedbackContent(e.target.value)}
+              multiline
+              fullWidth
+              rows={4}
+              margin="normal"
+              sx={{
+                mb: 2,
+              }}
+              InputProps={{
+                style: {
+                  textAlign: "right",
+                  direction: "rtl",
+                },
+              }}
+              InputLabelProps={{
+                style: {
+                  textAlign: "right",
+                  right: 0,
+                  left: "auto",
+                  marginRight: 20,
+                },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ display: "flex" }}
+            >
+              Submit
+            </Button>
+          </form>
+        </>
+      )}
     </DashboardLayout>
   );
 };
