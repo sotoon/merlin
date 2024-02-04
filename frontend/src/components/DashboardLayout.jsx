@@ -27,6 +27,10 @@ const noteOptions = [
     text: "📝 یادداشت‌های شخصی",
     link: "/notes?noteType=Personal",
   },
+  {
+    text: "🛠️ فعالیت‌ها",
+    link: "/notes?noteType=Task",
+  },
 ];
 
 const personalOptions = [
@@ -39,6 +43,11 @@ const personalOptions = [
     text: "👥 تیم من",
     link: "/my-team",
     leaderCondition: true,
+  },
+  {
+    text: "💬 منشن‌ها",
+    link: "/notes?retrieve_mentions=true",
+    leaderCondition: false,
   },
 ];
 

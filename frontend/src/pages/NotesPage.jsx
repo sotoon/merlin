@@ -12,6 +12,7 @@ const NoteTypeTitles = {
   Goal: "اهداف",
   Meeting: "جلسات",
   Personal: "شخصی",
+  Task: "فعالیت‌ها",
   "": "",
 };
 
@@ -20,6 +21,8 @@ const NotesPage = () => {
   const noteType = searchParams.get("noteType") || "";
   const userEmail = searchParams.get("useremail") || "";
   const userName = searchParams.get("username") || "";
+  const retrieve_mentions = searchParams.get("retrieve_mentions") || false;
+  const areNotesReadOnly = userEmail || retrieve_mentions;
   const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState([]);
   const { setErrorMessage } = useContext(ErrorContext);
@@ -27,7 +30,7 @@ const NotesPage = () => {
   useEffect(() => {
     const fetchNotesData = async () => {
       try {
-        const response = await getNotes(noteType, userEmail);
+        const response = await getNotes(noteType, userEmail, retrieve_mentions);
         console.log(
           `response status: ${response.status} response data: ${JSON.stringify(
             response.data,
@@ -67,7 +70,7 @@ const NotesPage = () => {
               title={note.title}
               body={note.content}
               date={note.date}
-              isReadOnly={userEmail ? true : false}
+              isReadOnly={areNotesReadOnly}
             />
           </Grid>
         ))}
