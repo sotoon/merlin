@@ -8,3 +8,13 @@ export const getMyTeam = async () => {
     throw error;
   }
 };
+
+export const getAllUsers = async () => {
+  try {
+    const response = await API.get("/users/");
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

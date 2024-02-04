@@ -122,6 +122,7 @@ class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
     MEETING = "Meeting", "جلسه"
     Personal = "Personal", "شخصی"
+    TASK = "Task", "فعالیت"
 
     @classmethod
     def default(cls):
@@ -139,6 +140,12 @@ class Note(MerlinBaseModel):
         default=NoteType.default(),
         verbose_name="نوع",
     )
+    mentioned_users = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="mentioned_users",
+        verbose_name="کاربران منشن شده",
+    )
 
     class Meta:
         verbose_name = "یادداشت"
@@ -146,3 +153,16 @@ class Note(MerlinBaseModel):
 
     def __str__(self):
         return self.title
+
+
+class Feedback(MerlinBaseModel):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
+    content = models.TextField(verbose_name="محتوا")
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+
+    class Meta:
+        verbose_name = "فیدبک"
+        verbose_name_plural = "فیدبک‌ها"
+
+    def __str__(self):
+        return f"{self.owner} - {self.note}"

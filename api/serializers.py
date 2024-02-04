@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Note, User
+from api.models import Feedback, Note, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,23 +17,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
-
-
-class NoteSerializer(serializers.ModelSerializer):
-    owner = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
-    )
-
-    class Meta:
-        model = Note
-        fields = ("uuid", "owner", "title", "content", "date", "type")
-        read_only_fields = ["uuid"]
-
-    def validate(self, data):
-        if not self.instance:
-            owner = self.context["request"].user
-            data["owner"] = owner
-        return super().validate(data)
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -63,3 +46,65 @@ class ProfileSerializer(serializers.ModelSerializer):
             "team",
             "leader",
         ]
+
+
+class NoteSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
+    )
+    mentioned_users = serializers.SlugRelatedField(
+        many=True, required=False, queryset=User.objects.all(), slug_field="email"
+    )
+
+    class Meta:
+        model = Note
+        fields = (
+            "uuid",
+            "owner",
+            "title",
+            "content",
+            "date",
+            "type",
+            "mentioned_users",
+        )
+        read_only_fields = ["uuid"]
+
+    def validate(self, data):
+        if not self.instance:
+            owner = self.context["request"].user
+            data["owner"] = owner
+        return super().validate(data)
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        queryset=User.objects.all(),
+        slug_field="email",
+    )
+    owner_name = serializers.CharField(source='owner.name', read_only=True)
+    note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+
+    class Meta:
+        model = Feedback
+        fields = (
+            "uuid",
+            "owner",
+            "owner_name",
+            "note",
+            "content",
+        )
+        read_only_fields = ["uuid"]
+
+    def validate(self, data):
+        note_uuid = self.context["note_uuid"]
+        data["note"] = Note.objects.get(uuid=note_uuid)
+        return super().validate(data)
+
+    def create(self, validated_data):
+        user = validated_data["owner"]
+        note = validated_data["note"]
+        content = validated_data["content"]
+        feedback = Feedback.objects.create(owner=user, note=note, content=content)
+        feedback.save()
+        return feedback
