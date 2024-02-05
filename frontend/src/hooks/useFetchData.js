@@ -1,9 +1,9 @@
 import { useState, useEffect, useContext } from "react";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 
 const useFetchData = (fetchFunction, setData) => {
   const [isLoading, setIsLoading] = useState(true);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -11,13 +11,16 @@ const useFetchData = (fetchFunction, setData) => {
         const response = await fetchFunction();
         setData(response);
       } catch (error) {
-        setErrorMessage("A problem occurred. Please try again later.");
+        setAlert({
+          message: "A problem occurred. Please try again later.",
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [fetchFunction, setErrorMessage]);
+  }, [fetchFunction, setAlert]);
 
   return isLoading;
 };

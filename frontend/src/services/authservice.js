@@ -14,7 +14,7 @@ export const exchangeCodeForToken = async (code) => {
 
 export const refreshToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
-  const response = await apiCall("post", "/login/refresh", {
+  const response = await apiCall("post", "/login/refresh/", {
     refresh: refreshToken,
   });
   localStorage.setItem("accessToken", response.access);

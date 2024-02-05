@@ -1,15 +1,8 @@
 import React, { useState, useContext } from "react";
 import { getProfileData, updateProfile } from "../services/authservice";
-import {
-  TextField,
-  Button,
-  Typography,
-  Snackbar,
-  Alert,
-  Chip,
-} from "@mui/material";
+import { TextField, Button, Typography, Chip } from "@mui/material";
 import Loading from "../components/Loading";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
 import { verifyToken } from "../services/authservice";
 import useFetchData from "../hooks/useFetchData";
@@ -27,8 +20,7 @@ const ProfilePage = () => {
     leader: "",
   });
   const { setUser } = useContext(UserContext);
-  const { setErrorMessage } = useContext(ErrorContext);
-  const [isSubmitSnackbarOpen, setIsSubmitSnackbarOpen] = useState(false);
+  const { setAlert } = useContext(AlertContext);
   const isLoading = useFetchData(getProfileData, setFormData);
   if (isLoading) {
     return <Loading description={"در حال دریافت اطلاعات"} />;
@@ -45,19 +37,21 @@ const ProfilePage = () => {
     const updateProfileData = async () => {
       try {
         await updateProfile(formData);
-        setIsSubmitSnackbarOpen(true);
+        setAlert({
+          message: "تغییرات با موفقیت ثبت شد",
+          type: "success",
+        });
         const token = localStorage.getItem("accessToken");
         const user = await verifyToken(token);
         setUser(user);
       } catch (error) {
-        setErrorMessage("ویرایش پروفایل ناموفق بود، دوباره تلاش کنید.");
+        setAlert({
+          message: "ویرایش پروفایل ناموفق بود، دوباره تلاش کنید.",
+          type: "error",
+        });
       }
     };
     updateProfileData();
-  };
-
-  const handleSubmitSnackbarClose = () => {
-    setIsSubmitSnackbarOpen(false);
   };
 
   return (
@@ -165,19 +159,6 @@ const ProfilePage = () => {
           ثبت تغییرات
         </Button>
       </form>
-      <Snackbar
-        open={isSubmitSnackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSubmitSnackbarClose}
-      >
-        <Alert
-          onClose={handleSubmitSnackbarClose}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          تغییرات با موفقیت ثبت شد
-        </Alert>
-      </Snackbar>
     </>
   );
 };

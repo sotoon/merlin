@@ -13,11 +13,11 @@ import { marked } from "marked";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteNote } from "../services/noteservice";
 import { useNavigate } from "react-router";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 import PropTypes from "prop-types";
 
 const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   const removeMarkdown = (markdownText) => {
     return marked(markdownText).replace(/<\/?[^>]+(>|$)/g, "\n");
@@ -31,7 +31,10 @@ const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
         await deleteNote(uuid);
         navigate(0);
       } catch (error) {
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
       }
     };
     deleteCurrentNote();

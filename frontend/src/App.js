@@ -14,8 +14,8 @@ import BaseLayout from "./components/BaseLayout";
 import DashboardLayout from "./components/DashboardLayout";
 import { CssBaseline } from "@mui/material";
 import { UserProvider } from "./contexts/UserContext";
-import { ErrorProvider } from "./contexts/ErrorContext";
-import ErrorSnackbar from "./components/ErrorSnackbar";
+import { AlertProvider } from "./contexts/AlertContext";
+import AlertSnackbar from "./components/AlertSnackbar";
 import "./App.css";
 import NotePage from "./pages/NotePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -43,7 +43,7 @@ const theme = createTheme({
 function App() {
   return (
     <UserProvider>
-      <ErrorProvider>
+      <AlertProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Router>
@@ -99,8 +99,8 @@ function App() {
             </BaseLayout>
           </Router>
         </ThemeProvider>
-        <ErrorSnackbar />
-      </ErrorProvider>
+        <AlertSnackbar />
+      </AlertProvider>
     </UserProvider>
   );
 }

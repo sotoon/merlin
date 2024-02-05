@@ -1,6 +1,6 @@
 import { useEffect, useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 import { jwtDecode } from "jwt-decode";
 import { verifyToken } from "../services/authservice";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import { getMyTeam } from "../services/teamservice";
 const useAuth = () => {
   const { user, setUser, setIsAuthCheckComplete, setIsLeader } =
     useContext(UserContext);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,7 +48,10 @@ const useAuth = () => {
             setIsLeader(true);
           }
         } catch (error) {
-          setErrorMessage("Couldn't check leadership status!");
+          setAlert({
+            message: "Couldn't check leadership status!",
+            type: "error",
+          });
         }
       }
     };
