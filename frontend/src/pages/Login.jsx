@@ -6,13 +6,13 @@ import PowerSharp from "@mui/icons-material/PowerSharp";
 import LockOpenSharp from "@mui/icons-material/LockOpenSharp";
 import { useNavigate, Navigate } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { user, setUser } = useContext(UserContext);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   if (user) {
@@ -34,7 +34,10 @@ const Login = () => {
       const { from } = location.state || { from: { pathname: "/" } };
       navigate(from);
     } catch (error) {
-      setErrorMessage("A Problem occurred. Please try again later.");
+      setAlert({
+        message: "A Problem occurred. Please try again later.",
+        type: "error",
+      });
     }
   };
 

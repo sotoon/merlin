@@ -27,7 +27,7 @@ import { getAllUsers } from "../services/teamservice";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Loading from "../components/Loading";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
 import SectionTitle from "../components/SectionTitle";
 const Quill = ReactQuill.Quill;
@@ -54,7 +54,7 @@ const NotePage = () => {
     return savedData ? JSON.parse(savedData) : emptyData;
   });
   const navigate = useNavigate();
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const { user } = useContext(UserContext);
   let isProgrammaticUpdate = false;
 
@@ -95,7 +95,10 @@ const NotePage = () => {
         const response = await getFeedbacks(noteId);
         setFeedbacks(response);
       } catch (error) {
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
       }
     };
     const fetchNoteData = async () => {
@@ -113,7 +116,10 @@ const NotePage = () => {
           fetchNoteFeedbacks();
         }
       } catch (error) {
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -129,7 +135,10 @@ const NotePage = () => {
         const response = await getAllUsers();
         setAllUsers(response);
       } catch (error) {
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
       }
     };
 
@@ -181,7 +190,10 @@ const NotePage = () => {
         localStorage.removeItem("noteFormData");
         navigate(`/notes?noteType=${formData.type}`);
       } catch (error) {
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
       }
     }
   };
@@ -192,7 +204,10 @@ const NotePage = () => {
       await createFeedback(newFeedbackContent, noteId);
       navigate(`/dashboard`);
     } catch (error) {
-      setErrorMessage("Something went wrong. Please try again later.");
+      setAlert({
+        message: "Something went wrong. Please try again later.",
+        type: "error",
+      });
     }
   };
 

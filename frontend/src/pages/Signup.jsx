@@ -5,7 +5,7 @@ import { TextField, Button, Typography } from "@mui/material";
 import CentralizedPaper from "../components/CentralizedPaper";
 import HowToRegSharpIcon from "@mui/icons-material/HowToRegSharp";
 import { UserContext } from "../contexts/UserContext";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { AlertContext } from "../contexts/AlertContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { user } = useContext(UserContext);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   if (user) {
@@ -31,7 +31,7 @@ const Signup = () => {
       await signupService(userData);
       navigate("/login");
     } catch (error) {
-      setErrorMessage("ثبت نام ناموفق، دوباره تلاش کنید!");
+      setAlert({ message: "ثبت نام ناموفق، دوباره تلاش کنید!", type: "error" });
     }
   };
 
