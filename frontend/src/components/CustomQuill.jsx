@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import PropTypes from "prop-types";
 const Quill = ReactQuill.Quill;
 const Font = Quill.import("formats/font");
 Font.whitelist = ["yekan", "sans-serif"];
 Quill.register(Font, true);
 
-const CustomQuill = (isReadOnly, value, handleDataChange) => {
+const CustomQuill = ({ isReadOnly, value, handleDataChange }) => {
   let isProgrammaticUpdate = false;
   const quillRef = useRef(null);
   useEffect(() => {
@@ -94,6 +95,18 @@ const CustomQuill = (isReadOnly, value, handleDataChange) => {
       }}
     />
   );
+};
+
+CustomQuill.propTypes = {
+  isReadOnly: PropTypes.bool,
+  value: PropTypes.string,
+  handleDataChange: PropTypes.func,
+};
+
+CustomQuill.defaultProps = {
+  isReadOnly: false,
+  value: "",
+  handleDataChange: () => {},
 };
 
 export default CustomQuill;

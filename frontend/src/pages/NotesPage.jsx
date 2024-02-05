@@ -27,10 +27,9 @@ const NotesPage = () => {
   const isLoading = useFetchData(
     () => getNotes(noteType, userEmail, retrieve_mentions),
     setNotes,
+    [noteType, userEmail, retrieve_mentions],
   );
-  if (isLoading) {
-    return <Loading description={"در حال دریافت اطلاعات"} />;
-  }
+
   let pageTitle = `یادداشت‌ها${noteType ? "ی" : ""} ${
     NoteTypeTitles[noteType]
   }`;
@@ -41,6 +40,9 @@ const NotesPage = () => {
     pageTitle = "یادداشت‌هایی که در آن‌ها منشن شده‌اید";
   }
 
+  if (isLoading) {
+    return <Loading description={"در حال دریافت اطلاعات"} />;
+  }
   return (
     <>
       <SectionTitle title={pageTitle} />
