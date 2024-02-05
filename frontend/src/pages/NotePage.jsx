@@ -45,11 +45,12 @@ const NotePage = () => {
   return (
     <>
       <NoteForm isReadOnly={isReadOnly} noteData={noteData} noteId={noteId} />
-      {isReadOnly ? (
-        <FeedbackForm noteId={noteId} />
-      ) : (
-        <FeedbackList noteId={noteId} />
-      )}
+      {noteId &&
+        (isReadOnly ? (
+          <FeedbackForm noteId={noteId} />
+        ) : (
+          <FeedbackList noteId={noteId} />
+        ))}
     </>
   );
 };
