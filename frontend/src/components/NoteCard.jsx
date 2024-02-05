@@ -1,20 +1,22 @@
 import React, { useContext } from "react";
+import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router-dom";
+
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Card,
-  CardHeader,
-  CardContent,
   CardActions,
-  Typography,
+  CardContent,
+  CardHeader,
   Divider,
   IconButton,
+  Typography,
 } from "@mui/material";
 import { marked } from "marked";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { deleteNote } from "../services/noteservice";
-import { useNavigate } from "react-router";
-import { AlertContext } from "../contexts/AlertContext";
 import PropTypes from "prop-types";
+
+import { AlertContext } from "../contexts/AlertContext";
+import { deleteNote } from "../services/noteservice";
 
 const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
   const { setAlert } = useContext(AlertContext);

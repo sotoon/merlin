@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
-import { getNote } from "../services/noteservice";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Loading from "../components/Loading";
-import { UserContext } from "../contexts/UserContext";
-import NoteForm from "../components/NoteForm";
-import useFetchData from "../hooks/useFetchData";
-import FeedbackList from "../components/FeedbackList";
+
 import FeedbackForm from "../components/FeedbackForm";
+import FeedbackList from "../components/FeedbackList";
+import Loading from "../components/Loading";
+import NoteForm from "../components/NoteForm";
+import { UserContext } from "../contexts/UserContext";
+import useFetchData from "../hooks/useFetchData";
+import { getNote } from "../services/noteservice";
 
 const NotePage = () => {
   const { noteId } = useParams();

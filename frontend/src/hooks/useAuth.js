@@ -1,9 +1,11 @@
-import { useEffect, useContext } from "react";
-import { UserContext } from "../contexts/UserContext";
-import { AlertContext } from "../contexts/AlertContext";
-import { jwtDecode } from "jwt-decode";
-import { verifyToken } from "../services/authservice";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { jwtDecode } from "jwt-decode";
+
+import { AlertContext } from "../contexts/AlertContext";
+import { UserContext } from "../contexts/UserContext";
+import { verifyToken } from "../services/authservice";
 import { getMyTeam } from "../services/teamservice";
 
 const useAuth = () => {

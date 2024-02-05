@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { Fab, Grid } from "@mui/material";
-import AddSharpIcon from "@mui/icons-material/AddSharp";
-import NoteCard from "../components/NoteCard";
-import Loading from "../components/Loading";
-import { getNotes } from "../services/noteservice";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
-import useFetchData from "../hooks/useFetchData";
+
+import AddSharpIcon from "@mui/icons-material/AddSharp";
+import { Fab, Grid } from "@mui/material";
+
+import Loading from "../components/Loading";
+import NoteCard from "../components/NoteCard";
 import SectionTitle from "../components/SectionTitle";
+import useFetchData from "../hooks/useFetchData";
+import { getNotes } from "../services/noteservice";
 
 const NoteTypeTitles = {
   Goal: "اهداف",

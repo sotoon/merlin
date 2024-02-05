@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+
 import { Grid } from "@mui/material";
+
 import Loading from "../components/Loading";
-import { getMyTeam } from "../services/teamservice";
 import MemberCard from "../components/MemberCard";
-import useFetchData from "../hooks/useFetchData";
 import SectionTitle from "../components/SectionTitle";
+import useFetchData from "../hooks/useFetchData";
+import { getMyTeam } from "../services/teamservice";
 
 const MyTeamPage = () => {
   const [team, setTeam] = useState([]);

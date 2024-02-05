@@ -1,25 +1,27 @@
 import React from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
   Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
 } from "react-router-dom";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import BepaCallback from "./pages/BepaCallback";
-import NotesPage from "./pages/NotesPage";
+
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+
+import "./App.css";
+import AlertSnackbar from "./components/AlertSnackbar";
 import BaseLayout from "./components/BaseLayout";
 import DashboardLayout from "./components/DashboardLayout";
-import { CssBaseline } from "@mui/material";
-import { UserProvider } from "./contexts/UserContext";
 import { AlertProvider } from "./contexts/AlertContext";
-import AlertSnackbar from "./components/AlertSnackbar";
-import "./App.css";
-import NotePage from "./pages/NotePage";
-import ProfilePage from "./pages/ProfilePage";
+import { UserProvider } from "./contexts/UserContext";
+import BepaCallback from "./pages/BepaCallback";
+import Login from "./pages/Login";
 import MyTeamPage from "./pages/MyTeamPage";
+import NotePage from "./pages/NotePage";
+import NotesPage from "./pages/NotesPage";
+import ProfilePage from "./pages/ProfilePage";
+import Signup from "./pages/Signup";
 
 const theme = createTheme({
   palette: {

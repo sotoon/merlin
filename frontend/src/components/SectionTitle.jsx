@@ -1,5 +1,6 @@
 import React from "react";
-import { Typography, Divider } from "@mui/material";
+
+import { Divider, Typography } from "@mui/material";
 import propTypes from "prop-types";
 
 const SectionTitle = ({ title }) => {

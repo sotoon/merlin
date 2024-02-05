@@ -1,4 +1,5 @@
-import { useState, useEffect, useContext } from "react";
+import { useContext, useEffect, useState } from "react";
+
 import { AlertContext } from "../contexts/AlertContext";
 
 const useFetchData = (fetchFunction, setData, dependencies) => {

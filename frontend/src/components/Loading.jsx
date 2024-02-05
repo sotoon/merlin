@@ -1,7 +1,9 @@
 import React from "react";
+
 import { CircularProgress, Typography } from "@mui/material";
-import CentralizedPaper from "../components/CentralizedPaper";
 import PropTypes from "prop-types";
+
+import CentralizedPaper from "../components/CentralizedPaper";
 
 const Loading = ({ description }) => {
   return (

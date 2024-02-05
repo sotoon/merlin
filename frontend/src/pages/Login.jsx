@@ -1,12 +1,14 @@
-import React, { useState, useContext } from "react";
-import { loginService } from "../services/authservice";
-import CentralizedPaper from "../components/CentralizedPaper";
-import { TextField, Button, Typography } from "@mui/material";
-import PowerSharp from "@mui/icons-material/PowerSharp";
+import React, { useContext, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+
 import LockOpenSharp from "@mui/icons-material/LockOpenSharp";
-import { useNavigate, Navigate } from "react-router-dom";
-import { UserContext } from "../contexts/UserContext";
+import PowerSharp from "@mui/icons-material/PowerSharp";
+import { Button, TextField, Typography } from "@mui/material";
+
+import CentralizedPaper from "../components/CentralizedPaper";
 import { AlertContext } from "../contexts/AlertContext";
+import { UserContext } from "../contexts/UserContext";
+import { loginService } from "../services/authservice";
 
 const Login = () => {
   const [email, setEmail] = useState("");

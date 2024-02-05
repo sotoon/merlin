@@ -1,4 +1,5 @@
 {
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "arrowParens": "always",
   "bracketSpacing": true,
   "embeddedLanguageFormatting": "auto",
@@ -16,5 +17,8 @@
   "vueIndentScriptAndStyle": false,
   "printWidth": 80,
   "tabWidth": 2,
-  "rangeStart": 0
+  "rangeStart": 0,
+  "importOrder": ["^react", "<THIRD_PARTY_MODULES>", "^[./]"],
+  "importOrderSeparation": true, 
+  "importOrderSortSpecifiers": true 
 }
