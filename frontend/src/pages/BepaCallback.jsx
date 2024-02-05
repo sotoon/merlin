@@ -1,12 +1,13 @@
 import React, { useContext, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { exchangeCodeForToken } from "../services/authservice";
-import { ErrorContext } from "../contexts/ErrorContext";
+
 import Loading from "../components/Loading";
+import { AlertContext } from "../contexts/AlertContext";
+import { exchangeCodeForToken } from "../services/authservice";
 
 const BepaCallback = () => {
   const location = useLocation();
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +25,7 @@ const BepaCallback = () => {
 
     if (!storedStateValue || !state || storedStateValue !== state) {
       console.error("Invalid State!");
-      setErrorMessage("Couldn't connect to bepa!");
+      setAlert({ message: "Couldn't connect to bepa!", type: "error" });
       navigate("/login");
       return;
     }
@@ -32,13 +33,12 @@ const BepaCallback = () => {
     if (code) {
       exchangeCodeForToken(code)
         .then((response) => {
-          localStorage.setItem("accessToken", response.data.access);
-          localStorage.setItem("refreshToken", response.data.refresh);
+          localStorage.setItem("accessToken", response.access);
+          localStorage.setItem("refreshToken", response.refresh);
           navigate("/dashboard");
         })
-        .catch((error) => {
-          console.error("Error exchanging code for token", error);
-          setErrorMessage("Couldn't connect to bepa!");
+        .catch(() => {
+          setAlert({ message: "Couldn't connect to bepa!", type: "error" });
           navigate("/login");
         });
     } else {

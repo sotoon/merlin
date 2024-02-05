@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Fab, Typography, Grid, Divider } from "@mui/material";
-import DashboardLayout from "../components/DashboardLayout";
-import AddSharpIcon from "@mui/icons-material/AddSharp";
-import NoteCard from "../components/NoteCard";
-import Loading from "../components/Loading";
-import { getNotes } from "../services/noteservice";
+import React, { useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
-import { ErrorContext } from "../contexts/ErrorContext";
+
+import AddSharpIcon from "@mui/icons-material/AddSharp";
+import { Fab, Grid } from "@mui/material";
+
+import Loading from "../components/Loading";
+import NoteCard from "../components/NoteCard";
+import SectionTitle from "../components/SectionTitle";
+import useFetchData from "../hooks/useFetchData";
+import { getNotes } from "../services/noteservice";
 
 const NoteTypeTitles = {
   Goal: "اهداف",
@@ -23,45 +25,29 @@ const NotesPage = () => {
   const userName = searchParams.get("username") || "";
   const retrieve_mentions = searchParams.get("retrieve_mentions") || false;
   const areNotesReadOnly = userEmail || retrieve_mentions;
-  const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState([]);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const isLoading = useFetchData(
+    () => getNotes(noteType, userEmail, retrieve_mentions),
+    setNotes,
+    [noteType, userEmail, retrieve_mentions],
+  );
 
-  useEffect(() => {
-    const fetchNotesData = async () => {
-      try {
-        const response = await getNotes(noteType, userEmail, retrieve_mentions);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setNotes(response.data);
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("A Problem occurred. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchNotesData();
-  }, [searchParams]);
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <Loading description={"در حال دریافت اطلاعات"} />
-      </DashboardLayout>
-    );
+  let pageTitle = `یادداشت‌ها${noteType ? "ی" : ""} ${
+    NoteTypeTitles[noteType]
+  }`;
+  if (userName) {
+    pageTitle += `از کاربر ${userName}`;
+  }
+  if (retrieve_mentions) {
+    pageTitle = "یادداشت‌هایی که در آن‌ها منشن شده‌اید";
   }
 
+  if (isLoading) {
+    return <Loading description={"در حال دریافت اطلاعات"} />;
+  }
   return (
-    <DashboardLayout>
-      <Typography variant="h4">
-        یادداشت‌ها{noteType ? "ی" : ""} {NoteTypeTitles[noteType]}
-        {userName ? `از کاربر ${userName}` : ""}
-      </Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
+    <>
+      <SectionTitle title={pageTitle} />
       <Grid container spacing={2}>
         {notes.map((note, index) => (
           <Grid item xs={12} sm={12} md={12} key={index}>
@@ -89,7 +75,7 @@ const NotesPage = () => {
           <AddSharpIcon sx={{ transform: "scale(1.4)" }} />
         </Fab>
       </RouterLink>
-    </DashboardLayout>
+    </>
   );
 };
 

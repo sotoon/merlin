@@ -1,25 +1,27 @@
 import React from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
   Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
 } from "react-router-dom";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import BepaCallback from "./pages/BepaCallback";
-import NotesPage from "./pages/NotesPage";
-import BaseLayout from "./components/BaseLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
+
 import { CssBaseline } from "@mui/material";
-import { UserProvider } from "./contexts/UserContext";
-import { ErrorProvider } from "./contexts/ErrorContext";
-import ErrorSnackbar from "./components/ErrorSnackbar";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+
 import "./App.css";
-import NotePage from "./pages/NotePage";
-import ProfilePage from "./pages/ProfilePage";
+import AlertSnackbar from "./components/AlertSnackbar";
+import BaseLayout from "./components/BaseLayout";
+import DashboardLayout from "./components/DashboardLayout";
+import { AlertProvider } from "./contexts/AlertContext";
+import { UserProvider } from "./contexts/UserContext";
+import BepaCallback from "./pages/BepaCallback";
+import Login from "./pages/Login";
 import MyTeamPage from "./pages/MyTeamPage";
+import NotePage from "./pages/NotePage";
+import NotesPage from "./pages/NotesPage";
+import ProfilePage from "./pages/ProfilePage";
+import Signup from "./pages/Signup";
 
 const theme = createTheme({
   palette: {
@@ -43,7 +45,7 @@ const theme = createTheme({
 function App() {
   return (
     <UserProvider>
-      <ErrorProvider>
+      <AlertProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Router>
@@ -58,49 +60,49 @@ function App() {
                 <Route
                   path="/dashboard"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <Navigate to="/notes?noteType=Goal" />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/notes"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <NotesPage key="notes" />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/note/:noteId?"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <NotePage />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/profile"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <ProfilePage />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
                 <Route
                   path="/my-team"
                   element={
-                    <ProtectedRoute>
+                    <DashboardLayout>
                       <MyTeamPage />
-                    </ProtectedRoute>
+                    </DashboardLayout>
                   }
                 />
               </Routes>
             </BaseLayout>
           </Router>
         </ThemeProvider>
-        <ErrorSnackbar />
-      </ErrorProvider>
+        <AlertSnackbar />
+      </AlertProvider>
     </UserProvider>
   );
 }

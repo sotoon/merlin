@@ -1,13 +1,17 @@
-import { useEffect, useContext } from "react";
-import { UserContext } from "../contexts/UserContext";
-import { jwtDecode } from "jwt-decode";
-import { verifyToken } from "../services/authservice";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { jwtDecode } from "jwt-decode";
+
+import { AlertContext } from "../contexts/AlertContext";
+import { UserContext } from "../contexts/UserContext";
+import { verifyToken } from "../services/authservice";
 import { getMyTeam } from "../services/teamservice";
 
 const useAuth = () => {
   const { user, setUser, setIsAuthCheckComplete, setIsLeader } =
     useContext(UserContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +27,6 @@ const useAuth = () => {
             });
           } else {
             const user = await verifyToken(token);
-            console.log(`verify token resp: ${JSON.stringify(user)}`);
             setUser(user);
           }
         } catch (error) {
@@ -42,11 +45,16 @@ const useAuth = () => {
       if (user) {
         try {
           const response = await getMyTeam();
-          if (response.data.length > 0) {
+          if (response.length > 0) {
             setIsLeader(true);
+          } else {
+            setIsLeader(false);
           }
         } catch (error) {
-          console.error(error);
+          setAlert({
+            message: "Couldn't check leadership status!",
+            type: "error",
+          });
         }
       }
     };

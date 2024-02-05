@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import { refreshToken } from "./authservice";
 
 const API = axios.create({
@@ -39,5 +40,20 @@ API.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+export const apiCall = async (method, url, data) => {
+  try {
+    const response = await API[method](url, data);
+    console.log(
+      `response status: ${response.status} response data: ${JSON.stringify(
+        response.data,
+      )}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 export default API;

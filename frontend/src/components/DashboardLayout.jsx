@@ -1,5 +1,8 @@
 import React, { useContext } from "react";
+import { Link as RouterLink } from "react-router-dom";
+
 import {
+  Box,
   Divider,
   Drawer,
   List,
@@ -7,11 +10,11 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  Box,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { Link as RouterLink } from "react-router-dom";
+
 import { UserContext } from "../contexts/UserContext";
+import ProtectedRoute from "./ProtectedRoute";
 
 const drawerWidth = 240;
 const noteOptions = [
@@ -54,89 +57,91 @@ const personalOptions = [
 const DashboardLayout = ({ children }) => {
   const { isLeader } = useContext(UserContext);
   return (
-    <Box
-      sx={{
-        display: "flex",
-        width: "100%",
-      }}
-    >
-      <Box sx={{ flexShrink: 0 }}>
-        <Drawer
-          variant="permanent"
-          anchor="right"
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            "& .MuiDrawer-paper": {
+    <ProtectedRoute>
+      <Box
+        sx={{
+          display: "flex",
+          width: "100%",
+        }}
+      >
+        <Box sx={{ flexShrink: 0 }}>
+          <Drawer
+            variant="permanent"
+            anchor="right"
+            sx={{
               width: drawerWidth,
-              boxSizing: "border-box",
-            },
+              flexShrink: 0,
+              "& .MuiDrawer-paper": {
+                width: drawerWidth,
+                boxSizing: "border-box",
+              },
+            }}
+          >
+            <Toolbar />
+            <Typography
+              component="h1"
+              variant="h6"
+              sx={{ mt: 2, mb: 0.5, ml: 1 }}
+            >
+              یادداشت‌ها
+            </Typography>
+            <Divider />
+            <List>
+              {noteOptions.map((noteOption) => (
+                <ListItemButton
+                  key={noteOption.text}
+                  component={RouterLink}
+                  to={noteOption.link}
+                >
+                  <ListItemText
+                    primary={noteOption.text}
+                    sx={{ textAlign: "right" }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+            <Typography
+              component="h1"
+              variant="h6"
+              sx={{ mt: 2, mb: 0.5, ml: 1 }}
+            >
+              شخصی
+            </Typography>
+            <Divider />
+            <List>
+              {personalOptions.map(
+                (drawerOption) =>
+                  (!drawerOption.leaderCondition || isLeader) && (
+                    <ListItemButton
+                      key={drawerOption.text}
+                      component={RouterLink}
+                      to={drawerOption.link}
+                    >
+                      <ListItemText
+                        primary={drawerOption.text}
+                        sx={{ textAlign: "right" }}
+                      />
+                    </ListItemButton>
+                  ),
+              )}
+            </List>
+          </Drawer>
+        </Box>
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            width: `100%`,
+            marginRight: 0,
+            p: 3,
+            maxWidth: "1200px",
           }}
         >
           <Toolbar />
-          <Typography
-            component="h1"
-            variant="h6"
-            sx={{ mt: 2, mb: 0.5, ml: 1 }}
-          >
-            یادداشت‌ها
-          </Typography>
-          <Divider />
-          <List>
-            {noteOptions.map((noteOption) => (
-              <ListItemButton
-                key={noteOption.text}
-                component={RouterLink}
-                to={noteOption.link}
-              >
-                <ListItemText
-                  primary={noteOption.text}
-                  sx={{ textAlign: "right" }}
-                />
-              </ListItemButton>
-            ))}
-          </List>
-          <Typography
-            component="h1"
-            variant="h6"
-            sx={{ mt: 2, mb: 0.5, ml: 1 }}
-          >
-            شخصی
-          </Typography>
-          <Divider />
-          <List>
-            {personalOptions.map(
-              (drawerOption) =>
-                (!drawerOption.leaderCondition || isLeader) && (
-                  <ListItemButton
-                    key={drawerOption.text}
-                    component={RouterLink}
-                    to={drawerOption.link}
-                  >
-                    <ListItemText
-                      primary={drawerOption.text}
-                      sx={{ textAlign: "right" }}
-                    />
-                  </ListItemButton>
-                ),
-            )}
-          </List>
-        </Drawer>
+          {children}
+        </Box>
       </Box>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          width: `100%`,
-          marginRight: 0,
-          p: 3,
-          maxWidth: "1200px",
-        }}
-      >
-        <Toolbar />
-        {children}
-      </Box>
-    </Box>
+    </ProtectedRoute>
   );
 };
 

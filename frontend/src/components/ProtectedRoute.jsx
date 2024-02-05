@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { UserContext } from "../contexts/UserContext";
+
 import Loading from "../components/Loading";
+import { UserContext } from "../contexts/UserContext";
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ children }) => {
