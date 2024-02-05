@@ -32,12 +32,11 @@ const BepaCallback = () => {
     if (code) {
       exchangeCodeForToken(code)
         .then((response) => {
-          localStorage.setItem("accessToken", response.data.access);
-          localStorage.setItem("refreshToken", response.data.refresh);
+          localStorage.setItem("accessToken", response.access);
+          localStorage.setItem("refreshToken", response.refresh);
           navigate("/dashboard");
         })
-        .catch((error) => {
-          console.error("Error exchanging code for token", error);
+        .catch(() => {
           setErrorMessage("Couldn't connect to bepa!");
           navigate("/login");
         });

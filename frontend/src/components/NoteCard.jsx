@@ -28,15 +28,9 @@ const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
     event.stopPropagation();
     const deleteCurrentNote = async () => {
       try {
-        const response = await deleteNote(uuid);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
+        await deleteNote(uuid);
         navigate(0);
       } catch (error) {
-        console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
       }
     };
