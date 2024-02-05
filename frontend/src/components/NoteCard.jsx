@@ -1,23 +1,25 @@
 import React, { useContext } from "react";
+import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router-dom";
+
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Card,
-  CardHeader,
-  CardContent,
   CardActions,
-  Typography,
+  CardContent,
+  CardHeader,
   Divider,
   IconButton,
+  Typography,
 } from "@mui/material";
 import { marked } from "marked";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { deleteNote } from "../services/noteservice";
-import { useNavigate } from "react-router";
-import { ErrorContext } from "../contexts/ErrorContext";
 import PropTypes from "prop-types";
 
+import { AlertContext } from "../contexts/AlertContext";
+import { deleteNote } from "../services/noteservice";
+
 const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   const removeMarkdown = (markdownText) => {
     return marked(markdownText).replace(/<\/?[^>]+(>|$)/g, "\n");
@@ -28,16 +30,13 @@ const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
     event.stopPropagation();
     const deleteCurrentNote = async () => {
       try {
-        const response = await deleteNote(uuid);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
+        await deleteNote(uuid);
         navigate(0);
       } catch (error) {
-        console.error(error);
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
       }
     };
     deleteCurrentNote();

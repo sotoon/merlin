@@ -1,11 +1,13 @@
 import React, { useContext, useState } from "react";
-import { signupService } from "../services/authservice";
-import { useNavigate, Navigate } from "react-router-dom";
-import { TextField, Button, Typography } from "@mui/material";
-import CentralizedPaper from "../components/CentralizedPaper";
+import { Navigate, useNavigate } from "react-router-dom";
+
 import HowToRegSharpIcon from "@mui/icons-material/HowToRegSharp";
+import { Button, TextField, Typography } from "@mui/material";
+
+import CentralizedPaper from "../components/CentralizedPaper";
+import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { signupService } from "../services/authservice";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -13,7 +15,7 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { user } = useContext(UserContext);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   if (user) {
@@ -28,16 +30,10 @@ const Signup = () => {
     }
     try {
       const userData = { name, email, password };
-      const response = await signupService(userData);
-      console.log(
-        `response status: ${response.status} response data: ${JSON.stringify(
-          response.data,
-        )}`,
-      );
+      await signupService(userData);
       navigate("/login");
     } catch (error) {
-      console.error(error);
-      setErrorMessage("Something went wrong. Please try again later.");
+      setAlert({ message: "ثبت نام ناموفق، دوباره تلاش کنید!", type: "error" });
     }
   };
 

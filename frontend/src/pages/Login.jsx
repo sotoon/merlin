@@ -1,18 +1,20 @@
-import React, { useState, useContext } from "react";
-import { loginService } from "../services/authservice";
-import CentralizedPaper from "../components/CentralizedPaper";
-import { TextField, Button, Typography } from "@mui/material";
-import PowerSharp from "@mui/icons-material/PowerSharp";
+import React, { useContext, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+
 import LockOpenSharp from "@mui/icons-material/LockOpenSharp";
-import { useNavigate, Navigate } from "react-router-dom";
+import PowerSharp from "@mui/icons-material/PowerSharp";
+import { Button, TextField, Typography } from "@mui/material";
+
+import CentralizedPaper from "../components/CentralizedPaper";
+import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
-import { ErrorContext } from "../contexts/ErrorContext";
+import { loginService } from "../services/authservice";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { user, setUser } = useContext(UserContext);
-  const { setErrorMessage } = useContext(ErrorContext);
+  const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
 
   if (user) {
@@ -24,23 +26,20 @@ const Login = () => {
     try {
       const userData = { email, password };
       const response = await loginService(userData);
-      console.log(
-        `response status: ${response.status} response data: ${JSON.stringify(
-          response.data,
-        )}`,
-      );
-      localStorage.setItem("accessToken", response.data.tokens.access);
-      localStorage.setItem("refreshToken", response.data.tokens.refresh);
+      localStorage.setItem("accessToken", response.tokens.access);
+      localStorage.setItem("refreshToken", response.tokens.refresh);
       const user = {
-        name: response.data.name,
-        email: response.data.email,
+        name: response.name,
+        email: response.email,
       };
       setUser(user);
       const { from } = location.state || { from: { pathname: "/" } };
       navigate(from);
     } catch (error) {
-      console.error(error);
-      setErrorMessage("A Problem occurred. Please try again later.");
+      setAlert({
+        message: "A Problem occurred. Please try again later.",
+        type: "error",
+      });
     }
   };
 

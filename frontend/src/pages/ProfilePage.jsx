@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
-import DashboardLayout from "../components/DashboardLayout";
-import { getProfileData, updateProfile } from "../services/authservice";
-import {
-  TextField,
-  Button,
-  Typography,
-  Divider,
-  Snackbar,
-  Alert,
-  Chip,
-} from "@mui/material";
+import React, { useContext, useState } from "react";
+
+import { Button, Chip, TextField, Typography } from "@mui/material";
+
 import Loading from "../components/Loading";
-import { ErrorContext } from "../contexts/ErrorContext";
+import SectionTitle from "../components/SectionTitle";
+import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
+import useFetchData from "../hooks/useFetchData";
+import { getProfileData, updateProfile } from "../services/authservice";
 import { verifyToken } from "../services/authservice";
 
 const ProfilePage = () => {
@@ -27,28 +22,8 @@ const ProfilePage = () => {
     leader: "",
   });
   const { setUser } = useContext(UserContext);
-  const [isLoading, setIsLoading] = useState(true);
-  const { setErrorMessage } = useContext(ErrorContext);
-  const [isSubmitSnackbarOpen, setIsSubmitSnackbarOpen] = useState(false);
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const response = await getProfileData();
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setFormData(response.data);
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("Something went wrong. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProfileData();
-  }, []);
+  const { setAlert } = useContext(AlertContext);
+  const isLoading = useFetchData(getProfileData, setFormData, []);
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -60,40 +35,30 @@ const ProfilePage = () => {
     e.preventDefault();
     const updateProfileData = async () => {
       try {
-        const response = await updateProfile(formData);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setIsSubmitSnackbarOpen(true);
+        await updateProfile(formData);
+        setAlert({
+          message: "تغییرات با موفقیت ثبت شد",
+          type: "success",
+        });
         const token = localStorage.getItem("accessToken");
         const user = await verifyToken(token);
         setUser(user);
       } catch (error) {
-        console.error(error);
-        setErrorMessage("Something went wrong. Please try again later.");
+        setAlert({
+          message: "ویرایش پروفایل ناموفق بود، دوباره تلاش کنید.",
+          type: "error",
+        });
       }
     };
     updateProfileData();
   };
 
-  const handleSubmitSnackbarClose = () => {
-    setIsSubmitSnackbarOpen(false);
-  };
-
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <Loading description={"در حال دریافت اطلاعات"} />
-      </DashboardLayout>
-    );
+    return <Loading description={"در حال دریافت اطلاعات"} />;
   }
-
   return (
-    <DashboardLayout>
-      <Typography variant="h4">ویرایش پروفایل</Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
+    <>
+      <SectionTitle title={"ویرایش پروفایل"} />
       <Typography variant="h6" gutterBottom>
         ایمیل سازمانی: {formData.email}
       </Typography>
@@ -196,20 +161,7 @@ const ProfilePage = () => {
           ثبت تغییرات
         </Button>
       </form>
-      <Snackbar
-        open={isSubmitSnackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSubmitSnackbarClose}
-      >
-        <Alert
-          onClose={handleSubmitSnackbarClose}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          تغییرات با موفقیت ثبت شد
-        </Alert>
-      </Snackbar>
-    </DashboardLayout>
+    </>
   );
 };
 
