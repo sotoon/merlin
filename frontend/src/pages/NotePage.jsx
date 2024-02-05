@@ -29,6 +29,7 @@ import "react-quill/dist/quill.snow.css";
 import Loading from "../components/Loading";
 import { ErrorContext } from "../contexts/ErrorContext";
 import { UserContext } from "../contexts/UserContext";
+import SectionTitle from "../components/SectionTitle";
 const Quill = ReactQuill.Quill;
 const Font = Quill.import("formats/font");
 Font.whitelist = ["yekan", "sans-serif"];
@@ -242,11 +243,7 @@ const NotePage = () => {
 
   return (
     <>
-      <Typography variant="h4">
-        {" "}
-        {noteId ? "ویرایش" : "ایجاد"} یادداشت
-      </Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
+      <SectionTitle title={`${noteId ? "ویرایش" : "ایجاد"} یادداشت`} />
       <form onSubmit={handleSubmit}>
         <TextField
           label="عنوان"
@@ -423,8 +420,7 @@ const NotePage = () => {
       </form>
       {isReadOnly && (
         <>
-          <Typography variant="h4">نوشتن فیدبک</Typography>
-          <Divider sx={{ mb: 2, mt: 2 }} />
+          <SectionTitle title="نوشتن فیدبک" />
           <form onSubmit={handleFeedbackSubmit}>
             <TextField
               label="فیدبک"
@@ -467,11 +463,7 @@ const NotePage = () => {
       )}
       {!isReadOnly && (
         <>
-          <Typography variant="h4" sx={{ mt: 5 }}>
-            فیدبک‌ها
-          </Typography>
-          <Divider sx={{ mb: 2, mt: 2 }} />
-
+          <SectionTitle title="فیدبک‌ها" />
           <Grid container spacing={2}>
             {feedbacks.map((feedback, index) => (
               <Grid item xs={12} sm={12} md={12} key={index}>

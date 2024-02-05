@@ -4,7 +4,6 @@ import {
   TextField,
   Button,
   Typography,
-  Divider,
   Snackbar,
   Alert,
   Chip,
@@ -14,6 +13,7 @@ import { ErrorContext } from "../contexts/ErrorContext";
 import { UserContext } from "../contexts/UserContext";
 import { verifyToken } from "../services/authservice";
 import useFetchData from "../hooks/useFetchData";
+import SectionTitle from "../components/SectionTitle";
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({
@@ -68,8 +68,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Typography variant="h4">ویرایش پروفایل</Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
+      <SectionTitle title={"ویرایش پروفایل"} />
       <Typography variant="h6" gutterBottom>
         ایمیل سازمانی: {formData.email}
       </Typography>
