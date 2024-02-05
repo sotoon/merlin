@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   TextField,
   Button,
@@ -24,16 +24,11 @@ import {
 } from "../services/noteservice";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAllUsers } from "../services/teamservice";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import Loading from "../components/Loading";
 import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
 import SectionTitle from "../components/SectionTitle";
-const Quill = ReactQuill.Quill;
-const Font = Quill.import("formats/font");
-Font.whitelist = ["yekan", "sans-serif"];
-Quill.register(Font, true);
+import CustomQuill from "../components/CustomQuill";
 
 const NotePage = () => {
   const { noteId } = useParams();
@@ -56,9 +51,6 @@ const NotePage = () => {
   const navigate = useNavigate();
   const { setAlert } = useContext(AlertContext);
   const { user } = useContext(UserContext);
-  let isProgrammaticUpdate = false;
-
-  const quillRef = useRef(null);
 
   const validate = (data) => {
     let tempErrors = {};
@@ -72,22 +64,6 @@ const NotePage = () => {
   const handleMentionChange = (_, value) => {
     setMentionedUsers(value);
   };
-
-  useEffect(() => {
-    if (quillRef.current) {
-      const quill = quillRef.current.getEditor();
-      isProgrammaticUpdate = true;
-      quill.setText(" ");
-
-      quill.format("size", "large");
-      quill.format("direction", "rtl");
-      quill.format("align", "right");
-      quill.format("font", "yekan");
-
-      quill.deleteText(0, 1);
-      isProgrammaticUpdate = false;
-    }
-  }, []);
 
   useEffect(() => {
     const fetchNoteFeedbacks = async () => {
@@ -151,29 +127,6 @@ const NotePage = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-  };
-
-  const handleContentChange = (value, delta, source, editor) => {
-    setFormData({
-      ...formData,
-      content: value,
-    });
-    if (isProgrammaticUpdate) {
-      return;
-    }
-    if (editor.getLength() <= 1 && quillRef.current) {
-      const quill = quillRef.current.getEditor();
-      isProgrammaticUpdate = true;
-      quill.setText(" ");
-
-      quill.format("size", "large");
-      quill.format("direction", "rtl");
-      quill.format("align", "right");
-      quill.format("font", "yekan");
-
-      quill.deleteText(0, 1);
-      isProgrammaticUpdate = false;
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -251,54 +204,12 @@ const NotePage = () => {
             },
           }}
         />
-        <ReactQuill
-          ref={quillRef}
+        <CustomQuill
+          isReadOnly={isReadOnly}
           value={formData.content}
-          onChange={handleContentChange}
-          placeholder="محتوا"
-          readOnly={isReadOnly}
-          modules={{
-            toolbar: [
-              ["bold", "italic", "underline", "strike"],
-              [{ header: 1 }, { header: 2 }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              [{ script: "sub" }, { script: "super" }],
-              [{ size: ["small", false, "large", "huge"] }],
-              [{ indent: "-1" }, { indent: "+1" }],
-              [{ direction: "rtl" }],
-              [{ align: [] }],
-              [{ header: [1, 2, 3, 4, 5, 6, false] }],
-              [{ color: [] }, { background: [] }],
-              [{ font: Font.whitelist }],
-              ["link", "image", "blockquote", "code-block"],
-            ],
-          }}
-          formats={[
-            "header",
-            "font",
-            "size",
-            "bold",
-            "italic",
-            "direction",
-            "align",
-            "underline",
-            "strike",
-            "blockquote",
-            "list",
-            "bullet",
-            "indent",
-            "link",
-            "image",
-            "color",
-            "background",
-            "code-block",
-            "script",
-          ]}
-          style={{
-            width: "100%",
-            marginBottom: 10,
-            direction: "ltr",
-          }}
+          handleDataChange={(value) =>
+            setFormData({ ...formData, content: value })
+          }
         />
         <TextField
           type="date"
