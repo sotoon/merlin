@@ -1,22 +1,32 @@
 import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { Button, TextField } from "@mui/material";
 import { PropTypes } from "prop-types";
 
 import { AlertContext } from "../contexts/AlertContext";
-import { createFeedback } from "../services/noteservice";
+import useFetchData from "../hooks/useFetchData";
+import { createFeedback, getFeedbacks } from "../services/noteservice";
+import Loading from "./Loading";
 import SectionTitle from "./SectionTitle";
 
 const FeedbackForm = ({ noteId }) => {
-  const [newFeedbackContent, setNewFeedbackContent] = useState("");
-  const navigate = useNavigate();
+  const [feedbackContent, setFeedbackContent] = useState("");
+  const isLoading = useFetchData(
+    () => (noteId ? getFeedbacks(noteId) : null),
+    (response) =>
+      setFeedbackContent(response.length > 0 ? response[0].content : ""),
+    [noteId],
+  );
+
   const { setAlert } = useContext(AlertContext);
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createFeedback(newFeedbackContent, noteId);
-      navigate(`/dashboard`);
+      await createFeedback(feedbackContent, noteId);
+      setAlert({
+        message: "فیدبک با موفقیت افزوده شد!",
+        type: "success",
+      });
     } catch (error) {
       setAlert({
         message: "Something went wrong. Please try again later.",
@@ -24,6 +34,9 @@ const FeedbackForm = ({ noteId }) => {
       });
     }
   };
+  if (isLoading) {
+    return <Loading description="در حال دریافت اطلاعات..." />;
+  }
   return (
     <>
       <SectionTitle title="نوشتن فیدبک" />
@@ -31,9 +44,9 @@ const FeedbackForm = ({ noteId }) => {
         <TextField
           label="فیدبک"
           name="feedback"
-          value={newFeedbackContent}
+          value={feedbackContent}
           placeholder="نوشتن فیدبک"
-          onChange={(e) => setNewFeedbackContent(e.target.value)}
+          onChange={(e) => setFeedbackContent(e.target.value)}
           multiline
           fullWidth
           rows={4}

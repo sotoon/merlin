@@ -251,7 +251,9 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user != self.get_note().owner:
-            raise PermissionDenied("You don't have permission to access this feedback.")
+            return Feedback.objects.filter(
+                note=self.get_note(), owner=self.request.user
+            )
         return Feedback.objects.filter(note=self.get_note())
 
     def create(self, request, *args, **kwargs):
@@ -261,6 +263,11 @@ class FeedbackViewSet(viewsets.ModelViewSet):
             and current_user not in self.get_note().mentioned_users.all()
         ):
             raise PermissionDenied("You don't have permission to create feedback.")
+        prev_feedback = Feedback.objects.filter(
+            note=self.get_note(), owner=current_user
+        ).first()
+        if prev_feedback:
+            prev_feedback.delete()
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
