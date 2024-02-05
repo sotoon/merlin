@@ -232,7 +232,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
             color="primary"
             sx={{ display: "flex" }}
           >
-            Submit
+            ثبت
           </Button>
         )}
       </form>
