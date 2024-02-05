@@ -23,7 +23,6 @@ import {
   getFeedbacks,
 } from "../services/noteservice";
 import { useParams, useNavigate } from "react-router-dom";
-import DashboardLayout from "../components/DashboardLayout";
 import { getAllUsers } from "../services/teamservice";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -238,11 +237,7 @@ const NotePage = () => {
   }, [formData]);
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <Loading description={"در حال دریافت اطلاعات"} />
-      </DashboardLayout>
-    );
+    return <Loading description={"در حال دریافت اطلاعات"} />;
   }
 
   return (

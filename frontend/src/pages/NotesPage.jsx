@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState } from "react";
 import { Fab, Typography, Grid, Divider } from "@mui/material";
-import DashboardLayout from "../components/DashboardLayout";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
 import NoteCard from "../components/NoteCard";
 import Loading from "../components/Loading";
 import { getNotes } from "../services/noteservice";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
-import { ErrorContext } from "../contexts/ErrorContext";
+import useFetchData from "../hooks/useFetchData";
 
 const NoteTypeTitles = {
   Goal: "اهداف",
@@ -23,36 +22,13 @@ const NotesPage = () => {
   const userName = searchParams.get("username") || "";
   const retrieve_mentions = searchParams.get("retrieve_mentions") || false;
   const areNotesReadOnly = userEmail || retrieve_mentions;
-  const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState([]);
-  const { setErrorMessage } = useContext(ErrorContext);
-
-  useEffect(() => {
-    const fetchNotesData = async () => {
-      try {
-        const response = await getNotes(noteType, userEmail, retrieve_mentions);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setNotes(response.data);
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("A Problem occurred. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchNotesData();
-  }, [searchParams]);
-
+  const isLoading = useFetchData(
+    () => getNotes(noteType, userEmail, retrieve_mentions),
+    setNotes,
+  );
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <Loading description={"در حال دریافت اطلاعات"} />
-      </DashboardLayout>
-    );
+    return <Loading description={"در حال دریافت اطلاعات"} />;
   }
 
   return (

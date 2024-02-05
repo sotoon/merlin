@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
-import DashboardLayout from "../components/DashboardLayout";
+import React, { useState, useContext } from "react";
 import { getProfileData, updateProfile } from "../services/authservice";
 import {
   TextField,
@@ -14,6 +13,7 @@ import Loading from "../components/Loading";
 import { ErrorContext } from "../contexts/ErrorContext";
 import { UserContext } from "../contexts/UserContext";
 import { verifyToken } from "../services/authservice";
+import useFetchData from "../hooks/useFetchData";
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({
@@ -27,28 +27,12 @@ const ProfilePage = () => {
     leader: "",
   });
   const { setUser } = useContext(UserContext);
-  const [isLoading, setIsLoading] = useState(true);
   const { setErrorMessage } = useContext(ErrorContext);
   const [isSubmitSnackbarOpen, setIsSubmitSnackbarOpen] = useState(false);
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const response = await getProfileData();
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setFormData(response.data);
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("Something went wrong. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProfileData();
-  }, []);
+  const isLoading = useFetchData(getProfileData, setFormData);
+  if (isLoading) {
+    return <Loading description={"در حال دریافت اطلاعات"} />;
+  }
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -81,14 +65,6 @@ const ProfilePage = () => {
   const handleSubmitSnackbarClose = () => {
     setIsSubmitSnackbarOpen(false);
   };
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <Loading description={"در حال دریافت اطلاعات"} />
-      </DashboardLayout>
-    );
-  }
 
   return (
     <>
