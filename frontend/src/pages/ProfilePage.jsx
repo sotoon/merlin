@@ -21,10 +21,7 @@ const ProfilePage = () => {
   });
   const { setUser } = useContext(UserContext);
   const { setAlert } = useContext(AlertContext);
-  const isLoading = useFetchData(getProfileData, setFormData);
-  if (isLoading) {
-    return <Loading description={"در حال دریافت اطلاعات"} />;
-  }
+  const isLoading = useFetchData(getProfileData, setFormData, []);
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -54,6 +51,9 @@ const ProfilePage = () => {
     updateProfileData();
   };
 
+  if (isLoading) {
+    return <Loading description={"در حال دریافت اطلاعات"} />;
+  }
   return (
     <>
       <SectionTitle title={"ویرایش پروفایل"} />

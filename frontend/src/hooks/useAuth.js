@@ -25,7 +25,6 @@ const useAuth = () => {
             });
           } else {
             const user = await verifyToken(token);
-            console.log(`verify token resp: ${JSON.stringify(user)}`);
             setUser(user);
           }
         } catch (error) {
@@ -46,6 +45,8 @@ const useAuth = () => {
           const response = await getMyTeam();
           if (response.length > 0) {
             setIsLeader(true);
+          } else {
+            setIsLeader(false);
           }
         } catch (error) {
           setAlert({

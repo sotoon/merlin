@@ -8,7 +8,7 @@ import SectionTitle from "../components/SectionTitle";
 
 const MyTeamPage = () => {
   const [team, setTeam] = useState([]);
-  const isLoading = useFetchData(getMyTeam, setTeam);
+  const isLoading = useFetchData(getMyTeam, setTeam, []);
   if (isLoading) {
     return <Loading description={"در حال دریافت اطلاعات"} />;
   }

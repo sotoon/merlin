@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AlertContext } from "../contexts/AlertContext";
 
-const useFetchData = (fetchFunction, setData) => {
+const useFetchData = (fetchFunction, setData, dependencies) => {
   const [isLoading, setIsLoading] = useState(true);
   const { setAlert } = useContext(AlertContext);
 
@@ -20,7 +20,7 @@ const useFetchData = (fetchFunction, setData) => {
       }
     };
     fetchData();
-  }, [fetchFunction, setAlert]);
+  }, dependencies);
 
   return isLoading;
 };

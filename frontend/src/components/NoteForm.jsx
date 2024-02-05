@@ -1,0 +1,249 @@
+import React, { useEffect, useState, useContext } from "react";
+import {
+  Select,
+  MenuItem,
+  FormControl,
+  TextField,
+  InputLabel,
+  FormHelperText,
+  Autocomplete,
+  Button,
+} from "@mui/material";
+import { createNote, updateNote } from "../services/noteservice";
+import { useNavigate } from "react-router-dom";
+import SectionTitle from "./SectionTitle";
+import { getAllUsers } from "../services/teamservice";
+import { AlertContext } from "../contexts/AlertContext";
+import CustomQuill from "../components/CustomQuill";
+import PropTypes from "prop-types";
+
+const NoteForm = ({ isReadOnly, noteData, noteId }) => {
+  const [formData, setFormData] = useState(() => {
+    const savedData = localStorage.getItem("noteFormData");
+    const emptyData = { title: "", content: "", date: "", type: "" };
+    if (noteData) {
+      return {
+        title: noteData.title,
+        content: noteData.content,
+        date: noteData.date,
+        type: noteData.type,
+      };
+    }
+    return savedData ? JSON.parse(savedData) : emptyData;
+  });
+  const [mentionedUsers, setMentionedUsers] = useState(() =>
+    noteData
+      ? noteData.mentioned_users.map((item) => ({
+          name: "",
+          email: item,
+        }))
+      : [],
+  );
+  const [errors, setErrors] = useState({});
+  const [allUsers, setAllUsers] = useState([]);
+  const { setAlert } = useContext(AlertContext);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const response = await getAllUsers();
+        setAllUsers(response);
+      } catch (error) {
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
+      }
+    };
+    fetchAllUsers();
+  }, []);
+
+  const validate = (data) => {
+    let tempErrors = {};
+    if (!data.title) tempErrors.title = "عنوان الزامی است.";
+    if (!data.date) tempErrors.date = "تاریخ الزامی است.";
+    if (!data.type) tempErrors.type = "نوع الزامی است.";
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+  const handleMentionChange = (_, value) => {
+    setMentionedUsers(value);
+  };
+  const handleChange = (e) => {
+    setErrors({ ...errors, [e.target.name]: "" });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (validate(formData)) {
+      try {
+        formData.mentioned_users = mentionedUsers.map((item) => item.email);
+        if (noteId) {
+          await updateNote(formData, noteId);
+        } else {
+          await createNote(formData);
+        }
+        localStorage.removeItem("noteFormData");
+        navigate(`/notes?noteType=${formData.type}`);
+      } catch (error) {
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
+      }
+    }
+  };
+  useEffect(() => {
+    if (!noteId) {
+      localStorage.setItem("noteFormData", JSON.stringify(formData));
+    }
+  }, [formData]);
+  return (
+    <>
+      <SectionTitle title={`${noteId ? "ویرایش" : "ایجاد"} یادداشت`} />
+      <form onSubmit={handleSubmit}>
+        <TextField
+          label="عنوان"
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          error={Boolean(errors.title)}
+          helpertext={errors.title}
+          fullWidth
+          margin="normal"
+          sx={{ mb: 2 }}
+          InputProps={{
+            readOnly: isReadOnly,
+            style: {
+              textAlign: "right",
+              direction: "rtl",
+            },
+          }}
+          InputLabelProps={{
+            style: {
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 20,
+            },
+          }}
+        />
+        <CustomQuill
+          isReadOnly={isReadOnly}
+          value={formData.content}
+          handleDataChange={(value) =>
+            setFormData({ ...formData, content: value })
+          }
+        />
+        <TextField
+          type="date"
+          label="تاریخ"
+          name="date"
+          error={Boolean(errors.date)}
+          helpertext={errors.date}
+          value={formData.date}
+          InputProps={{
+            readOnly: isReadOnly,
+          }}
+          InputLabelProps={{
+            shrink: true,
+            style: {
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 20,
+            },
+          }}
+          onChange={handleChange}
+          margin="normal"
+          sx={{ mt: 2 }}
+        />
+        <FormControl
+          margin="normal"
+          errors={errors}
+          helpertext={errors.type}
+          sx={{ mr: 5, minWidth: "50px" }}
+        >
+          <InputLabel
+            id="type-select-label"
+            style={{
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 35,
+            }}
+          >
+            نوع
+          </InputLabel>
+          <Select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            labelId="type-select-label"
+            label="Type"
+            disabled={isReadOnly}
+          >
+            <MenuItem value="Goal">هدف</MenuItem>
+            <MenuItem value="Meeting">جلسه</MenuItem>
+            <MenuItem value="Personal">شخصی</MenuItem>
+            <MenuItem value="Task">فعالیت</MenuItem>
+          </Select>
+          {errors.type && (
+            <FormHelperText sx={{ color: (theme) => theme.palette.error.main }}>
+              {errors.type}
+            </FormHelperText>
+          )}
+        </FormControl>
+
+        <Autocomplete
+          multiple
+          id="user-autocomplete"
+          options={allUsers}
+          disabled={isReadOnly}
+          getOptionLabel={(option) => `${option.name}(${option.email})`}
+          isOptionEqualToValue={(option, value) => option.email == value.email}
+          onChange={handleMentionChange}
+          value={mentionedUsers}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="منشن‌ شوندگان"
+              variant="outlined"
+              sx={{ mt: 2, mb: 2 }}
+              InputLabelProps={{
+                style: {
+                  textAlign: "right",
+                  right: 0,
+                  left: "auto",
+                  marginRight: 20,
+                },
+              }}
+            />
+          )}
+        />
+
+        {!isReadOnly && (
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ display: "flex" }}
+          >
+            Submit
+          </Button>
+        )}
+      </form>
+    </>
+  );
+};
+
+NoteForm.propTypes = {
+  noteId: PropTypes.string,
+  isReadOnly: PropTypes.bool,
+  noteData: PropTypes.object,
+};
+
+export default NoteForm;
