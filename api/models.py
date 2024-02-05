@@ -161,6 +161,10 @@ class Feedback(MerlinBaseModel):
     note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
 
     class Meta:
+        unique_together = (
+            "owner",
+            "note",
+        )
         verbose_name = "فیدبک"
         verbose_name_plural = "فیدبک‌ها"
 

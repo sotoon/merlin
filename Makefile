@@ -21,9 +21,11 @@ deps-dev: deps
 fmt:
 	python -m isort $(TOFMT_FILES)
 	python -m black $(TOFMT_FILES)
+	cd frontend && npm run format
 
 lint:
 	python -m flake8
+	cd frontend && npm run lint
 
 test:
 	python manage.py test --noinput
