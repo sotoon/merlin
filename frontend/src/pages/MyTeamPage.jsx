@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Typography, Grid, Divider } from "@mui/material";
+import { Grid } from "@mui/material";
 import Loading from "../components/Loading";
 import { getMyTeam } from "../services/teamservice";
 import MemberCard from "../components/MemberCard";
 import useFetchData from "../hooks/useFetchData";
+import SectionTitle from "../components/SectionTitle";
 
 const MyTeamPage = () => {
   const [team, setTeam] = useState([]);
@@ -14,8 +15,7 @@ const MyTeamPage = () => {
 
   return (
     <>
-      <Typography variant="h4">تیم من</Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
+      <SectionTitle title={"تیم من"} />
       <Grid container spacing={2}>
         {team.map((user, index) => (
           <>

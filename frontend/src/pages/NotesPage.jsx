@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Fab, Typography, Grid, Divider } from "@mui/material";
+import { Fab, Grid } from "@mui/material";
 import AddSharpIcon from "@mui/icons-material/AddSharp";
 import NoteCard from "../components/NoteCard";
 import Loading from "../components/Loading";
 import { getNotes } from "../services/noteservice";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import useFetchData from "../hooks/useFetchData";
+import SectionTitle from "../components/SectionTitle";
 
 const NoteTypeTitles = {
   Goal: "اهداف",
@@ -30,14 +31,19 @@ const NotesPage = () => {
   if (isLoading) {
     return <Loading description={"در حال دریافت اطلاعات"} />;
   }
+  let pageTitle = `یادداشت‌ها${noteType ? "ی" : ""} ${
+    NoteTypeTitles[noteType]
+  }`;
+  if (userName) {
+    pageTitle += `از کاربر ${userName}`;
+  }
+  if (retrieve_mentions) {
+    pageTitle = "یادداشت‌هایی که در آن‌ها منشن شده‌اید";
+  }
 
   return (
     <>
-      <Typography variant="h4">
-        یادداشت‌ها{noteType ? "ی" : ""} {NoteTypeTitles[noteType]}
-        {userName ? `از کاربر ${userName}` : ""}
-      </Typography>
-      <Divider sx={{ mb: 2, mt: 2 }} />
+      <SectionTitle title={pageTitle} />
       <Grid container spacing={2}>
         {notes.map((note, index) => (
           <Grid item xs={12} sm={12} md={12} key={index}>
