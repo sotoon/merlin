@@ -44,19 +44,13 @@ const ProfilePage = () => {
     e.preventDefault();
     const updateProfileData = async () => {
       try {
-        const response = await updateProfile(formData);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
+        await updateProfile(formData);
         setIsSubmitSnackbarOpen(true);
         const token = localStorage.getItem("accessToken");
         const user = await verifyToken(token);
         setUser(user);
       } catch (error) {
-        console.error(error);
-        setErrorMessage("Something went wrong. Please try again later.");
+        setErrorMessage("ویرایش پروفایل ناموفق بود، دوباره تلاش کنید.");
       }
     };
     updateProfileData();

@@ -28,16 +28,10 @@ const Signup = () => {
     }
     try {
       const userData = { name, email, password };
-      const response = await signupService(userData);
-      console.log(
-        `response status: ${response.status} response data: ${JSON.stringify(
-          response.data,
-        )}`,
-      );
+      await signupService(userData);
       navigate("/login");
     } catch (error) {
-      console.error(error);
-      setErrorMessage("Something went wrong. Please try again later.");
+      setErrorMessage("ثبت نام ناموفق، دوباره تلاش کنید!");
     }
   };
 

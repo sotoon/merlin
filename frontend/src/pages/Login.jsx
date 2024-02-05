@@ -24,22 +24,16 @@ const Login = () => {
     try {
       const userData = { email, password };
       const response = await loginService(userData);
-      console.log(
-        `response status: ${response.status} response data: ${JSON.stringify(
-          response.data,
-        )}`,
-      );
-      localStorage.setItem("accessToken", response.data.tokens.access);
-      localStorage.setItem("refreshToken", response.data.tokens.refresh);
+      localStorage.setItem("accessToken", response.tokens.access);
+      localStorage.setItem("refreshToken", response.tokens.refresh);
       const user = {
-        name: response.data.name,
-        email: response.data.email,
+        name: response.name,
+        email: response.email,
       };
       setUser(user);
       const { from } = location.state || { from: { pathname: "/" } };
       navigate(from);
     } catch (error) {
-      console.error(error);
       setErrorMessage("A Problem occurred. Please try again later.");
     }
   };

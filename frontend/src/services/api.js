@@ -40,4 +40,18 @@ API.interceptors.response.use(
   },
 );
 
+export const apiCall = async (method, url, data) => {
+  try {
+    const response = await API[method](url, data);
+    console.log(
+      `response status: ${response.status} response data: ${JSON.stringify(
+        response.data,
+      )}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export default API;

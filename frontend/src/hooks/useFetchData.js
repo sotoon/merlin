@@ -9,14 +9,8 @@ const useFetchData = (fetchFunction, setData) => {
     const fetchData = async () => {
       try {
         const response = await fetchFunction();
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setData(response.data);
+        setData(response);
       } catch (error) {
-        console.error(error);
         setErrorMessage("A problem occurred. Please try again later.");
       } finally {
         setIsLoading(false);

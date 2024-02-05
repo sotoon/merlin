@@ -1,60 +1,34 @@
-import API from "./api";
+import { apiCall } from "./api";
 
 export const signupService = async (userData) => {
-  try {
-    const response = await API.post("/signup/", userData);
-    return response;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  return await apiCall("post", "/signup/", userData);
 };
 
 export const loginService = async (userData) => {
-  try {
-    const response = await API.post("/login/", userData);
-    return response;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  return await apiCall("post", "/login/", userData);
 };
 
 export const exchangeCodeForToken = async (code) => {
-  try {
-    const response = await API.get(`/bepa-callback?code=${code}`);
-    return response;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  return await apiCall("get", "/bepa-callback?code=" + code);
 };
 
 export const refreshToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
-  try {
-    const response = await API.post("/login/refresh/", {
-      refresh: refreshToken,
-    });
-    localStorage.setItem("accessToken", response.data.access);
-    return response.data.access;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  const response = await apiCall("post", "/login/refresh", {
+    refresh: refreshToken,
+  });
+  localStorage.setItem("accessToken", response.access);
+  return response.access;
 };
 
 export const verifyToken = async (token) => {
-  const response = await API.post("/verify-token/", { token });
-  return response.data;
+  return await apiCall("post", "/verify-token/", { token });
 };
 
 export const getProfileData = async () => {
-  const response = await API.get("/profile/");
-  return response;
+  return await apiCall("get", "/profile/");
 };
 
 export const updateProfile = async (profileData) => {
-  const response = await API.patch("/profile/", profileData);
-  return response;
+  return await apiCall("patch", "/profile/", profileData);
 };

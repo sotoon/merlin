@@ -93,38 +93,26 @@ const NotePage = () => {
     const fetchNoteFeedbacks = async () => {
       try {
         const response = await getFeedbacks(noteId);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setFeedbacks(response.data);
+        setFeedbacks(response);
       } catch (error) {
-        console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
       }
     };
     const fetchNoteData = async () => {
       try {
         const response = await getNote(noteId);
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setFormData(response.data);
+        setFormData(response);
         setMentionedUsers(
-          response.data.mentioned_users.map((item) => {
+          response.mentioned_users.map((item) => {
             return { name: "", email: item };
           }),
         );
-        if (response.data.owner !== user.email) {
+        if (response.owner !== user.email) {
           setIsReadOnly(true);
         } else {
           fetchNoteFeedbacks();
         }
       } catch (error) {
-        console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
       } finally {
         setIsLoading(false);
@@ -139,14 +127,8 @@ const NotePage = () => {
     const fetchAllUsers = async () => {
       try {
         const response = await getAllUsers();
-        console.log(
-          `response status: ${response.status} response data: ${JSON.stringify(
-            response.data,
-          )}`,
-        );
-        setAllUsers(response.data);
+        setAllUsers(response);
       } catch (error) {
-        console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
       }
     };
@@ -192,24 +174,13 @@ const NotePage = () => {
         formData.mentioned_users = mentionedUsers.map((item) => item.email);
         console.log(`sending form data: ${formData}`);
         if (noteId) {
-          const response = await updateNote(formData, noteId);
-          console.log(
-            `response status: ${
-              response.status
-            } response data: ${JSON.stringify(response.data)}`,
-          );
+          await updateNote(formData, noteId);
         } else {
-          const response = await createNote(formData);
-          console.log(
-            `response status: ${
-              response.status
-            } response data: ${JSON.stringify(response.data)}`,
-          );
+          await createNote(formData);
         }
         localStorage.removeItem("noteFormData");
         navigate(`/notes?noteType=${formData.type}`);
       } catch (error) {
-        console.error(error);
         setErrorMessage("Something went wrong. Please try again later.");
       }
     }
@@ -218,15 +189,9 @@ const NotePage = () => {
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await createFeedback(newFeedbackContent, noteId);
-      console.log(
-        `response status: ${response.status} response data: ${JSON.stringify(
-          response.data,
-        )}`,
-      );
+      await createFeedback(newFeedbackContent, noteId);
       navigate(`/dashboard`);
     } catch (error) {
-      console.error(error);
       setErrorMessage("Something went wrong. Please try again later.");
     }
   };
