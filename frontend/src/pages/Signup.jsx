@@ -1,11 +1,13 @@
 import React, { useContext, useState } from "react";
-import { signupService } from "../services/authservice";
-import { useNavigate, Navigate } from "react-router-dom";
-import { TextField, Button, Typography } from "@mui/material";
-import CentralizedPaper from "../components/CentralizedPaper";
+import { Navigate, useNavigate } from "react-router-dom";
+
 import HowToRegSharpIcon from "@mui/icons-material/HowToRegSharp";
-import { UserContext } from "../contexts/UserContext";
+import { Button, TextField, Typography } from "@mui/material";
+
+import CentralizedPaper from "../components/CentralizedPaper";
 import { AlertContext } from "../contexts/AlertContext";
+import { UserContext } from "../contexts/UserContext";
+import { signupService } from "../services/authservice";
 
 const Signup = () => {
   const [email, setEmail] = useState("");

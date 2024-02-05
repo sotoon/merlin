@@ -1,12 +1,14 @@
-import React, { useState, useContext } from "react";
-import { getProfileData, updateProfile } from "../services/authservice";
-import { TextField, Button, Typography, Chip } from "@mui/material";
+import React, { useContext, useState } from "react";
+
+import { Button, Chip, TextField, Typography } from "@mui/material";
+
 import Loading from "../components/Loading";
+import SectionTitle from "../components/SectionTitle";
 import { AlertContext } from "../contexts/AlertContext";
 import { UserContext } from "../contexts/UserContext";
-import { verifyToken } from "../services/authservice";
 import useFetchData from "../hooks/useFetchData";
-import SectionTitle from "../components/SectionTitle";
+import { getProfileData, updateProfile } from "../services/authservice";
+import { verifyToken } from "../services/authservice";
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({

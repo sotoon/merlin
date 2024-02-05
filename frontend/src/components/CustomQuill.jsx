@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+
 import PropTypes from "prop-types";
+
 const Quill = ReactQuill.Quill;
 const Font = Quill.import("formats/font");
 Font.whitelist = ["yekan", "sans-serif"];

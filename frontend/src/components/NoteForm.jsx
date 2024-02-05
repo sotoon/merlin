@@ -1,21 +1,23 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
-  Select,
-  MenuItem,
-  FormControl,
-  TextField,
-  InputLabel,
-  FormHelperText,
   Autocomplete,
   Button,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
 } from "@mui/material";
-import { createNote, updateNote } from "../services/noteservice";
-import { useNavigate } from "react-router-dom";
-import SectionTitle from "./SectionTitle";
-import { getAllUsers } from "../services/teamservice";
-import { AlertContext } from "../contexts/AlertContext";
-import CustomQuill from "../components/CustomQuill";
 import PropTypes from "prop-types";
+
+import CustomQuill from "../components/CustomQuill";
+import { AlertContext } from "../contexts/AlertContext";
+import { createNote, updateNote } from "../services/noteservice";
+import { getAllUsers } from "../services/teamservice";
+import SectionTitle from "./SectionTitle";
 
 const NoteForm = ({ isReadOnly, noteData, noteId }) => {
   const [formData, setFormData] = useState(() => {

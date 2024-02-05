@@ -1,17 +1,19 @@
 import React, { useState } from "react";
+
 import {
-  Grid,
   Card,
-  CardHeader,
-  Typography,
-  Divider,
   CardContent,
+  CardHeader,
+  Divider,
+  Grid,
+  Typography,
 } from "@mui/material";
-import SectionTitle from "./SectionTitle";
-import { getFeedbacks } from "../services/noteservice";
-import useFetchData from "../hooks/useFetchData";
-import Loading from "./Loading";
 import PropTypes from "prop-types";
+
+import useFetchData from "../hooks/useFetchData";
+import { getFeedbacks } from "../services/noteservice";
+import Loading from "./Loading";
+import SectionTitle from "./SectionTitle";
 
 const FeedbackList = ({ noteId }) => {
   const [feedbacks, setFeedbacks] = useState([]);

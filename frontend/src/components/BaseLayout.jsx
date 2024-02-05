@@ -1,17 +1,19 @@
 import React, { useContext } from "react";
+import { Link as RouterLink } from "react-router-dom";
+
+import PowerSettingsNewSharpIcon from "@mui/icons-material/PowerSettingsNewSharp";
 import {
   AppBar,
-  Toolbar,
-  Typography,
+  Box,
   Button,
   IconButton,
-  Box,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import PropTypes from "prop-types";
+
 import { UserContext } from "../contexts/UserContext";
 import useAuth from "../hooks/useAuth";
-import PropTypes from "prop-types";
-import PowerSettingsNewSharpIcon from "@mui/icons-material/PowerSettingsNewSharp";
 
 const BaseLayout = ({ children }) => {
   useAuth();

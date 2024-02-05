@@ -1,8 +1,9 @@
 import React, { useContext, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { exchangeCodeForToken } from "../services/authservice";
-import { AlertContext } from "../contexts/AlertContext";
+
 import Loading from "../components/Loading";
+import { AlertContext } from "../contexts/AlertContext";
+import { exchangeCodeForToken } from "../services/authservice";
 
 const BepaCallback = () => {
   const location = useLocation();
