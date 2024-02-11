@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import FeedbackForm from "../components/FeedbackForm";
 import FeedbackList from "../components/FeedbackList";
@@ -11,14 +11,15 @@ import { getNote } from "../services/noteservice";
 
 const NotePage = () => {
   const { noteId } = useParams();
+  const [searchParams] = useSearchParams();
+  const noteType = searchParams.get("noteType") || "";
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [noteData, setNoteData] = useState({
     title: "",
     content: "",
     date: "",
-    type: "",
-    owner: "",
-    mentioned_users: [],
+    type: noteType,
+    committee: "",
   });
   const { user } = useContext(UserContext);
   const isLoading = useFetchData(
@@ -44,7 +45,12 @@ const NotePage = () => {
 
   return (
     <>
-      <NoteForm isReadOnly={isReadOnly} noteData={noteData} noteId={noteId} />
+      <NoteForm
+        isReadOnly={isReadOnly}
+        noteData={noteData}
+        noteId={noteId}
+        defaultNoteType={noteType}
+      />
       {noteId &&
         (isReadOnly ? (
           <FeedbackForm noteId={noteId} />

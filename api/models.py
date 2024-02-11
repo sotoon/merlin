@@ -147,6 +147,18 @@ class Team(MerlinBaseModel):
 
     def __str__(self):
         return self.name
+    
+class Committee(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    members = models.ManyToManyField(User, verbose_name="اعضا")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "کمیته"
+        verbose_name_plural = "کمیته‌ها"
+
+    def __str__(self):
+        return self.name
 
 
 class NoteType(models.TextChoices):
@@ -154,6 +166,7 @@ class NoteType(models.TextChoices):
     MEETING = "Meeting", "جلسه"
     Personal = "Personal", "شخصی"
     TASK = "Task", "فعالیت"
+    Proposal = "Proposal", "پروپوزال"
 
     @classmethod
     def default(cls):
@@ -176,6 +189,12 @@ class Note(MerlinBaseModel):
         blank=True,
         related_name="mentioned_users",
         verbose_name="کاربران منشن شده",
+    )
+    committee = models.ForeignKey(
+        Committee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
 
     class Meta:
