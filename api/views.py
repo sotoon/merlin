@@ -9,13 +9,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Feedback, Note, NoteType, User
+from api.models import Feedback, Note, NoteType, User, Committee
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
     TokenSerializer,
     UserSerializer,
+    CommitteeSerializer,
 )
 
 
@@ -274,3 +275,10 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         if self.get_object().owner != self.request.user:
             raise PermissionDenied("You don't have permission to update this feedback.")
         return super().update(request, *args, **kwargs)
+    
+class CommitteesView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommitteeSerializer
+
+    def get_queryset(self):
+        return Committee.objects.all()

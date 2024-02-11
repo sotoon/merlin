@@ -16,19 +16,26 @@ import PropTypes from "prop-types";
 import CustomQuill from "../components/CustomQuill";
 import { AlertContext } from "../contexts/AlertContext";
 import { createNote, updateNote } from "../services/noteservice";
-import { getAllUsers } from "../services/teamservice";
+import { getAllUsers, getCommittees } from "../services/teamservice";
 import SectionTitle from "./SectionTitle";
 
-const NoteForm = ({ isReadOnly, noteData, noteId }) => {
+const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
   const [formData, setFormData] = useState(() => {
-    const savedData = localStorage.getItem("noteFormData");
-    const emptyData = { title: "", content: "", date: "", type: "" };
+    const savedData = localStorage.getItem(`noteFormData${defaultNoteType}`);
+    const emptyData = {
+      title: "",
+      content: "",
+      date: "",
+      type: defaultNoteType,
+      committee: "",
+    };
     if (noteData) {
       return {
         title: noteData.title,
         content: noteData.content,
         date: noteData.date,
         type: noteData.type,
+        committee: noteData.committee,
       };
     }
     return savedData ? JSON.parse(savedData) : emptyData;
@@ -43,6 +50,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
   );
   const [errors, setErrors] = useState({});
   const [allUsers, setAllUsers] = useState([]);
+  const [committees, setCommittees] = useState([]);
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   useEffect(() => {
@@ -57,7 +65,19 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
         });
       }
     };
+    const fetchCommittees = async () => {
+      try {
+        const response = await getCommittees();
+        setCommittees(response.map((item) => item.name));
+      } catch (error) {
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
+      }
+    };
     fetchAllUsers();
+    fetchCommittees();
   }, []);
 
   const validate = (data) => {
@@ -88,7 +108,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
         } else {
           await createNote(formData);
         }
-        localStorage.removeItem("noteFormData");
+        localStorage.removeItem(`noteFormData${formData.type}`);
         navigate(`/notes?noteType=${formData.type}`);
       } catch (error) {
         setAlert({
@@ -100,7 +120,10 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
   };
   useEffect(() => {
     if (!noteId) {
-      localStorage.setItem("noteFormData", JSON.stringify(formData));
+      localStorage.setItem(
+        `noteFormData${formData.type}`,
+        JSON.stringify(formData),
+      );
     }
   }, [formData]);
   return (
@@ -192,6 +215,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
             <MenuItem value="Meeting">جلسه</MenuItem>
             <MenuItem value="Personal">شخصی</MenuItem>
             <MenuItem value="Task">فعالیت</MenuItem>
+            <MenuItem value="Proposal">پروپوزال</MenuItem>
           </Select>
           {errors.type && (
             <FormHelperText sx={{ color: (theme) => theme.palette.error.main }}>
@@ -199,6 +223,47 @@ const NoteForm = ({ isReadOnly, noteData, noteId }) => {
             </FormHelperText>
           )}
         </FormControl>
+        {formData.type === "Proposal" && (
+          <FormControl
+            margin="normal"
+            errors={errors}
+            helpertext={errors.committee}
+            sx={{ mr: 5, minWidth: "70px" }}
+          >
+            <InputLabel
+              id="committee-select-label"
+              style={{
+                textAlign: "right",
+                right: 0,
+                left: "auto",
+                marginRight: 35,
+              }}
+            >
+              کمیته
+            </InputLabel>
+            <Select
+              name="committee"
+              value={formData.committee}
+              onChange={handleChange}
+              labelId="committee-select-label"
+              label="Committeee"
+              disabled={isReadOnly}
+            >
+              {committees.map((item) => (
+                <MenuItem key={item} value={item}>
+                  {item}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.committeee && (
+              <FormHelperText
+                sx={{ color: (theme) => theme.palette.error.main }}
+              >
+                {errors.committee}
+              </FormHelperText>
+            )}
+          </FormControl>
+        )}
 
         <Autocomplete
           multiple
@@ -246,6 +311,11 @@ NoteForm.propTypes = {
   noteId: PropTypes.string,
   isReadOnly: PropTypes.bool,
   noteData: PropTypes.object,
+  defaultNoteType: PropTypes.string,
+};
+
+NoteForm.defaultProps = {
+  defaultNoteType: "Goal",
 };
 
 export default NoteForm;

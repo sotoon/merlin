@@ -34,6 +34,10 @@ const noteOptions = [
     text: "🛠️ فعالیت‌ها",
     link: "/notes?noteType=Task",
   },
+  {
+    text: "📈 پروپوزال",
+    link: "/notes?noteType=Proposal",
+  },
 ];
 
 const personalOptions = [

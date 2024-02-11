@@ -15,6 +15,7 @@ const NoteTypeTitles = {
   Meeting: "جلسات",
   Personal: "شخصی",
   Task: "فعالیت‌ها",
+  Proposal: "پروپوزال‌ها",
   "": "",
 };
 
@@ -61,7 +62,7 @@ const NotesPage = () => {
           </Grid>
         ))}
       </Grid>
-      <RouterLink to="/note">
+      <RouterLink to={noteType ? `/note?noteType=${noteType}` : "/note"}>
         <Fab
           color="secondary"
           aria-label="Add Note"
