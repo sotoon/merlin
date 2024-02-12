@@ -38,6 +38,10 @@ const noteOptions = [
     text: "📈 پروپوزال",
     link: "/notes?noteType=Proposal",
   },
+  {
+    text: "📨 پیام به دیگری",
+    link: "/notes?noteType=Message",
+  },
 ];
 
 const personalOptions = [
