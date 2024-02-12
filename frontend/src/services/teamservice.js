@@ -7,3 +7,7 @@ export const getMyTeam = async () => {
 export const getAllUsers = async () => {
   return await apiCall("get", "/users/");
 };
+
+export const getCommittees = async () => {
+  return await apiCall("get", "/committees/");
+};

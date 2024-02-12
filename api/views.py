@@ -2,15 +2,16 @@ import requests
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Feedback, Note, NoteType, User
+from api.models import Committee, Feedback, Note, NoteType, User
+from api.permissions import FeedbackPermission, NotePermission
 from api.serializers import (
+    CommitteeSerializer,
     FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
@@ -166,36 +167,18 @@ class UsersView(ListAPIView):
 class NoteViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, NotePermission]
     search_fields = ["type"]
 
     def get_object(self):
         uuid = self.kwargs["uuid"]
-        note = get_object_or_404(Note, uuid=uuid)
-        current_user = self.request.user
-        if (
-            note.owner == current_user
-            or (note.owner.leader == current_user and note.type != NoteType.Personal)
-            or (current_user in note.mentioned_users.all())
-        ):
-            return note
-        raise PermissionDenied("You don't have permission to access this note.")
-
-    def update(self, request, *args, **kwargs):
-        if self.get_object().owner != self.request.user:
-            raise PermissionDenied("You don't have permission to update this note.")
-        return super().update(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        return get_object_or_404(Note, uuid=uuid)
 
     def get_queryset(self):
         user_email = self.request.query_params.get("user")
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
         if user_email:
             notes_owner = User.objects.get(email=user_email)
-            if notes_owner.leader != self.request.user:
-                raise PermissionDenied("You don't have permission to access this note.")
             queryset = (
                 Note.objects.filter(owner=notes_owner)
                 .exclude(type=NoteType.Personal)
@@ -203,9 +186,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             )
         else:
             if retrieve_mentions:
-                queryset = Note.objects.filter(
-                    mentioned_users=self.request.user
-                ).distinct()
+                queryset = Note.retrieve_mentions(self.request.user)
             else:
                 queryset = Note.objects.filter(owner=self.request.user).distinct()
         type = self.request.query_params.get("type")
@@ -228,7 +209,7 @@ class MyTeamView(GenericAPIView):
 class FeedbackViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = FeedbackSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, FeedbackPermission]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -243,34 +224,23 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
     def get_object(self):
         uuid = self.kwargs["uuid"]
-        feedback = get_object_or_404(Feedback, uuid=uuid)
-        current_user = self.request.user
-        if feedback.note == self.get_note() and feedback.note.owner == current_user:
-            return feedback
-        raise PermissionDenied("You don't have permission to access this feedback.")
+        return get_object_or_404(Feedback, uuid=uuid)
 
     def get_queryset(self):
-        if self.request.user != self.get_note().owner:
-            return Feedback.objects.filter(
-                note=self.get_note(), owner=self.request.user
-            )
-        return Feedback.objects.filter(note=self.get_note())
+        return Feedback.get_note_feedbacks(self.get_note(), self.request.user)
 
     def create(self, request, *args, **kwargs):
-        current_user = self.request.user
-        if (
-            self.get_note().owner.leader != current_user
-            and current_user not in self.get_note().mentioned_users.all()
-        ):
-            raise PermissionDenied("You don't have permission to create feedback.")
         prev_feedback = Feedback.objects.filter(
-            note=self.get_note(), owner=current_user
+            note=self.get_note(), owner=self.request.user
         ).first()
         if prev_feedback:
             prev_feedback.delete()
         return super().create(request, *args, **kwargs)
 
-    def update(self, request, *args, **kwargs):
-        if self.get_object().owner != self.request.user:
-            raise PermissionDenied("You don't have permission to update this feedback.")
-        return super().update(request, *args, **kwargs)
+
+class CommitteesView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommitteeSerializer
+
+    def get_queryset(self):
+        return Committee.objects.all()
