@@ -15,6 +15,7 @@ const NoteTypeTitles = {
   Meeting: "جلسات",
   Personal: "شخصی",
   Task: "فعالیت‌ها",
+  Proposal: "پروپوزال‌ها",
   "": "",
 };
 
@@ -39,7 +40,7 @@ const NotesPage = () => {
     pageTitle += `از کاربر ${userName}`;
   }
   if (retrieve_mentions) {
-    pageTitle = "یادداشت‌هایی که در آن‌ها منشن شده‌اید";
+    pageTitle = "پیام‌ها";
   }
 
   if (isLoading) {
@@ -61,7 +62,7 @@ const NotesPage = () => {
           </Grid>
         ))}
       </Grid>
-      <RouterLink to="/note">
+      <RouterLink to={noteType ? `/note?noteType=${noteType}` : "/note"}>
         <Fab
           color="secondary"
           aria-label="Add Note"

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Feedback, Note, User
+from api.models import Committee, Feedback, Note, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -52,8 +52,15 @@ class NoteSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
     )
+    owner_name = serializers.CharField(source="owner.name", read_only=True)
     mentioned_users = serializers.SlugRelatedField(
         many=True, required=False, queryset=User.objects.all(), slug_field="email"
+    )
+    committee = serializers.SlugRelatedField(
+        required=False,
+        allow_null=True,
+        queryset=Committee.objects.all(),
+        slug_field="name",
     )
 
     class Meta:
@@ -61,11 +68,13 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = (
             "uuid",
             "owner",
+            "owner_name",
             "title",
             "content",
             "date",
             "type",
             "mentioned_users",
+            "committee",
         )
         read_only_fields = ["uuid"]
 
@@ -108,3 +117,10 @@ class FeedbackSerializer(serializers.ModelSerializer):
         feedback = Feedback.objects.create(owner=user, note=note, content=content)
         feedback.save()
         return feedback
+
+
+class CommitteeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Committee
+        fields = ("uuid", "name", "description")
+        read_only_fields = ["uuid", "name", "description"]

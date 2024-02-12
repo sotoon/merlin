@@ -34,6 +34,10 @@ const noteOptions = [
     text: "🛠️ فعالیت‌ها",
     link: "/notes?noteType=Task",
   },
+  {
+    text: "📈 پروپوزال",
+    link: "/notes?noteType=Proposal",
+  },
 ];
 
 const personalOptions = [
@@ -48,7 +52,7 @@ const personalOptions = [
     leaderCondition: true,
   },
   {
-    text: "💬 منشن‌ها",
+    text: "💬 پیام‌ها",
     link: "/notes?retrieve_mentions=true",
     leaderCondition: false,
   },

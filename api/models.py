@@ -61,6 +61,19 @@ class User(MerlinBaseModel, AbstractUser):
         verbose_name = "کاربر"
         verbose_name_plural = "کاربران"
 
+    def check_is_leader(self, user):
+        leader = self.leader
+        count = 0
+        max_count = 10
+        while leader:
+            if leader == user:
+                return True
+            leader = leader.leader
+            count += 1
+            if max_count > count:
+                break
+        return False
+
 
 class Department(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
@@ -149,11 +162,25 @@ class Team(MerlinBaseModel):
         return self.name
 
 
+class Committee(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    members = models.ManyToManyField(User, verbose_name="اعضا")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "کمیته"
+        verbose_name_plural = "کمیته‌ها"
+
+    def __str__(self):
+        return self.name
+
+
 class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
     MEETING = "Meeting", "جلسه"
     Personal = "Personal", "شخصی"
     TASK = "Task", "فعالیت"
+    Proposal = "Proposal", "پروپوزال"
 
     @classmethod
     def default(cls):
@@ -177,6 +204,12 @@ class Note(MerlinBaseModel):
         related_name="mentioned_users",
         verbose_name="کاربران منشن شده",
     )
+    committee = models.ForeignKey(
+        Committee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "یادداشت"
@@ -184,6 +217,12 @@ class Note(MerlinBaseModel):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def retrieve_mentions(cls, user):
+        direct_mentions = cls.objects.filter(mentioned_users=user)
+        committee_mentions = cls.objects.filter(committee__members=user)
+        return (direct_mentions | committee_mentions).distinct()
 
 
 class Feedback(MerlinBaseModel):
@@ -201,3 +240,14 @@ class Feedback(MerlinBaseModel):
 
     def __str__(self):
         return f"{self.owner} - {self.note}"
+
+    @classmethod
+    def get_note_feedbacks(cls, note, user):
+        all_note_feedbacks = cls.objects.filter(note=note)
+        if note.owner.check_is_leader(user):
+            return all_note_feedbacks
+        if note.owner == user:
+            return all_note_feedbacks
+        if note in Note.objects.filter(committee__members=user):
+            return all_note_feedbacks
+        return all_note_feedbacks.filter(owner=user)

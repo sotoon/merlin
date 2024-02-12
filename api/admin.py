@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Chapter, Department, Feedback, Note, Team, Tribe, User
+from api.models import Chapter, Committee, Department, Feedback, Note, Team, Tribe, User
 
 
 @admin.register(Department)
@@ -127,6 +127,43 @@ class TeamAdmin(admin.ModelAdmin):
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__name", "leader__email"]
     search_help_text = "جستجو در نام تیم، نام دپارتمان، نام لیدر، ایمیل لیدر "
+
+    def has_add_permission(self, request):
+        return request.user.is_staff
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_staff
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_staff
+
+
+@admin.register(Committee)
+class CommitteeAdmin(admin.ModelAdmin):
+    date_hierarchy = "date_updated"
+    list_display = (
+        "name",
+        "date_created",
+        "date_updated",
+    )
+    fields = (
+        "uuid",
+        "name",
+        "description",
+        "members",
+        ("date_created", "date_updated"),
+    )
+    filter_horizontal = ("members",)
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "name")
+    search_fields = ["name"]
+    search_help_text = "جستجو در نام کمیته"
 
     def has_add_permission(self, request):
         return request.user.is_staff
