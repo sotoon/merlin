@@ -20,6 +20,7 @@ const NotePage = () => {
     date: "",
     type: noteType,
     committee: "",
+    owner_name: "",
   });
   const { user } = useContext(UserContext);
   const isLoading = useFetchData(
@@ -51,12 +52,8 @@ const NotePage = () => {
         noteId={noteId}
         defaultNoteType={noteType}
       />
-      {noteId &&
-        (isReadOnly ? (
-          <FeedbackForm noteId={noteId} />
-        ) : (
-          <FeedbackList noteId={noteId} />
-        ))}
+      {noteId && isReadOnly && <FeedbackForm noteId={noteId} />}
+      {noteId && <FeedbackList noteId={noteId} />}
     </>
   );
 };

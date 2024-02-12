@@ -52,7 +52,7 @@ const personalOptions = [
     leaderCondition: true,
   },
   {
-    text: "💬 منشن‌ها",
+    text: "💬 پیام‌ها",
     link: "/notes?retrieve_mentions=true",
     leaderCondition: false,
   },

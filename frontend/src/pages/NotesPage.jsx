@@ -40,7 +40,7 @@ const NotesPage = () => {
     pageTitle += `از کاربر ${userName}`;
   }
   if (retrieve_mentions) {
-    pageTitle = "یادداشت‌هایی که در آن‌ها منشن شده‌اید";
+    pageTitle = "پیام‌ها";
   }
 
   if (isLoading) {
