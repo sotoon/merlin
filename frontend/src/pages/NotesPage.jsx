@@ -16,6 +16,7 @@ const NoteTypeTitles = {
   Personal: "شخصی",
   Task: "فعالیت‌ها",
   Proposal: "پروپوزال‌ها",
+  Message: "پیام‌ها",
   "": "",
 };
 

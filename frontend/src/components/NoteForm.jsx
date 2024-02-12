@@ -220,6 +220,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
             <MenuItem value="Personal">شخصی</MenuItem>
             <MenuItem value="Task">فعالیت</MenuItem>
             <MenuItem value="Proposal">پروپوزال</MenuItem>
+            <MenuItem value="Message">پیام</MenuItem>
           </Select>
           {errors.type && (
             <FormHelperText sx={{ color: (theme) => theme.palette.error.main }}>
