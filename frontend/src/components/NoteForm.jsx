@@ -10,6 +10,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
 
@@ -129,6 +130,9 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
   return (
     <>
       <SectionTitle title={`${noteId ? "ویرایش" : "ایجاد"} یادداشت`} />
+      {isReadOnly && (
+        <Typography variant="h6">نویسنده: {noteData.owner_name} </Typography>
+      )}
       <form onSubmit={handleSubmit}>
         <TextField
           label="عنوان"

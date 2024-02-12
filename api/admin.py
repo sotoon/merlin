@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Chapter, Department, Feedback, Note, Team, Tribe, User, Committee
+from api.models import Chapter, Committee, Department, Feedback, Note, Team, Tribe, User
 
 
 @admin.register(Department)
@@ -142,6 +142,7 @@ class TeamAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_staff
+
 
 @admin.register(Committee)
 class CommitteeAdmin(admin.ModelAdmin):
