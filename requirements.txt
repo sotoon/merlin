@@ -8,3 +8,4 @@ psycopg2-binary==2.9.9
 gunicorn==21.2.0
 drf-nested-routers==0.93.5
 whitenoise==6.6.0
+django-import-export==3.3.7
