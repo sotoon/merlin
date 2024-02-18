@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
@@ -181,7 +182,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             notes_owner = User.objects.get(email=user_email)
             queryset = (
                 Note.objects.filter(owner=notes_owner)
-                .exclude(type=NoteType.Personal)
+                .exclude(Q(type=NoteType.Personal) | Q(type=NoteType.Message))
                 .distinct()
             )
         else:

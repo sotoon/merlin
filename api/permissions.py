@@ -8,7 +8,7 @@ def validate_read_note_permission(request, note):
         return True
     if note.type == NoteType.Personal:
         return False
-    if note.check_is_leader(request.user):
+    if note.check_is_leader(request.user) and note.type != NoteType.Message:
         return True
     if note in Note.retrieve_mentions(request.user):
         return True
