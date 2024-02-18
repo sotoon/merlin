@@ -181,6 +181,7 @@ class NoteType(models.TextChoices):
     Personal = "Personal", "شخصی"
     TASK = "Task", "فعالیت"
     Proposal = "Proposal", "پروپوزال"
+    Message = "Message", "پیام"
 
     @classmethod
     def default(cls):
