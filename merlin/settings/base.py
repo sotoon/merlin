@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
+    "import_export",
     "api",
 ]
 
