@@ -44,3 +44,7 @@ export const updateSummary = async (summary, noteUUid) => {
     summary: summary,
   });
 };
+
+export const getTemplates = async () => {
+  return await apiCall("get", "/templates/");
+};

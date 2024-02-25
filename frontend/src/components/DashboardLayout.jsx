@@ -60,6 +60,11 @@ const personalOptions = [
     link: "/notes?retrieve_mentions=true",
     leaderCondition: false,
   },
+  {
+    text: "📋 قالب‌ها",
+    link: "/notes?noteType=Template",
+    leaderCondition: false,
+  },
 ];
 
 const DashboardLayout = ({ children }) => {

@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 
 import CustomQuill from "../components/CustomQuill";
 import { AlertContext } from "../contexts/AlertContext";
-import { createNote, updateNote } from "../services/noteservice";
+import { createNote, getTemplates, updateNote } from "../services/noteservice";
 import { getAllUsers, getCommittees } from "../services/teamservice";
 import SectionTitle from "./SectionTitle";
 
@@ -52,6 +52,8 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
   const [errors, setErrors] = useState({});
   const [allUsers, setAllUsers] = useState([]);
   const [committees, setCommittees] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [template, setTemplate] = useState({ title: "", content: "" });
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   useEffect(() => {
@@ -77,8 +79,20 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
         });
       }
     };
+    const fetchTemplates = async () => {
+      try {
+        const response = await getTemplates();
+        setTemplates(response);
+      } catch (error) {
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
+      }
+    };
     fetchAllUsers();
     fetchCommittees();
+    fetchTemplates();
   }, []);
 
   const validate = (data) => {
@@ -127,9 +141,51 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
       );
     }
   }, [formData]);
+  useEffect(() => {
+    setFormData({
+      ...formData,
+      title: formData.title + template.title,
+      content: formData.content + template.content,
+    });
+  }, [template]);
+
   return (
     <>
       <SectionTitle title={`${noteId ? "ویرایش" : "ایجاد"} یادداشت`} />
+      {!isReadOnly && (
+        <FormControl
+          margin="normal"
+          errors={errors}
+          helpertext={errors.template}
+          sx={{ mr: 0, minWidth: "70px" }}
+        >
+          <InputLabel
+            id="template-select-label"
+            style={{
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 35,
+            }}
+          >
+            قالب
+          </InputLabel>
+          <Select
+            name="template"
+            value={template}
+            onChange={(event) => setTemplate(event.target.value)}
+            labelId="template-select-label"
+            label="Template"
+            disabled={isReadOnly}
+          >
+            {templates.map((item) => (
+              <MenuItem key={item.title} value={item}>
+                {item.title}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
       {isReadOnly && (
         <Typography variant="h6">نویسنده: {noteData.owner_name} </Typography>
       )}
@@ -164,7 +220,10 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
           isReadOnly={isReadOnly}
           value={formData.content}
           handleDataChange={(value) =>
-            setFormData({ ...formData, content: value })
+            setFormData((currentFormData) => ({
+              ...currentFormData,
+              content: value,
+            }))
           }
         />
         <TextField
@@ -221,6 +280,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
             <MenuItem value="Task">فعالیت</MenuItem>
             <MenuItem value="Proposal">پروپوزال</MenuItem>
             <MenuItem value="Message">پیام</MenuItem>
+            <MenuItem value="Template">قالب‌</MenuItem>
           </Select>
           {errors.type && (
             <FormHelperText sx={{ color: (theme) => theme.palette.error.main }}>
