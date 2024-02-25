@@ -343,6 +343,7 @@ class NoteAdmin(admin.ModelAdmin):
         "content",
         "mentioned_users",
         "summary",
+        "is_public",
         ("date_created", "date_updated"),
     )
     readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")
