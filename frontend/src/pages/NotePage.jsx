@@ -5,6 +5,7 @@ import FeedbackForm from "../components/FeedbackForm";
 import FeedbackList from "../components/FeedbackList";
 import Loading from "../components/Loading";
 import NoteForm from "../components/NoteForm";
+import SummaryForm from "../components/SummaryForm";
 import { UserContext } from "../contexts/UserContext";
 import useFetchData from "../hooks/useFetchData";
 import { getNote } from "../services/noteservice";
@@ -22,7 +23,8 @@ const NotePage = () => {
     committee: "",
     owner_name: "",
   });
-  const { user } = useContext(UserContext);
+  const { user, userTeam } = useContext(UserContext);
+  const [isLeader, setIsLeader] = useState(false);
   const isLoading = useFetchData(
     () => (noteId ? getNote(noteId) : null),
     setNoteData,
@@ -38,6 +40,11 @@ const NotePage = () => {
     } else {
       setIsReadOnly(false);
     }
+    for (let i = 0; i < userTeam.length; i++) {
+      if (userTeam[i].email == noteData.owner) {
+        setIsLeader(true);
+      }
+    }
   }, [noteId, noteData]);
 
   if (isLoading) {
@@ -52,6 +59,14 @@ const NotePage = () => {
         noteId={noteId}
         defaultNoteType={noteType}
       />
+      {noteId && (
+        <SummaryForm
+          noteId={noteId}
+          summary={noteData.summary}
+          isLeader={isLeader}
+          noteType={noteData.type}
+        />
+      )}
       {noteId && isReadOnly && <FeedbackForm noteId={noteId} />}
       {noteId && <FeedbackList noteId={noteId} />}
     </>

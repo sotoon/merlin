@@ -38,3 +38,9 @@ export const createFeedback = async (feedbackContent, noteUUid) => {
 export const getFeedbacks = async (noteUUid) => {
   return await apiCall("get", `/notes/${noteUUid}/feedbacks/`);
 };
+
+export const updateSummary = async (summary, noteUUid) => {
+  return await apiCall("patch", `/notes/${noteUUid}/`, {
+    summary: summary,
+  });
+};
