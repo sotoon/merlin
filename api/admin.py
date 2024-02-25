@@ -1,7 +1,7 @@
 from django.contrib import admin
+from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
-from import_export import fields, resources
 
 from api.models import Chapter, Committee, Department, Feedback, Note, Team, Tribe, User
 
@@ -34,25 +34,29 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 class TribeResource(resources.ModelResource):
     leader = fields.Field(
-        column_name='leader',
-        attribute='leader',
-        widget=ForeignKeyWidget(User, field='email'))
+        column_name="leader",
+        attribute="leader",
+        widget=ForeignKeyWidget(User, field="email"),
+    )
     department = fields.Field(
         column_name="department",
         attribute="department",
-        widget=ForeignKeyWidget(Department, field="name"))
+        widget=ForeignKeyWidget(Department, field="name"),
+    )
 
     def get_instance(self, instance_loader, row):
-        name = row.get('name')
+        name = row.get("name")
         if name:
             try:
                 return self._meta.model.objects.get(name=name)
             except self._meta.model.DoesNotExist:
                 return None
         return None
+
     class Meta:
         model = Tribe
         fields = ("name", "leader", "department")
+
 
 @admin.register(Tribe)
 class TribeAdmin(ImportExportModelAdmin):
@@ -133,29 +137,34 @@ class ChapterAdmin(admin.ModelAdmin):
 
 class TeamResource(resources.ModelResource):
     leader = fields.Field(
-        column_name='leader',
-        attribute='leader',
-        widget=ForeignKeyWidget(User, field='email'))
+        column_name="leader",
+        attribute="leader",
+        widget=ForeignKeyWidget(User, field="email"),
+    )
     department = fields.Field(
         column_name="department",
         attribute="department",
-        widget=ForeignKeyWidget(Department, field="name"))
+        widget=ForeignKeyWidget(Department, field="name"),
+    )
     tribe = fields.Field(
         column_name="tribe",
         attribute="tribe",
-        widget=ForeignKeyWidget(Tribe, field="name"))
+        widget=ForeignKeyWidget(Tribe, field="name"),
+    )
 
     def get_instance(self, instance_loader, row):
-        name = row.get('name')
+        name = row.get("name")
         if name:
             try:
                 return self._meta.model.objects.get(name=name)
             except self._meta.model.DoesNotExist:
                 return None
         return None
+
     class Meta:
         model = Team
         fields = ("name", "leader", "department", "tribe")
+
 
 @admin.register(Team)
 class TeamAdmin(ImportExportModelAdmin):
@@ -233,34 +242,51 @@ class CommitteeAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.is_staff
 
+
 class UserResource(resources.ModelResource):
     leader = fields.Field(
-        column_name='leader',
-        attribute='leader',
-        widget=ForeignKeyWidget(User, field='email'))
+        column_name="leader",
+        attribute="leader",
+        widget=ForeignKeyWidget(User, field="email"),
+    )
     department = fields.Field(
         column_name="department",
         attribute="department",
-        widget=ForeignKeyWidget(Department, field="name"))
+        widget=ForeignKeyWidget(Department, field="name"),
+    )
     team = fields.Field(
         column_name="team",
         attribute="team",
-        widget=ForeignKeyWidget(Team, field="name"))
+        widget=ForeignKeyWidget(Team, field="name"),
+    )
     chapter = fields.Field(
         column_name="chapter",
         attribute="chapter",
-        widget=ForeignKeyWidget(Chapter, field="name"))
+        widget=ForeignKeyWidget(Chapter, field="name"),
+    )
+
     def get_instance(self, instance_loader, row):
-        email = row.get('email')
+        email = row.get("email")
         if email:
             try:
                 return self._meta.model.objects.get(email=email)
             except self._meta.model.DoesNotExist:
                 return None
         return None
+
     class Meta:
         model = User
-        fields = ("email", "name", "gmail", "phone", "leader", "department", "team", "chapter")
+        fields = (
+            "email",
+            "name",
+            "gmail",
+            "phone",
+            "leader",
+            "department",
+            "team",
+            "chapter",
+        )
+
 
 @admin.register(User)
 class UserAdmin(ImportExportModelAdmin):
@@ -316,6 +342,7 @@ class NoteAdmin(admin.ModelAdmin):
         ("owner", "date"),
         "content",
         "mentioned_users",
+        "summary",
         ("date_created", "date_updated"),
     )
     readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")

@@ -7,7 +7,7 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
-  const [isLeader, setIsLeader] = useState(false);
+  const [userTeam, setUserTeam] = useState({});
 
   return (
     <UserContext.Provider
@@ -16,8 +16,8 @@ export const UserProvider = ({ children }) => {
         setUser,
         isAuthCheckComplete,
         setIsAuthCheckComplete,
-        isLeader,
-        setIsLeader,
+        userTeam,
+        setUserTeam,
       }}
     >
       {children}

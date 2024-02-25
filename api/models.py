@@ -211,6 +211,7 @@ class Note(MerlinBaseModel):
         null=True,
         blank=True,
     )
+    summary = models.TextField(blank=True, verbose_name="جمع‌بندی")
 
     class Meta:
         verbose_name = "یادداشت"
