@@ -63,7 +63,8 @@ const personalOptions = [
 ];
 
 const DashboardLayout = ({ children }) => {
-  const { isLeader } = useContext(UserContext);
+  const { userTeam } = useContext(UserContext);
+  const isLeader = userTeam && userTeam.length > 0;
   return (
     <ProtectedRoute>
       <Box
