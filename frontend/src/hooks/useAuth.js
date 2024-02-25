@@ -9,7 +9,7 @@ import { verifyToken } from "../services/authservice";
 import { getMyTeam } from "../services/teamservice";
 
 const useAuth = () => {
-  const { user, setUser, setIsAuthCheckComplete, setIsLeader } =
+  const { user, setUser, setIsAuthCheckComplete, setUserTeam } =
     useContext(UserContext);
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
@@ -41,24 +41,20 @@ const useAuth = () => {
   }, [setUser, setIsAuthCheckComplete, localStorage.getItem("accessToken")]);
 
   useEffect(() => {
-    const checkIsLeader = async () => {
+    const getUserTeam = async () => {
       if (user) {
         try {
           const response = await getMyTeam();
-          if (response.length > 0) {
-            setIsLeader(true);
-          } else {
-            setIsLeader(false);
-          }
+          setUserTeam(response);
         } catch (error) {
           setAlert({
-            message: "Couldn't check leadership status!",
+            message: "Couldn't check team status!",
             type: "error",
           });
         }
       }
     };
-    checkIsLeader();
+    getUserTeam();
   }, [user]);
 
   return null;

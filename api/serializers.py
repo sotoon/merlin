@@ -75,6 +75,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "type",
             "mentioned_users",
             "committee",
+            "summary",
         )
         read_only_fields = ["uuid"]
 
