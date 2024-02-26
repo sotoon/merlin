@@ -182,6 +182,7 @@ class NoteType(models.TextChoices):
     TASK = "Task", "فعالیت"
     Proposal = "Proposal", "پروپوزال"
     Message = "Message", "پیام"
+    Template = "Template", "قالب"
 
     @classmethod
     def default(cls):
@@ -212,6 +213,7 @@ class Note(MerlinBaseModel):
         blank=True,
     )
     summary = models.TextField(blank=True, verbose_name="جمع‌بندی")
+    is_public = models.BooleanField(default=False, verbose_name="عمومی")
 
     class Meta:
         verbose_name = "یادداشت"
