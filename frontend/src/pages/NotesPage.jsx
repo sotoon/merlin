@@ -17,6 +17,7 @@ const NoteTypeTitles = {
   Task: "فعالیت‌ها",
   Proposal: "پروپوزال‌ها",
   Message: "پیام‌ها",
+  Template: "قالب‌ها",
   "": "",
 };
 

@@ -196,6 +196,18 @@ class NoteViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class TemplatesView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NoteSerializer
+
+    def get_queryset(self):
+        user_templates = Note.objects.filter(
+            type=NoteType.Template, owner=self.request.user
+        )
+        public_templates = Note.objects.filter(type=NoteType.Template, is_public=True)
+        return (user_templates | public_templates).distinct()
+
+
 class MyTeamView(GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer

@@ -20,6 +20,7 @@ urlpatterns = [
     path("my-team/", views.MyTeamView.as_view(), name="my-team"),
     path("users/", views.UsersView.as_view(), name="users"),
     path("committees/", views.CommitteesView.as_view(), name="committees"),
+    path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("", include(router.urls)),
     path("", include(feedbacks_router.urls)),
 ]
