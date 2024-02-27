@@ -4,7 +4,7 @@ import PeyTailwindPreset from '@pey/tailwind-preset';
 
 export default {
   presets: [PeyTailwindPreset],
-  content: [],
+  content: ['./node_modules/@pey/core/dist/*.{js,css}'],
   theme: {
     container: {
       center: true,

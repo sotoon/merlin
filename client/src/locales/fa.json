@@ -1,5 +1,11 @@
 {
   "common": {
     "appName": "Sotoon PMS"
+  },
+  "login": {
+    "email": "Email Address",
+    "login": "ورود",
+    "password": "Password",
+    "title": "ورود به سامانه ارزیابی عملکرد"
   }
 }
