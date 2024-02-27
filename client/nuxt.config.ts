@@ -11,7 +11,12 @@ export default defineNuxtConfig({
       ],
     },
   },
-  modules: ['@nuxtjs/eslint-module', '@nuxtjs/i18n', '@nuxtjs/tailwindcss'],
+  modules: [
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/i18n',
+    '@nuxtjs/tailwindcss',
+    '@vee-validate/nuxt',
+  ],
   srcDir: 'src/',
   ssr: false,
 
@@ -32,5 +37,12 @@ export default defineNuxtConfig({
     shim: false,
     strict: true,
     typeCheck: true,
+  },
+
+  veeValidate: {
+    componentNames: {
+      Form: 'VeeForm',
+      Field: 'VeeField',
+    },
   },
 });
