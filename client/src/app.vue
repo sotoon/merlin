@@ -15,8 +15,10 @@
       </template>
     </Head>
 
-    <Body>
-      <NuxtPage />
+    <Body class="scrollbar-primary">
+      <div class="min-h-screen">
+        <NuxtPage />
+      </div>
     </Body>
   </Html>
 </template>
