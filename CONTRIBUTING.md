@@ -28,7 +28,7 @@ Please review and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md) before con
    And for frontend:
 
    ```bash
-   npm format lint
+   pnpm format lint
    ```
 
 - Include any necessary tests for your changes.
