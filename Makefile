@@ -21,11 +21,11 @@ deps-dev: deps
 fmt:
 	python -m isort $(TOFMT_FILES)
 	python -m black $(TOFMT_FILES)
-	cd frontend && npm run format
+	cd client && pnpm format
 
 lint:
 	python -m flake8
-	cd frontend && npm run lint
+	cd client && pnpm lint
 
 test:
 	python manage.py test --noinput
@@ -34,7 +34,7 @@ run-server:
 	DJANGO_SETTINGS_MODULE=merlin.settings.development python manage.py runserver
 
 run-client:
-	cd frontend && npm run start
+	cd client && pnpm dev -o
 
 docker-build-frontend:
 	cd frontend && docker build --tag $(FRONTEND_IMAGE_NAME):$(VERSION) .

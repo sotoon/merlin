@@ -24,7 +24,7 @@ Merlin is Sotoon's Performance Management System.
 
 ### Prerequisites
 
-To use the project you need to install these softwares: `python-3.11`, `node-21.5.0`, and `npm-10.3.0`
+To use the project you need to install these softwares: `python-3.11`, `node-21.5.0`, and `pnpm-8.15.4`
 
 To install the dependencies of the project you can use:
 
@@ -35,7 +35,7 @@ make deps
 Also, to install the dependencies of the frontend of the project you can do:
 
 ```bash
-cd frontend && npm i
+cd client && pnpm i
 ```
 
 ### Running the project
