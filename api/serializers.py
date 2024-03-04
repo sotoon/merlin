@@ -62,6 +62,7 @@ class NoteSerializer(serializers.ModelSerializer):
         queryset=Committee.objects.all(),
         slug_field="name",
     )
+    read_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Note
@@ -76,14 +77,19 @@ class NoteSerializer(serializers.ModelSerializer):
             "mentioned_users",
             "committee",
             "summary",
+            "read_status",
         )
-        read_only_fields = ["uuid"]
+        read_only_fields = ["uuid", "read_status"]
 
     def validate(self, data):
         if not self.instance:
             owner = self.context["request"].user
             data["owner"] = owner
         return super().validate(data)
+
+    def get_read_status(self, obj):
+        user = self.context["request"].user
+        return obj.read_by.filter(uuid=user.uuid).exists()
 
 
 class FeedbackSerializer(serializers.ModelSerializer):

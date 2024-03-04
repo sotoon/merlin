@@ -3,6 +3,7 @@ import { Link as RouterLink, useSearchParams } from "react-router-dom";
 
 import AddSharpIcon from "@mui/icons-material/AddSharp";
 import {
+  Chip,
   Fab,
   FormControl,
   Grid,
@@ -40,6 +41,7 @@ const NotesPage = () => {
   const [filters, setFilters] = useState({
     owner: "",
     type: noteType,
+    showUnread: false,
   });
 
   const [sortCriteria, setSortCriteria] = useState({
@@ -74,6 +76,9 @@ const NotesPage = () => {
       })
       .filter((note) => {
         return filters.type && !noteType ? note.type === filters.type : true;
+      })
+      .filter((note) => {
+        return filters.showUnread ? note.read_status === false : true;
       })
       .sort((a, b) => {
         if (sortCriteria.sortOrder === "asc") {
@@ -193,6 +198,16 @@ const NotesPage = () => {
               <MenuItem value="desc">نزولی</MenuItem>
             </Select>
           </FormControl>
+        </Grid>
+        <Grid item>
+          <Chip
+            label="خوانده نشده‌ها"
+            onClick={() =>
+              setFilters({ ...filters, showUnread: !filters.showUnread })
+            }
+            color={filters.showUnread ? "primary" : "default"}
+            clickable
+          />
         </Grid>
       </Grid>
       <Grid container spacing={2}>

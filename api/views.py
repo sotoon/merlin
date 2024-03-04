@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -194,6 +195,22 @@ class NoteViewSet(viewsets.ModelViewSet):
         if type:
             queryset = queryset.filter(type=type)
         return queryset
+
+    @action(detail=True, methods=["post"], url_path="read")
+    def mark_note_as_read(self, request, uuid=None):
+        note = self.get_object()
+        user = request.user
+        if user not in note.read_by.all():
+            note.read_by.add(user)
+            return Response(
+                {"status": "Note marked as read for the current user."},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {"status": "Note is already marked as read for the current user."},
+                status=status.HTTP_200_OK,
+            )
 
 
 class TemplatesView(ListAPIView):

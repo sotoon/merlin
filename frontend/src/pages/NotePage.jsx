@@ -8,7 +8,7 @@ import NoteForm from "../components/NoteForm";
 import SummaryForm from "../components/SummaryForm";
 import { UserContext } from "../contexts/UserContext";
 import useFetchData from "../hooks/useFetchData";
-import { getNote } from "../services/noteservice";
+import { getNote, markNoteAsRead } from "../services/noteservice";
 
 const NotePage = () => {
   const { noteId } = useParams();
@@ -37,6 +37,7 @@ const NotePage = () => {
       } else {
         setIsReadOnly(false);
       }
+      markNoteAsRead(noteId);
     } else {
       setIsReadOnly(false);
     }
