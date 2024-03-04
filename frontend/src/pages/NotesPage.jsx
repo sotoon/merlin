@@ -200,14 +200,16 @@ const NotesPage = () => {
           </FormControl>
         </Grid>
         <Grid item>
-          <Chip
-            label="خوانده نشده‌ها"
-            onClick={() =>
-              setFilters({ ...filters, showUnread: !filters.showUnread })
-            }
-            color={filters.showUnread ? "primary" : "default"}
-            clickable
-          />
+          {!noteType && (
+            <Chip
+              label="خوانده نشده‌ها"
+              onClick={() =>
+                setFilters({ ...filters, showUnread: !filters.showUnread })
+              }
+              color={filters.showUnread ? "primary" : "default"}
+              clickable
+            />
+          )}
         </Grid>
       </Grid>
       <Grid container spacing={2}>

@@ -38,13 +38,13 @@ const NotePage = () => {
         setIsReadOnly(false);
       }
       markNoteAsRead(noteId);
+      for (let i = 0; i < userTeam.length; i++) {
+        if (userTeam[i].email == noteData.owner) {
+          setIsLeader(true);
+        }
+      }
     } else {
       setIsReadOnly(false);
-    }
-    for (let i = 0; i < userTeam.length; i++) {
-      if (userTeam[i].email == noteData.owner) {
-        setIsLeader(true);
-      }
     }
   }, [noteId, noteData]);
 
