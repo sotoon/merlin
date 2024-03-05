@@ -7,5 +7,9 @@
 </template>
 
 <script lang="ts" setup>
+definePageMeta({
+  middleware: ['auth'],
+});
+
 const { t } = useI18n();
 </script>
