@@ -11,6 +11,14 @@ export default defineNuxtConfig({
       ],
     },
   },
+  imports: {
+    dirs: ['composables/**'],
+  },
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.API_URL,
+    },
+  },
   modules: [
     '@nuxtjs/eslint-module',
     '@nuxtjs/i18n',
