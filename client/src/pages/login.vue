@@ -13,5 +13,9 @@
 <script lang="ts" setup>
 import { PBox, PText } from '@pey/core';
 
+definePageMeta({
+  middleware: ['no-auth'],
+});
+
 const { t } = useI18n();
 </script>
