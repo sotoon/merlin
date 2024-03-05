@@ -1,5 +1,5 @@
 <template>
-  <form class="space-y-2" dir="ltr" @submit="onSubmit">
+  <form class="space-y-2" @submit="onSubmit">
     <VeeField
       v-slot="{ errorMessage, value, handleChange }"
       name="email"
@@ -8,11 +8,13 @@
     >
       <PInput
         autofocus
+        dir="ltr"
         :error="errorMessage"
         name="email"
         :label="t('login.email')"
         type="email"
         :model-value="value"
+        required
         show-error
         @update:model-value="handleChange"
       />
@@ -25,17 +27,25 @@
       rules="required"
     >
       <PInput
+        dir="ltr"
         :error="errorMessage"
         name="password"
         :label="t('login.password')"
         type="password"
         :model-value="value"
+        required
         show-error
         @update:model-value="handleChange"
       />
     </VeeField>
 
-    <PButton class="w-full" :icon-start="PeyLockOpenIcon" variant="fill">
+    <PButton
+      class="w-full"
+      :disabled="pending"
+      :loading="pending"
+      :icon-start="PeyLockOpenIcon"
+      variant="fill"
+    >
       {{ t('login.login') }}
     </PButton>
   </form>
@@ -52,8 +62,9 @@ interface LoginFormValues {
 
 const { t } = useI18n();
 const { handleSubmit } = useForm<LoginFormValues>();
+const { execute: login, pending } = useLogin();
 
-const onSubmit = handleSubmit((value) => {
-  console.log(value);
+const onSubmit = handleSubmit((values) => {
+  login({ body: values });
 });
 </script>

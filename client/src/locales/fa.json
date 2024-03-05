@@ -3,9 +3,10 @@
     "appName": "Sotoon PMS"
   },
   "login": {
-    "email": "Email Address",
+    "email": "آدرس ایمیل",
     "login": "ورود",
-    "password": "Password",
+    "loginFailed": "خطا در ورود",
+    "password": "گذرواژه",
     "title": "ورود به سامانه ارزیابی عملکرد"
   }
 }
