@@ -4,7 +4,8 @@ interface UseApiMutationOptions extends Omit<FetchOptions<'json'>, 'body'> {
   noAuth?: boolean;
 }
 
-interface ExecuteOptions<TResponse, TError> {
+interface ExecuteOptions<TResponse, TError>
+  extends Omit<FetchOptions<'json'>, 'body'> {
   onSuccess?: (response: TResponse) => void;
   onError?: (error: FetchError<TError> | undefined) => void;
 }
@@ -26,6 +27,8 @@ const useApiMutation = <TResponse, TError, TBody extends FetchOptions['body']>(
 
   const execute = ({
     body,
+    onSuccess: executeOnSuccess,
+    onError: executeOnError,
     ...executeOptions
   }: ExecuteOptions<TResponse, TError> & { body?: TBody } = {}) => {
     pending.value = true;
@@ -33,16 +36,17 @@ const useApiMutation = <TResponse, TError, TBody extends FetchOptions['body']>(
 
     apiFetch<TResponse>(url, {
       ...options,
+      ...executeOptions,
       body,
     })
       .then((response) => {
         onSuccess?.(response);
-        executeOptions.onSuccess?.(response);
+        executeOnSuccess?.(response);
       })
       .catch((e) => {
         error.value = e;
         onError?.(e);
-        executeOptions.onError?.(e);
+        executeOnError?.(e);
       })
       .finally(() => {
         pending.value = false;

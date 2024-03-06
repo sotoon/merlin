@@ -16,9 +16,9 @@
     </Head>
 
     <Body class="scrollbar-primary">
-      <div class="min-h-screen bg-gray-00">
+      <NuxtLayout>
         <NuxtPage />
-      </div>
+      </NuxtLayout>
     </Body>
   </Html>
 </template>

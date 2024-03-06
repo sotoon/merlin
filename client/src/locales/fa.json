@@ -3,6 +3,9 @@
     "appName": "Sotoon PMS"
   },
   "login": {
+    "bepaLogin": "ورود با بپا",
+    "connectingToBepa": "در حال اتصال به بپا ...",
+    "connectingToBepaFailed": "خطا در اتصال به بپا",
     "email": "آدرس ایمیل",
     "login": "ورود",
     "loginFailed": "خطا در ورود",
