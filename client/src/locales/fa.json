@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Sotoon PMS"
+    "appName": "سامانه ارزیابی عملکرد"
   },
   "login": {
     "bepaLogin": "ورود با بپا",
@@ -11,5 +11,9 @@
     "loginFailed": "خطا در ورود",
     "password": "گذرواژه",
     "title": "ورود به سامانه ارزیابی عملکرد"
+  },
+  "sidebar": {
+    "logout": "خروج",
+    "notes": "یادداشت‌ها"
   }
 }
