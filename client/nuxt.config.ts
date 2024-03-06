@@ -16,7 +16,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiUrl: process.env.API_URL,
+      apiUrl: process.env.NUXT_PUBLIC_API_URL,
+      bepaAuthUrl: process.env.NUXT_PUBLIC_BEPA_AUTH_URL,
+      bepaCallbackUrl: process.env.NUXT_PUBLIC_BEPA_CALLBACK_URL,
+      bepaClientId: process.env.NUXT_PUBLIC_BEPA_CLIENT_ID,
     },
   },
   modules: [
