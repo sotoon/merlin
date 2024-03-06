@@ -1,5 +1,5 @@
-{
-  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+module.exports = {
+  "plugins": [require.resolve("@trivago/prettier-plugin-sort-imports")],
   "arrowParens": "always",
   "bracketSpacing": true,
   "embeddedLanguageFormatting": "auto",
