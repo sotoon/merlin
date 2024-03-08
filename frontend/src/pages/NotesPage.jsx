@@ -28,7 +28,7 @@ const NotesPage = () => {
   const userEmail = searchParams.get("useremail") || "";
   const userName = searchParams.get("username") || "";
   const retrieve_mentions = searchParams.get("retrieve_mentions") || false;
-  const areNotesReadOnly = userEmail || retrieve_mentions;
+  const areNotesReadOnly = userEmail != "" || retrieve_mentions;
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
 
@@ -62,8 +62,8 @@ const NotesPage = () => {
         handleFiltersChange={(value) => setFilteredNotes(value)}
       />
       <Grid container spacing={2}>
-        {filteredNotes.map((note, index) => (
-          <Grid item xs={12} sm={12} md={12} key={index}>
+        {filteredNotes.map((note) => (
+          <Grid item xs={12} sm={12} md={12} key={note.uuid}>
             <NoteCard
               uuid={note.uuid}
               title={note.title}
@@ -71,6 +71,7 @@ const NotesPage = () => {
               date={note.date}
               isReadOnly={areNotesReadOnly}
               ownerName={retrieve_mentions ? note.owner_name : ""}
+              readStatus={note.read_status}
             />
           </Grid>
         ))}

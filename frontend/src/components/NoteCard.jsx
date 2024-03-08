@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { Link as RouterLink } from "react-router-dom";
 
 import DeleteIcon from "@mui/icons-material/Delete";
+import DraftsIcon from "@mui/icons-material/Drafts";
+import MailIcon from "@mui/icons-material/Mail";
 import {
   Card,
   CardActions,
@@ -10,15 +12,28 @@ import {
   CardHeader,
   Divider,
   IconButton,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { marked } from "marked";
 import PropTypes from "prop-types";
 
 import { AlertContext } from "../contexts/AlertContext";
-import { deleteNote } from "../services/noteservice";
+import {
+  deleteNote,
+  markNoteAsRead,
+  markNoteAsUnread,
+} from "../services/noteservice";
 
-const NoteCard = ({ uuid, title, body, date, isReadOnly, ownerName }) => {
+const NoteCard = ({
+  uuid,
+  title,
+  body,
+  date,
+  isReadOnly,
+  ownerName,
+  readStatus,
+}) => {
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   const removeMarkdown = (markdownText) => {
@@ -40,6 +55,22 @@ const NoteCard = ({ uuid, title, body, date, isReadOnly, ownerName }) => {
       }
     };
     deleteCurrentNote();
+  };
+  const handleToggleReadStatus = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const toggleReadStatus = async () => {
+      try {
+        await (readStatus ? markNoteAsUnread(uuid) : markNoteAsRead(uuid));
+        navigate(0);
+      } catch (error) {
+        setAlert({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
+      }
+    };
+    toggleReadStatus();
   };
 
   return (
@@ -75,7 +106,21 @@ const NoteCard = ({ uuid, title, body, date, isReadOnly, ownerName }) => {
           <Typography variant="caption" color="textSecondary" sx={{ flex: 1 }}>
             تاریخ: {date} {ownerName && `,نویسنده: ${ownerName}`}
           </Typography>
-          {!isReadOnly && (
+          {isReadOnly ? (
+            <Tooltip title={readStatus ? "Mark as Unread" : "Mark as Read"}>
+              <IconButton
+                color="inherit"
+                onClick={(event) => handleToggleReadStatus(event)}
+                sx={{
+                  "&:hover": {
+                    color: "#FF9800",
+                  },
+                }}
+              >
+                {readStatus ? <MailIcon /> : <DraftsIcon />}
+              </IconButton>
+            </Tooltip>
+          ) : (
             <IconButton
               color="inherit"
               onClick={(event) => handleDelete(event)}
@@ -101,6 +146,7 @@ NoteCard.propTypes = {
   date: PropTypes.string,
   isReadOnly: PropTypes.bool,
   ownerName: PropTypes.string,
+  readStatus: PropTypes.bool,
 };
 
 NoteCard.defaultProps = {
@@ -110,6 +156,7 @@ NoteCard.defaultProps = {
   data: "",
   isReadOnly: false,
   ownerName: "",
+  readStatus: false,
 };
 
 export default NoteCard;

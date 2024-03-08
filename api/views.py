@@ -212,6 +212,22 @@ class NoteViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
 
+    @action(detail=True, methods=["post"], url_path="unread")
+    def mark_note_as_unread(self, request, uuid=None):
+        note = self.get_object()
+        user = request.user
+        if user in note.read_by.all():
+            note.read_by.remove(user)
+            return Response(
+                {"status": "Note marked as unread for the current user."},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {"status": "Note is already marked as unread for the current user."},
+                status=status.HTTP_200_OK,
+            )
+
 
 class TemplatesView(ListAPIView):
     permission_classes = [IsAuthenticated]
