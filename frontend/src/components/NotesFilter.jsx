@@ -41,7 +41,15 @@ const NotesFilter = ({
   });
   const [owners, setOwners] = useState([]);
   useEffect(() => {
-    const uniqueOwners = Array.from(new Set(notes.map((note) => note.owner)));
+    const uniqueOwners = Array.from(
+      new Map(
+        notes.map((note) => [
+          `${note.owner}-${note.owner_name}`,
+          { email: note.owner, name: note.owner_name },
+        ]),
+      ).values(),
+    );
+
     setOwners(uniqueOwners);
   }, [notes]);
   const filteredAndSortedNotes = useMemo(() => {
@@ -108,8 +116,8 @@ const NotesFilter = ({
             >
               <MenuItem value="">همه</MenuItem>
               {owners.map((owner, index) => (
-                <MenuItem key={index} value={owner}>
-                  {owner}
+                <MenuItem key={index} value={owner.email}>
+                  {owner.name}
                 </MenuItem>
               ))}
             </Select>

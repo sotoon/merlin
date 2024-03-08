@@ -70,6 +70,7 @@ const NotesPage = () => {
               body={note.content}
               date={note.date}
               isReadOnly={areNotesReadOnly}
+              ownerName={retrieve_mentions ? note.owner_name : ""}
             />
           </Grid>
         ))}

@@ -18,7 +18,7 @@ import PropTypes from "prop-types";
 import { AlertContext } from "../contexts/AlertContext";
 import { deleteNote } from "../services/noteservice";
 
-const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
+const NoteCard = ({ uuid, title, body, date, isReadOnly, ownerName }) => {
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   const removeMarkdown = (markdownText) => {
@@ -73,7 +73,7 @@ const NoteCard = ({ uuid, title, body, date, isReadOnly }) => {
           disableSpacing
         >
           <Typography variant="caption" color="textSecondary" sx={{ flex: 1 }}>
-            {date}
+            تاریخ: {date} {ownerName && `,نویسنده: ${ownerName}`}
           </Typography>
           {!isReadOnly && (
             <IconButton
@@ -100,6 +100,7 @@ NoteCard.propTypes = {
   body: PropTypes.string,
   date: PropTypes.string,
   isReadOnly: PropTypes.bool,
+  ownerName: PropTypes.string,
 };
 
 NoteCard.defaultProps = {
@@ -108,6 +109,7 @@ NoteCard.defaultProps = {
   body: "",
   data: "",
   isReadOnly: false,
+  ownerName: "",
 };
 
 export default NoteCard;
