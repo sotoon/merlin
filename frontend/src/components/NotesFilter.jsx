@@ -7,6 +7,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  TextField,
 } from "@mui/material";
 import PropTypes from "prop-types";
 
@@ -30,6 +31,8 @@ const NotesFilter = ({
     owner: "",
     type: "",
     showUnread: false,
+    startDate: "",
+    endDate: "",
   });
 
   const [sortCriteria, setSortCriteria] = useState({
@@ -51,6 +54,15 @@ const NotesFilter = ({
       })
       .filter((note) => {
         return filters.showUnread ? note.read_status === false : true;
+      })
+      .filter((note) => {
+        const { startDate, endDate } = filters;
+        const noteDate = new Date(note.date);
+
+        return (
+          (!startDate || noteDate >= new Date(startDate)) &&
+          (!endDate || noteDate <= new Date(endDate))
+        );
       })
       .sort((a, b) => {
         if (sortCriteria.sortOrder === "asc") {
@@ -134,6 +146,42 @@ const NotesFilter = ({
             </Select>
           </FormControl>
         )}
+      </Grid>
+      <Grid item>
+        <TextField
+          type="date"
+          label="از تاریخ"
+          value={filters.startDate}
+          onChange={(e) =>
+            setFilters({ ...filters, startDate: e.target.value })
+          }
+          InputLabelProps={{
+            shrink: true,
+            style: {
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 15,
+            },
+          }}
+        />
+      </Grid>
+      <Grid item>
+        <TextField
+          type="date"
+          label="تا تاریخ"
+          value={filters.endDate}
+          onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+          InputLabelProps={{
+            shrink: true,
+            style: {
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 15,
+            },
+          }}
+        />
       </Grid>
       <Grid item>
         <FormControl margin="normal" sx={{ mt: 0, mr: 0, minWidth: "100px" }}>
