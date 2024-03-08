@@ -48,3 +48,11 @@ export const updateSummary = async (summary, noteUUid) => {
 export const getTemplates = async () => {
   return await apiCall("get", "/templates/");
 };
+
+export const markNoteAsRead = async (noteUUid) => {
+  return await apiCall("post", `/notes/${noteUUid}/read/`);
+};
+
+export const markNoteAsUnread = async (noteUUid) => {
+  return await apiCall("post", `/notes/${noteUUid}/unread/`);
+};
