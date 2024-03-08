@@ -6,6 +6,7 @@ import { Fab, Grid } from "@mui/material";
 
 import Loading from "../components/Loading";
 import NoteCard from "../components/NoteCard";
+import NotesFilter from "../components/NotesFilter";
 import SectionTitle from "../components/SectionTitle";
 import useFetchData from "../hooks/useFetchData";
 import { getNotes } from "../services/noteservice";
@@ -27,8 +28,10 @@ const NotesPage = () => {
   const userEmail = searchParams.get("useremail") || "";
   const userName = searchParams.get("username") || "";
   const retrieve_mentions = searchParams.get("retrieve_mentions") || false;
-  const areNotesReadOnly = userEmail || retrieve_mentions;
+  const areNotesReadOnly = userEmail != "" || retrieve_mentions;
   const [notes, setNotes] = useState([]);
+  const [filteredNotes, setFilteredNotes] = useState([]);
+
   const isLoading = useFetchData(
     () => getNotes(noteType, userEmail, retrieve_mentions),
     setNotes,
@@ -51,15 +54,24 @@ const NotesPage = () => {
   return (
     <>
       <SectionTitle title={pageTitle} />
+      <NotesFilter
+        notes={notes}
+        showWritersFilter={retrieve_mentions}
+        showUnreadFilter={!noteType}
+        showTypeFilter={!noteType}
+        handleFiltersChange={(value) => setFilteredNotes(value)}
+      />
       <Grid container spacing={2}>
-        {notes.map((note, index) => (
-          <Grid item xs={12} sm={12} md={12} key={index}>
+        {filteredNotes.map((note) => (
+          <Grid item xs={12} sm={12} md={12} key={note.uuid}>
             <NoteCard
               uuid={note.uuid}
               title={note.title}
               body={note.content}
               date={note.date}
               isReadOnly={areNotesReadOnly}
+              ownerName={retrieve_mentions ? note.owner_name : ""}
+              readStatus={note.read_status}
             />
           </Grid>
         ))}
