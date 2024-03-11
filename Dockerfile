@@ -15,4 +15,4 @@ EXPOSE 8000
 
 ENV DJANGO_SETTINGS_MODULE=merlin.settings.production
 
-CMD python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 merlin.wsgi:application --reload
+CMD python manage.py collectstatic --noinput && python manage.py migrate --noinput && python manage.py update_access_permissions && gunicorn --bind 0.0.0.0:8000 merlin.wsgi:application --reload

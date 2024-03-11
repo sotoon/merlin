@@ -4,15 +4,17 @@ import { Button, TextField } from "@mui/material";
 import { PropTypes } from "prop-types";
 
 import { AlertContext } from "../contexts/AlertContext";
+import { UserContext } from "../contexts/UserContext";
 import useFetchData from "../hooks/useFetchData";
-import { createFeedback, getFeedbacks } from "../services/noteservice";
+import { createFeedback, getUserFeedbacks } from "../services/noteservice";
 import Loading from "./Loading";
 import SectionTitle from "./SectionTitle";
 
 const FeedbackForm = ({ noteId }) => {
   const [feedbackContent, setFeedbackContent] = useState("");
+  const { user } = useContext(UserContext);
   const isLoading = useFetchData(
-    () => (noteId ? getFeedbacks(noteId) : null),
+    () => (noteId ? getUserFeedbacks(noteId, user.email) : null),
     (response) =>
       setFeedbackContent(response.length > 0 ? response[0].content : ""),
     [noteId],

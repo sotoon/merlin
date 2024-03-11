@@ -3,7 +3,17 @@ from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
 
-from api.models import Chapter, Committee, Department, Feedback, Note, Team, Tribe, User
+from api.models import (
+    Chapter,
+    Committee,
+    Department,
+    Feedback,
+    Note,
+    NoteUserAccess,
+    Team,
+    Tribe,
+    User,
+)
 
 
 @admin.register(Department)
@@ -375,6 +385,53 @@ class FeedbackAdmin(admin.ModelAdmin):
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "uuid")
     search_fields = ["owner__name", "owner__email", "note__title"]
+    search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت"
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+@admin.register(NoteUserAccess)
+class NoteUserAccessAdmin(admin.ModelAdmin):
+    date_hierarchy = "date_updated"
+    list_display = (
+        "uuid",
+        "note",
+        "user",
+        "can_view",
+        "can_edit",
+        "can_write_summary",
+        "can_write_feedback",
+        "can_view_feedbacks",
+        "date_created",
+        "date_updated",
+    )
+    fields = (
+        "uuid",
+        "note",
+        "user",
+        "can_view",
+        "can_edit",
+        "can_write_summary",
+        "can_write_feedback",
+        "can_view_feedbacks",
+        ("date_created", "date_updated"),
+    )
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "uuid")
+    search_fields = ["user__name", "user__email", "note__title"]
     search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت"
 
     def has_add_permission(self, request):
