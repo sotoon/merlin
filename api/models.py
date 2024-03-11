@@ -61,18 +61,17 @@ class User(MerlinBaseModel, AbstractUser):
         verbose_name = "کاربر"
         verbose_name_plural = "کاربران"
 
-    def check_is_leader(self, user):
+    def get_leaders(self):
         leader = self.leader
+        leaders = []
         count = 0
         max_count = 10
         while leader:
-            if leader == user:
-                return True
-            leader = leader.leader
+            leaders.append(leader)
             count += 1
             if max_count > count:
                 break
-        return False
+        return leaders
 
 
 class Department(MerlinBaseModel):
@@ -246,13 +245,75 @@ class Feedback(MerlinBaseModel):
     def __str__(self):
         return f"{self.owner} - {self.note}"
 
+
+class NoteUserAccess(MerlinBaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+    can_view = models.BooleanField(default=False, verbose_name="مشاهده")
+    can_edit = models.BooleanField(default=False, verbose_name="ویرایش")
+    can_write_summary = models.BooleanField(
+        default=False, verbose_name="نوشتن جمع‌بندی"
+    )
+    can_write_feedback = models.BooleanField(default=False, verbose_name="نوشتن فیدبک")
+    can_view_feedbacks = models.BooleanField(
+        default=False, verbose_name="مشاهده فیدبک‌ها"
+    )
+
+    class Meta:
+        unique_together = (
+            "user",
+            "note",
+        )
+        verbose_name = "دسترسی"
+        verbose_name_plural = "دسترسی‌ها"
+
+    def __str__(self):
+        return f"{self.user} - {self.note}"
+
     @classmethod
-    def get_note_feedbacks(cls, note, user):
-        all_note_feedbacks = cls.objects.filter(note=note)
-        if note.owner.check_is_leader(user):
-            return all_note_feedbacks
-        if note.owner == user:
-            return all_note_feedbacks
-        if note in Note.objects.filter(committee__members=user):
-            return all_note_feedbacks
-        return all_note_feedbacks.filter(owner=user)
+    def ensure_note_predefined_accesses(cls, note):
+        # Owner
+        cls.objects.update_or_create(
+            user=note.owner,
+            note=note,
+            defaults={"can_view": True, "can_edit": True, "can_view_feedbacks": True},
+        )
+
+        if note.type == NoteType.Personal:
+            return
+
+        # Leaders
+        leaders = note.owner.get_leaders()
+        for leader in leaders:
+            cls.objects.update_or_create(
+                user=leader,
+                note=note,
+                defaults={
+                    "can_view": True,
+                    "can_write_summary": True,
+                    "can_write_feedback": True,
+                    "can_view_feedbacks": True,
+                },
+            )
+
+        # Committee members
+        if note.committee is not None:
+            for member in note.committee.members.all():
+                cls.objects.update_or_create(
+                    user=member,
+                    note=note,
+                    defaults={
+                        "can_view": True,
+                        "can_write_summary": True,
+                        "can_write_feedback": True,
+                        "can_view_feedbacks": True,
+                    },
+                )
+
+        # Mentioned users
+        for user in note.mentioned_users.all():
+            cls.objects.update_or_create(
+                user=user,
+                note=note,
+                defaults={"can_view": True, "can_write_feedback": True},
+            )

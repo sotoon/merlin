@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Committee, Feedback, Note, User
+from api.models import Committee, Feedback, Note, NoteUserAccess, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -48,6 +48,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
 
+class NoteUserAccessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NoteUserAccess
+        fields = ["can_view", "can_edit", "can_write_summary", "can_write_feedback"]
+
+
 class NoteSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
@@ -63,6 +69,7 @@ class NoteSerializer(serializers.ModelSerializer):
         slug_field="name",
     )
     read_status = serializers.SerializerMethodField()
+    access_level = serializers.SerializerMethodField()
 
     class Meta:
         model = Note
@@ -78,8 +85,9 @@ class NoteSerializer(serializers.ModelSerializer):
             "committee",
             "summary",
             "read_status",
+            "access_level",
         )
-        read_only_fields = ["uuid", "read_status"]
+        read_only_fields = ["uuid", "read_status", "access_level"]
 
     def validate(self, data):
         if not self.instance:
@@ -90,6 +98,13 @@ class NoteSerializer(serializers.ModelSerializer):
     def get_read_status(self, obj):
         user = self.context["request"].user
         return obj.read_by.filter(uuid=user.uuid).exists()
+
+    def get_access_level(self, obj):
+        user = self.context["request"].user
+        access_level = NoteUserAccess.objects.filter(user=user, note=obj).first()
+        if access_level:
+            return NoteUserAccessSerializer(access_level).data
+        return None
 
 
 class FeedbackSerializer(serializers.ModelSerializer):

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Committee, Feedback, Note, NoteType, User
+from api.models import Committee, Feedback, Note, NoteType, NoteUserAccess, User
 from api.permissions import FeedbackPermission, NotePermission
 from api.serializers import (
     CommitteeSerializer,
@@ -169,32 +169,32 @@ class UsersView(ListAPIView):
 class NoteViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated, NotePermission]
+    permission_classes = (IsAuthenticated, NotePermission)
     search_fields = ["type"]
 
     def get_object(self):
         uuid = self.kwargs["uuid"]
-        return get_object_or_404(Note, uuid=uuid)
+        obj = get_object_or_404(Note, uuid=uuid)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get_queryset(self):
         user_email = self.request.query_params.get("user")
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
+        accessible_note_ids = NoteUserAccess.objects.filter(
+            user=self.request.user, can_view=True
+        ).values_list("note__uuid", flat=True)
+        accessible_notes = Note.objects.filter(uuid__in=accessible_note_ids)
         if user_email:
-            notes_owner = User.objects.get(email=user_email)
-            queryset = (
-                Note.objects.filter(owner=notes_owner)
-                .exclude(Q(type=NoteType.Personal) | Q(type=NoteType.Message))
-                .distinct()
-            )
+            queryset = accessible_notes.filter(owner__email=user_email)
+        elif retrieve_mentions:
+            queryset = accessible_notes.filter(~Q(owner=self.request.user))
         else:
-            if retrieve_mentions:
-                queryset = Note.retrieve_mentions(self.request.user)
-            else:
-                queryset = Note.objects.filter(owner=self.request.user).distinct()
+            queryset = accessible_notes.filter(owner=self.request.user)
         type = self.request.query_params.get("type")
         if type:
             queryset = queryset.filter(type=type)
-        return queryset
+        return queryset.distinct()
 
     @action(detail=True, methods=["post"], url_path="read")
     def mark_note_as_read(self, request, uuid=None):
@@ -256,6 +256,7 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = FeedbackSerializer
     permission_classes = [IsAuthenticated, FeedbackPermission]
+    search_fields = ["owner"]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -270,10 +271,21 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
     def get_object(self):
         uuid = self.kwargs["uuid"]
-        return get_object_or_404(Feedback, uuid=uuid)
+        obj = get_object_or_404(Feedback, uuid=uuid)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get_queryset(self):
-        return Feedback.get_note_feedbacks(self.get_note(), self.request.user)
+        current_note = self.get_note()
+        all_note_feedbacks = Feedback.objects.filter(note=current_note).distinct()
+        owner_email = self.request.query_params.get("owner")
+        if owner_email:
+            all_note_feedbacks = all_note_feedbacks.filter(owner__email=owner_email)
+        if NoteUserAccess.objects.filter(
+            note=current_note, user=self.request.user, can_view_feedbacks=True
+        ).exists():
+            return all_note_feedbacks
+        return all_note_feedbacks.filter(owner=self.request.user)
 
     def create(self, request, *args, **kwargs):
         prev_feedback = Feedback.objects.filter(

@@ -9,7 +9,7 @@ import SectionTitle from "./SectionTitle";
 
 const VALID_NOTE_TYPES = ["Proposal", "Goal"];
 
-const SummaryForm = ({ noteId, summary, isLeader, noteType }) => {
+const SummaryForm = ({ noteId, summary, isReadOnly, noteType }) => {
   const [summaryContent, setSummaryContent] = useState(summary);
   const { setAlert } = useContext(AlertContext);
   const handleSummarySubmit = async (e) => {
@@ -48,7 +48,7 @@ const SummaryForm = ({ noteId, summary, isLeader, noteType }) => {
             mb: 2,
           }}
           InputProps={{
-            readOnly: !isLeader,
+            readOnly: isReadOnly,
             style: {
               textAlign: "right",
               direction: "rtl",
@@ -63,7 +63,7 @@ const SummaryForm = ({ noteId, summary, isLeader, noteType }) => {
             },
           }}
         />
-        {isLeader && (
+        {!isReadOnly && (
           <Button
             type="submit"
             variant="contained"
@@ -81,14 +81,14 @@ const SummaryForm = ({ noteId, summary, isLeader, noteType }) => {
 SummaryForm.propTypes = {
   noteId: PropTypes.string,
   summary: PropTypes.string,
-  isLeader: PropTypes.bool,
+  isReadOnly: PropTypes.bool,
   noteType: PropTypes.string,
 };
 
 SummaryForm.defaultProps = {
   noteId: "",
   summary: "",
-  isLeader: false,
+  isReadOnly: true,
   noteType: "",
 };
 
