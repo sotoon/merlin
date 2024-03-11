@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
 import CustomQuill from "../components/CustomQuill";
 import { AlertContext } from "../contexts/AlertContext";
 import { createNote, getTemplates, updateNote } from "../services/noteservice";
-import { getAllUsers, getCommittees } from "../services/teamservice";
+import { getAllUsers } from "../services/teamservice";
 import SectionTitle from "./SectionTitle";
 
 const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
@@ -28,7 +28,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
       content: "",
       date: "",
       type: defaultNoteType,
-      committee: "",
     };
     if (noteData) {
       return {
@@ -36,7 +35,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
         content: noteData.content,
         date: noteData.date,
         type: noteData.type,
-        committee: noteData.committee,
       };
     }
     return savedData ? JSON.parse(savedData) : emptyData;
@@ -51,7 +49,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
   );
   const [errors, setErrors] = useState({});
   const [allUsers, setAllUsers] = useState([]);
-  const [committees, setCommittees] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [template, setTemplate] = useState({ title: "", content: "" });
   const { setAlert } = useContext(AlertContext);
@@ -61,17 +58,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
       try {
         const response = await getAllUsers();
         setAllUsers(response);
-      } catch (error) {
-        setAlert({
-          message: "Something went wrong. Please try again later.",
-          type: "error",
-        });
-      }
-    };
-    const fetchCommittees = async () => {
-      try {
-        const response = await getCommittees();
-        setCommittees(response.map((item) => item.name));
       } catch (error) {
         setAlert({
           message: "Something went wrong. Please try again later.",
@@ -91,7 +77,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
       }
     };
     fetchAllUsers();
-    fetchCommittees();
     fetchTemplates();
   }, []);
 
@@ -288,48 +273,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
             </FormHelperText>
           )}
         </FormControl>
-        {formData.type === "Proposal" && (
-          <FormControl
-            margin="normal"
-            errors={errors}
-            helpertext={errors.committee}
-            sx={{ mr: 5, minWidth: "70px" }}
-          >
-            <InputLabel
-              id="committee-select-label"
-              style={{
-                textAlign: "right",
-                right: 0,
-                left: "auto",
-                marginRight: 35,
-              }}
-            >
-              کمیته
-            </InputLabel>
-            <Select
-              name="committee"
-              value={formData.committee}
-              onChange={handleChange}
-              labelId="committee-select-label"
-              label="Committeee"
-              disabled={isReadOnly}
-            >
-              {committees.map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.committeee && (
-              <FormHelperText
-                sx={{ color: (theme) => theme.palette.error.main }}
-              >
-                {errors.committee}
-              </FormHelperText>
-            )}
-          </FormControl>
-        )}
-
         <Autocomplete
           multiple
           id="user-autocomplete"

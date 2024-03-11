@@ -318,7 +318,7 @@ class UserAdmin(ImportExportModelAdmin):
         "name",
         "phone",
         ("email", "gmail"),
-        ("department", "chapter", "team", "leader"),
+        ("department", "chapter", "team", "leader", "committee"),
         ("date_created", "date_updated"),
     )
     readonly_fields = ("uuid", "date_created", "date_updated")
