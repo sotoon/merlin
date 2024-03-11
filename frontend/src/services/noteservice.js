@@ -39,6 +39,13 @@ export const getFeedbacks = async (noteUUid) => {
   return await apiCall("get", `/notes/${noteUUid}/feedbacks/`);
 };
 
+export const getUserFeedbacks = async (noteUUid, userEmail) => {
+  return await apiCall(
+    "get",
+    `/notes/${noteUUid}/feedbacks/?owner=${userEmail}`,
+  );
+};
+
 export const updateSummary = async (summary, noteUUid) => {
   return await apiCall("patch", `/notes/${noteUUid}/`, {
     summary: summary,
