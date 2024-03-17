@@ -1,6 +1,17 @@
 {
   "common": {
-    "appName": "سامانه ارزیابی عملکرد"
+    "appName": "سامانه ارزیابی عملکرد",
+    "goals": "اهداف",
+    "logout": "خروج",
+    "meetings": "جلسات",
+    "messages": "پیام‌ها",
+    "messageToOthers": "پیام به دیگری",
+    "notes": "یادداشت‌ها",
+    "personal": "شخصی",
+    "personalNotes": "یادداشت‌های شخصی",
+    "proposal": "پروپوزال",
+    "tasks": "فعالیت‌ها",
+    "templates": "قالب‌ها"
   },
   "login": {
     "bepaLogin": "ورود با بپا",
@@ -11,9 +22,5 @@
     "loginFailed": "خطا در ورود",
     "password": "گذرواژه",
     "title": "ورود به سامانه ارزیابی عملکرد"
-  },
-  "sidebar": {
-    "logout": "خروج",
-    "notes": "یادداشت‌ها"
   }
 }
