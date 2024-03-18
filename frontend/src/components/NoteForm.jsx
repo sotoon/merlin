@@ -21,7 +21,13 @@ import PropTypes from "prop-types";
 
 import CustomQuill from "../components/CustomQuill";
 import { AlertContext } from "../contexts/AlertContext";
-import { createNote, getTemplates, updateNote } from "../services/noteservice";
+import {
+  createNote,
+  getNote,
+  getNotes,
+  getTemplates,
+  updateNote,
+} from "../services/noteservice";
 import { getAllUsers } from "../services/teamservice";
 import SectionTitle from "./SectionTitle";
 
@@ -52,9 +58,11 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
         }))
       : [],
   );
+  const [linkedNotes, setLinkedNotes] = useState([]);
   const [errors, setErrors] = useState({});
   const [allUsers, setAllUsers] = useState([]);
   const [templates, setTemplates] = useState([]);
+  const [allNotes, setAllNotes] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState({
     title: "",
@@ -63,10 +71,18 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   useEffect(() => {
-    const fetchAllUsers = async () => {
+    const fetchNoteData = async () => {
       try {
-        const response = await getAllUsers();
-        setAllUsers(response);
+        setAllUsers(await getAllUsers());
+        setTemplates(await getTemplates());
+        setAllNotes(await getNotes());
+        if (noteData) {
+          let linked_notes = [];
+          for (let i = 0; i < noteData.linked_notes.length; i++) {
+            linked_notes.push(await getNote(noteData.linked_notes[i]));
+          }
+          setLinkedNotes(linked_notes);
+        }
       } catch (error) {
         setAlert({
           message: "Something went wrong. Please try again later.",
@@ -74,19 +90,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
         });
       }
     };
-    const fetchTemplates = async () => {
-      try {
-        const response = await getTemplates();
-        setTemplates(response);
-      } catch (error) {
-        setAlert({
-          message: "Something went wrong. Please try again later.",
-          type: "error",
-        });
-      }
-    };
-    fetchAllUsers();
-    fetchTemplates();
+    fetchNoteData();
   }, []);
 
   const validate = (data) => {
@@ -96,9 +100,6 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
     if (!data.type) tempErrors.type = "نوع الزامی است.";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
-  };
-  const handleMentionChange = (_, value) => {
-    setMentionedUsers(value);
   };
   const handleChange = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
@@ -112,6 +113,7 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
     if (validate(formData)) {
       try {
         formData.mentioned_users = mentionedUsers.map((item) => item.email);
+        formData.linked_notes = linkedNotes.map((item) => item.uuid);
         if (noteId) {
           await updateNote(formData, noteId);
         } else {
@@ -322,7 +324,9 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
           disabled={isReadOnly}
           getOptionLabel={(option) => `${option.name}(${option.email})`}
           isOptionEqualToValue={(option, value) => option.email == value.email}
-          onChange={handleMentionChange}
+          onChange={(_, value) => {
+            setMentionedUsers(value);
+          }}
           value={mentionedUsers}
           renderInput={(params) => (
             <TextField
@@ -339,6 +343,39 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
                 },
               }}
             />
+          )}
+        />
+        <Autocomplete
+          multiple
+          id="linked-notes-autocomplete"
+          options={allNotes}
+          disabled={isReadOnly}
+          getOptionLabel={(option) => option.title}
+          isOptionEqualToValue={(option, value) => option.uuid == value.uuid}
+          onChange={(_, value) => {
+            setLinkedNotes(value || []);
+          }}
+          value={linkedNotes}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="یادداشت‌های لینک شده"
+              variant="outlined"
+              sx={{ mt: 2, mb: 2 }}
+              InputLabelProps={{
+                style: {
+                  textAlign: "right",
+                  right: 0,
+                  left: "auto",
+                  marginRight: 20,
+                },
+              }}
+            />
+          )}
+          renderOption={(props, option) => (
+            <li {...props} key={option.uuid}>
+              {option.title}{" "}
+            </li>
           )}
         />
 

@@ -218,6 +218,9 @@ class Note(MerlinBaseModel):
     summary = models.TextField(blank=True, verbose_name="جمع‌بندی")
     is_public = models.BooleanField(default=False, verbose_name="عمومی")
     read_by = models.ManyToManyField(User, related_name="read_notes", blank=True)
+    linked_notes = models.ManyToManyField(
+        "Note", related_name="connected_notes", blank=True, verbose_name="پیوندها"
+    )
 
     class Meta:
         verbose_name = "یادداشت"
