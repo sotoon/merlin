@@ -45,6 +45,14 @@ class User(MerlinBaseModel, AbstractUser):
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
+    committee = models.ForeignKey(
+        "Committee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="committee_users",
+        verbose_name="کمیته",
+    )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -163,7 +171,9 @@ class Team(MerlinBaseModel):
 
 class Committee(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
-    members = models.ManyToManyField(User, verbose_name="اعضا")
+    members = models.ManyToManyField(
+        User, related_name="committee_members", verbose_name="اعضا"
+    )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
     class Meta:
@@ -205,12 +215,6 @@ class Note(MerlinBaseModel):
         related_name="mentioned_users",
         verbose_name="کاربران منشن شده",
     )
-    committee = models.ForeignKey(
-        Committee,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
     summary = models.TextField(blank=True, verbose_name="جمع‌بندی")
     is_public = models.BooleanField(default=False, verbose_name="عمومی")
     read_by = models.ManyToManyField(User, related_name="read_notes", blank=True)
@@ -221,12 +225,6 @@ class Note(MerlinBaseModel):
 
     def __str__(self):
         return self.title
-
-    @classmethod
-    def retrieve_mentions(cls, user):
-        direct_mentions = cls.objects.filter(mentioned_users=user)
-        committee_mentions = cls.objects.filter(committee__members=user)
-        return (direct_mentions | committee_mentions).distinct()
 
 
 class Feedback(MerlinBaseModel):
@@ -297,8 +295,8 @@ class NoteUserAccess(MerlinBaseModel):
             )
 
         # Committee members
-        if note.committee is not None:
-            for member in note.committee.members.all():
+        if note.owner.committee is not None and note.type == NoteType.Proposal:
+            for member in note.owner.committee.members.all():
                 cls.objects.update_or_create(
                     user=member,
                     note=note,

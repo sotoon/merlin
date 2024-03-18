@@ -10,10 +10,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Committee, Feedback, Note, NoteType, NoteUserAccess, User
+from api.models import Feedback, Note, NoteType, NoteUserAccess, User
 from api.permissions import FeedbackPermission, NotePermission
 from api.serializers import (
-    CommitteeSerializer,
     FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
@@ -294,11 +293,3 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         if prev_feedback:
             prev_feedback.delete()
         return super().create(request, *args, **kwargs)
-
-
-class CommitteesView(ListAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CommitteeSerializer
-
-    def get_queryset(self):
-        return Committee.objects.all()
