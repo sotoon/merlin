@@ -28,6 +28,12 @@ const CustomQuill = ({ isReadOnly, value, handleDataChange }) => {
     }
   }, []);
   const handleContentChange = (value, delta, source, editor) => {
+    let beforeListPattern =
+      /(<p class="ql-align-right ql-direction-rtl"><br><\/p>)+(?=<ul>|<ol>)/g;
+    value = value.replace(
+      beforeListPattern,
+      '<p class="ql-align-right ql-direction-rtl"><br></p>',
+    );
     handleDataChange(value);
     if (isProgrammaticUpdate) {
       return;
@@ -90,11 +96,13 @@ const CustomQuill = ({ isReadOnly, value, handleDataChange }) => {
         "code-block",
         "script",
       ]}
+      customFormats={{ preserveWhitespace: { whitespace: true } }}
       style={{
         width: "100%",
         marginBottom: 10,
         direction: "ltr",
       }}
+      preserveWhitespace
     />
   );
 };
