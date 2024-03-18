@@ -4,6 +4,11 @@ import { useNavigate } from "react-router-dom";
 import {
   Autocomplete,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   FormHelperText,
   InputLabel,
@@ -50,7 +55,11 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
   const [errors, setErrors] = useState({});
   const [allUsers, setAllUsers] = useState([]);
   const [templates, setTemplates] = useState([]);
-  const [template, setTemplate] = useState({ title: "", content: "" });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState({
+    title: "",
+    content: "",
+  });
   const { setAlert } = useContext(AlertContext);
   const navigate = useNavigate();
   useEffect(() => {
@@ -126,50 +135,83 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
       );
     }
   }, [formData]);
-  useEffect(() => {
-    setFormData({
-      ...formData,
-      title: formData.title + template.title,
-      content: formData.content + template.content,
-    });
-  }, [template]);
+  const handleTemplateAction = (action) => {
+    if (action === "append") {
+      setFormData((prev) => ({
+        ...prev,
+        content: prev.content + pendingTemplate.content,
+      }));
+    } else if (action === "replace") {
+      setFormData((prev) => ({
+        ...prev,
+        content: pendingTemplate.content,
+      }));
+    }
+    setIsDialogOpen(false);
+    setPendingTemplate({ title: "", content: "" });
+  };
 
   return (
     <>
       <SectionTitle title={`${noteId ? "ویرایش" : "ایجاد"} یادداشت`} />
       {!isReadOnly && (
-        <FormControl
-          margin="normal"
-          errors={errors}
-          helpertext={errors.template}
-          sx={{ mr: 0, minWidth: "70px" }}
-        >
-          <InputLabel
-            id="template-select-label"
-            style={{
-              textAlign: "right",
-              right: 0,
-              left: "auto",
-              marginRight: 35,
-            }}
+        <>
+          <FormControl
+            margin="normal"
+            errors={errors}
+            helpertext={errors.template}
+            sx={{ mr: 0, minWidth: "70px" }}
           >
-            قالب
-          </InputLabel>
-          <Select
-            name="template"
-            value={template}
-            onChange={(event) => setTemplate(event.target.value)}
-            labelId="template-select-label"
-            label="Template"
-            disabled={isReadOnly}
-          >
-            {templates.map((item) => (
-              <MenuItem key={item.title} value={item}>
-                {item.title}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            <InputLabel
+              id="template-select-label"
+              style={{
+                textAlign: "right",
+                right: 0,
+                left: "auto",
+                marginRight: 35,
+              }}
+            >
+              قالب
+            </InputLabel>
+            <Select
+              name="template"
+              value={pendingTemplate.title}
+              onChange={(event) => {
+                setPendingTemplate(event.target.value);
+                setIsDialogOpen(true);
+              }}
+              labelId="template-select-label"
+              label="Template"
+              disabled={isReadOnly}
+            >
+              <MenuItem value=""></MenuItem>
+              {templates.map((item) => (
+                <MenuItem key={item.title} value={item}>
+                  {item.title}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+            <DialogTitle>{"استفاده از قالب"}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                میخواهید قالب را اضافه یا جایگزین کنید؟
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => handleTemplateAction("append")}>
+                اضافه
+              </Button>
+              <Button onClick={() => handleTemplateAction("replace")}>
+                جایگزین
+              </Button>
+              <Button onClick={() => handleTemplateAction("cancel")}>
+                بیخیال
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
       )}
       {isReadOnly && (
         <Typography variant="h6">نویسنده: {noteData.owner_name} </Typography>
