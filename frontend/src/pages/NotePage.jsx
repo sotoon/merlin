@@ -18,7 +18,6 @@ const NotePage = () => {
     content: "",
     date: "",
     type: noteType,
-    committee: "",
     owner_name: "",
     access_level: {
       can_view: false,
