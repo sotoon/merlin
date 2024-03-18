@@ -62,6 +62,9 @@ class NoteSerializer(serializers.ModelSerializer):
     mentioned_users = serializers.SlugRelatedField(
         many=True, required=False, queryset=User.objects.all(), slug_field="email"
     )
+    linked_notes = serializers.SlugRelatedField(
+        many=True, required=False, queryset=Note.objects.all(), slug_field="uuid"
+    )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
 
@@ -76,6 +79,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "date",
             "type",
             "mentioned_users",
+            "linked_notes",
             "summary",
             "read_status",
             "access_level",
