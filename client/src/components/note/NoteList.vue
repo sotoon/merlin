@@ -18,24 +18,26 @@
     class="grid grid-cols-1 gap-2 py-4 lg:grid-cols-2 lg:gap-3"
   >
     <li v-for="note in notes" :key="note.uuid">
-      <PCard
-        :footer-border="false"
-        :header-border="false"
-        header-variant="primary-dark"
-        :title="note.title"
-      >
-        <PText as="p" class="truncate text-gray-80">
-          {{ extractTextFromHTML(note.content) }}
-        </PText>
+      <NuxtLink :to="`${path}/${note.uuid}`">
+        <PCard
+          :footer-border="false"
+          :header-border="false"
+          header-variant="primary-dark"
+          :title="note.title"
+        >
+          <PText as="p" class="truncate text-gray-80">
+            {{ extractTextFromHTML(note.content) }}
+          </PText>
 
-        <template #footer>
-          <div class="flex items-center justify-between gap-2">
-            <PText class="text-gray-50" variant="caption2">
-              {{ note.date }}
-            </PText>
-          </div>
-        </template>
-      </PCard>
+          <template #footer>
+            <div class="flex items-center justify-between gap-2">
+              <PText class="text-gray-50" variant="caption2">
+                {{ note.date }}
+              </PText>
+            </div>
+          </template>
+        </PCard>
+      </NuxtLink>
     </li>
   </ul>
 
@@ -51,6 +53,7 @@ import { PeyRetryIcon } from '@pey/icons';
 const props = defineProps<{ type?: NoteType }>();
 
 const { t } = useI18n();
+const { path } = useRoute();
 const {
   data: notes,
   pending,
