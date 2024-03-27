@@ -20,7 +20,7 @@
         />
       </VeeField>
 
-      <VeeField v-slot="{ componentField }" name="content">
+      <VeeField v-slot="{ componentField }" name="content" rules="required">
         <PInput
           v-bind="componentField"
           hide-details

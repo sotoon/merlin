@@ -5,7 +5,8 @@ interface CreateNoteError {
 }
 
 interface CreateNotePayload
-  extends Pick<Partial<Note>, 'content' | 'date' | 'title'> {
+  extends Pick<Partial<Note>, 'content' | 'date' | 'title' | 'type'> {
+  content: string;
   date: string;
   title: string;
 }

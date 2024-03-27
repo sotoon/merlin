@@ -21,7 +21,7 @@
       </PButton>
     </div>
 
-    <NoteDetail v-else-if="note" :note="note" />
+    <NuxtPage v-else-if="note" :note="note" />
 
     <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
       {{ t('note.noteNotFound') }}
