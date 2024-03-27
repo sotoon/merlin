@@ -19,24 +19,7 @@
   >
     <li v-for="note in notes" :key="note.uuid">
       <NuxtLink :to="`${path}/${note.uuid}`">
-        <PCard
-          :footer-border="false"
-          :header-border="false"
-          header-variant="primary-dark"
-          :title="note.title"
-        >
-          <PText as="p" class="truncate text-gray-80">
-            {{ extractTextFromHTML(note.content) }}
-          </PText>
-
-          <template #footer>
-            <div class="flex items-center justify-between gap-2">
-              <PText class="text-gray-50" variant="caption2">
-                {{ note.date }}
-              </PText>
-            </div>
-          </template>
-        </PCard>
+        <NoteCard :note="note" />
       </NuxtLink>
     </li>
   </ul>
@@ -47,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PCard, PLoading, PText } from '@pey/core';
+import { PButton, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 
 const props = defineProps<{ type?: NoteType }>();
