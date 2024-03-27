@@ -10,12 +10,12 @@ export const useGetNotes = ({
   type,
   user,
   retrieveMentions,
-}: UseGetNotesOptions) => {
-  return useApiFetch<GetNotesResponse>('/notes/', {
+}: UseGetNotesOptions) =>
+  useApiFetch<GetNotesResponse>('/notes/', {
+    key: 'notes',
     query: {
       type,
       user,
       retrieve_mentions: retrieveMentions,
     },
   });
-};
