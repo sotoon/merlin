@@ -30,7 +30,7 @@ export interface Note {
 }
 
 export interface NoteFormValues
-  extends Pick<Partial<Note>, 'title' | 'content'> {
+  extends Pick<Partial<Note>, 'title' | 'content' | 'mentioned_users'> {
   content: string;
   title: string;
 }
