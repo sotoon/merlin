@@ -20,18 +20,13 @@
 import { PHeading, PIconButton } from '@pey/core';
 import { PeyPlusIcon } from '@pey/icons';
 
+const props = defineProps<{ noteType: Exclude<NoteType, 'Template'> }>();
+
 const { t } = useI18n();
 const {
   params: { type },
 } = useRoute();
 
-const noteType = computed(() => {
-  if (typeof type === 'string' && type in NOTE_TYPE && type !== 'template') {
-    return NOTE_TYPE[type as Exclude<keyof typeof NOTE_TYPE, 'template'>];
-  }
-
-  return null;
-});
 const noteTitles = computed(() => ({
   [NOTE_TYPE.goal]: t('note.noteTitle', { type: t('common.goals') }),
   [NOTE_TYPE.meeting]: t('note.noteTitle', { type: t('common.meetings') }),
@@ -42,12 +37,6 @@ const noteTitles = computed(() => ({
 }));
 
 useHead({
-  title: noteType.value && noteTitles.value[noteType.value],
-});
-
-onMounted(() => {
-  if (!noteType.value) {
-    navigateTo('/notes/', { replace: true });
-  }
+  title: noteTitles.value[props.noteType],
 });
 </script>

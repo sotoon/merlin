@@ -2,6 +2,6 @@ export default defineNuxtRouteMiddleware(() => {
   const { $authStore } = useNuxtApp();
 
   if ($authStore.tokens.refresh) {
-    return navigateTo('/');
+    return navigateTo({ name: 'home' });
   }
 });

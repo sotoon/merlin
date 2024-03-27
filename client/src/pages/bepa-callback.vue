@@ -27,7 +27,7 @@ onMounted(() => {
 
   if (!state || storedStateValue !== state || typeof code !== 'string') {
     toast.error({ title: t('login.connectingToBepaFailed'), message: '' });
-    navigateTo('/login', { replace: true });
+    navigateTo({ name: 'login', replace: true });
 
     return;
   }
@@ -35,10 +35,10 @@ onMounted(() => {
   handleBepaCallback({
     query: { code },
     onSuccess: () => {
-      navigateTo('/', { replace: true });
+      navigateTo({ name: 'home', replace: true });
     },
     onError: () => {
-      navigateTo('/login', { replace: true });
+      navigateTo({ name: 'login', replace: true });
     },
   });
 });

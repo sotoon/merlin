@@ -11,6 +11,8 @@
 <script lang="ts" setup>
 import { PBox } from '@pey/core';
 
+const props = defineProps<{ noteType: NoteType }>();
+
 const router = useRouter();
 const { execute: createNote, pending } = useCreateNote();
 
@@ -19,7 +21,7 @@ const handleSubmit = (values: NoteFormValues) => {
   const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
   createNote({
-    body: { ...values, date: dateString },
+    body: { ...values, date: dateString, type: props.noteType },
     onSuccess: () => {
       router.back();
     },

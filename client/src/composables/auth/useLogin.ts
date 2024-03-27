@@ -28,7 +28,7 @@ export const useLogin = () => {
     noAuth: true,
     onSuccess: ({ tokens }) => {
       $authStore.setTokens(tokens);
-      navigateTo('/', { replace: true });
+      navigateTo({ name: 'home', replace: true });
     },
     onError: (error) => {
       toast.error({

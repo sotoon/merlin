@@ -29,6 +29,7 @@ import { PButton, PText } from '@pey/core';
 import { PeyIAMIcon } from '@pey/icons';
 
 definePageMeta({
+  name: 'login',
   layout: 'auth',
   middleware: ['no-auth'],
 });
