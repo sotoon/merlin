@@ -29,6 +29,26 @@
         />
       </VeeField>
 
+      <div>
+        <VeeField v-slot="{ componentField }" name="mentioned_users">
+          <PListbox
+            v-bind="componentField"
+            hide-details
+            :label="t('note.mentionedUsers')"
+            :loading="isUsersLoading"
+            multiple
+            searchable
+          >
+            <PListboxOption
+              v-for="user in users"
+              :key="user.uuid"
+              :label="`${user.name} (${user.email})`"
+              :value="user.email"
+            />
+          </PListbox>
+        </VeeField>
+      </div>
+
       <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
         <PButton
           class="shrink-0"
@@ -55,7 +75,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PHeading, PInput } from '@pey/core';
+import { PButton, PHeading, PInput, PListbox, PListboxOption } from '@pey/core';
 
 const props = defineProps<{
   note?: Note;
@@ -68,8 +88,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { meta, handleSubmit } = useForm<NoteFormValues>({
-  initialValues: { title: props.note?.title, content: props.note?.content },
+  initialValues: {
+    title: props.note?.title,
+    content: props.note?.content,
+    mentioned_users: props.note?.mentioned_users,
+  },
 });
+const { data: users, pending: isUsersLoading } = useGetUsers();
 
 const onSubmit = handleSubmit((values) => {
   emit('submit', values);

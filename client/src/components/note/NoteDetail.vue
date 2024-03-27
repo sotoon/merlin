@@ -1,9 +1,9 @@
 <!-- eslint-disable vue/no-v-text-v-html-on-component -->
 <!-- eslint-disable vue/no-v-html -->
 <template>
-  <div>
+  <div class="px-4">
     <div class="flex items-center justify-between gap-4">
-      <PHeading class="px-4" responsive>
+      <PHeading responsive>
         {{ note.title }}
       </PHeading>
 
@@ -15,13 +15,37 @@
       />
     </div>
 
-    <div class="p-4" v-html="note.content" />
+    <div class="py-4" v-html="note.content" />
+
+    <div v-if="mentionedUsers?.length" class="mt-4">
+      <PHeading :lvl="4" responsive>
+        {{ t('note.mentionedUsers') }}
+      </PHeading>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <PChip
+          v-for="user in mentionedUsers"
+          :key="user.uuid"
+          :label="`${user.name} (${user.email})`"
+          size="small"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { PHeading, PIconButton } from '@pey/core';
+import { PChip, PHeading, PIconButton } from '@pey/core';
 import { PeyEditIcon } from '@pey/icons';
 
-defineProps<{ note: Note }>();
+const props = defineProps<{ note: Note }>();
+
+const { t } = useI18n();
+const { data: users } = useGetUsers();
+
+const mentionedUsers = computed(() =>
+  users.value?.filter(({ email }) =>
+    props.note.mentioned_users.includes(email),
+  ),
+);
 </script>
