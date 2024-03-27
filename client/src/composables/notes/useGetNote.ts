@@ -4,6 +4,5 @@ interface UseGetNoteOptions {
   id: string;
 }
 
-export const useGetNote = ({ id }: UseGetNoteOptions) => {
-  return useApiFetch<GetNoteResponse>(`/notes/${id}`);
-};
+export const useGetNote = ({ id }: UseGetNoteOptions) =>
+  useApiFetch<GetNoteResponse>(`/notes/${id}`, { key: `note:${id}` });

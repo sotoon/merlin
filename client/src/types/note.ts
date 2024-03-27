@@ -28,3 +28,8 @@ export interface Note {
   type: NoteType;
   uuid: string;
 }
+
+export interface NoteFormValues
+  extends Pick<Partial<Note>, 'title' | 'content'> {
+  title: string;
+}
