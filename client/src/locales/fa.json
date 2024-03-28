@@ -35,6 +35,16 @@
     "noNotes": "هیچ یادداشتی برای نمایش وجود ندارد.",
     "noteNotFound": "یادداشت یافت نشد.",
     "noteTitle": "یادداشت‌های {type}",
-    "title": "عنوان"
+    "title": "عنوان",
+    "type": "نوع",
+    "writer": "نویسنده"
+  },
+  "noteType": {
+    "goal": "هدف",
+    "meeting": "جلسه",
+    "message": "پیام",
+    "personal": "شخصی",
+    "proposal": "پروپوزال",
+    "task": "فعالیت"
   }
 }
