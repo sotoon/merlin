@@ -8,6 +8,7 @@
       </PHeading>
 
       <PIconButton
+        v-if="note.access_level.can_edit"
         class="shrink-0"
         :icon="PeyEditIcon"
         type="button"

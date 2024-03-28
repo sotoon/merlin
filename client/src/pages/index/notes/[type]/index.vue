@@ -12,13 +12,31 @@
       </NuxtLink>
     </div>
 
-    <NoteList :type="noteType" />
+    <div v-if="pending" class="flex items-center justify-center py-8">
+      <PLoading class="text-primary" :size="20" />
+    </div>
+
+    <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
+      <PText as="p" class="text-center text-danger" responsive>
+        {{ t('note.getNotesError') }}
+      </PText>
+
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+        {{ t('common.retry') }}
+      </PButton>
+    </div>
+
+    <NoteList v-else-if="notes?.length" :notes="notes" />
+
+    <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
+      {{ t('note.noNotes') }}
+    </PText>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { PHeading, PIconButton } from '@pey/core';
-import { PeyPlusIcon } from '@pey/icons';
+import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
+import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
 const props = defineProps<{ noteType: Exclude<NoteType, 'Template'> }>();
 
@@ -26,6 +44,14 @@ const { t } = useI18n();
 const {
   params: { type },
 } = useRoute();
+const {
+  data: notes,
+  pending,
+  error,
+  refresh,
+} = useGetNotes({
+  type: props.noteType,
+});
 
 const noteTitles = computed(() => ({
   [NOTE_TYPE.goal]: t('note.noteTitle', { type: t('common.goals') }),

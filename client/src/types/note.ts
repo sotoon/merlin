@@ -10,6 +10,18 @@ export const NOTE_TYPE = {
 
 export type NoteType = (typeof NOTE_TYPE)[keyof typeof NOTE_TYPE];
 
+export const NOTE_TYPE_ROUTE_PARAM = {
+  [NOTE_TYPE.goal]: 'goal',
+  [NOTE_TYPE.meeting]: 'meeting',
+  [NOTE_TYPE.message]: 'message',
+  [NOTE_TYPE.personal]: 'personal',
+  [NOTE_TYPE.proposal]: 'proposal',
+  [NOTE_TYPE.task]: 'task',
+} as const;
+
+export type NoteTypeRouteParam =
+  (typeof NOTE_TYPE_ROUTE_PARAM)[keyof typeof NOTE_TYPE_ROUTE_PARAM];
+
 export interface Note {
   access_level: {
     can_edit: boolean;

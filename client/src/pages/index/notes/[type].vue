@@ -9,7 +9,7 @@ const {
 
 const noteType = computed(() => {
   if (typeof type === 'string' && type in NOTE_TYPE && type !== 'template') {
-    return NOTE_TYPE[type as Exclude<keyof typeof NOTE_TYPE, 'template'>];
+    return NOTE_TYPE[type as NoteTypeRouteParam];
   }
 
   return null;
