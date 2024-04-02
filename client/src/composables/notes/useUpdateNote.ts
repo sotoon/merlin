@@ -4,7 +4,11 @@ interface UpdateNoteError {
   detail?: string;
 }
 
-interface UpdateNotePayload extends Pick<Partial<Note>, 'content' | 'title'> {}
+interface UpdateNotePayload
+  extends Pick<
+    Partial<Note>,
+    'content' | 'title' | 'mentioned_users' | 'summary'
+  > {}
 
 interface UseUpdateNoteOptions {
   id: string;
