@@ -1,23 +1,4 @@
-export const NOTE_TYPE = {
-  goal: 'Goal',
-  meeting: 'Meeting',
-  message: 'Message',
-  personal: 'Personal',
-  proposal: 'Proposal',
-  task: 'Task',
-  template: 'Template',
-} as const;
-
 export type NoteType = (typeof NOTE_TYPE)[keyof typeof NOTE_TYPE];
-
-export const NOTE_TYPE_ROUTE_PARAM = {
-  [NOTE_TYPE.goal]: 'goal',
-  [NOTE_TYPE.meeting]: 'meeting',
-  [NOTE_TYPE.message]: 'message',
-  [NOTE_TYPE.personal]: 'personal',
-  [NOTE_TYPE.proposal]: 'proposal',
-  [NOTE_TYPE.task]: 'task',
-} as const;
 
 export type NoteTypeRouteParam =
   (typeof NOTE_TYPE_ROUTE_PARAM)[keyof typeof NOTE_TYPE_ROUTE_PARAM];
@@ -46,3 +27,5 @@ export interface NoteFormValues
   content: string;
   title: string;
 }
+
+export interface NoteSummaryFormValues extends Pick<Note, 'summary'> {}

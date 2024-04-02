@@ -35,9 +35,12 @@
     "noNotes": "هیچ یادداشتی برای نمایش وجود ندارد.",
     "noteNotFound": "یادداشت یافت نشد.",
     "noteTitle": "یادداشت‌های {type}",
+    "summary": "جمع‌بندی",
     "title": "عنوان",
     "type": "نوع",
-    "writer": "نویسنده"
+    "writer": "نویسنده",
+    "writeSummary": "نوشتن جمع‌بندی",
+    "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\""
   },
   "noteType": {
     "goal": "هدف",
