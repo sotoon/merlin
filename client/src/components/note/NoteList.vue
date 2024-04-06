@@ -4,7 +4,12 @@
       <NuxtLink
         :to="
           note.type === 'Template'
-            ? undefined
+            ? {
+                name: 'template',
+                params: {
+                  id: note.uuid,
+                },
+              }
             : {
                 name: 'note',
                 params: {

@@ -1,3 +1,3 @@
 <template>
-  <div>قالب‌ها</div>
+  <NuxtPage />
 </template>
