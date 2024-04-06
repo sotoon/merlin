@@ -37,3 +37,7 @@ export interface NoteFeedback {
   owner_name: string;
   uuid: string;
 }
+
+export interface NoteFeedbackFormValues {
+  content: string;
+}
