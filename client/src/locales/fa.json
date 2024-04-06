@@ -41,6 +41,7 @@
     "title": "عنوان",
     "type": "نوع",
     "writeFeedback": "نوشتن فیدبک",
+    "writeFeedbackFor": "نوشتن فیدبک برای \"{title}\"",
     "writer": "نویسنده",
     "writeSummary": "نوشتن جمع‌بندی",
     "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\""
