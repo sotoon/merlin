@@ -4,7 +4,12 @@
       {{ note ? t('note.editNote') : t('note.newNote') }}
     </PHeading>
 
-    <form class="space-y-4" @submit="onSubmit">
+    <NoteTemplateSelect
+      :should-confirm="Boolean(formValues.content)"
+      @select="handleTemplateSelect"
+    />
+
+    <form class="mt-8 space-y-4" @submit="onSubmit">
       <VeeField
         v-slot="{ componentField }"
         :label="t('note.title')"
@@ -87,14 +92,36 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit } = useForm<NoteFormValues>({
+const {
+  meta,
+  values: formValues,
+  handleSubmit,
+  setFieldValue,
+} = useForm<NoteFormValues>({
   initialValues: {
-    title: props.note?.title,
-    content: props.note?.content,
-    mentioned_users: props.note?.mentioned_users,
+    title: props.note?.title || '',
+    content: props.note?.content || '',
+    mentioned_users: props.note?.mentioned_users || [],
   },
 });
 const { data: users, pending: isUsersLoading } = useGetUsers();
+
+const handleTemplateSelect = ({
+  action,
+  value,
+}: {
+  action: 'replace' | 'append';
+  value: Note | null;
+}) => {
+  if (action === 'append') {
+    setFieldValue(
+      'content',
+      `${formValues.content}\n\n${value?.content || ''}`,
+    );
+  } else {
+    setFieldValue('content', value?.content || '');
+  }
+};
 
 const onSubmit = handleSubmit((values) => {
   emit('submit', values);
