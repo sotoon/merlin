@@ -61,6 +61,10 @@
         {{ t('note.writeSummary') }}
       </PButton>
     </div>
+
+    <div class="mt-8">
+      <NoteFeedbacks :note="note" />
+    </div>
   </div>
 </template>
 

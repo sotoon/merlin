@@ -28,6 +28,8 @@
   },
   "note": {
     "editNote": "ویرایش یادداشت",
+    "feedbacks": "فیدبک‌ها",
+    "getFeedbacksError": "خطا در دریافت فیدبک‌ها",
     "getNoteError": "خطا در دریافت یادداشت",
     "getNotesError": "خطا در دریافت یادداشت‌ها",
     "mentionedUsers": "منشن شوندگان",
@@ -38,6 +40,7 @@
     "summary": "جمع‌بندی",
     "title": "عنوان",
     "type": "نوع",
+    "writeFeedback": "نوشتن فیدبک",
     "writer": "نویسنده",
     "writeSummary": "نوشتن جمع‌بندی",
     "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\""
