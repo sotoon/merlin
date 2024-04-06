@@ -29,3 +29,11 @@ export interface NoteFormValues
 }
 
 export interface NoteSummaryFormValues extends Pick<Note, 'summary'> {}
+
+export interface NoteFeedback {
+  content: string;
+  note: string;
+  owner: string;
+  owner_name: string;
+  uuid: string;
+}
