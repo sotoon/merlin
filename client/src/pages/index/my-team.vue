@@ -7,7 +7,7 @@ const { data: users } = useGetMyTeam({ dedupe: 'defer' });
 
 watch(users, () => {
   if (users.value && !users.value.length) {
-    navigateTo({ name: 'home' });
+    navigateTo({ name: 'home', replace: true });
   }
 });
 </script>

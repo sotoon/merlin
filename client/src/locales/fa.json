@@ -67,6 +67,7 @@
   "user": {
     "getUsersError": "خطا در دریافت کاربرها",
     "noUser": "هیچ کاربری برای نمایش وجود ندارد.",
-    "teamName": "تیم {name}"
+    "teamName": "تیم {name}",
+    "userNotes": "یادداشت‌های {name}"
   }
 }
