@@ -1,43 +1,57 @@
 <template>
   <NuxtPage
-    v-if="noteType || (type === 'user' && user)"
-    :note-type="noteType"
-    :is-user="type === 'user'"
+    :note-type="noteType || undefined"
+    :user-email="typeof query.user === 'string' ? query.user : undefined"
     :user="user"
   />
 </template>
 
 <script lang="ts" setup>
-const {
-  params: { type },
-  query,
-} = useRoute();
+const { params, query } = useRoute();
 const { data: users } = useGetMyTeam({
   dedupe: 'defer',
-  immediate: type === 'user',
+  immediate: Boolean(query.user),
 });
 
 const noteType = computed(() => {
-  if (typeof type === 'string' && type in NOTE_TYPE && type !== 'template') {
-    return NOTE_TYPE[type as NoteTypeRouteParam];
+  if (
+    typeof params.type === 'string' &&
+    params.type in NOTE_TYPE &&
+    params.type !== 'template'
+  ) {
+    return NOTE_TYPE[params.type as NoteTypeRouteParam];
   }
 
   return null;
 });
 
 const user = computed(() =>
-  users.value?.find(({ email }) => email === query.email),
+  users.value?.find(({ email }) => email === query.user),
 );
 
+const isValidRoute = computed(() => {
+  if (params.type === '-' && (query.user || params.id)) {
+    return true;
+  }
+
+  if (params.type !== '-' && noteType.value) {
+    return true;
+  }
+
+  return false;
+});
+
 watch([users, user], () => {
-  if (type === 'user' && users.value && !user.value) {
+  if (query.user && users.value && !user.value) {
     navigateTo({ name: 'my-team', replace: true });
   }
 });
 
 onMounted(() => {
-  if (!noteType.value && type !== 'user') {
-    navigateTo({ name: 'notes', replace: true });
+  if (isValidRoute.value) {
+    return;
   }
+
+  navigateTo({ name: 'home', replace: true });
 });
 </script>

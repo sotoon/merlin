@@ -40,8 +40,8 @@
           class="text-primary hover:underline"
           :to="{
             name: 'notes',
-            params: { type: 'user' },
-            query: { email: note.owner },
+            params: { type: '-' },
+            query: { user: note.owner },
           }"
         >
           {{ note.owner_name }}

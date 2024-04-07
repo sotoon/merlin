@@ -4,6 +4,6 @@
 
 <script lang="ts" setup>
 definePageMeta({
-  redirect: '/notes/goal',
+  redirect: { name: 'notes', params: { type: 'goal' } },
 });
 </script>
