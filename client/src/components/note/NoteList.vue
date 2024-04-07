@@ -13,7 +13,7 @@
             : {
                 name: 'note',
                 params: {
-                  type: NOTE_TYPE_ROUTE_PARAM[note.type],
+                  type: !params.type ? '-' : undefined,
                   id: note.uuid,
                 },
               }
@@ -35,4 +35,6 @@ defineProps<{
   displayWriter?: boolean;
   displayType?: boolean;
 }>();
+
+const { params } = useRoute();
 </script>

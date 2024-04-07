@@ -1,14 +1,10 @@
 <template>
-  <div v-if="noteType || isUser" class="space-y-2 px-4 py-8 lg:px-8 lg:pt-10">
+  <div class="space-y-2 px-4 py-8 lg:px-8 lg:pt-10">
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <PHeading level="h1" responsive>
-        {{
-          isUser
-            ? t('user.userNotes', { name: user?.name })
-            : noteTitles[noteType]
-        }}
+        {{ noteTitle }}
       </PHeading>
 
       <NuxtLink v-if="!isUser" :to="{ name: 'note-create' }">
@@ -44,9 +40,9 @@ import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
 definePageMeta({ name: 'notes' });
 const props = defineProps<{
-  noteType: Exclude<NoteType, 'Template'>;
-  isUser: boolean;
-  user?: User;
+  noteType?: Exclude<NoteType, 'Template'>;
+  userEmail?: string;
+  user?: User | null;
 }>();
 
 const { t } = useI18n();
@@ -57,9 +53,10 @@ const {
   refresh,
 } = useGetNotes({
   type: props.noteType,
-  user: props.user?.email,
+  user: props.userEmail,
 });
 
+const isUser = computed(() => Boolean(props.userEmail));
 const noteTitles = computed(() => ({
   [NOTE_TYPE.goal]: t('common.goals'),
   [NOTE_TYPE.meeting]: t('common.meetings'),
@@ -68,8 +65,15 @@ const noteTitles = computed(() => ({
   [NOTE_TYPE.proposal]: t('common.proposal'),
   [NOTE_TYPE.task]: t('common.tasks'),
 }));
+const noteTitle = computed(() =>
+  props.noteType
+    ? noteTitles.value[props.noteType]
+    : props.user
+      ? t('user.userNotes', { name: props.user.name })
+      : t('common.notes'),
+);
 
 useHead({
-  title: noteTitles.value[props.noteType],
+  title: noteTitle,
 });
 </script>

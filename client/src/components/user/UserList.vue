@@ -6,8 +6,8 @@
       <NuxtLink
         :to="{
           name: 'notes',
-          params: { type: 'user' },
-          query: { email: user.email },
+          params: { type: '-' },
+          query: { user: user.email },
         }"
       >
         <UserCard :user="user" />
