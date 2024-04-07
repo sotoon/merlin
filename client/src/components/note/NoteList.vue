@@ -21,8 +21,8 @@
       >
         <NoteCard
           :note="note"
-          :display-writer="isMessages"
-          :display-type="isMessages"
+          :display-writer="displayWriter"
+          :display-type="displayType"
         />
       </NuxtLink>
     </li>
@@ -32,6 +32,7 @@
 <script lang="ts" setup>
 defineProps<{
   notes: Note[];
-  isMessages?: boolean;
+  displayWriter?: boolean;
+  displayType?: boolean;
 }>();
 </script>

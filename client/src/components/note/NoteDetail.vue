@@ -14,9 +14,38 @@
         type="button"
         @click="navigateTo({ name: 'note-edit' })"
       />
+
+      <PChip
+        v-if="!note.access_level.can_edit && note.type !== 'Template'"
+        :label="noteTypeLabel[note.type]"
+      />
     </div>
 
-    <div class="py-4" v-html="note.content" />
+    <div class="mt-4 flex items-center gap-4">
+      <PText as="p" class="text-gray-50" variant="caption1">
+        {{ t('common.date') }}:
+        <PText class="text-gray-70">
+          {{ new Date(note.date).toLocaleDateString('fa-IR') }}
+        </PText>
+      </PText>
+
+      <PText
+        v-if="!note.access_level.can_edit"
+        as="p"
+        class="text-gray-50"
+        variant="caption1"
+      >
+        {{ t('note.writer') }}:
+        <NuxtLink
+          class="text-primary hover:underline"
+          :to="{ name: 'user-notes', query: { user: note.owner } }"
+        >
+          {{ note.owner_name }}
+        </NuxtLink>
+      </PText>
+    </div>
+
+    <div class="mt-4 py-4" v-html="note.content" />
 
     <div v-if="mentionedUsers?.length" class="mt-4">
       <PHeading :lvl="4" responsive>
@@ -69,7 +98,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PChip, PHeading, PIconButton } from '@pey/core';
+import { PButton, PChip, PHeading, PIconButton, PText } from '@pey/core';
 import { PeyEditIcon, PeyPlusIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
@@ -82,4 +111,13 @@ const mentionedUsers = computed(() =>
     props.note.mentioned_users.includes(email),
   ),
 );
+
+const noteTypeLabel = computed(() => ({
+  [NOTE_TYPE.goal]: t('noteType.goal'),
+  [NOTE_TYPE.meeting]: t('noteType.meeting'),
+  [NOTE_TYPE.message]: t('noteType.message'),
+  [NOTE_TYPE.personal]: t('noteType.personal'),
+  [NOTE_TYPE.proposal]: t('noteType.proposal'),
+  [NOTE_TYPE.task]: t('noteType.task'),
+}));
 </script>

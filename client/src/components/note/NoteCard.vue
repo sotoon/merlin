@@ -11,23 +11,21 @@
 
     <template #footer>
       <div class="flex grow items-center justify-between gap-2">
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2">
           <PText class="text-gray-50" variant="caption2">
-            {{ note.date }}
+            {{ new Date(note.date).toLocaleDateString('fa-IR') }}
           </PText>
 
           <PText v-if="displayWriter" class="text-gray-50" variant="caption2">
-            {{ `${t('note.writer')}: ${note.owner_name}` }}
-          </PText>
-
-          <PText
-            v-if="displayType && note.type !== 'Template'"
-            class="text-gray-50"
-            variant="caption2"
-          >
-            {{ `${t('note.type')}: ${noteTypeLabel[note.type]}` }}
+            {{ note.owner_name }}
           </PText>
         </div>
+
+        <PChip
+          v-if="displayType && note.type !== 'Template'"
+          :label="noteTypeLabel[note.type]"
+          size="small"
+        />
 
         <template v-if="note.access_level.can_edit">
           <PLoading v-if="isDeleteLoading" class="m-1.5 text-primary" />
@@ -45,7 +43,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PCard, PIconButton, PLoading, PText } from '@pey/core';
+import { PCard, PChip, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyTrashIcon } from '@pey/icons';
 
 const props = defineProps<{
