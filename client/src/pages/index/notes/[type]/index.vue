@@ -54,12 +54,12 @@ const {
 });
 
 const noteTitles = computed(() => ({
-  [NOTE_TYPE.goal]: t('note.noteTitle', { type: t('common.goals') }),
-  [NOTE_TYPE.meeting]: t('note.noteTitle', { type: t('common.meetings') }),
-  [NOTE_TYPE.message]: t('note.noteTitle', { type: t('common.messages') }),
+  [NOTE_TYPE.goal]: t('common.goals'),
+  [NOTE_TYPE.meeting]: t('common.meetings'),
+  [NOTE_TYPE.message]: t('common.messageToOthers'),
   [NOTE_TYPE.personal]: t('common.personalNotes'),
-  [NOTE_TYPE.proposal]: t('note.noteTitle', { type: t('common.proposal') }),
-  [NOTE_TYPE.task]: t('note.noteTitle', { type: t('common.tasks') }),
+  [NOTE_TYPE.proposal]: t('common.proposal'),
+  [NOTE_TYPE.task]: t('common.tasks'),
 }));
 
 useHead({
