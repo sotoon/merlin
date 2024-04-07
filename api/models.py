@@ -45,6 +45,13 @@ class User(MerlinBaseModel, AbstractUser):
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
+    agile_coach = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="اجایل کوچ",
+    )
     committee = models.ForeignKey(
         "Committee",
         on_delete=models.SET_NULL,
