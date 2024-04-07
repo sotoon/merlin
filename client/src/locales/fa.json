@@ -7,6 +7,7 @@
     "meetings": "جلسات",
     "messages": "پیام‌ها",
     "messageToOthers": "پیام به دیگری",
+    "myTeam": "تیم من",
     "notes": "یادداشت‌ها",
     "personal": "شخصی",
     "personalNotes": "یادداشت‌های شخصی",
@@ -62,5 +63,10 @@
     "personal": "شخصی",
     "proposal": "پروپوزال",
     "task": "فعالیت"
+  },
+  "user": {
+    "getUsersError": "خطا در دریافت کاربرها",
+    "noUser": "هیچ کاربری برای نمایش وجود ندارد.",
+    "teamName": "تیم {name}"
   }
 }

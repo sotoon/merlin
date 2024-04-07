@@ -2,7 +2,8 @@ import type { UseFetchOptions } from '#app';
 
 import { defu } from 'defu';
 
-interface UseApiFetchOptions<T> extends Omit<UseFetchOptions<T>, '$fetch'> {
+export interface UseApiFetchOptions<T>
+  extends Omit<UseFetchOptions<T>, '$fetch'> {
   noAuth?: boolean;
 }
 
