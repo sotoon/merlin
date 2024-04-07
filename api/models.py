@@ -50,6 +50,7 @@ class User(MerlinBaseModel, AbstractUser):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name="coachees",
         verbose_name="اجایل کوچ",
     )
     committee = models.ForeignKey(
