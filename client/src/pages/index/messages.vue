@@ -22,7 +22,12 @@
       </PButton>
     </div>
 
-    <NoteList v-else-if="notes?.length" :notes="notes" is-messages />
+    <NoteList
+      v-else-if="notes?.length"
+      :notes="notes"
+      display-writer
+      display-type
+    />
 
     <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
       {{ t('note.noNotes') }}
