@@ -2,6 +2,7 @@ export interface SidebarLink {
   icon: string;
   label: string;
   to: string;
+  leaderLink?: boolean;
 }
 
 export interface SidebarLinkGroup {
@@ -31,6 +32,12 @@ const getSidebarLinks = (t: (key: string) => string) =>
       links: [
         { icon: '💬', label: t('common.messages'), to: '/messages' },
         { icon: '📋', label: t('common.templates'), to: '/templates' },
+        {
+          icon: '👥',
+          label: t('common.myTeam'),
+          to: '/my-team',
+          leaderLink: true,
+        },
       ],
     },
   ] satisfies SidebarLinkGroup[];

@@ -43,6 +43,13 @@ import getSidebarLinks from '~/components/sidebar/SidebarLinks';
 
 const { t } = useI18n();
 const logout = useLogout();
+const { data: users } = useGetMyTeam();
 
-const sidebarLinks = computed(() => getSidebarLinks(t));
+const isLeader = computed(() => Boolean(users.value?.length));
+const sidebarLinks = computed(() =>
+  getSidebarLinks(t).map((group) => ({
+    ...group,
+    links: group.links.filter((link) => !link.leaderLink || isLeader.value),
+  })),
+);
 </script>
