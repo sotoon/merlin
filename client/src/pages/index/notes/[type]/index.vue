@@ -1,13 +1,17 @@
 <template>
-  <div v-if="noteType" class="space-y-2 px-4 py-8 lg:px-8 lg:pt-10">
+  <div v-if="noteType || isUser" class="space-y-2 px-4 py-8 lg:px-8 lg:pt-10">
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <PHeading level="h1" responsive>
-        {{ noteTitles[noteType] }}
+        {{
+          isUser
+            ? t('user.userNotes', { name: user?.name })
+            : noteTitles[noteType]
+        }}
       </PHeading>
 
-      <NuxtLink :to="`/notes/${type}/new`">
+      <NuxtLink v-if="!isUser" :to="{ name: 'note-create' }">
         <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
       </NuxtLink>
     </div>
@@ -26,7 +30,7 @@
       </PButton>
     </div>
 
-    <NoteList v-else-if="notes?.length" :notes="notes" />
+    <NoteList v-else-if="notes?.length" :notes="notes" :display-type="isUser" />
 
     <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
       {{ t('note.noNotes') }}
@@ -38,12 +42,14 @@
 import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
-const props = defineProps<{ noteType: Exclude<NoteType, 'Template'> }>();
+definePageMeta({ name: 'notes' });
+const props = defineProps<{
+  noteType: Exclude<NoteType, 'Template'>;
+  isUser: boolean;
+  user?: User;
+}>();
 
 const { t } = useI18n();
-const {
-  params: { type },
-} = useRoute();
 const {
   data: notes,
   pending,
@@ -51,6 +57,7 @@ const {
   refresh,
 } = useGetNotes({
   type: props.noteType,
+  user: props.user?.email,
 });
 
 const noteTitles = computed(() => ({
