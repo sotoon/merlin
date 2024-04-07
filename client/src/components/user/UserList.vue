@@ -3,7 +3,13 @@
     class="grid grid-cols-1 gap-2 py-4 md:grid-cols-2 md:gap-3 xl:grid-cols-3"
   >
     <li v-for="user in users" :key="user.uuid">
-      <NuxtLink :to="{ name: 'user-notes', query: { user: user.email } }">
+      <NuxtLink
+        :to="{
+          name: 'notes',
+          params: { type: 'user' },
+          query: { email: user.email },
+        }"
+      >
         <UserCard :user="user" />
       </NuxtLink>
     </li>

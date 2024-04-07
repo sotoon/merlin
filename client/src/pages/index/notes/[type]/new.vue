@@ -11,6 +11,7 @@
 <script lang="ts" setup>
 import { PBox } from '@pey/core';
 
+definePageMeta({ name: 'note-create' });
 const props = defineProps<{ noteType: NoteType }>();
 
 const router = useRouter();

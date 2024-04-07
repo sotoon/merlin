@@ -38,7 +38,11 @@
         {{ t('note.writer') }}:
         <NuxtLink
           class="text-primary hover:underline"
-          :to="{ name: 'user-notes', query: { user: note.owner } }"
+          :to="{
+            name: 'notes',
+            params: { type: 'user' },
+            query: { email: note.owner },
+          }"
         >
           {{ note.owner_name }}
         </NuxtLink>
