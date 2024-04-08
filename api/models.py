@@ -305,6 +305,18 @@ class NoteUserAccess(MerlinBaseModel):
                 },
             )
 
+        # Agile Coach
+        cls.objects.update_or_create(
+            user=note.owner.agile_coach,
+            note=note,
+            defaults={
+                "can_view": True,
+                "can_write_summary": True,
+                "can_write_feedback": True,
+                "can_view_feedbacks": True,
+            },
+        )
+
         # Committee members
         if note.owner.committee is not None and note.type == NoteType.Proposal:
             for member in note.owner.committee.members.all():
