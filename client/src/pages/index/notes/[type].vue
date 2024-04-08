@@ -9,7 +9,6 @@
 <script lang="ts" setup>
 const { params, query } = useRoute();
 const { data: users } = useGetMyTeam({
-  dedupe: 'defer',
   immediate: Boolean(query.user),
 });
 

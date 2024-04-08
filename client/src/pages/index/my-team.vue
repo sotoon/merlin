@@ -38,12 +38,7 @@ definePageMeta({ name: 'my-team' });
 
 const { t } = useI18n();
 useHead({ title: t('common.myTeam') });
-const {
-  data: users,
-  pending,
-  error,
-  refresh,
-} = useGetMyTeam({ dedupe: 'defer' });
+const { data: users, pending, error, refresh } = useGetMyTeam();
 
 watch(users, () => {
   if (users.value && !users.value.length) {

@@ -13,15 +13,16 @@
         <PeyUserIcon class="text-primary" :size="20" />
       </div>
 
-      <PLoading v-if="pending" class="text-primary" />
       <PText
-        v-else
+        v-if="data"
         :class="{ 'text-gray-100': isActive, 'text-gray-80': !isActive }"
         :weight="isActive ? 'bold' : 'medium'"
         variant="caption1"
       >
         {{ data?.name }}
       </PText>
+
+      <PLoading v-else-if="pending" class="text-primary" />
     </div>
   </NuxtLink>
 </template>

@@ -65,6 +65,18 @@
     "proposal": "پروپوزال",
     "task": "فعالیت"
   },
+  "profile": {
+    "chapter": "چپتر",
+    "contactInfo": "اطلاعات تماس",
+    "department": "دپارتمان",
+    "getProfileError": "خطا در دریافت پروفایل",
+    "gmail": "جیمیل",
+    "leader": "لیدر",
+    "organizationEmail": "ایمیل سازمانی",
+    "organizationInfo": "اطلاعات سازمانی",
+    "phone": "شماره تماس",
+    "team": "تیم"
+  },
   "user": {
     "getUsersError": "خطا در دریافت کاربرها",
     "noUser": "هیچ کاربری برای نمایش وجود ندارد.",
