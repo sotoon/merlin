@@ -9,3 +9,6 @@ export interface User {
   team: string | null;
   uuid: string;
 }
+
+export interface ProfileFormValues
+  extends Pick<Partial<User>, 'gmail' | 'name' | 'phone'> {}
