@@ -1,5 +1,5 @@
 interface GetProfileResponse extends User {}
 
 export const useGetProfile = () => {
-  return useApiFetch<GetProfileResponse>('/profile/');
+  return useApiFetch<GetProfileResponse>('/profile/', { dedupe: 'defer' });
 };

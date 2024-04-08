@@ -1,3 +1,28 @@
 <template>
-  <div>Profile</div>
+  <div class="space-y-2 px-4 py-8 lg:px-8 lg:pt-10">
+    <div v-if="pending" class="flex items-center justify-center py-8">
+      <PLoading class="text-primary" :size="20" />
+    </div>
+
+    <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
+      <PText as="p" class="text-center text-danger" responsive>
+        {{ t('profile.getProfileError') }}
+      </PText>
+
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+        {{ t('common.retry') }}
+      </PButton>
+    </div>
+
+    <NuxtPage v-else-if="profile" :profile="profile" />
+  </div>
 </template>
+
+<script lang="ts" setup>
+import { PButton, PLoading, PText } from '@pey/core';
+import { PeyRetryIcon } from '@pey/icons';
+
+
+const { t } = useI18n();
+const { data: profile, pending, error, refresh } = useGetProfile();
+</script>

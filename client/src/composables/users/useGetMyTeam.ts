@@ -5,5 +5,6 @@ export const useGetMyTeam = (
 ) =>
   useApiFetch<GetMyTeamResponse>('/my-team/', {
     key: 'my-team',
+    dedupe: 'defer',
     ...fetchOptions,
   });
