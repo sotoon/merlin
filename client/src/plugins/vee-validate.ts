@@ -7,6 +7,9 @@ export default defineNuxtPlugin(() => {
   defineRule('email', email);
   defineRule('required', required);
 
+  const telRegexp = new RegExp(/^\+\d{3,14}$/);
+  defineRule('tel', (value: string) => value && telRegexp.test(value));
+
   configure({
     generateMessage: localize({ en }),
   });

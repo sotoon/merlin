@@ -12,7 +12,7 @@
 
     <td class="w-full whitespace-nowrap px-6">
       <slot>
-        <PText class="flex-grow text-gray-60" variant="caption1">
+        <PText class="flex-grow text-gray-60" dir="auto" variant="caption1">
           {{ value || '-' }}
         </PText>
       </slot>
