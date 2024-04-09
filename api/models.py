@@ -51,7 +51,7 @@ class User(MerlinBaseModel, AbstractUser):
         null=True,
         blank=True,
         related_name="coachees",
-        verbose_name="اجایل کوچ",
+        verbose_name="PR/اجایل کوچ",
     )
     committee = models.ForeignKey(
         "Committee",
