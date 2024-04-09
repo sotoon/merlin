@@ -82,6 +82,11 @@ const ProfilePage = () => {
         color="error"
         sx={{ margin: 1, fontSize: "large" }}
       />
+      <Chip
+        label={`سطح: ${formData.level}`}
+        color="warning"
+        sx={{ margin: 1, fontSize: "large" }}
+      />
       <form onSubmit={handleSubmit}>
         <TextField
           label="نام"

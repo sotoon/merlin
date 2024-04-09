@@ -175,11 +175,11 @@ class UserAdmin(BaseModelAdmin):
 
         class Meta:
             model = User
-            fields = ("email", "name", "gmail", "phone", "leader", "department", "team", "chapter",)
+            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter",)
 
     resource_class = UserResource
     list_display = ("email", "name", "phone", "department", "chapter", "team", "leader", "agile_coach", "date_created", "date_updated",)
-    fields = ("uuid", "name", "phone", ("email", "gmail"), ("department", "chapter", "team", "leader", "agile_coach", "committee"), ("date_created", "date_updated"),)
+    fields = ("uuid", "name", "phone", ("email", "gmail"), ("department", "chapter", "team", "level", "leader", "agile_coach", "committee"), ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "email")
     search_fields = ["email", "name", "phone"]
