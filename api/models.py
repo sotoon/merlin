@@ -45,6 +45,14 @@ class User(MerlinBaseModel, AbstractUser):
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
+    agile_coach = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="coachees",
+        verbose_name="PR/اجایل کوچ",
+    )
     committee = models.ForeignKey(
         "Committee",
         on_delete=models.SET_NULL,
@@ -296,6 +304,18 @@ class NoteUserAccess(MerlinBaseModel):
                     "can_view_feedbacks": True,
                 },
             )
+
+        # Agile Coach
+        cls.objects.update_or_create(
+            user=note.owner.agile_coach,
+            note=note,
+            defaults={
+                "can_view": True,
+                "can_write_summary": True,
+                "can_write_feedback": True,
+                "can_view_feedbacks": True,
+            },
+        )
 
         # Committee members
         if note.owner.committee is not None and note.type == NoteType.Proposal:
