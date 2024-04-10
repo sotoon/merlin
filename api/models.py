@@ -226,7 +226,6 @@ class Note(MerlinBaseModel):
         related_name="mentioned_users",
         verbose_name="کاربران منشن شده",
     )
-    summary = models.TextField(blank=True, verbose_name="جمع‌بندی")
     is_public = models.BooleanField(default=False, verbose_name="عمومی")
     read_by = models.ManyToManyField(User, related_name="read_notes", blank=True)
     linked_notes = models.ManyToManyField(
@@ -258,9 +257,40 @@ class Feedback(MerlinBaseModel):
         return f"{self.owner} - {self.note}"
 
 
+class Summary(MerlinBaseModel):
+    content = models.TextField(verbose_name="محتوا")
+    note = models.OneToOneField(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+    performance_label = models.CharField(
+        max_length=256, default="", blank=True, null=True, verbose_name="لیبل عملکردی"
+    )
+    ladder_change = models.CharField(
+        max_length=256,
+        default="",
+        blank=True,
+        null=True,
+        verbose_name="تغییر در سطح لدر",
+    )
+    bonus = models.IntegerField(default=0, verbose_name="پاداش عملکردی")
+    salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
+    committee_date = models.DateField(
+        blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
+    )
+
+    class Meta:
+        verbose_name = "جمع‌بندی"
+        verbose_name_plural = "جمع‌بندی‌ها"
+
+    def __str__(self):
+        return "جمع‌بندیِ " + self.note
+
+
 class NoteUserAccess(MerlinBaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
-    note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, verbose_name="کاربر"
+    )
+    note = models.ForeignKey(
+        Note, on_delete=models.CASCADE, null=True, verbose_name="یادداشت"
+    )
     can_view = models.BooleanField(default=False, verbose_name="مشاهده")
     can_edit = models.BooleanField(default=False, verbose_name="ویرایش")
     can_write_summary = models.BooleanField(

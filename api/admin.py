@@ -11,6 +11,7 @@ from api.models import (
     Feedback,
     Note,
     NoteUserAccess,
+    Summary,
     Team,
     Tribe,
     User,
@@ -196,14 +197,14 @@ class NoteAdmin(BaseModelAdmin):
 
         class Meta:
             model = Note
-            fields = ("uuid", "owner", "title", "content", "date", "type", "mentioned_users", "summary", "linked_notes",)
+            fields = ("uuid", "owner", "title", "content", "date", "type", "mentioned_users", "linked_notes",)
 
     resource_class = NoteResource
     list_display = ("title", "type", "owner", "date", "date_created", "date_updated")
-    fields = ( "uuid", ("title", "type"), ("owner", "date"), "content", "mentioned_users", "summary", "is_public", ("date_created", "date_updated"),)
+    fields = ( "uuid", ("title", "type"), ("owner", "date"), "content", "mentioned_users", "is_public", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")
     ordering = ("-date_updated", "title")
-    search_fields = ["title", "owner__name", "owner__email"]
+    search_fields = ["uuid", "title", "owner__name", "owner__email"]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده"
 
 
@@ -215,6 +216,15 @@ class FeedbackAdmin(BaseModelAdmin):
     ordering = ("-date_created", "uuid")
     search_fields = ["owner__name", "owner__email", "note__title"]
     search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت"
+
+@admin.register(Summary)
+class SummaryAdmin(BaseModelAdmin):
+    list_display = ("uuid", "note", "performance_label", "committee_date", "date_created", "date_updated")
+    fields = ("uuid", "note", "content", "performance_label", "ladder_change", "bonus", "salary_change", "committee_date", ("date_created", "date_updated"),)
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "uuid")
+    search_fields = ["note__title", "note__owner__name", "note__owner__email"]
+    search_help_text = "جستجو در عنوان یادداشت، نام نویسنده، ایمیل نویسنده"
 
 
 @admin.register(NoteUserAccess)
