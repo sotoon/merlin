@@ -73,18 +73,28 @@ class NoteSerializer(serializers.ModelSerializer):
         model = Note
         fields = (
             "uuid",
+            "date_created",
+            "date_updated",
             "owner",
             "owner_name",
             "title",
             "content",
             "date",
+            "period",
+            "year",
             "type",
             "mentioned_users",
             "linked_notes",
             "read_status",
             "access_level",
         )
-        read_only_fields = ["uuid", "read_status", "access_level"]
+        read_only_fields = [
+            "uuid",
+            "date_created",
+            "date_updated",
+            "read_status",
+            "access_level",
+        ]
 
     def validate(self, data):
         if not self.instance:
