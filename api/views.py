@@ -287,14 +287,6 @@ class FeedbackViewSet(viewsets.ModelViewSet):
             return all_note_feedbacks
         return all_note_feedbacks.filter(owner=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        prev_feedback = Feedback.objects.filter(
-            note=self.get_note(), owner=self.request.user
-        ).first()
-        if prev_feedback:
-            prev_feedback.delete()
-        return super().create(request, *args, **kwargs)
-
 
 class SummaryViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
@@ -326,9 +318,3 @@ class SummaryViewSet(viewsets.ModelViewSet):
         ).exists():
             return Summary.objects.filter(note=current_note)
         return Summary.objects.none()
-
-    def create(self, request, *args, **kwargs):
-        prev_summary = Summary.objects.filter(note=self.get_note()).first()
-        if prev_summary:
-            prev_summary.delete()
-        return super().create(request, *args, **kwargs)
