@@ -46,6 +46,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "chapter",
             "team",
             "leader",
+            "level",
         ]
 
 
