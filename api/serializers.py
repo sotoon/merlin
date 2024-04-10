@@ -143,8 +143,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
         user = validated_data["owner"]
         note = validated_data["note"]
         content = validated_data["content"]
-        feedback = Feedback.objects.create(owner=user, note=note, content=content)
-        feedback.save()
+        feedback, created = Feedback.objects.update_or_create(
+            owner=user, note=note, defaults={"content": content}
+        )
         return feedback
 
 
@@ -169,3 +170,9 @@ class SummarySerializer(serializers.ModelSerializer):
         note_uuid = self.context["note_uuid"]
         data["note"] = Note.objects.get(uuid=note_uuid)
         return super().validate(data)
+
+    def create(self, validated_data):
+        instance, created = Summary.objects.update_or_create(
+            note=validated_data["note"], defaults=validated_data
+        )
+        return instance
