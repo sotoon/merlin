@@ -38,6 +38,8 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
       title: "",
       content: "",
       date: "",
+      period: 0,
+      year: 1402,
       type: defaultNoteType,
     };
     if (noteData) {
@@ -45,6 +47,8 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
         title: noteData.title,
         content: noteData.content,
         date: noteData.date,
+        period: noteData.period,
+        year: noteData.year,
         type: noteData.type,
       };
     }
@@ -278,6 +282,58 @@ const NoteForm = ({ isReadOnly, noteData, noteId, defaultNoteType }) => {
           margin="normal"
           sx={{ mt: 2 }}
         />
+        <FormControl margin="normal" sx={{ mr: 5, minWidth: "50px" }}>
+          <InputLabel
+            id="period-select-label"
+            style={{
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 35,
+            }}
+          >
+            دوره
+          </InputLabel>
+          <Select
+            name="period"
+            value={formData.period}
+            onChange={handleChange}
+            labelId="period-select-label"
+            label="Period"
+            disabled={isReadOnly}
+          >
+            <MenuItem value="1">اول</MenuItem>
+            <MenuItem value="2">دوم</MenuItem>
+            <MenuItem value="3">سوم</MenuItem>
+            <MenuItem value="4">چهارم</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl margin="normal" sx={{ mr: 5, minWidth: "50px" }}>
+          <InputLabel
+            id="year-select-label"
+            style={{
+              textAlign: "right",
+              right: 0,
+              left: "auto",
+              marginRight: 35,
+            }}
+          >
+            سال
+          </InputLabel>
+          <Select
+            name="year"
+            value={formData.year}
+            onChange={handleChange}
+            labelId="year-select-label"
+            label="Year"
+            disabled={isReadOnly}
+          >
+            <MenuItem value="1402">1402</MenuItem>
+            <MenuItem value="1403">1403</MenuItem>
+            <MenuItem value="1404">1404</MenuItem>
+            <MenuItem value="1405">1405</MenuItem>
+          </Select>
+        </FormControl>
         <FormControl
           margin="normal"
           errors={errors}

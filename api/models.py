@@ -214,6 +214,8 @@ class Note(MerlinBaseModel):
     title = models.CharField(max_length=512, verbose_name="عنوان")
     content = models.TextField(verbose_name="محتوا")
     date = models.DateField(verbose_name="تاریخ")
+    period = models.IntegerField(default=0, verbose_name="دوره")
+    year = models.IntegerField(default=1400, verbose_name="سال")
     type = models.CharField(
         max_length=128,
         choices=NoteType.choices,
