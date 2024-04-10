@@ -10,12 +10,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Feedback, Note, NoteType, NoteUserAccess, User
-from api.permissions import FeedbackPermission, NotePermission
+from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary, User
+from api.permissions import FeedbackPermission, NotePermission, SummaryPermission
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
+    SummarySerializer,
     TokenSerializer,
     UserSerializer,
 )
@@ -293,3 +294,35 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         if prev_feedback:
             prev_feedback.delete()
         return super().create(request, *args, **kwargs)
+
+
+class SummaryViewSet(viewsets.ModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = SummarySerializer
+    permission_classes = [IsAuthenticated, SummaryPermission]
+    search_fields = ["owner"]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"note_uuid": self.kwargs.get("note_uuid", None)})
+        return context
+
+    def get_note(self):
+        return get_object_or_404(
+            Note,
+            uuid=self.kwargs["note_uuid"],
+        )
+
+    def get_object(self):
+        uuid = self.kwargs["uuid"]
+        obj = get_object_or_404(Summary, uuid=uuid)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_queryset(self):
+        current_note = self.get_note()
+        if NoteUserAccess.objects.filter(
+            note=current_note, user=self.request.user, can_view=True
+        ).exists():
+            return Summary.objects.filter(note=current_note).first()
+        return Summary.objects.none()
