@@ -46,10 +46,12 @@ export const getUserFeedbacks = async (noteUUid, userEmail) => {
   );
 };
 
-export const updateSummary = async (summary, noteUUid) => {
-  return await apiCall("patch", `/notes/${noteUUid}/`, {
-    summary: summary,
-  });
+export const getNoteSummary = async (noteUUid) => {
+  return await apiCall("get", `/notes/${noteUUid}/summaries/`);
+};
+
+export const createNoteSummary = async (summaryData, noteUUid) => {
+  return await apiCall("post", `/notes/${noteUUid}/summaries/`, summaryData);
 };
 
 export const getTemplates = async () => {

@@ -324,5 +324,11 @@ class SummaryViewSet(viewsets.ModelViewSet):
         if NoteUserAccess.objects.filter(
             note=current_note, user=self.request.user, can_view=True
         ).exists():
-            return Summary.objects.filter(note=current_note).first()
+            return Summary.objects.filter(note=current_note)
         return Summary.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        prev_summary = Summary.objects.filter(note=self.get_note()).first()
+        if prev_summary:
+            prev_summary.delete()
+        return super().create(request, *args, **kwargs)

@@ -270,9 +270,11 @@ class Summary(MerlinBaseModel):
         null=True,
         verbose_name="تغییر در سطح لدر",
     )
-    bonus = models.IntegerField(verbose_name="پاداش عملکردی")
-    salary_change = models.FloatField(verbose_name="تغییر پله‌ی حقوقی")
-    committee_date = models.DateField(verbose_name="تاریخ برگزاری جلسه‌ی کمیته")
+    bonus = models.IntegerField(default=0, verbose_name="پاداش عملکردی")
+    salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
+    committee_date = models.DateField(
+        blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
+    )
 
     class Meta:
         verbose_name = "جمع‌بندی"
