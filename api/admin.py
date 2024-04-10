@@ -201,7 +201,7 @@ class NoteAdmin(BaseModelAdmin):
 
     resource_class = NoteResource
     list_display = ("title", "type", "owner", "date", "date_created", "date_updated")
-    fields = ( "uuid", ("title", "type"), ("owner", "date"), "content", "mentioned_users", "is_public", ("date_created", "date_updated"),)
+    fields = ( "uuid", ("title", "type"), ("owner", "date", "period", "year"), "content", "mentioned_users", "is_public", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")
     ordering = ("-date_updated", "title")
     search_fields = ["uuid", "title", "owner__name", "owner__email"]
