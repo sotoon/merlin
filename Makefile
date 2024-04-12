@@ -14,9 +14,11 @@ TOFMT_FILES := $(shell find -iname \*.py -not \( \
 
 deps:
 	pip install -r requirements.txt
+	cd frontend && npm install
 
 deps-dev: deps
 	pip install -r requirements_dev.txt
+	cd frontend && npm install --dev
 
 fmt:
 	python -m isort $(TOFMT_FILES)
