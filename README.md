@@ -32,15 +32,13 @@ To install the dependencies of the project you can use:
 make deps
 ```
 
-Also, to install the dependencies of the frontend of the project you can do:
+For development you may need a localhost Postgres database with database name `merlin` nad username and passwords `postgres`. You can change this configuration in [development.py](merlin/settings/development.py).
 
-```bash
-cd frontend && npm i
-```
+To setup the environment variables in the project you can create `.env` files in the root of the project and also in the [frontend](frontend) directory. You can use these sample environment files: [sample.env](sample.env), [frontend/sample.env](frontend/sample.env)
 
 ### Running the project
 
-To run the server on your localhost you can use:
+To run the server on your localhost, First Make sure the environment is activated, then you can use:
 
 ```bash
 make run-server
@@ -57,6 +55,10 @@ Also, you can use docker compose to run the project on docker compose. Just make
 ## Documentaion
 
 The project have two main components. The frontend part is based on `React` and `Material UI`. The backend part is based on `Django` and `Django Rest Framework`.
+
+The settings and base configurations of the backend are located in the [merlin](merlin) directory. The backend logic is implemented in the [api](api) directory. By looking at the [api/models.py](api/models.py) You can understand the Model Structure of the project.
+
+The code for the frontend of the project is also located in the [frontend](frontend) directory.
 
 ## Contributing
 
