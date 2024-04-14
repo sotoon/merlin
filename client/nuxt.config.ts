@@ -36,6 +36,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@nuxtjs/tailwindcss',
     '@vee-validate/nuxt',
+    'nuxt-tiptap-editor',
   ],
   srcDir: 'src/',
   ssr: false,
@@ -51,6 +52,10 @@ export default defineNuxtConfig({
 
   tailwindcss: {
     viewer: false,
+  },
+
+  tiptap: {
+    prefix: 'Tiptap',
   },
 
   typescript: {
