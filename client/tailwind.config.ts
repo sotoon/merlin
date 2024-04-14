@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 import PeyTailwindPreset from '@pey/tailwind-preset';
+import Typography from '@tailwindcss/typography';
 
 export default {
   presets: [PeyTailwindPreset],
@@ -14,4 +15,5 @@ export default {
       serif: ['IRANYekan', 'serif'],
     },
   },
+  plugins: [Typography],
 } satisfies Config;

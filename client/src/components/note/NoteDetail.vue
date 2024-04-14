@@ -3,9 +3,9 @@
 <template>
   <div class="px-4">
     <div class="flex items-center justify-between gap-4">
-      <PHeading responsive>
+      <PText responsive variant="title" weight="bold">
         {{ note.title }}
-      </PHeading>
+      </PText>
 
       <PIconButton
         v-if="note.access_level.can_edit"
@@ -49,7 +49,7 @@
       </PText>
     </div>
 
-    <div class="mt-4 py-4" v-html="note.content" />
+    <article class="prose mt-4 py-4" dir="auto" v-html="note.content" />
 
     <div v-if="mentionedUsers?.length" class="mt-4">
       <PHeading :lvl="4" responsive>
@@ -82,7 +82,7 @@
           />
         </div>
 
-        <div class="py-4" v-html="note.summary" />
+        <div class="prose py-4" dir="auto" v-html="note.summary" />
       </template>
 
       <PButton
