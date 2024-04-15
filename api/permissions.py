@@ -31,3 +31,14 @@ class FeedbackPermission(permissions.IsAuthenticated):
         return NoteUserAccess.objects.filter(
             note=view.get_note(), user=request.user, can_write_feedback=True
         ).exists()
+
+
+class SummaryPermission(permissions.IsAuthenticated):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return NoteUserAccess.objects.filter(
+                note=view.get_note(), user=request.user, can_view=True
+            ).exists()
+        return NoteUserAccess.objects.filter(
+            note=view.get_note(), user=request.user, can_write_summary=True
+        ).exists()

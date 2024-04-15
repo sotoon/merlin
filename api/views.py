@@ -2,6 +2,8 @@ import requests
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
@@ -10,20 +12,58 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Feedback, Note, NoteType, NoteUserAccess, User
-from api.permissions import FeedbackPermission, NotePermission
+from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary, User
+from api.permissions import FeedbackPermission, NotePermission, SummaryPermission
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
+    SummarySerializer,
     TokenSerializer,
     UserSerializer,
 )
 
+AUTH_RESPONSE_SCHEMA = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "name": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Name of the user"
+        ),
+        "email": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Email of the user"
+        ),
+        "tokens": openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "refresh": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Refresh token",
+                ),
+                "access": openapi.Schema(
+                    type=openapi.TYPE_STRING, description="Access token"
+                ),
+            },
+        ),
+    },
+)
+
 
 class SignupView(APIView):
+    """
+    API endpoint for creating a new user.
+    """
+
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        responses={
+            201: openapi.Response(
+                "Successfully Signed Up!",
+                schema=AUTH_RESPONSE_SCHEMA,
+            ),
+        },
+    )
     def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -44,8 +84,21 @@ class SignupView(APIView):
 
 
 class LoginView(APIView):
+    """
+    API endpoint for logging in a user.
+    """
+
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        responses={
+            200: openapi.Response(
+                "Successfully Logged In!",
+                schema=AUTH_RESPONSE_SCHEMA,
+            )
+        },
+    )
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
         password = request.data.get("password")
@@ -71,6 +124,26 @@ class LoginView(APIView):
 
 
 class BepaCallbackView(APIView):
+    """
+    Gets the code from the BEPA and exchanges it for an access token.
+    """
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "code",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Code from BEPA",
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                "Successfully Logged In!",
+                schema=AUTH_RESPONSE_SCHEMA,
+            )
+        },
+    )
     def get(self, request, *args, **kwargs):
         code = request.query_params.get("code")
         if not code:
@@ -127,8 +200,27 @@ class BepaCallbackView(APIView):
 
 
 class VerifyTokenView(GenericAPIView):
+    """
+    Gets a token and validates it and returns user data
+    """
+
     serializer_class = TokenSerializer
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "token",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Token",
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Verified Successfully", schema=UserSerializer
+            )
+        },
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -145,6 +237,10 @@ class VerifyTokenView(GenericAPIView):
 
 
 class ProfileView(RetrieveUpdateAPIView):
+    """
+    Update or read Profile data
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
 
@@ -158,6 +254,10 @@ class ProfileView(RetrieveUpdateAPIView):
 
 
 class UsersView(ListAPIView):
+    """
+    List all app users
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
 
@@ -197,6 +297,9 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="read")
     def mark_note_as_read(self, request, uuid=None):
+        """
+        Mark note as read(Does not need any input params)
+        """
         note = self.get_object()
         user = request.user
         if user not in note.read_by.all():
@@ -213,6 +316,9 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="unread")
     def mark_note_as_unread(self, request, uuid=None):
+        """
+        Mark note as unread(Does not need any input params)
+        """
         note = self.get_object()
         user = request.user
         if user in note.read_by.all():
@@ -229,6 +335,10 @@ class NoteViewSet(viewsets.ModelViewSet):
 
 
 class TemplatesView(ListAPIView):
+    """
+    List available templates
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = NoteSerializer
 
@@ -241,6 +351,10 @@ class TemplatesView(ListAPIView):
 
 
 class MyTeamView(GenericAPIView):
+    """
+    List users that the current user lead
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
 
@@ -286,10 +400,34 @@ class FeedbackViewSet(viewsets.ModelViewSet):
             return all_note_feedbacks
         return all_note_feedbacks.filter(owner=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        prev_feedback = Feedback.objects.filter(
-            note=self.get_note(), owner=self.request.user
-        ).first()
-        if prev_feedback:
-            prev_feedback.delete()
-        return super().create(request, *args, **kwargs)
+
+class SummaryViewSet(viewsets.ModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = SummarySerializer
+    permission_classes = [IsAuthenticated, SummaryPermission]
+    search_fields = ["owner"]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"note_uuid": self.kwargs.get("note_uuid", None)})
+        return context
+
+    def get_note(self):
+        return get_object_or_404(
+            Note,
+            uuid=self.kwargs["note_uuid"],
+        )
+
+    def get_object(self):
+        uuid = self.kwargs["uuid"]
+        obj = get_object_or_404(Summary, uuid=uuid)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_queryset(self):
+        current_note = self.get_note()
+        if NoteUserAccess.objects.filter(
+            note=current_note, user=self.request.user, can_view=True
+        ).exists():
+            return Summary.objects.filter(note=current_note)
+        return Summary.objects.none()

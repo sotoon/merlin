@@ -10,7 +10,7 @@ Please review and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md) before con
 
 1. Fork the repository.
 2. Create a new branch with a descriptive name: `git checkout -b feature/your-feature` or `git checkout -b bugfix/your-bugfix`.
-3. Make your changes and commit them: `git commit -m 'Description of your changes'`.
+3. Make your changes and commit them: `git commit -m 'Description of your changes'`. (Would be better if you use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages)
 4. Push your changes to your fork: `git push origin feature/your-feature`.
 5. Open a pull request against the `main` branch of the original repository.
 
@@ -24,12 +24,6 @@ Please review and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md) before con
   ```bash
   make fmt lint
   ```
-
-   And for frontend:
-
-   ```bash
-   pnpm format lint
-   ```
 
 - Include any necessary tests for your changes.
 
