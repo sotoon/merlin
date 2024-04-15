@@ -45,6 +45,14 @@ class User(MerlinBaseModel, AbstractUser):
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
+    agile_coach = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="coachees",
+        verbose_name="PR/اجایل کوچ",
+    )
     committee = models.ForeignKey(
         "Committee",
         on_delete=models.SET_NULL,
@@ -52,6 +60,9 @@ class User(MerlinBaseModel, AbstractUser):
         blank=True,
         related_name="committee_users",
         verbose_name="کمیته",
+    )
+    level = models.CharField(
+        max_length=256, default="", blank=True, null=True, verbose_name="سطح"
     )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -203,6 +214,8 @@ class Note(MerlinBaseModel):
     title = models.CharField(max_length=512, verbose_name="عنوان")
     content = models.TextField(verbose_name="محتوا")
     date = models.DateField(verbose_name="تاریخ")
+    period = models.IntegerField(default=0, verbose_name="دوره")
+    year = models.IntegerField(default=1400, verbose_name="سال")
     type = models.CharField(
         max_length=128,
         choices=NoteType.choices,
@@ -215,9 +228,11 @@ class Note(MerlinBaseModel):
         related_name="mentioned_users",
         verbose_name="کاربران منشن شده",
     )
-    summary = models.TextField(blank=True, verbose_name="جمع‌بندی")
     is_public = models.BooleanField(default=False, verbose_name="عمومی")
     read_by = models.ManyToManyField(User, related_name="read_notes", blank=True)
+    linked_notes = models.ManyToManyField(
+        "Note", related_name="connected_notes", blank=True, verbose_name="پیوندها"
+    )
 
     class Meta:
         verbose_name = "یادداشت"
@@ -244,9 +259,40 @@ class Feedback(MerlinBaseModel):
         return f"{self.owner} - {self.note}"
 
 
+class Summary(MerlinBaseModel):
+    content = models.TextField(verbose_name="محتوا")
+    note = models.OneToOneField(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+    performance_label = models.CharField(
+        max_length=256, default="", blank=True, null=True, verbose_name="لیبل عملکردی"
+    )
+    ladder_change = models.CharField(
+        max_length=256,
+        default="",
+        blank=True,
+        null=True,
+        verbose_name="تغییر در سطح لدر",
+    )
+    bonus = models.IntegerField(default=0, verbose_name="پاداش عملکردی")
+    salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
+    committee_date = models.DateField(
+        blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
+    )
+
+    class Meta:
+        verbose_name = "جمع‌بندی"
+        verbose_name_plural = "جمع‌بندی‌ها"
+
+    def __str__(self):
+        return "جمع‌بندیِ " + str(self.note)
+
+
 class NoteUserAccess(MerlinBaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر")
-    note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, verbose_name="کاربر"
+    )
+    note = models.ForeignKey(
+        Note, on_delete=models.CASCADE, null=True, verbose_name="یادداشت"
+    )
     can_view = models.BooleanField(default=False, verbose_name="مشاهده")
     can_edit = models.BooleanField(default=False, verbose_name="ویرایش")
     can_write_summary = models.BooleanField(
@@ -293,6 +339,18 @@ class NoteUserAccess(MerlinBaseModel):
                     "can_view_feedbacks": True,
                 },
             )
+
+        # Agile Coach
+        cls.objects.update_or_create(
+            user=note.owner.agile_coach,
+            note=note,
+            defaults={
+                "can_view": True,
+                "can_write_summary": True,
+                "can_write_feedback": True,
+                "can_view_feedbacks": True,
+            },
+        )
 
         # Committee members
         if note.owner.committee is not None and note.type == NoteType.Proposal:

@@ -44,7 +44,10 @@ CORS_ALLOW_METHODS = [
     "POST",
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://stage.merlin.insiders.sotoon.ir"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://stage.merlin.insiders.sotoon.ir",
+    "https://merlin.sotoon.ir",
+]
 
 
 # Application definition
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "drf_yasg",
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
