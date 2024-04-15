@@ -283,7 +283,7 @@ class Summary(MerlinBaseModel):
         verbose_name_plural = "جمع‌بندی‌ها"
 
     def __str__(self):
-        return "جمع‌بندیِ " + self.note
+        return "جمع‌بندیِ " + str(self.note)
 
 
 class NoteUserAccess(MerlinBaseModel):
