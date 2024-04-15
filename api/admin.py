@@ -79,6 +79,11 @@ RESOURCE_FIELDS = {
         attribute="linked_notes",
         widget=ManyToManyWidget(Note, field="title"),
     ),
+    "note": fields.Field(
+        column_name="note",
+        attribute="note",
+        widget=ForeignKeyWidget(Note, field="uuid"),
+    )
 }
 
 
@@ -174,6 +179,15 @@ class UserAdmin(BaseModelAdmin):
         chapter = RESOURCE_FIELDS["chapter"]
         lookup_field = "email"
 
+        def get_instance(self, instance_loader, row):
+            name = row.get("email")
+            if name:
+                try:
+                    return self._meta.model.objects.get(name=name)
+                except self._meta.model.DoesNotExist:
+                    return None
+            return None
+
         class Meta:
             model = User
             fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter",)
@@ -219,6 +233,13 @@ class FeedbackAdmin(BaseModelAdmin):
 
 @admin.register(Summary)
 class SummaryAdmin(BaseModelAdmin):
+    class SummaryResource(BaseModelResource):
+        note = RESOURCE_FIELDS["note"]
+
+        class Meta:
+            model = Summary
+            fields = ("uuid", "note", "content", "performance_label", "ladder_change", "bonus", "salary_change", "committee_date",)
+    resource_class = SummaryResource
     list_display = ("uuid", "note", "performance_label", "committee_date", "date_created", "date_updated")
     fields = ("uuid", "note", "content", "performance_label", "ladder_change", "bonus", "salary_change", "committee_date", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
