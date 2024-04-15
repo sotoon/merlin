@@ -1,4 +1,4 @@
-interface UsedCreateNoteFeedbackOptions {
+interface UseCreateNoteFeedbackOptions {
   noteId: string;
   owner?: string;
 }
@@ -16,7 +16,7 @@ interface CreateNoteFeedbackPayload extends Pick<NoteFeedback, 'content'> {
 export const useCreateNoteFeedback = ({
   noteId,
   owner,
-}: UsedCreateNoteFeedbackOptions) =>
+}: UseCreateNoteFeedbackOptions) =>
   useApiMutation<
     CreateNoteFeedbackResponse,
     CreateNoteFeedbackError,

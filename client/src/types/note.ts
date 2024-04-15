@@ -16,7 +16,6 @@ export interface Note {
   owner: string;
   owner_name: string;
   read_status: boolean;
-  summary: string;
   title: string;
   type: NoteType;
   uuid: string;
@@ -28,7 +27,18 @@ export interface NoteFormValues
   title: string;
 }
 
-export interface NoteSummaryFormValues extends Pick<Note, 'summary'> {}
+export interface NoteSummary {
+  bonus: number;
+  committee_date: string;
+  content: string;
+  ladder_change: string;
+  note: string;
+  performance_label: string;
+  salary_change: number;
+  uuid: string;
+}
+
+export interface NoteSummaryFormValues extends Pick<NoteSummary, 'content'> {}
 
 export interface NoteFeedback {
   content: string;
