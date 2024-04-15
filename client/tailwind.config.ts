@@ -14,6 +14,12 @@ export default {
       sans: ['IRANYekan', 'sans-serif'],
       serif: ['IRANYekan', 'serif'],
     },
+    extend: {
+      fontFamily: {
+        'latin-sans': ['sans-serif'],
+        'latin-serif': ['serif'],
+      },
+    },
   },
   plugins: [Typography],
 } satisfies Config;
