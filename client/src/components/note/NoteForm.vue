@@ -27,12 +27,6 @@
 
       <VeeField v-slot="{ componentField }" name="content" rules="required">
         <Editor v-bind="componentField" />
-        <!-- <PInput
-          v-bind="componentField"
-          hide-details
-          :rows="8"
-          type="textarea"
-        /> -->
       </VeeField>
 
       <div>

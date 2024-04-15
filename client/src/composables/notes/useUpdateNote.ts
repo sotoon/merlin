@@ -5,10 +5,7 @@ interface UpdateNoteError {
 }
 
 interface UpdateNotePayload
-  extends Pick<
-    Partial<Note>,
-    'content' | 'title' | 'mentioned_users' | 'summary'
-  > {}
+  extends Pick<Partial<Note>, 'content' | 'title' | 'mentioned_users'> {}
 
 interface UseUpdateNoteOptions {
   id: string;

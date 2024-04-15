@@ -36,6 +36,7 @@
     "getFeedbacksError": "خطا در دریافت فیدبک‌ها",
     "getNoteError": "خطا در دریافت یادداشت",
     "getNotesError": "خطا در دریافت یادداشت‌ها",
+    "getSummaryError": "خطا در دریافت جمع‌بندی",
     "getTemplatesError": "خطا در دریافت قالب‌ها",
     "mentionedUsers": "منشن شوندگان",
     "newNote": "یادداشت جدید",

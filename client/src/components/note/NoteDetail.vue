@@ -67,32 +67,7 @@
     </div>
 
     <div v-if="NOTES_WITH_SUMMARY.includes(note.type)" class="mt-8">
-      <template v-if="note.summary">
-        <div class="flex items-center justify-between gap-4">
-          <PHeading :lvl="3" responsive>
-            {{ t('note.summary') }}
-          </PHeading>
-
-          <PIconButton
-            v-if="note.access_level.can_write_summary"
-            class="shrink-0"
-            :icon="PeyEditIcon"
-            type="button"
-            @click="navigateTo({ name: 'note-summary' })"
-          />
-        </div>
-
-        <div class="prose py-4" dir="auto" v-html="note.summary" />
-      </template>
-
-      <PButton
-        v-else-if="note.access_level.can_write_summary"
-        :icon-start="PeyPlusIcon"
-        variant="ghost"
-        @click="navigateTo({ name: 'note-summary' })"
-      >
-        {{ t('note.writeSummary') }}
-      </PButton>
+      <NoteSummary :note="note" />
     </div>
 
     <div class="mt-8">
@@ -102,8 +77,8 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PChip, PHeading, PIconButton, PText } from '@pey/core';
-import { PeyEditIcon, PeyPlusIcon } from '@pey/icons';
+import { PChip, PHeading, PIconButton, PText } from '@pey/core';
+import { PeyEditIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
 
