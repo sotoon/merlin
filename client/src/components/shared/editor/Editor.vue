@@ -19,11 +19,11 @@ import { Link as TiptapLink } from '@tiptap/extension-link';
 import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import TextDirection from 'tiptap-text-direction';
 
-defineProps<{ name?: string }>();
-const model = defineModel<string>({ default: '' });
+const props = defineProps<{ modelValue: string }>();
+const emit = defineEmits<{ 'update:model-value': [value: string] }>();
 
 const editor = useEditor({
-  content: model.value,
+  content: props.modelValue,
   extensions: [
     TiptapStarterKit,
     TiptapUnderline,
@@ -44,15 +44,18 @@ const editor = useEditor({
     }),
   ],
   onUpdate: ({ editor }) => {
-    model.value = editor.getHTML();
+    emit('update:model-value', editor.getHTML());
   },
 });
 
-watch(model, (newModel) => {
-  if (editor.value && newModel !== editor.value.getHTML()) {
-    editor.value.commands.setContent(newModel);
-  }
-});
+watch(
+  () => props.modelValue,
+  (newModel) => {
+    if (editor.value && newModel !== editor.value.getHTML()) {
+      editor.value.commands.setContent(newModel);
+    }
+  },
+);
 
 onBeforeUnmount(() => {
   editor.value?.destroy();

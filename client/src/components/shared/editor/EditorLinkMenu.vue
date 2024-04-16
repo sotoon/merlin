@@ -23,6 +23,7 @@
           autofocus="true"
           class="grow"
           hide-details
+          name="url"
           size="small"
           type="url"
         >
