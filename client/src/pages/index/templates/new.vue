@@ -1,5 +1,5 @@
 <template>
-  <PBox class="bg-white px-4 py-8 lg:px-8 lg:pt-10">
+  <PBox class="mx-auto max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
     <PHeading class="mb-4 border-b border-gray-10 pb-4" level="h1" responsive>
       {{ t('note.newTemplate') }}
     </PHeading>
