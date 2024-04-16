@@ -30,13 +30,17 @@
 
 <script lang="ts" setup>
 import { PButton, PInput } from '@pey/core';
+import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
   feedback?: NoteFeedback;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
-  submit: [values: NoteFeedbackFormValues];
+  submit: [
+    values: NoteFeedbackFormValues,
+    ctx: SubmissionContext<NoteFeedbackFormValues>,
+  ];
   cancel: [];
 }>();
 
@@ -46,8 +50,9 @@ const { meta, handleSubmit } = useForm<NoteFeedbackFormValues>({
     content: props.feedback?.content || '',
   },
 });
+useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
 
-const onSubmit = handleSubmit((values) => {
-  emit('submit', values);
+const onSubmit = handleSubmit((values, ctx) => {
+  emit('submit', values, ctx);
 });
 </script>

@@ -10,6 +10,7 @@
 
 <script lang="ts" setup>
 import { PBox } from '@pey/core';
+import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-create' });
 const props = defineProps<{ noteType: NoteType }>();
@@ -17,13 +18,17 @@ const props = defineProps<{ noteType: NoteType }>();
 const router = useRouter();
 const { execute: createNote, pending } = useCreateNote();
 
-const handleSubmit = (values: NoteFormValues) => {
+const handleSubmit = (
+  values: NoteFormValues,
+  ctx: SubmissionContext<NoteFormValues>,
+) => {
   const date = new Date();
   const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
   createNote({
     body: { ...values, date: dateString, type: props.noteType },
     onSuccess: () => {
+      ctx.resetForm();
       router.back();
     },
   });

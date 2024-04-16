@@ -80,13 +80,14 @@
 
 <script lang="ts" setup>
 import { PButton, PHeading, PInput, PListbox, PListboxOption } from '@pey/core';
+import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
   note?: Note;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
-  submit: [values: NoteFormValues];
+  submit: [values: NoteFormValues, ctx: SubmissionContext<NoteFormValues>];
   cancel: [];
 }>();
 
@@ -103,6 +104,7 @@ const {
     mentioned_users: props.note?.mentioned_users || [],
   },
 });
+useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
 const { data: users, pending: isUsersLoading } = useGetUsers();
 
 const handleTemplateSelect = ({
@@ -122,7 +124,7 @@ const handleTemplateSelect = ({
   }
 };
 
-const onSubmit = handleSubmit((values) => {
-  emit('submit', values);
+const onSubmit = handleSubmit((values, ctx) => {
+  emit('submit', values, ctx);
 });
 </script>
