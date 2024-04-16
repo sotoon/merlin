@@ -48,6 +48,12 @@ const editor = useEditor({
   },
 });
 
+watch(model, (newModel) => {
+  if (editor.value && newModel !== editor.value.getHTML()) {
+    editor.value.commands.setContent(newModel);
+  }
+});
+
 onBeforeUnmount(() => {
   editor.value?.destroy();
 });
