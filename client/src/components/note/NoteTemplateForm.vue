@@ -16,7 +16,7 @@
     </VeeField>
 
     <VeeField v-slot="{ componentField }" name="content" rules="required">
-      <PInput v-bind="componentField" hide-details :rows="8" type="textarea" />
+      <Editor v-bind="componentField" />
     </VeeField>
 
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
