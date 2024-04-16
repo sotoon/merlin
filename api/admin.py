@@ -69,6 +69,11 @@ RESOURCE_FIELDS = {
         attribute="tribe",
         widget=ForeignKeyWidget(Tribe, field="name"),
     ),
+    "committee": fields.Field(
+        column_name="committee",
+        attribute="committee",
+        widget=ForeignKeyWidget(Committee, field="name"),
+    ),
     "mentioned_users": fields.Field(
         column_name="mentioned_users",
         attribute="mentioned_users",
@@ -91,10 +96,10 @@ class BaseModelResource(resources.ModelResource):
     lookup_field = "name"
 
     def get_instance(self, instance_loader, row):
-        name = row.get(self.lookup_field)
-        if name:
+        field_value = row.get(self.lookup_field)
+        if field_value:
             try:
-                return self._meta.model.objects.get(name=name)
+                return self._meta.model.objects.get(**{self.lookup_field: field_value})
             except self._meta.model.DoesNotExist:
                 return None
         return None
@@ -177,20 +182,13 @@ class UserAdmin(BaseModelAdmin):
         department = RESOURCE_FIELDS["department"]
         team = RESOURCE_FIELDS["team"]
         chapter = RESOURCE_FIELDS["chapter"]
+        committee = RESOURCE_FIELDS["committee"]
         lookup_field = "email"
-
-        def get_instance(self, instance_loader, row):
-            name = row.get("email")
-            if name:
-                try:
-                    return self._meta.model.objects.get(name=name)
-                except self._meta.model.DoesNotExist:
-                    return None
-            return None
 
         class Meta:
             model = User
-            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "committee", "chapter",)
+            import_id_fields = ("email",)
+            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter",)
 
     resource_class = UserResource
     list_display = ("email", "name", "phone", "department", "chapter", "team", "leader", "agile_coach", "date_created", "date_updated",)
