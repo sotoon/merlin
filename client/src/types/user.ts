@@ -4,6 +4,7 @@ export interface User {
   email: string;
   gmail: string;
   leader: string | null;
+  level: string | null;
   name: string;
   phone: string;
   team: string | null;
