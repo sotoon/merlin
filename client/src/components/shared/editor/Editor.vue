@@ -9,10 +9,13 @@
     >
       <TiptapEditorContent :editor="editor" />
     </div>
+
+    <EditorLinkMenu v-if="editor" :editor="editor" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { Link as TiptapLink } from '@tiptap/extension-link';
 import { Underline as TiptapUnderline } from '@tiptap/extension-underline';
 import TextDirection from 'tiptap-text-direction';
 
@@ -24,6 +27,11 @@ const editor = useEditor({
   extensions: [
     TiptapStarterKit,
     TiptapUnderline,
+    TiptapLink.extend({
+      inclusive: false,
+    }).configure({
+      openOnClick: false,
+    }),
     TextDirection.configure({
       types: [
         'heading',

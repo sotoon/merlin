@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="font-latin-sans flex flex-wrap items-center gap-2 border-b border-gray-10 p-2"
+    class="flex flex-wrap items-center gap-2 border-b border-gray-10 p-2 font-latin-sans"
     dir="ltr"
   >
     <div class="-me-2 w-32">
@@ -84,6 +84,20 @@
       >
         <Icon name="ic:baseline-horizontal-rule" size="20" />
       </EditorToggleButton>
+
+      <EditorToggleButton
+        :active="editor.isActive('link')"
+        :disabled="!editor.isActive('link') && editor.state.selection.empty"
+        @toggle="
+          editor
+            ?.chain()
+            .focus()
+            .setLink({ href: editor.getAttributes('link').href || '' })
+            .run()
+        "
+      >
+        <PeyLinkIcon :size="20" />
+      </EditorToggleButton>
     </div>
 
     <div class="ms-2 flex flex-wrap items-center gap-1">
@@ -105,5 +119,7 @@
 </template>
 
 <script lang="ts" setup>
+import { PeyLinkIcon } from '@pey/icons';
+
 defineProps<{ editor?: InstanceType<typeof TiptapEditor> }>();
 </script>
