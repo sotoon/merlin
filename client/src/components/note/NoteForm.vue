@@ -25,8 +25,12 @@
         />
       </VeeField>
 
-      <VeeField v-slot="{ componentField }" name="content" rules="required">
-        <Editor v-bind="componentField" />
+      <VeeField
+        v-slot="{ value, handleChange }"
+        name="content"
+        rules="required"
+      >
+        <Editor :model-value="value" @update:model-value="handleChange" />
       </VeeField>
 
       <div>
