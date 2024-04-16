@@ -14,7 +14,9 @@
   </div>
 
   <template v-else-if="summaries?.length">
-    <div class="flex items-center justify-between gap-4">
+    <div
+      class="flex items-center justify-between gap-4 border-b border-gray-10 pb-4"
+    >
       <PHeading :lvl="3" responsive>
         {{ t('note.summary') }}
       </PHeading>

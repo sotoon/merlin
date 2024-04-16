@@ -19,6 +19,9 @@ export default {
         'latin-sans': ['sans-serif'],
         'latin-serif': ['serif'],
       },
+      textAlign: {
+        textAlign: ['responsive', 'hover', 'focus', 'group-hover'],
+      },
       typography: {
         DEFAULT: {
           css: {

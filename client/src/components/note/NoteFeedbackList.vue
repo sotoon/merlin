@@ -9,7 +9,11 @@
         header-variant="primary-dark"
         :title="feedback.owner_name"
       >
-        <div v-html="feedback.content" />
+        <article
+          class="text-initial prose"
+          dir="auto"
+          v-html="feedback.content"
+        />
 
         <template #toolbar>
           <PIconButton

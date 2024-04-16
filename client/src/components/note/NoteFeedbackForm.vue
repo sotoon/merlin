@@ -1,7 +1,7 @@
 <template>
   <form class="space-y-4" @submit="onSubmit">
-    <VeeField v-slot="{ componentField }" name="content">
-      <PInput v-bind="componentField" hide-details :rows="8" type="textarea" />
+    <VeeField v-slot="{ value, handleChange }" name="content">
+      <Editor :model-value="value" @update:model-value="handleChange" />
     </VeeField>
 
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PInput } from '@pey/core';
+import { PButton } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
