@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import { PHeading, PLoading } from '@pey/core';
+import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-summary' });
 const props = defineProps<{ note: Note }>();
@@ -31,10 +32,14 @@ const { execute: createNoteSummary, pending } = useCreateNoteSummary({
   noteId: props.note.uuid,
 });
 
-const handleSubmit = (values: NoteSummaryFormValues) => {
+const handleSubmit = (
+  values: NoteSummaryFormValues,
+  ctx: SubmissionContext<NoteSummaryFormValues>,
+) => {
   createNoteSummary({
     body: values,
     onSuccess: () => {
+      ctx.resetForm();
       navigateTo({ name: 'note' });
     },
   });

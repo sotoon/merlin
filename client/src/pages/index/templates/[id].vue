@@ -38,6 +38,7 @@
 <script lang="ts" setup>
 import { PBox, PButton, PHeading, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
+import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'template' });
 
@@ -64,10 +65,14 @@ const { execute: updateNote, pending: isSubmitting } = useUpdateNote({
   id: noteId.value,
 });
 
-const handleSubmit = (values: NoteFormValues) => {
+const handleSubmit = (
+  values: NoteFormValues,
+  ctx: SubmissionContext<NoteFormValues>,
+) => {
   updateNote({
     body: values,
     onSuccess: () => {
+      ctx.resetForm();
       navigateTo({ name: 'templates' });
     },
   });

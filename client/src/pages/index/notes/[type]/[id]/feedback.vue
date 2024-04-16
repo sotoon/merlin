@@ -22,6 +22,7 @@
 
 <script lang="ts" setup>
 import { PHeading, PLoading } from '@pey/core';
+import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-feedback' });
 const props = defineProps<{ note: Note }>();
@@ -39,15 +40,20 @@ const { data: userFeedbacks, pending: getFeedbacksPending } =
     owner: isEditMode.value ? (owner as string) : '',
     enabled: isEditMode.value,
   });
-const { execute: updateNote, pending: isSubmitting } = useCreateNoteFeedback({
-  noteId: props.note.uuid,
-  owner: isEditMode.value ? (owner as string) : undefined,
-});
+const { execute: createNoteFeedback, pending: isSubmitting } =
+  useCreateNoteFeedback({
+    noteId: props.note.uuid,
+    owner: isEditMode.value ? (owner as string) : undefined,
+  });
 
-const handleSubmit = (values: NoteFeedbackFormValues) => {
-  updateNote({
+const handleSubmit = (
+  values: NoteFeedbackFormValues,
+  ctx: SubmissionContext<NoteFeedbackFormValues>,
+) => {
+  createNoteFeedback({
     body: values,
     onSuccess: () => {
+      ctx.resetForm();
       navigateTo({ name: 'note' });
     },
   });

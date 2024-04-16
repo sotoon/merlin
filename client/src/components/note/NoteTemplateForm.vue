@@ -45,25 +45,27 @@
 
 <script lang="ts" setup>
 import { PButton, PInput } from '@pey/core';
+import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
   note?: Note;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
-  submit: [values: NoteFormValues];
+  submit: [values: NoteFormValues, ctx: SubmissionContext<NoteFormValues>];
   cancel: [];
 }>();
 
 const { t } = useI18n();
 const { meta, handleSubmit } = useForm<NoteFormValues>({
   initialValues: {
-    title: props.note?.title,
-    content: props.note?.content,
+    title: props.note?.title || '',
+    content: props.note?.content || '',
   },
 });
+useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
 
-const onSubmit = handleSubmit((values) => {
-  emit('submit', values);
+const onSubmit = handleSubmit((values, ctx) => {
+  emit('submit', values, ctx);
 });
 </script>
