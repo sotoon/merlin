@@ -102,17 +102,20 @@
 
     <div class="ms-2 flex flex-wrap items-center gap-1">
       <EditorToggleButton
-        :active="editor.isActive({ dir: 'ltr' })"
-        @toggle="editor?.commands.setTextDirection('ltr')"
+        @toggle="
+          editor
+            ?.chain()
+            .focus()
+            .setTextDirection(editor.isActive({ dir: 'ltr' }) ? 'rtl' : 'ltr')
+            .run()
+        "
       >
-        <Icon name="ic:baseline-format-textdirection-l-to-r" size="20" />
-      </EditorToggleButton>
-
-      <EditorToggleButton
-        :active="editor.isActive({ dir: 'rtl' })"
-        @toggle="editor?.commands.setTextDirection('rtl')"
-      >
-        <Icon name="ic:baseline-format-textdirection-r-to-l" size="20" />
+        <Icon
+          v-if="editor.isActive({ dir: 'ltr' })"
+          name="ic:baseline-format-textdirection-l-to-r"
+          size="20"
+        />
+        <Icon v-else name="ic:baseline-format-textdirection-r-to-l" size="20" />
       </EditorToggleButton>
     </div>
   </div>
