@@ -19,6 +19,18 @@ export default {
         'latin-sans': ['sans-serif'],
         'latin-serif': ['serif'],
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            a: {
+              color: '#0000ee',
+              '&:hover': {
+                color: '#2c5282',
+              },
+            },
+          },
+        },
+      },
     },
   },
   plugins: [Typography],
