@@ -1,5 +1,3 @@
-<!-- eslint-disable vue/no-v-text-v-html-on-component -->
-<!-- eslint-disable vue/no-v-html -->
 <template>
   <PLoading v-if="pending" class="text-primary" />
 
@@ -30,7 +28,11 @@
       />
     </div>
 
-    <div class="prose py-4" dir="auto" v-html="summaries[0].content" />
+    <div
+      v-dompurify-html="summaries[0].content"
+      class="prose py-4"
+      dir="auto"
+    />
   </template>
 
   <PButton

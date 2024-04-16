@@ -1,5 +1,3 @@
-<!-- eslint-disable vue/no-v-text-v-html-on-component -->
-<!-- eslint-disable vue/no-v-html -->
 <template>
   <div class="px-4">
     <div class="flex items-center justify-between gap-4">
@@ -49,7 +47,11 @@
       </PText>
     </div>
 
-    <article class="prose mt-4 py-4" dir="auto" v-html="note.content" />
+    <article
+      v-dompurify-html="note.content"
+      class="prose mt-4 py-4"
+      dir="auto"
+    />
 
     <div v-if="mentionedUsers?.length" class="mt-4">
       <PHeading :lvl="4" responsive>
