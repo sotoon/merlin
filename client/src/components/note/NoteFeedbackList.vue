@@ -1,5 +1,3 @@
-<!-- eslint-disable vue/no-v-text-v-html-on-component -->
-<!-- eslint-disable vue/no-v-html -->
 <template>
   <ul class="grid grid-cols-1 gap-2 py-4 lg:gap-3">
     <li v-for="feedback in feedbacks" :key="feedback.uuid">
@@ -10,9 +8,9 @@
         :title="feedback.owner_name"
       >
         <article
+          v-dompurify-html="feedback.content"
           class="text-initial prose"
           dir="auto"
-          v-html="feedback.content"
         />
 
         <template #toolbar>
