@@ -190,7 +190,7 @@ class UserAdmin(BaseModelAdmin):
 
         class Meta:
             model = User
-            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter",)
+            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "committee", "chapter",)
 
     resource_class = UserResource
     list_display = ("email", "name", "phone", "department", "chapter", "team", "leader", "agile_coach", "date_created", "date_updated",)
