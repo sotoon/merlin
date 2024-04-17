@@ -58,7 +58,7 @@ The project have two main components. The frontend part is based on `Nuxt` and [
 
 The settings and base configurations of the backend are located in the [merlin](merlin) directory. The backend logic is implemented in the [api](api) directory. By looking at the [api/models.py](api/models.py) You can understand the Model Structure of the project.
 
-The code for the frontend of the project is also located in the [client](client) directory.
+The code for the frontend of the project is also located in the [frontend](frontend) directory.
 
 ## Contributing
 
