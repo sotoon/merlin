@@ -1,0 +1,7 @@
+.cache
+.env
+.nitro
+.nuxt
+.output
+dist
+pnpm-lock.yaml
