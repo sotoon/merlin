@@ -48,7 +48,7 @@
     </div>
 
     <article
-      v-dompurify-html="note.content"
+      v-sanitize-html="note.content"
       class="prose mt-4 py-4"
       dir="auto"
     />

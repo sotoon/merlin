@@ -20,8 +20,8 @@
     "@vee-validate/nuxt": "^4.12.5",
     "@vee-validate/rules": "^4.12.5",
     "nuxt": "^3.10.3",
+    "sanitize-html": "^2.13.0",
     "vue": "^3.4.19",
-    "vue-dompurify-html": "^5.0.1",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
@@ -31,6 +31,7 @@
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@tailwindcss/typography": "^0.5.12",
     "@tiptap/extension-underline": "^2.3.0",
+    "@types/sanitize-html": "^2.11.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",

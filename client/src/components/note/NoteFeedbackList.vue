@@ -8,7 +8,7 @@
         :title="feedback.owner_name"
       >
         <article
-          v-dompurify-html="feedback.content"
+          v-sanitize-html="feedback.content"
           class="text-initial prose"
           dir="auto"
         />

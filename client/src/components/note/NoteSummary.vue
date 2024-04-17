@@ -28,11 +28,7 @@
       />
     </div>
 
-    <div
-      v-dompurify-html="summaries[0].content"
-      class="prose py-4"
-      dir="auto"
-    />
+    <div v-sanitize-html="summaries[0].content" class="prose py-4" dir="auto" />
   </template>
 
   <PButton
