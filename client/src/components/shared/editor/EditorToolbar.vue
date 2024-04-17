@@ -14,7 +14,7 @@
         :disabled="!editor.can().chain().focus().toggleBold().run()"
         @toggle="editor?.chain().focus().toggleBold().run()"
       >
-        <strong>B</strong>
+        <Icon name="mdi:format-bold" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
@@ -22,7 +22,7 @@
         :disabled="!editor.can().chain().focus().toggleItalic().run()"
         @toggle="editor?.chain().focus().toggleItalic().run()"
       >
-        <em>i</em>
+        <Icon name="mdi:format-italic" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
@@ -30,7 +30,7 @@
         :disabled="!editor.can().chain().focus().toggleStrike().run()"
         @toggle="editor?.chain().focus().toggleStrike().run()"
       >
-        <s>S</s>
+        <Icon name="mdi:format-strikethrough" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
@@ -38,7 +38,7 @@
         :disabled="!editor.can().chain().focus().toggleUnderline().run()"
         @toggle="editor?.chain().focus().toggleUnderline().run()"
       >
-        <u>U</u>
+        <Icon name="mdi:format-underline" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
@@ -46,7 +46,7 @@
         :disabled="!editor.can().chain().focus().toggleCode().run()"
         @toggle="editor?.chain().focus().toggleCode().run()"
       >
-        <code>$</code>
+        <Icon name="mdi:code-tags" size="18" />
       </EditorToggleButton>
     </div>
 
@@ -55,34 +55,34 @@
         :active="editor.isActive('bulletList')"
         @toggle="editor?.chain().focus().toggleBulletList().run()"
       >
-        <Icon name="ic:baseline-format-list-bulleted" size="20" />
+        <Icon name="mdi:format-list-bulleted" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
         :active="editor.isActive('orderedList')"
         @toggle="editor?.chain().focus().toggleOrderedList().run()"
       >
-        <Icon name="ic:baseline-format-list-numbered" size="20" />
+        <Icon name="mdi:format-list-numbered" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
         :active="editor.isActive('blockquote')"
         @toggle="editor?.chain().focus().toggleBlockquote().run()"
       >
-        <Icon name="ic:baseline-format-quote" size="20" />
+        <Icon name="mdi:format-quote-close" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
         :active="editor.isActive('codeBlock')"
         @toggle="editor?.chain().focus().toggleCodeBlock().run()"
       >
-        <Icon name="ic:baseline-code" size="20" />
+        <Icon name="mdi:code-block-tags" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
         @toggle="editor?.chain().focus().setHorizontalRule().run()"
       >
-        <Icon name="ic:baseline-horizontal-rule" size="20" />
+        <Icon name="mdi:horizontal-line" size="18" />
       </EditorToggleButton>
 
       <EditorToggleButton
@@ -96,7 +96,7 @@
             .run()
         "
       >
-        <PeyLinkIcon :size="20" />
+        <PeyLinkIcon :size="18" />
       </EditorToggleButton>
     </div>
 
@@ -110,12 +110,8 @@
             .run()
         "
       >
-        <Icon
-          v-if="editor.isActive({ dir: 'ltr' })"
-          name="ic:baseline-format-textdirection-l-to-r"
-          size="20"
-        />
-        <Icon v-else name="ic:baseline-format-textdirection-r-to-l" size="20" />
+        <Icon v-if="editor.isActive({ dir: 'ltr' })" name="mdi:ltr" size="18" />
+        <Icon v-else name="mdi:rtl" size="18" />
       </EditorToggleButton>
     </div>
   </div>
