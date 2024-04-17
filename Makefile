@@ -39,7 +39,7 @@ run-client:
 	cd client && pnpm dev -o
 
 docker-build-frontend:
-	cd frontend && docker build --tag $(FRONTEND_IMAGE_NAME):$(VERSION) .
+	cd client && docker build --tag $(FRONTEND_IMAGE_NAME):$(VERSION) .
 	docker tag $(FRONTEND_IMAGE_NAME):$(VERSION) $(FRONTEND_IMAGE_NAME):latest
 
 docker-push-frontend:
