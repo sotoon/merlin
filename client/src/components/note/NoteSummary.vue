@@ -28,7 +28,9 @@
       />
     </div>
 
-    <div v-sanitize-html="summaries[0].content" class="prose py-4" dir="auto" />
+    <article class="mt-4 py-4">
+      <EditorContent :content="summaries[0].content" />
+    </article>
   </template>
 
   <PButton

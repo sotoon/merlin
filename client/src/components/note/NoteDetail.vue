@@ -47,11 +47,9 @@
       </PText>
     </div>
 
-    <article
-      v-sanitize-html="note.content"
-      class="prose mt-4 py-4"
-      dir="auto"
-    />
+    <article class="mt-4 py-4">
+      <EditorContent :content="note.content" />
+    </article>
 
     <div v-if="mentionedUsers?.length" class="mt-4">
       <PHeading :lvl="4" responsive>

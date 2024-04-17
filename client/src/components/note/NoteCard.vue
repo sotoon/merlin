@@ -5,9 +5,7 @@
     header-variant="primary-dark"
     :title="note.title"
   >
-    <PText as="p" class="truncate text-gray-80">
-      {{ extractHtmlContent(note.content) }}
-    </PText>
+    <EditorContentPreview class="text-gray-80" :content="note.content" />
 
     <template #footer>
       <div class="flex grow items-center justify-between gap-2">

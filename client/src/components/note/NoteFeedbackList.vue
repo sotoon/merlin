@@ -7,11 +7,9 @@
         header-variant="primary-dark"
         :title="feedback.owner_name"
       >
-        <article
-          v-sanitize-html="feedback.content"
-          class="text-initial prose"
-          dir="auto"
-        />
+        <article>
+          <EditorContent :content="feedback.content" />
+        </article>
 
         <template #toolbar>
           <PIconButton
