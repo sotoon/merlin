@@ -16,7 +16,7 @@ Merlin is Sotoon's Performance Management System.
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Running the project](#running-the-project)
-  - [Documentaion](#documentaion)
+  - [Documentation](#documentation)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -24,7 +24,7 @@ Merlin is Sotoon's Performance Management System.
 
 ### Prerequisites
 
-To use the project you need to install these softwares: `python-3.11`, `node-21.5.0`, and `pnpm-8.15.4`
+To use the project you need to install these softwares: `python-3.11`, `node-20`, and `pnpm-8`
 
 To install the dependencies of the project you can use:
 
@@ -52,7 +52,7 @@ make run-client
 
 Also, you can use docker compose to run the project on docker compose. Just make sure to fix image urls(or use build) in docker compose file.
 
-## Documentaion
+## Documentation
 
 The project have two main components. The frontend part is based on `React` and `Material UI`. The backend part is based on `Django` and `Django Rest Framework`.
 
