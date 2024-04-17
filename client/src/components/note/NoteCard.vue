@@ -28,12 +28,13 @@
         <template v-if="note.access_level.can_edit">
           <PLoading v-if="isDeleteLoading" class="m-1.5 text-primary" />
 
-          <PIconButton
+          <PInlineConfirm
             v-else
-            :icon="PeyTrashIcon"
-            variant="ghost"
-            @click.prevent="deleteNote"
-          />
+            :message="t('common.confirmDeleteX', [note.title])"
+            @confirm="deleteNote"
+          >
+            <PIconButton :icon="PeyTrashIcon" variant="ghost" @click.prevent />
+          </PInlineConfirm>
         </template>
       </div>
     </template>
@@ -41,7 +42,14 @@
 </template>
 
 <script lang="ts" setup>
-import { PCard, PChip, PIconButton, PLoading, PText } from '@pey/core';
+import {
+  PCard,
+  PChip,
+  PIconButton,
+  PInlineConfirm,
+  PLoading,
+  PText,
+} from '@pey/core';
 import { PeyTrashIcon } from '@pey/icons';
 
 const props = defineProps<{
