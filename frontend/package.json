@@ -1,5 +1,5 @@
 {
-  "name": "merlin-client",
+  "name": "merlin-frontend",
   "private": true,
   "type": "module",
   "scripts": {

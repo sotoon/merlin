@@ -14,20 +14,20 @@ TOFMT_FILES := $(shell find -iname \*.py -not \( \
 
 deps:
 	pip install -r requirements.txt
-	cd client && pnpm i
+	cd frontend && pnpm i
 
 deps-dev: deps
 	pip install -r requirements_dev.txt
-	cd client && pnpm i
+	cd frontend && pnpm i
 
 fmt:
 	python -m isort $(TOFMT_FILES)
 	python -m black $(TOFMT_FILES)
-	cd client && pnpm format
+	cd frontend && pnpm format
 
 lint:
 	python -m flake8
-	cd client && pnpm lint
+	cd frontend && pnpm lint
 
 test:
 	python manage.py test --noinput
@@ -36,10 +36,10 @@ run-server:
 	DJANGO_SETTINGS_MODULE=merlin.settings.development python manage.py runserver
 
 run-client:
-	cd client && pnpm dev -o
+	cd frontend && pnpm dev -o
 
 docker-build-frontend:
-	cd client && docker build --tag $(FRONTEND_IMAGE_NAME):$(VERSION) .
+	cd frontend && docker build --tag $(FRONTEND_IMAGE_NAME):$(VERSION) .
 	docker tag $(FRONTEND_IMAGE_NAME):$(VERSION) $(FRONTEND_IMAGE_NAME):latest
 
 docker-push-frontend:
