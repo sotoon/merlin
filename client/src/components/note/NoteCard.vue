@@ -6,7 +6,7 @@
     :title="note.title"
   >
     <PText as="p" class="truncate text-gray-80">
-      {{ extractTextFromHTML(note.content) }}
+      {{ extractHtmlContent(note.content) }}
     </PText>
 
     <template #footer>
