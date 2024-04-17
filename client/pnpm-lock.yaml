@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@pey/core':
-    specifier: ^1.14.0
-    version: 1.14.0(tailwindcss@3.4.1)(vue@3.4.20)
+    specifier: ^1.15.3
+    version: 1.15.3(tailwindcss@3.4.1)(vue@3.4.20)
   '@pey/icons':
     specifier: ^1.10.2
     version: 1.10.2(vue@3.4.20)
@@ -1746,13 +1746,13 @@ packages:
       '@parcel/watcher-win32-ia32': 2.4.1
       '@parcel/watcher-win32-x64': 2.4.1
 
-  /@pey/core@1.14.0(tailwindcss@3.4.1)(vue@3.4.20):
-    resolution: {integrity: sha512-oYZxnc/vzulGulu0H7y9k6vJcZhsFJ0H4BQoDUehwWtY87xlkJhjkSCwgcWgXWW5W3K+LEzO/c/RaUpd8DoTrg==}
+  /@pey/core@1.15.3(tailwindcss@3.4.1)(vue@3.4.20):
+    resolution: {integrity: sha512-Qn9p5jGAy+Q6/53527l4S9QxGFontEdmbDsZgll5n03KRutz3ub+OOLIkbXgozg1FIJCK51rzr8USBoOC7L9/w==}
     peerDependencies:
       vue: '>=3.2.40 <4.0.0'
     dependencies:
       '@floating-ui/vue': 1.0.6(vue@3.4.20)
-      '@pey/icons': 1.10.2(vue@3.4.20)
+      '@pey/icons': 1.12.1(vue@3.4.20)
       '@pey/tailwind-preset': 1.0.4
       body-scroll-lock: 4.0.0-beta.0
       tailwind-variants: 0.1.20(tailwindcss@3.4.1)
@@ -1765,6 +1765,14 @@ packages:
 
   /@pey/icons@1.10.2(vue@3.4.20):
     resolution: {integrity: sha512-tQP8rnkRfytsdwwmeafFV55yvnS0x/MsZRxqTAR8oYCq+O9LpN5fZEIyMvjDx48jXB5+58cDknyTA6+TSkwjgQ==}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      vue: 3.4.20(typescript@5.3.3)
+    dev: false
+
+  /@pey/icons@1.12.1(vue@3.4.20):
+    resolution: {integrity: sha512-o1IzgkSy6yTCjrEKjGZeQdvTdIHLz5bFZ58HLatADHg+tE1yIjl8sfJun03eDLida/0DtsTQ1d00KvXm/MoAvg==}
     peerDependencies:
       vue: ^3.2.0
     dependencies:
