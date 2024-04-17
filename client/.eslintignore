@@ -1,0 +1,6 @@
+.cache
+.env
+.nitro
+.nuxt
+.output
+dist
