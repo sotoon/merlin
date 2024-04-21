@@ -19,12 +19,20 @@
       />
     </div>
 
-    <div class="mt-4 flex items-center gap-4">
+    <div class="mt-6 flex items-center gap-4">
       <PText as="p" class="text-gray-50" variant="caption1">
-        {{ t('common.date') }}:
-        <PText class="text-gray-70">
-          {{ new Date(note.date).toLocaleDateString('fa-IR') }}
-        </PText>
+        {{ t('note.lastEdit') }}:
+        <PTooltip>
+          <PText class="text-gray-70" variant="caption1">
+            {{ formatTimeAgo(new Date(note.date_updated), 'fa-IR') }}
+          </PText>
+
+          <template #content>
+            <PText dir="ltr" variant="caption1">
+              {{ new Date(note.date_updated).toLocaleString('fa-IR') }}
+            </PText>
+          </template>
+        </PTooltip>
       </PText>
 
       <PText
@@ -44,6 +52,19 @@
         >
           {{ note.owner_name }}
         </NuxtLink>
+      </PText>
+    </div>
+
+    <div class="mt-4">
+      <PText as="p" class="text-gray-50" variant="caption1">
+        {{
+          note.type === NOTE_TYPE.meeting
+            ? t('note.meetingDate')
+            : t('common.date')
+        }}:
+        <PText class="text-gray-70" variant="caption1">
+          {{ new Date(note.date).toLocaleDateString('fa-IR') }}
+        </PText>
       </PText>
     </div>
 
@@ -77,7 +98,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PChip, PHeading, PIconButton, PText } from '@pey/core';
+import { PChip, PHeading, PIconButton, PText, PTooltip } from '@pey/core';
 import { PeyEditIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();

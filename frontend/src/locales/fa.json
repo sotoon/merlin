@@ -40,6 +40,8 @@
     "getNotesError": "خطا در دریافت یادداشت‌ها",
     "getSummaryError": "خطا در دریافت جمع‌بندی",
     "getTemplatesError": "خطا در دریافت قالب‌ها",
+    "lastEdit": "آخرین ویرایش",
+    "meetingDate": "تاریخ جلسه",
     "mentionedUsers": "منشن شوندگان",
     "newNote": "یادداشت جدید",
     "newTemplate": "قالب جدید",
