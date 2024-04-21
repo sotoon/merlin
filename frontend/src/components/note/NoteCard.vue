@@ -7,6 +7,12 @@
   >
     <EditorContentPreview class="text-gray-80" :content="note.content" />
 
+    <template v-if="note.type === NOTE_TYPE.meeting" #toolbar>
+      <PText class="text-gray-10" variant="caption1">
+        {{ new Date(note.date).toLocaleDateString('fa-IR') }}
+      </PText>
+    </template>
+
     <template #footer>
       <div class="flex grow items-center justify-between gap-2">
         <div class="flex items-center gap-2">

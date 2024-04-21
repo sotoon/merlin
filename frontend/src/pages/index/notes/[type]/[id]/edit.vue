@@ -1,6 +1,7 @@
 <template>
   <NoteForm
     :note="note"
+    :note-type="note.type"
     :is-submitting="pending"
     @submit="handleSubmit"
     @cancel="handleCancel"
@@ -19,8 +20,12 @@ const handleSubmit = (
   values: NoteFormValues,
   ctx: SubmissionContext<NoteFormValues>,
 ) => {
+  const dateString =
+    values.date &&
+    `${values.date.getFullYear()}-${values.date.getMonth() + 1}-${values.date.getDate()}`;
+
   updateNote({
-    body: values,
+    body: { ...values, date: dateString },
     onSuccess: () => {
       ctx.resetForm();
       navigateTo({ name: 'note' });

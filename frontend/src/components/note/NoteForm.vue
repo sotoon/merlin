@@ -53,6 +53,20 @@
         </VeeField>
       </div>
 
+      <div class="max-w-xs">
+        <VeeField v-slot="{ componentField }" name="date">
+          <PDatePickerInput
+            v-bind="componentField"
+            :label="
+              noteType === NOTE_TYPE.meeting
+                ? t('note.meetingDate')
+                : t('common.date')
+            "
+            type="jalali"
+          />
+        </VeeField>
+      </div>
+
       <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
         <PButton
           class="shrink-0"
@@ -79,11 +93,19 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PHeading, PInput, PListbox, PListboxOption } from '@pey/core';
+import {
+  PButton,
+  PDatePickerInput,
+  PHeading,
+  PInput,
+  PListbox,
+  PListboxOption,
+} from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
   note?: Note;
+  noteType?: NoteType;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
@@ -102,6 +124,7 @@ const {
     title: props.note?.title || '',
     content: props.note?.content || '',
     mentioned_users: props.note?.mentioned_users || [],
+    date: props.note?.date ? new Date(props.note.date) : undefined,
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });

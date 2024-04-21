@@ -22,8 +22,8 @@ const { t } = useI18n();
 const { execute: createNote, pending } = useCreateNote();
 
 const handleSubmit = (
-  values: NoteFormValues,
-  ctx: SubmissionContext<NoteFormValues>,
+  values: NoteTemplateFormValues,
+  ctx: SubmissionContext<NoteTemplateFormValues>,
 ) => {
   const date = new Date();
   const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;

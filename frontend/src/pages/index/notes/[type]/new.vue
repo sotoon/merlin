@@ -1,6 +1,7 @@
 <template>
   <PBox class="mx-auto max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
     <NoteForm
+      :note-type="noteType"
       :is-submitting="pending"
       @submit="handleSubmit"
       @cancel="handleCancel"
@@ -22,7 +23,7 @@ const handleSubmit = (
   values: NoteFormValues,
   ctx: SubmissionContext<NoteFormValues>,
 ) => {
-  const date = new Date();
+  const date = values.date || new Date();
   const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
   createNote({
