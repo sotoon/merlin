@@ -12,6 +12,8 @@ export interface Note {
   };
   content: string;
   date: string;
+  date_created: string;
+  date_updated: string;
   mentioned_users: string[];
   owner: string;
   owner_name: string;
@@ -24,6 +26,7 @@ export interface Note {
 export interface NoteFormValues
   extends Pick<Partial<Note>, 'title' | 'content' | 'mentioned_users'> {
   content: string;
+  date?: Date;
   title: string;
 }
 
@@ -51,3 +54,6 @@ export interface NoteFeedback {
 export interface NoteFeedbackFormValues {
   content: string;
 }
+
+export interface NoteTemplateFormValues
+  extends Pick<Note, 'title' | 'content'> {}
