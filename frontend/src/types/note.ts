@@ -17,17 +17,24 @@ export interface Note {
   mentioned_users: string[];
   owner: string;
   owner_name: string;
+  period: number;
   read_status: boolean;
   title: string;
   type: NoteType;
   uuid: string;
+  year: number;
 }
 
 export interface NoteFormValues
-  extends Pick<Partial<Note>, 'title' | 'content' | 'mentioned_users'> {
+  extends Pick<
+    Partial<Note>,
+    'title' | 'content' | 'mentioned_users' | 'year'
+  > {
   content: string;
   date?: Date;
+  period?: number;
   title: string;
+  year?: number;
 }
 
 export interface NoteSummary {
