@@ -39,7 +39,7 @@ export interface NoteFormValues
 
 export interface NoteSummary {
   bonus: number;
-  committee_date: string;
+  committee_date: string | null;
   content: string;
   ladder_change: string;
   note: string;
