@@ -57,7 +57,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit } = useForm<NoteFormValues>({
+const { meta, handleSubmit } = useForm<NoteTemplateFormValues>({
   initialValues: {
     title: props.note?.title || '',
     content: props.note?.content || '',

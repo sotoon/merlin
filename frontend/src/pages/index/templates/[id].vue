@@ -66,8 +66,8 @@ const { execute: updateNote, pending: isSubmitting } = useUpdateNote({
 });
 
 const handleSubmit = (
-  values: NoteFormValues,
-  ctx: SubmissionContext<NoteFormValues>,
+  values: NoteTemplateFormValues,
+  ctx: SubmissionContext<NoteTemplateFormValues>,
 ) => {
   updateNote({
     body: values,
