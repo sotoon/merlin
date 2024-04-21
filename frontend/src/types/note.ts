@@ -12,6 +12,8 @@ export interface Note {
   };
   content: string;
   date: string;
+  date_created: string;
+  date_updated: string;
   mentioned_users: string[];
   owner: string;
   owner_name: string;
