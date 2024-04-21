@@ -10,9 +10,17 @@
     <template #footer>
       <div class="flex grow items-center justify-between gap-2">
         <div class="flex items-center gap-2">
-          <PText class="text-gray-50" variant="caption2">
-            {{ new Date(note.date).toLocaleDateString('fa-IR') }}
-          </PText>
+          <PTooltip>
+            <PText class="text-gray-50" variant="caption2">
+              {{ formatTimeAgo(new Date(note.date_created), 'fa-IR') }}
+            </PText>
+
+            <template #content>
+              <PText dir="ltr" variant="caption1">
+                {{ new Date(note.date_created).toLocaleString('fa-IR') }}
+              </PText>
+            </template>
+          </PTooltip>
 
           <PText v-if="displayWriter" class="text-gray-50" variant="caption2">
             {{ note.owner_name }}
@@ -49,6 +57,7 @@ import {
   PInlineConfirm,
   PLoading,
   PText,
+  PTooltip,
 } from '@pey/core';
 import { PeyTrashIcon } from '@pey/icons';
 
