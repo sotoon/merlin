@@ -49,6 +49,7 @@
     "noTemplate": "بدون قالب",
     "noTemplates": "قالبی برای نمایش وجود ندارد.",
     "noteNotFound": "یادداشت یافت نشد.",
+    "period": "دوره",
     "replace": "جایگزین",
     "summary": "جمع‌بندی",
     "template": "قالب",
@@ -60,7 +61,8 @@
     "writeFeedbackFor": "نوشتن فیدبک برای \"{title}\"",
     "writer": "نویسنده",
     "writeSummary": "نوشتن جمع‌بندی",
-    "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\""
+    "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\"",
+    "year": "سال"
   },
   "noteType": {
     "goal": "هدف",

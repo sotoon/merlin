@@ -52,7 +52,10 @@ const props = defineProps<{
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
-  submit: [values: NoteFormValues, ctx: SubmissionContext<NoteFormValues>];
+  submit: [
+    values: NoteTemplateFormValues,
+    ctx: SubmissionContext<NoteTemplateFormValues>,
+  ];
   cancel: [];
 }>();
 

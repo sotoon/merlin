@@ -53,7 +53,7 @@
         </VeeField>
       </div>
 
-      <div class="max-w-xs">
+      <div class="flex flex-wrap gap-4">
         <VeeField v-slot="{ componentField }" name="date">
           <PDatePickerInput
             v-bind="componentField"
@@ -65,6 +65,42 @@
             type="jalali"
           />
         </VeeField>
+
+        <div class="flex flex-wrap gap-2">
+          <div class="w-24">
+            <VeeField v-slot="{ componentField }" name="year">
+              <PListbox
+                v-bind="componentField"
+                hide-details
+                :label="t('note.year')"
+              >
+                <PListboxOption
+                  v-for="year in YEARS"
+                  :key="year"
+                  :label="year.toLocaleString('fa-IR', { useGrouping: false })"
+                  :value="year"
+                />
+              </PListbox>
+            </VeeField>
+          </div>
+
+          <div class="w-24">
+            <VeeField v-slot="{ componentField }" name="period">
+              <PListbox
+                v-bind="componentField"
+                hide-details
+                :label="t('note.period')"
+              >
+                <PListboxOption
+                  v-for="(period, index) in EVALUATION_PERIODS"
+                  :key="index"
+                  :label="period"
+                  :value="index"
+                />
+              </PListbox>
+            </VeeField>
+          </div>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
@@ -103,6 +139,8 @@ import {
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
+const YEARS = [1402, 1403, 1404, 1405, 1406];
+
 const props = defineProps<{
   note?: Note;
   noteType?: NoteType;
@@ -125,6 +163,8 @@ const {
     content: props.note?.content || '',
     mentioned_users: props.note?.mentioned_users || [],
     date: props.note?.date ? new Date(props.note.date) : undefined,
+    year: props.note?.year || YEARS[1],
+    period: props.note?.period || 0,
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
