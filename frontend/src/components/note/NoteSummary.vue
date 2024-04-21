@@ -30,6 +30,45 @@
 
     <article class="mt-4 py-4">
       <EditorContent :content="summaries[0].content" />
+
+      <PBox>
+        <PropertyTable>
+          <PropertyTableRow
+            :label="t('note.performanceLabel')"
+            :value="summaries[0].performance_label"
+          />
+
+          <PropertyTableRow
+            :label="t('note.performanceBonus')"
+            :value="
+              (summaries[0].bonus / 100).toLocaleString('fa-IR', {
+                style: 'percent',
+              })
+            "
+          />
+
+          <PropertyTableRow
+            :label="t('note.ladderChange')"
+            :value="summaries[0].ladder_change"
+          />
+
+          <PropertyTableRow
+            :label="t('note.salaryChange')"
+            :value="summaries[0].salary_change.toLocaleString('fa-IR')"
+          />
+
+          <PropertyTableRow
+            :label="t('note.committeeDate')"
+            :value="
+              summaries[0].committee_date
+                ? new Date(summaries[0].committee_date).toLocaleDateString(
+                    'fa-IR',
+                  )
+                : '-'
+            "
+          />
+        </PropertyTable>
+      </PBox>
     </article>
   </template>
 
@@ -44,7 +83,14 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
+import {
+  PBox,
+  PButton,
+  PHeading,
+  PIconButton,
+  PLoading,
+  PText,
+} from '@pey/core';
 import { PeyEditIcon, PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();

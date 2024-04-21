@@ -8,9 +8,16 @@ interface CreateNoteSummaryError {
   detail?: string;
 }
 
-interface CreateNoteSummaryPayload extends Pick<NoteSummary, 'content'> {
-  content: string;
-}
+interface CreateNoteSummaryPayload
+  extends Pick<
+    NoteSummary,
+    | 'content'
+    | 'performance_label'
+    | 'ladder_change'
+    | 'bonus'
+    | 'salary_change'
+    | 'committee_date'
+  > {}
 
 export const useCreateNoteSummary = ({
   noteId,
