@@ -23,3 +23,14 @@ export const NOTES_WITH_SUMMARY: NoteType[] = [
 ];
 
 export const EVALUATION_PERIODS = ['اول', 'دوم', 'سوم'] as const;
+
+export const PERFORMANCE_LABELS = [
+  'نیاز به بهبود',
+  'در حد انتظار',
+  'فراتر از حد انتظار',
+  'به طور ویژه‌ای فراتر از حد انتظار',
+] as const;
+
+export const PERFORMANCE_BONUSES = [0, 5, 10, 15, 20] as const;
+
+export const SALARY_CHANGES = [0, 0.5, 1, 1.5, 2, 2.5, 3] as const;
