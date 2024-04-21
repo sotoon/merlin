@@ -1,8 +1,105 @@
 <template>
-  <form class="space-y-4" @submit="onSubmit">
+  <form class="space-y-8" @submit="onSubmit">
     <VeeField v-slot="{ value, handleChange }" name="content" rules="required">
       <Editor :model-value="value" @update:model-value="handleChange" />
     </VeeField>
+
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-wrap gap-6">
+        <div class="grow md:grow-0">
+          <VeeField
+            v-slot="{ componentField }"
+            name="performance_label"
+            rules="required"
+          >
+            <PListbox
+              v-bind="componentField"
+              hide-details
+              :label="t('note.performanceLabel')"
+              required
+            >
+              <PListboxOption
+                v-for="item in PERFORMANCE_LABELS"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </PListbox>
+          </VeeField>
+        </div>
+
+        <div class="w-32 grow md:grow-0">
+          <VeeField v-slot="{ componentField }" name="bonus" rules="required">
+            <PListbox
+              v-bind="componentField"
+              hide-details
+              :label="t('note.performanceBonus')"
+              required
+            >
+              <PListboxOption
+                v-for="bonus in PERFORMANCE_BONUSES"
+                :key="bonus"
+                :label="
+                  (bonus / 100).toLocaleString('fa-IR', { style: 'percent' })
+                "
+                :value="bonus"
+              />
+            </PListbox>
+          </VeeField>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-6">
+        <VeeField
+          v-slot="{ componentField }"
+          name="ladder_change"
+          rules="required"
+        >
+          <PInput
+            v-bind="componentField"
+            class="grow md:grow-0"
+            hide-details
+            :label="t('note.ladderChange')"
+            required
+          />
+        </VeeField>
+
+        <div class="w-32 grow md:grow-0">
+          <VeeField
+            v-slot="{ componentField }"
+            name="salary_change"
+            rules="required"
+          >
+            <PListbox
+              v-bind="componentField"
+              hide-details
+              :label="t('note.salaryChange')"
+              required
+            >
+              <PListboxOption
+                v-for="change in SALARY_CHANGES"
+                :key="change"
+                :label="change.toLocaleString('fa-IR')"
+                :value="change"
+              />
+            </PListbox>
+          </VeeField>
+        </div>
+      </div>
+
+      <div class="flex">
+        <div class="grow md:grow-0">
+          <VeeField v-slot="{ componentField }" name="committee_date">
+            <PDatePickerInput
+              v-bind="componentField"
+              :label="t('note.committeeDate')"
+              required
+              type="jalali"
+            />
+          </VeeField>
+        </div>
+      </div>
+    </div>
 
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
       <PButton
@@ -29,7 +126,13 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton } from '@pey/core';
+import {
+  PButton,
+  PDatePickerInput,
+  PInput,
+  PListbox,
+  PListboxOption,
+} from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
@@ -48,6 +151,13 @@ const { t } = useI18n();
 const { meta, handleSubmit } = useForm<NoteSummaryFormValues>({
   initialValues: {
     content: props.summary?.content || '',
+    performance_label: props.summary?.performance_label,
+    ladder_change: props.summary?.ladder_change || '',
+    bonus: props.summary?.bonus,
+    salary_change: props.summary?.salary_change,
+    committee_date: props.summary?.committee_date
+      ? new Date(props.summary?.committee_date)
+      : undefined,
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });

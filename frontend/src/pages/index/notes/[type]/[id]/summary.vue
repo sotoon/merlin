@@ -36,8 +36,10 @@ const handleSubmit = (
   values: NoteSummaryFormValues,
   ctx: SubmissionContext<NoteSummaryFormValues>,
 ) => {
+  const committeeDateString = `${values.committee_date.getFullYear()}-${values.committee_date.getMonth() + 1}-${values.committee_date.getDate()}`;
+
   createNoteSummary({
-    body: values,
+    body: { ...values, committee_date: committeeDateString },
     onSuccess: () => {
       ctx.resetForm();
       navigateTo({ name: 'note' });

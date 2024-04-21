@@ -39,7 +39,7 @@ export interface NoteFormValues
 
 export interface NoteSummary {
   bonus: number;
-  committee_date: string;
+  committee_date: string | null;
   content: string;
   ladder_change: string;
   note: string;
@@ -48,7 +48,17 @@ export interface NoteSummary {
   uuid: string;
 }
 
-export interface NoteSummaryFormValues extends Pick<NoteSummary, 'content'> {}
+export interface NoteSummaryFormValues
+  extends Pick<
+    NoteSummary,
+    | 'content'
+    | 'performance_label'
+    | 'ladder_change'
+    | 'bonus'
+    | 'salary_change'
+  > {
+  committee_date: Date;
+}
 
 export interface NoteFeedback {
   content: string;
