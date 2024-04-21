@@ -7,9 +7,13 @@
   >
     <EditorContentPreview class="text-gray-80" :content="note.content" />
 
-    <template v-if="note.type === NOTE_TYPE.meeting" #toolbar>
-      <PText class="text-gray-10" variant="caption1">
-        {{ new Date(note.date).toLocaleDateString('fa-IR') }}
+    <template #toolbar>
+      <PText class="text-nowrap text-gray-10" dir="ltr" variant="caption1">
+        {{
+          note.type === NOTE_TYPE.meeting
+            ? new Date(note.date).toLocaleDateString('fa-IR')
+            : `${note.year.toLocaleString('fa-IR', { useGrouping: false })} - ${(note.period + 1).toLocaleString('fa-IR')}`
+        }}
       </PText>
     </template>
 
