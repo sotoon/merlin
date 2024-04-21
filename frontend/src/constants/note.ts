@@ -21,3 +21,5 @@ export const NOTES_WITH_SUMMARY: NoteType[] = [
   NOTE_TYPE.goal,
   NOTE_TYPE.proposal,
 ];
+
+export const EVALUATION_PERIODS = ['اول', 'دوم', 'سوم'] as const;

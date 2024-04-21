@@ -19,7 +19,7 @@
       />
     </div>
 
-    <div class="mt-6 flex items-center gap-4">
+    <div class="mt-6 flex flex-wrap items-center gap-4">
       <PText as="p" class="text-gray-50" variant="caption1">
         {{ t('note.lastEdit') }}:
         <PTooltip>
@@ -55,7 +55,7 @@
       </PText>
     </div>
 
-    <div class="mt-4">
+    <div class="mt-4 flex flex-wrap items-center gap-4">
       <PText as="p" class="text-gray-50" variant="caption1">
         {{
           note.type === NOTE_TYPE.meeting
@@ -64,6 +64,14 @@
         }}:
         <PText class="text-gray-70" variant="caption1">
           {{ new Date(note.date).toLocaleDateString('fa-IR') }}
+        </PText>
+      </PText>
+
+      <PText as="p" class="text-gray-50" variant="caption1">
+        {{ t('note.period') }}:
+        <PText class="text-gray-70" variant="caption1">
+          {{ EVALUATION_PERIODS[note.period] || '' }}
+          {{ note.year.toLocaleString('fa-IR', { useGrouping: false }) }}
         </PText>
       </PText>
     </div>
