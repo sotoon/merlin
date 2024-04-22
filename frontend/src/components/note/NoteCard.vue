@@ -22,12 +22,12 @@
         <div class="flex items-center gap-2">
           <PTooltip>
             <PText class="text-gray-50" variant="caption2">
-              {{ formatTimeAgo(new Date(note.date_created), 'fa-IR') }}
+              {{ formatTimeAgo(new Date(note.date_updated), 'fa-IR') }}
             </PText>
 
             <template #content>
               <PText dir="ltr" variant="caption1">
-                {{ new Date(note.date_created).toLocaleString('fa-IR') }}
+                {{ new Date(note.date_updated).toLocaleString('fa-IR') }}
               </PText>
             </template>
           </PTooltip>

@@ -17,6 +17,7 @@
     "proposal": "پروپوزال",
     "retry": "تلاش مجدد",
     "save": "ذخیره",
+    "sort": "مرتب سازی",
     "tasks": "فعالیت‌ها",
     "templates": "قالب‌ها"
   },
@@ -35,6 +36,7 @@
     "committeeDate": "تاریخ کمیته",
     "editNote": "ویرایش یادداشت",
     "editTemplate": "ویرایش قالب",
+    "evaluationPeriod": "دوره ارزیابی",
     "feedbacks": "فیدبک‌ها",
     "getFeedbacksError": "خطا در دریافت فیدبک‌ها",
     "getNoteError": "خطا در دریافت یادداشت",

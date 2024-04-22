@@ -28,7 +28,7 @@ export function formatTimeAgo(
   );
   const divisor = unitIndex ? CUTOFFS[unitIndex - 1] : 1;
 
-  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(lang);
 
   return rtf.format(Math.floor(deltaSeconds / divisor), UNITS[unitIndex]);
 }
