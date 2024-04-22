@@ -34,3 +34,9 @@ export const PERFORMANCE_LABELS = [
 export const PERFORMANCE_BONUSES = [0, 5, 10, 15, 20] as const;
 
 export const SALARY_CHANGES = [0, 0.5, 1, 1.5, 2, 2.5, 3] as const;
+
+export const NOTE_SORT_OPTION = {
+  update: 'update',
+  period: 'period',
+  date: 'date',
+} as const;
