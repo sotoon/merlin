@@ -16,5 +16,5 @@ export const useSortNotes = (notes: Ref<Note[]> | (() => Note[])) => {
     [...toValue(notes)].sort(SORT_FUNCTIONS[sortModel.value]),
   );
 
-  return { sortModel, sortedNotes };
+  return sortedNotes;
 };
