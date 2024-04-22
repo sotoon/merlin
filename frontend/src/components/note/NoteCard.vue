@@ -7,7 +7,7 @@
   >
     <EditorContentPreview class="text-gray-80" :content="note.content" />
 
-    <template #toolbar>
+    <template v-if="note.type !== NOTE_TYPE.template" #toolbar>
       <PText class="text-nowrap text-gray-10" dir="ltr" variant="caption1">
         {{
           note.type === NOTE_TYPE.meeting
