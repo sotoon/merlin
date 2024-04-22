@@ -22,16 +22,28 @@
       </PButton>
     </div>
 
-    <NoteList
-      v-else-if="notes?.length"
-      :notes="notes"
-      display-writer
-      display-type
-    />
+    <template v-else>
+      <NoteListControls v-if="notes?.length">
+        <template #sort>
+          <NoteSortControl />
+        </template>
 
-    <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
-      {{ t('note.noNotes') }}
-    </PText>
+        <template #filter>
+          <NotePeriodFilter :notes="notes" />
+        </template>
+      </NoteListControls>
+
+      <NoteList
+        v-if="sortedNotes.length"
+        :notes="sortedNotes"
+        display-writer
+        display-type
+      />
+
+      <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
+        {{ t('note.noNotes') }}
+      </PText>
+    </template>
   </div>
 </template>
 
@@ -49,4 +61,6 @@ const {
 } = useGetNotes({
   retrieveMentions: true,
 });
+const filteredNotes = useFilterNotes(() => notes.value || []);
+const sortedNotes = useSortNotes(filteredNotes);
 </script>
