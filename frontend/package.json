@@ -19,6 +19,7 @@
     "@vee-validate/i18n": "^4.12.5",
     "@vee-validate/nuxt": "^4.12.5",
     "@vee-validate/rules": "^4.12.5",
+    "@vueuse/router": "^10.9.0",
     "nuxt": "^3.10.3",
     "vue": "^3.4.19",
     "vue-router": "^4.3.0"
