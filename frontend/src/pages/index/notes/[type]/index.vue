@@ -26,11 +26,27 @@
       </PButton>
     </div>
 
-    <NoteList v-else-if="notes?.length" :notes="notes" :display-type="isUser" />
+    <template v-else>
+      <NoteListControls v-if="notes?.length">
+        <template #sort>
+          <NoteSortControl />
+        </template>
 
-    <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
-      {{ t('note.noNotes') }}
-    </PText>
+        <template #filter>
+          <NotePeriodFilter :notes="notes" />
+        </template>
+      </NoteListControls>
+
+      <NoteList
+        v-if="sortedNotes.length"
+        :notes="sortedNotes"
+        :display-type="isUser"
+      />
+
+      <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
+        {{ t('note.noNotes') }}
+      </PText>
+    </template>
   </div>
 </template>
 
@@ -55,6 +71,8 @@ const {
   type: props.noteType,
   user: props.userEmail,
 });
+const filteredNotes = useFilterNotes(() => notes.value || []);
+const sortedNotes = useSortNotes(filteredNotes);
 
 const isUser = computed(() => Boolean(props.userEmail));
 const noteTitles = computed(() => ({
