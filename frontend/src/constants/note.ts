@@ -31,8 +31,6 @@ export const PERFORMANCE_LABELS = [
   'به طور ویژه‌ای فراتر از حد انتظار',
 ] as const;
 
-export const PERFORMANCE_BONUSES = [0, 5, 10, 15, 20] as const;
-
 export const SALARY_CHANGES = [0, 0.5, 1, 1.5, 2, 2.5, 3] as const;
 
 export const NOTE_SORT_OPTION = {

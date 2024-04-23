@@ -1,12 +1,12 @@
 <template>
-  <form class="space-y-8" @submit="onSubmit">
+  <form class="space-y-10" @submit="onSubmit">
     <VeeField v-slot="{ value, handleChange }" name="content" rules="required">
       <Editor :model-value="value" @update:model-value="handleChange" />
     </VeeField>
 
-    <div class="flex flex-col gap-6">
-      <div class="flex flex-wrap gap-6">
-        <div class="grow md:grow-0">
+    <div class="flex max-w-lg flex-col gap-6">
+      <div class="flex flex-col flex-wrap gap-6 md:flex-row">
+        <div class="grow">
           <VeeField
             v-slot="{ componentField }"
             name="performance_label"
@@ -14,7 +14,6 @@
           >
             <PListbox
               v-bind="componentField"
-              hide-details
               :label="t('note.performanceLabel')"
               required
             >
@@ -28,28 +27,20 @@
           </VeeField>
         </div>
 
-        <div class="w-32 grow md:grow-0">
+        <div class="md:w-36">
           <VeeField v-slot="{ componentField }" name="bonus" rules="required">
-            <PListbox
+            <PInput
               v-bind="componentField"
-              hide-details
               :label="t('note.performanceBonus')"
+              prefix="%"
               required
-            >
-              <PListboxOption
-                v-for="bonus in PERFORMANCE_BONUSES"
-                :key="bonus"
-                :label="
-                  (bonus / 100).toLocaleString('fa-IR', { style: 'percent' })
-                "
-                :value="bonus"
-              />
-            </PListbox>
+              type="number"
+            />
           </VeeField>
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-6">
+      <div class="flex flex-col flex-wrap gap-6 md:flex-row">
         <VeeField
           v-slot="{ componentField }"
           name="ladder_change"
@@ -57,14 +48,13 @@
         >
           <PInput
             v-bind="componentField"
-            class="grow md:grow-0"
-            hide-details
+            class="grow"
             :label="t('note.ladderChange')"
             required
           />
         </VeeField>
 
-        <div class="w-32 grow md:grow-0">
+        <div class="md:w-36">
           <VeeField
             v-slot="{ componentField }"
             name="salary_change"
@@ -72,14 +62,13 @@
           >
             <PListbox
               v-bind="componentField"
-              hide-details
               :label="t('note.salaryChange')"
               required
             >
               <PListboxOption
                 v-for="change in SALARY_CHANGES"
                 :key="change"
-                :label="change.toLocaleString('fa-IR')"
+                :label="`${change}`"
                 :value="change"
               />
             </PListbox>
@@ -87,8 +76,8 @@
         </div>
       </div>
 
-      <div class="flex">
-        <div class="grow md:grow-0">
+      <div class="flex flex-col md:flex-row">
+        <div>
           <VeeField v-slot="{ componentField }" name="committee_date">
             <PDatePickerInput
               v-bind="componentField"
