@@ -31,7 +31,7 @@
     <article class="mt-4 py-4">
       <EditorContent :content="summaries[0].content" />
 
-      <PBox>
+      <PBox v-if="note.type === NOTE_TYPE.proposal">
         <PropertyTable>
           <PropertyTableRow
             :label="t('note.performanceLabel')"

@@ -4,7 +4,7 @@
       <Editor :model-value="value" @update:model-value="handleChange" />
     </VeeField>
 
-    <div class="flex max-w-lg flex-col gap-6">
+    <div v-if="showCommitteeFields" class="flex max-w-lg flex-col gap-6">
       <div class="flex flex-col flex-wrap gap-6 md:flex-row">
         <div class="grow">
           <VeeField
@@ -126,6 +126,7 @@ import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
   summary?: NoteSummary;
+  showCommitteeFields?: boolean;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
