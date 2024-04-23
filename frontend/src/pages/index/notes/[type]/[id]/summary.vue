@@ -10,6 +10,7 @@
       v-else
       :note="note"
       :summary="summaries?.[0]"
+      :show-committee-fields="note.type === NOTE_TYPE.proposal"
       :is-submitting="pending"
       @submit="handleSubmit"
       @cancel="handleCancel"
@@ -36,7 +37,9 @@ const handleSubmit = (
   values: NoteSummaryFormValues,
   ctx: SubmissionContext<NoteSummaryFormValues>,
 ) => {
-  const committeeDateString = `${values.committee_date.getFullYear()}-${values.committee_date.getMonth() + 1}-${values.committee_date.getDate()}`;
+  const committeeDateString =
+    values.committee_date &&
+    `${values.committee_date.getFullYear()}-${values.committee_date.getMonth() + 1}-${values.committee_date.getDate()}`;
 
   createNoteSummary({
     body: { ...values, committee_date: committeeDateString },
