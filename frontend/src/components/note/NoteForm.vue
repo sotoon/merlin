@@ -103,6 +103,26 @@
         </div>
       </div>
 
+      <div>
+        <VeeField v-slot="{ componentField }" name="linked_notes">
+          <PListbox
+            v-bind="componentField"
+            hide-details
+            :label="t('note.relatedNotes')"
+            :loading="isNotesLoading"
+            multiple
+            searchable
+          >
+            <PListboxOption
+              v-for="noteItem in noteOptions"
+              :key="noteItem.uuid"
+              :label="noteItem.title"
+              :value="noteItem.uuid"
+            />
+          </PListbox>
+        </VeeField>
+      </div>
+
       <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
         <PButton
           class="shrink-0"
@@ -165,10 +185,24 @@ const {
     date: props.note?.date ? new Date(props.note.date) : undefined,
     year: props.note?.year || YEARS[1],
     period: props.note?.period || 0,
+    linked_notes: props.note?.linked_notes || [],
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
 const { data: users, pending: isUsersLoading } = useGetUsers();
+const { data: notes, pending: isNotesLoading } = useGetNotes();
+
+const noteOptions = computed(() =>
+  notes.value
+    ?.filter(
+      (note) =>
+        note.type !== NOTE_TYPE.template && note.uuid !== props.note?.uuid,
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.date_updated).getTime() - new Date(a.date_updated).getTime(),
+    ),
+);
 
 const handleTemplateSelect = ({
   action,

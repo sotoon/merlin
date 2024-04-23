@@ -7,7 +7,13 @@ interface UpdateNoteError {
 interface UpdateNotePayload
   extends Pick<
     Partial<Note>,
-    'content' | 'title' | 'mentioned_users' | 'date'
+    | 'title'
+    | 'content'
+    | 'mentioned_users'
+    | 'date'
+    | 'year'
+    | 'period'
+    | 'linked_notes'
   > {}
 
 interface UseUpdateNoteOptions {
@@ -21,7 +27,7 @@ export const useUpdateNote = ({ id }: UseUpdateNoteOptions) =>
       method: 'PATCH',
       onSuccess: (note) => {
         invalidateNuxtData(['note', id]);
-        invalidateNuxtData(['notes', note.type])
+        invalidateNuxtData(['notes', note.type]);
       },
     },
   );
