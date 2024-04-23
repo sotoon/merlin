@@ -29,6 +29,8 @@
         </template>
 
         <template #filter>
+          <NoteWriterFilter :notes="notes" />
+          <NoteTypeFilter />
           <NotePeriodFilter :notes="notes" />
         </template>
       </NoteListControls>
