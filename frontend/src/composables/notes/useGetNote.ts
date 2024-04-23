@@ -5,4 +5,6 @@ interface UseGetNoteOptions {
 }
 
 export const useGetNote = ({ id }: UseGetNoteOptions) =>
-  useApiFetch<GetNoteResponse>(`/notes/${id}`, { key: `note:${id}` });
+  useApiFetch<GetNoteResponse>(`/notes/${id}`, {
+    key: createNuxtDataKey(['note', id]),
+  });
