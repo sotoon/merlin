@@ -29,6 +29,7 @@
         </template>
 
         <template #filter>
+          <NoteWriterFilter :notes="notes" />
           <NotePeriodFilter :notes="notes" />
         </template>
       </NoteListControls>
@@ -50,6 +51,7 @@
 <script lang="ts" setup>
 import { PButton, PHeading, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
+import NoteWriterFilter from '~/components/note/NoteWriterFilter.vue';
 
 const { t } = useI18n();
 useHead({ title: t('common.messages') });
