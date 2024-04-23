@@ -16,8 +16,8 @@ export const useCreateNote = () =>
     '/notes/',
     {
       method: 'POST',
-      onSuccess: () => {
-        refreshNuxtData('notes');
+      onSuccess: (note) => {
+        invalidateNuxtData(['notes', note.type]);
       },
     },
   );

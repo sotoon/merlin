@@ -10,6 +10,6 @@ export const useDeleteNote = ({ id }: UseDeleteNoteOptions) =>
   useApiMutation<never, DeleteNoteError, never>(`/notes/${id}/`, {
     method: 'DELETE',
     onSuccess: () => {
-      refreshNuxtData('notes');
+      invalidateNuxtData('notes');
     },
   });
