@@ -15,7 +15,6 @@ interface CreateNoteFeedbackPayload extends Pick<NoteFeedback, 'content'> {
 
 export const useCreateNoteFeedback = ({
   noteId,
-  owner,
 }: UseCreateNoteFeedbackOptions) =>
   useApiMutation<
     CreateNoteFeedbackResponse,
@@ -24,9 +23,6 @@ export const useCreateNoteFeedback = ({
   >(`/notes/${noteId}/feedbacks/`, {
     method: 'POST',
     onSuccess: () => {
-      refreshNuxtData([
-        `note:${noteId}:feedbacks`,
-        `note:${noteId}:feedbacks:${owner}`,
-      ]);
+      invalidateNuxtData(['note-feedbacks', noteId]);
     },
   });
