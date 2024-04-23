@@ -41,10 +41,7 @@ const { data: userFeedbacks, pending: getFeedbacksPending } =
     enabled: isEditMode.value,
   });
 const { execute: createNoteFeedback, pending: isSubmitting } =
-  useCreateNoteFeedback({
-    noteId: props.note.uuid,
-    owner: isEditMode.value ? (owner as string) : undefined,
-  });
+  useCreateNoteFeedback({ noteId: props.note.uuid });
 
 const handleSubmit = (
   values: NoteFeedbackFormValues,
