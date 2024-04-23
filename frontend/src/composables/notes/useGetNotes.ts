@@ -10,9 +10,9 @@ export const useGetNotes = ({
   type,
   user,
   retrieveMentions,
-}: UseGetNotesOptions) =>
+}: UseGetNotesOptions = {}) =>
   useApiFetch<GetNotesResponse>('/notes/', {
-    key: 'notes',
+    key: createNuxtDataKey(['notes', type, user, retrieveMentions]),
     query: {
       type,
       user,

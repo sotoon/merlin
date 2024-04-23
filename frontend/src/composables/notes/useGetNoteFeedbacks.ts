@@ -12,9 +12,7 @@ export const useGetNoteFeedbacks = ({
   enabled,
 }: UseGetNoteFeedbacksOptions) =>
   useApiFetch<GetNoteFeedbacksResponse>(`/notes/${noteId}/feedbacks/`, {
-    key: owner
-      ? `note:${noteId}:feedbacks:${owner}`
-      : `note:${noteId}:feedbacks`,
+    key: createNuxtDataKey(['note-feedbacks', noteId, owner]),
     query: {
       owner,
     },

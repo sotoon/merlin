@@ -19,8 +19,9 @@ export const useUpdateNote = ({ id }: UseUpdateNoteOptions) =>
     `/notes/${id}/`,
     {
       method: 'PATCH',
-      onSuccess: () => {
-        refreshNuxtData(`note:${id}`);
+      onSuccess: (note) => {
+        invalidateNuxtData(['note', id]);
+        invalidateNuxtData(['notes', note.type])
       },
     },
   );

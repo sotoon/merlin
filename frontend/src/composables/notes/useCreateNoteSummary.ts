@@ -29,6 +29,6 @@ export const useCreateNoteSummary = ({
   >(`/notes/${noteId}/summaries/`, {
     method: 'POST',
     onSuccess: () => {
-      refreshNuxtData(`note:${noteId}:summaries`);
+      invalidateNuxtData(['note-summaries', noteId]);
     },
   });

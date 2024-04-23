@@ -6,5 +6,5 @@ interface UseGetNoteSummariesOptions {
 
 export const useGetNoteSummaries = ({ noteId }: UseGetNoteSummariesOptions) =>
   useApiFetch<GetNoteSummariesResponse>(`/notes/${noteId}/summaries/`, {
-    key: `note:${noteId}:summaries`,
+    key: createNuxtDataKey(['note-summaries', noteId]),
   });
