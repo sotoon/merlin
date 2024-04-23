@@ -33,6 +33,7 @@
         </template>
 
         <template #filter>
+          <NoteTypeFilter v-if="!noteType" />
           <NotePeriodFilter :notes="notes" />
         </template>
       </NoteListControls>
