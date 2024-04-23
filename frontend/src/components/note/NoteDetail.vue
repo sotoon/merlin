@@ -95,6 +95,28 @@
       </div>
     </div>
 
+    <div v-if="linkedNotes?.length" class="mt-8">
+      <PHeading :lvl="4" responsive>
+        {{ t('note.relatedNotes') }}
+      </PHeading>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <NuxtLink
+          v-for="linkedNote in linkedNotes"
+          :key="linkedNote.uuid"
+          class="*:cursor-pointer"
+          :to="linkedNote.to"
+        >
+          <PChip
+            color="primary"
+            :icon="PeyLinkIcon"
+            :label="linkedNote.title"
+            size="small"
+          />
+        </NuxtLink>
+      </div>
+    </div>
+
     <div v-if="NOTES_WITH_SUMMARY.includes(note.type)" class="mt-8">
       <NoteSummary :note="note" />
     </div>
@@ -107,18 +129,52 @@
 
 <script lang="ts" setup>
 import { PChip, PHeading, PIconButton, PText, PTooltip } from '@pey/core';
-import { PeyEditIcon } from '@pey/icons';
+import { PeyEditIcon, PeyLinkIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
 
 const { t } = useI18n();
 const { data: users } = useGetUsers();
+const { data: myNotes } = useGetNotes();
+const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
 
 const mentionedUsers = computed(() =>
   users.value?.filter(({ email }) =>
     props.note.mentioned_users.includes(email),
   ),
 );
+const linkedNotes = computed(() => [
+  ...(myNotes.value
+    ?.filter(({ uuid }) => props.note.linked_notes.includes(uuid))
+    .map((note) => ({
+      ...note,
+      to:
+        note.type === NOTE_TYPE.template
+          ? {
+              name: 'template',
+              params: { id: note.uuid },
+            }
+          : {
+              name: 'note',
+              params: {
+                type: NOTE_TYPE_ROUTE_PARAM[note.type],
+                id: note.uuid,
+              },
+            },
+    })) || []),
+  ...(mentionedNotes.value
+    ?.filter(({ uuid }) => props.note.linked_notes.includes(uuid))
+    .map((note) => ({
+      ...note,
+      to: {
+        name: 'note',
+        params: {
+          type: '-',
+          id: note.uuid,
+        },
+      },
+    })) || []),
+]);
 
 const noteTypeLabel = computed(() => ({
   [NOTE_TYPE.goal]: t('noteType.goal'),
