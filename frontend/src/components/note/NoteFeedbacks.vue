@@ -22,9 +22,16 @@
       <PIconButton
         v-if="note.access_level.can_write_feedback"
         class="shrink-0"
-        :icon="PeyPlusIcon"
+        :icon="userHasWrittenFeedback ? PeyEditIcon : PeyPlusIcon"
         type="button"
-        @click="navigateTo({ name: 'note-feedback' })"
+        @click="
+          navigateTo({
+            name: 'note-feedback',
+            query: {
+              owner: userHasWrittenFeedback ? profile?.email : undefined,
+            },
+          })
+        "
       />
     </div>
 
@@ -45,7 +52,7 @@
 
 <script lang="ts" setup>
 import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
-import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
+import { PeyEditIcon, PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
 
@@ -58,4 +65,9 @@ const {
 } = useGetNoteFeedbacks({
   noteId: props.note.uuid,
 });
+const { data: profile } = useGetProfile();
+
+const userHasWrittenFeedback = computed(() =>
+  feedbacks.value?.some((feedback) => feedback.owner === profile.value?.email),
+);
 </script>
