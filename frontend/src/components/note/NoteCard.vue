@@ -35,16 +35,19 @@
           <PText v-if="displayWriter" class="text-gray-50" variant="caption2">
             {{ note.owner_name }}
           </PText>
+
+          <PChip
+            v-if="displayType && note.type !== 'Template'"
+            :label="noteTypeLabel[note.type]"
+            size="small"
+          />
         </div>
 
-        <PChip
-          v-if="displayType && note.type !== 'Template'"
-          :label="noteTypeLabel[note.type]"
-          size="small"
-        />
-
-        <template v-if="note.access_level.can_edit">
-          <PLoading v-if="isDeleteLoading" class="m-1.5 text-primary" />
+        <div
+          v-if="note.access_level.can_edit"
+          class="flex h-8 w-8 items-center justify-center"
+        >
+          <PLoading v-if="isDeleteLoading" class="text-primary" />
 
           <PInlineConfirm
             v-else
@@ -53,7 +56,9 @@
           >
             <PIconButton :icon="PeyTrashIcon" variant="ghost" @click.prevent />
           </PInlineConfirm>
-        </template>
+        </div>
+
+        <NoteReadToggle v-else-if="displayReadStatus" :note="note" />
       </div>
     </template>
   </PCard>
@@ -75,6 +80,7 @@ const props = defineProps<{
   note: Note;
   displayWriter?: boolean;
   displayType?: boolean;
+  displayReadStatus?: boolean;
 }>();
 
 const { t } = useI18n();

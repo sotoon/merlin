@@ -23,6 +23,7 @@
           :note="note"
           :display-writer="displayWriter"
           :display-type="displayType"
+          :display-read-status="displayReadStatus"
         />
       </NuxtLink>
     </li>
@@ -34,6 +35,7 @@ defineProps<{
   notes: Note[];
   displayWriter?: boolean;
   displayType?: boolean;
+  displayReadStatus?: boolean;
 }>();
 
 const route = useRoute();
