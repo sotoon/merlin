@@ -33,7 +33,7 @@
         <Editor :model-value="value" @update:model-value="handleChange" />
       </VeeField>
 
-      <div>
+      <div v-if="noteType !== NOTE_TYPE.personal">
         <VeeField v-slot="{ componentField }" name="mentioned_users">
           <PListbox
             v-bind="componentField"
