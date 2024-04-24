@@ -40,6 +40,7 @@
         :notes="sortedNotes"
         display-writer
         display-type
+        display-read-status
       />
 
       <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
