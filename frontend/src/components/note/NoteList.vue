@@ -1,5 +1,5 @@
 <template>
-  <ul class="mt-4 grid grid-cols-1 gap-2 py-4 lg:grid-cols-2 lg:gap-3">
+  <ul class="mt-4 grid grid-cols-1 gap-2 py-4 xl:grid-cols-2 xl:gap-3">
     <li v-for="note in notes" :key="note.uuid">
       <NuxtLink
         :to="
