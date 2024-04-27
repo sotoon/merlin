@@ -27,8 +27,8 @@ const handleSubmit = (
   updateNote({
     body: { ...values, date: dateString },
     onSuccess: () => {
-      ctx.resetForm();
       navigateTo({ name: 'note' });
+      ctx.resetForm();
     },
   });
 };

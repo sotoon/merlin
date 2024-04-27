@@ -28,9 +28,9 @@ const handleSubmit = (
 
   createNote({
     body: { ...values, date: dateString, type: props.noteType },
-    onSuccess: () => {
+    onSuccess: (newNote) => {
+      navigateTo({ name: 'note', params: { id: newNote.uuid } });
       ctx.resetForm();
-      router.back();
     },
   });
 };

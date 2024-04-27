@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-8 w-8 items-center justify-center" @click.prevent>
+  <div class="flex h-8 w-8 items-center justify-center">
     <PLoading v-if="readStatusPending" class="text-white" />
 
     <button

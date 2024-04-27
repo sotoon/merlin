@@ -12,22 +12,11 @@
     </template>
 
     <template v-if="note.access_level.can_edit || displayReadStatus" #toolbar>
-      <div class="ms-4 hidden sm:block">
-        <div
+      <div class="ms-4 hidden sm:block" @click.prevent>
+        <NoteDeleteButton
           v-if="note.access_level.can_edit"
-          class="flex h-8 w-8 items-center justify-center"
-          @click.prevent
-        >
-          <PLoading v-if="isDeleteLoading" class="text-white" />
-
-          <PInlineConfirm
-            v-else
-            :message="t('common.confirmDeleteX', [note.title])"
-            @confirm="deleteNote"
-          >
-            <PIconButton :icon="PeyTrashIcon" variant="fill" @click.prevent />
-          </PInlineConfirm>
-        </div>
+          :note-id="note.uuid"
+        />
 
         <NoteReadToggle v-else-if="displayReadStatus" :note="note" />
       </div>
@@ -73,18 +62,9 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  PCard,
-  PChip,
-  PIconButton,
-  PInlineConfirm,
-  PLoading,
-  PText,
-  PTooltip,
-} from '@pey/core';
-import { PeyTrashIcon } from '@pey/icons';
+import { PCard, PChip, PText, PTooltip } from '@pey/core';
 
-const props = defineProps<{
+defineProps<{
   note: Note;
   displayWriter?: boolean;
   displayType?: boolean;
@@ -92,9 +72,6 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const { execute: deleteNote, pending: isDeleteLoading } = useDeleteNote({
-  id: props.note.uuid,
-});
 
 const noteTypeLabel = computed(() => ({
   [NOTE_TYPE.goal]: t('noteType.goal'),
