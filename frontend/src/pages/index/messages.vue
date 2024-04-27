@@ -32,6 +32,7 @@
           <NoteWriterFilter :notes="notes" />
           <NoteTypeFilter />
           <NotePeriodFilter :notes="notes" />
+          <NoteReadStatusFilter />
         </template>
       </NoteListControls>
 
