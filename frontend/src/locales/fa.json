@@ -64,6 +64,7 @@
     "template": "قالب",
     "title": "عنوان",
     "type": "نوع",
+    "unreadMessages": "خوانده نشده‌ها",
     "useTemplate": "استفاده از قالب \"{title}\"",
     "useTemplateConfirmMessage": "آیا می‌خواهید این قالب به یادداشت اضافه شود یا جایگزین آن شود؟",
     "writeFeedback": "نوشتن فیدبک",
