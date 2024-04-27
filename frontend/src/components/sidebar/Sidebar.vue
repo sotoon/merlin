@@ -11,8 +11,41 @@
     <div class="flex grow flex-col overflow-hidden px-2">
       <PScrollbar class="-mx-2 grow px-2 py-4">
         <ul class="space-y-6">
-          <li v-for="linkGroup in sidebarLinks" :key="linkGroup.title">
-            <SidebarLinkGroup v-bind="linkGroup" />
+          <li>
+            <SidebarLinkGroup :title="t('common.notes')">
+              <li v-for="link in notesLinks" :key="link.label">
+                <SidebarLink v-bind="link" />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
+            <SidebarLinkGroup :title="t('common.personal')">
+              <li>
+                <SidebarLink
+                  :badge-count="newMessagesCount"
+                  icon="💬"
+                  :label="t('common.messages')"
+                  :to="{ name: 'messages' }"
+                />
+              </li>
+
+              <li>
+                <SidebarLink
+                  icon="📋"
+                  :label="t('common.templates')"
+                  :to="{ name: 'templates' }"
+                />
+              </li>
+
+              <li v-if="isLeader">
+                <SidebarLink
+                  icon="👥"
+                  :label="t('common.myTeam')"
+                  :to="{ name: 'my-team' }"
+                />
+              </li>
+            </SidebarLinkGroup>
           </li>
         </ul>
       </PScrollbar>
@@ -39,17 +72,16 @@
 import { PScrollbar, PText } from '@pey/core';
 import { PeyLogoutIcon } from '@pey/icons';
 
-import getSidebarLinks from '~/components/sidebar/SidebarLinks';
+import { getNotesLinks } from '~/components/sidebar/SidebarLinks';
 
 const { t } = useI18n();
 const logout = useLogout();
 const { data: users } = useGetMyTeam();
+const { data: messages } = useGetNotes({ retrieveMentions: true });
 
+const notesLinks = computed(() => getNotesLinks(t));
 const isLeader = computed(() => Boolean(users.value?.length));
-const sidebarLinks = computed(() =>
-  getSidebarLinks(t).map((group) => ({
-    ...group,
-    links: group.links.filter((link) => !link.leaderLink || isLeader.value),
-  })),
+const newMessagesCount = computed(
+  () => messages.value?.filter((message) => !message.read_status).length,
 );
 </script>

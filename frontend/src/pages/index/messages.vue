@@ -55,6 +55,8 @@
 import { PButton, PHeading, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 
+definePageMeta({ name: 'messages' });
+
 const { t } = useI18n();
 useHead({ title: t('common.messages') });
 const {
