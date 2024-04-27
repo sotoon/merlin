@@ -7,7 +7,7 @@
       class="rounded bg-primary p-1 text-white transition-colors hover:bg-primary-70 disabled:animate-pulse"
       @click="toggleReadStatus"
     >
-      <Icon v-if="readStatus" class="opacity-50" name="mdi:email-open" />
+      <Icon v-if="note.read_status" class="opacity-50" name="mdi:email-open" />
       <Icon v-else name="mdi:email" />
     </button>
   </div>
@@ -23,13 +23,7 @@ const { execute: updateReadStatus, pending: readStatusPending } =
     id: props.note.uuid,
   });
 
-const readStatus = ref(props.note.read_status);
-
 const toggleReadStatus = () => {
-  updateReadStatus(!readStatus.value, {
-    onSuccess: () => {
-      readStatus.value = !readStatus.value;
-    },
-  });
+  updateReadStatus(!props.note.read_status);
 };
 </script>
