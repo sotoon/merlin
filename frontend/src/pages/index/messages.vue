@@ -8,7 +8,7 @@
       </PHeading>
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div v-if="!notes && pending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 

@@ -7,12 +7,35 @@ interface UseUpdateNoteReadStatusOptions {
 export const useUpdateNoteReadStatus = ({
   id,
 }: UseUpdateNoteReadStatusOptions) => {
+  const { data: messages } = useNuxtData<Note[]>(
+    createNuxtDataKey(['notes', undefined, undefined, true]),
+  );
+
+  const updateMessageNuxtData = (readStatus: boolean) => {
+    if (!messages.value) {
+      return;
+    }
+
+    const messageIndex = messages.value.findIndex(
+      (message) => message.uuid === id,
+    );
+
+    if (messageIndex < 0) {
+      return;
+    }
+
+    messages.value[messageIndex].read_status = readStatus;
+  };
+
   const { execute: markAsRead, pending: readPending } = useApiMutation<
     UpdateNoteReadStatusResponse,
     unknown,
     never
   >(`/notes/${id}/read/`, {
     method: 'POST',
+    onSuccess: () => {
+      updateMessageNuxtData(true);
+    },
   });
 
   const { execute: markAsUnread, pending: unreadPending } = useApiMutation<
@@ -21,6 +44,9 @@ export const useUpdateNoteReadStatus = ({
     never
   >(`/notes/${id}/unread/`, {
     method: 'POST',
+    onSuccess: () => {
+      updateMessageNuxtData(false);
+    },
   });
 
   const execute = (
