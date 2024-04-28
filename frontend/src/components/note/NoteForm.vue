@@ -1,25 +1,31 @@
 <template>
-  <div>
-    <NoteTemplateSelect
-      :should-confirm="Boolean(formValues.content)"
-      @select="handleTemplateSelect"
-    />
-
-    <form class="mt-8 space-y-4" @submit="onSubmit">
-      <VeeField
-        v-slot="{ componentField }"
+  <form class="mt-8 space-y-4" @submit="onSubmit">
+    <VeeField
+      v-slot="{ componentField }"
+      :label="t('note.title')"
+      name="title"
+      rules="required"
+    >
+      <PInput
+        class="grow"
+        v-bind="componentField"
+        hide-details
         :label="t('note.title')"
-        name="title"
-        rules="required"
-      >
-        <PInput
-          class="grow"
-          v-bind="componentField"
-          hide-details
-          :label="t('note.title')"
-          required
-        />
-      </VeeField>
+        required
+      />
+    </VeeField>
+
+    <div class="space-y-4 py-2">
+      <label id="content-label">
+        <PText class="block cursor-default" variant="caption1" weight="bold">
+          {{ t('common.content') }}
+        </PText>
+      </label>
+
+      <NoteTemplateSelect
+        :should-confirm="Boolean(formValues.content)"
+        @select="handleTemplateSelect"
+      />
 
       <VeeField
         v-slot="{ value, handleChange }"
@@ -29,123 +35,124 @@
         <Editor
           :model-value="value"
           :placeholder="t('note.writeNoteContent')"
+          aria-labelledby="content-label"
           @update:model-value="handleChange"
         />
       </VeeField>
+    </div>
 
-      <div v-if="noteType !== NOTE_TYPE.personal">
-        <VeeField v-slot="{ componentField }" name="mentioned_users">
-          <PListbox
-            v-bind="componentField"
-            hide-details
-            :label="t('note.mentionedUsers')"
-            :loading="isUsersLoading"
-            multiple
-            searchable
-          >
-            <PListboxOption
-              v-for="user in users"
-              :key="user.uuid"
-              :label="`${user.name} (${user.email})`"
-              :value="user.email"
-            />
-          </PListbox>
-        </VeeField>
-      </div>
-
-      <div class="flex flex-wrap gap-4">
-        <VeeField v-slot="{ componentField }" name="date">
-          <PDatePickerInput
-            v-bind="componentField"
-            :label="
-              noteType === NOTE_TYPE.meeting
-                ? t('note.meetingDate')
-                : t('common.date')
-            "
-            type="jalali"
+    <div v-if="noteType !== NOTE_TYPE.personal">
+      <VeeField v-slot="{ componentField }" name="mentioned_users">
+        <PListbox
+          v-bind="componentField"
+          hide-details
+          :label="t('note.mentionedUsers')"
+          :loading="isUsersLoading"
+          multiple
+          searchable
+        >
+          <PListboxOption
+            v-for="user in users"
+            :key="user.uuid"
+            :label="`${user.name} (${user.email})`"
+            :value="user.email"
           />
-        </VeeField>
+        </PListbox>
+      </VeeField>
+    </div>
 
-        <div class="flex flex-wrap gap-2">
-          <div class="w-24">
-            <VeeField v-slot="{ componentField }" name="year">
-              <PListbox
-                v-bind="componentField"
-                hide-details
-                :label="t('note.year')"
-              >
-                <PListboxOption
-                  v-for="year in YEARS"
-                  :key="year"
-                  :label="year.toLocaleString('fa-IR', { useGrouping: false })"
-                  :value="year"
-                />
-              </PListbox>
-            </VeeField>
-          </div>
+    <div class="flex flex-wrap gap-4">
+      <VeeField v-slot="{ componentField }" name="date">
+        <PDatePickerInput
+          v-bind="componentField"
+          :label="
+            noteType === NOTE_TYPE.meeting
+              ? t('note.meetingDate')
+              : t('common.date')
+          "
+          type="jalali"
+        />
+      </VeeField>
 
-          <div class="w-24">
-            <VeeField v-slot="{ componentField }" name="period">
-              <PListbox
-                v-bind="componentField"
-                hide-details
-                :label="t('note.period')"
-              >
-                <PListboxOption
-                  v-for="(period, index) in EVALUATION_PERIODS"
-                  :key="index"
-                  :label="period"
-                  :value="index"
-                />
-              </PListbox>
-            </VeeField>
-          </div>
+      <div class="flex flex-wrap gap-2">
+        <div class="w-24">
+          <VeeField v-slot="{ componentField }" name="year">
+            <PListbox
+              v-bind="componentField"
+              hide-details
+              :label="t('note.year')"
+            >
+              <PListboxOption
+                v-for="year in YEARS"
+                :key="year"
+                :label="year.toLocaleString('fa-IR', { useGrouping: false })"
+                :value="year"
+              />
+            </PListbox>
+          </VeeField>
+        </div>
+
+        <div class="w-24">
+          <VeeField v-slot="{ componentField }" name="period">
+            <PListbox
+              v-bind="componentField"
+              hide-details
+              :label="t('note.period')"
+            >
+              <PListboxOption
+                v-for="(period, index) in EVALUATION_PERIODS"
+                :key="index"
+                :label="period"
+                :value="index"
+              />
+            </PListbox>
+          </VeeField>
         </div>
       </div>
+    </div>
 
-      <div>
-        <VeeField v-slot="{ componentField }" name="linked_notes">
-          <PListbox
-            v-bind="componentField"
-            hide-details
-            :label="t('note.relatedNotes')"
-            :loading="isNotesLoading"
-            multiple
-            searchable
-          >
-            <PListboxOption
-              v-for="noteItem in noteOptions"
-              :key="noteItem.uuid"
-              :label="noteItem.title"
-              :value="noteItem.uuid"
-            />
-          </PListbox>
-        </VeeField>
-      </div>
-
-      <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
-        <PButton
-          class="shrink-0"
-          color="gray"
-          type="button"
-          variant="light"
-          @click="emit('cancel')"
+    <div>
+      <VeeField v-slot="{ componentField }" name="linked_notes">
+        <PListbox
+          v-bind="componentField"
+          hide-details
+          :label="t('note.relatedNotes')"
+          :loading="isNotesLoading"
+          multiple
+          searchable
         >
-          {{ t('common.cancel') }}
-        </PButton>
+          <PListboxOption
+            v-for="noteItem in noteOptions"
+            :key="noteItem.uuid"
+            :label="noteItem.title"
+            :value="noteItem.uuid"
+          />
+        </PListbox>
+      </VeeField>
+    </div>
 
-        <PButton
-          class="shrink-0"
-          :disabled="!meta.valid || !meta.dirty || isSubmitting"
-          :loading="isSubmitting"
-          type="submit"
-          variant="fill"
-        >
-          {{ t('common.save') }}
-        </PButton>
-      </div>
-    </form>
-  </div>
+    <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
+      <PButton
+        class="shrink-0"
+        color="gray"
+        type="button"
+        variant="light"
+        @click="emit('cancel')"
+      >
+        {{ t('common.cancel') }}
+      </PButton>
+
+      <PButton
+        class="shrink-0"
+        :disabled="!meta.valid || !meta.dirty || isSubmitting"
+        :loading="isSubmitting"
+        type="submit"
+        variant="fill"
+      >
+        {{ t('common.save') }}
+      </PButton>
+    </div>
+  </form>
 </template>
 
 <script lang="ts" setup>
@@ -155,6 +162,7 @@ import {
   PInput,
   PListbox,
   PListboxOption,
+  PText,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
