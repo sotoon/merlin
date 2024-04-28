@@ -47,6 +47,7 @@ CORS_ALLOW_METHODS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://stage.merlin.insiders.sotoon.ir",
     "https://merlin.sotoon.ir",
+    "https://st.merlin.sotoon.ir",
 ]
 
 
