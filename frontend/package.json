@@ -30,6 +30,7 @@
     "@nuxtjs/i18n": "^8.1.1",
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@tailwindcss/typography": "^0.5.12",
+    "@tiptap/extension-placeholder": "^2.3.0",
     "@tiptap/extension-underline": "^2.3.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

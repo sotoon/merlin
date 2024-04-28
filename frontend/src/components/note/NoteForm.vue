@@ -26,7 +26,11 @@
         name="content"
         rules="required"
       >
-        <Editor :model-value="value" @update:model-value="handleChange" />
+        <Editor
+          :model-value="value"
+          :placeholder="t('note.writeNoteContent')"
+          @update:model-value="handleChange"
+        />
       </VeeField>
 
       <div v-if="noteType !== NOTE_TYPE.personal">

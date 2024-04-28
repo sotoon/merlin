@@ -1,7 +1,11 @@
 <template>
   <form class="space-y-4" @submit="onSubmit">
     <VeeField v-slot="{ value, handleChange }" name="content">
-      <Editor :model-value="value" @update:model-value="handleChange" />
+      <Editor
+        :model-value="value"
+        :placeholder="t('note.writeFeedbackContent')"
+        @update:model-value="handleChange"
+      />
     </VeeField>
 
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
