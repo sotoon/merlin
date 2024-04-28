@@ -13,7 +13,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@pey/core": "^1.15.3",
+    "@pey/core": "^1.15.4",
     "@pey/icons": "^1.10.2",
     "@pey/tailwind-preset": "^1.0.4",
     "@vee-validate/i18n": "^4.12.5",
@@ -21,6 +21,7 @@
     "@vee-validate/rules": "^4.12.5",
     "@vueuse/router": "^10.9.0",
     "nuxt": "^3.10.3",
+    "sass": "^1.75.0",
     "vue": "^3.4.19",
     "vue-router": "^4.3.0"
   },
@@ -31,6 +32,10 @@
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@tailwindcss/typography": "^0.5.12",
     "@tiptap/extension-placeholder": "^2.3.0",
+    "@tiptap/extension-table": "^2.3.0",
+    "@tiptap/extension-table-cell": "^2.3.0",
+    "@tiptap/extension-table-header": "^2.3.0",
+    "@tiptap/extension-table-row": "^2.3.0",
     "@tiptap/extension-underline": "^2.3.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
