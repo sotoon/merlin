@@ -1,7 +1,11 @@
 <template>
   <form class="space-y-10" @submit="onSubmit">
     <VeeField v-slot="{ value, handleChange }" name="content" rules="required">
-      <Editor :model-value="value" @update:model-value="handleChange" />
+      <Editor
+        :model-value="value"
+        :placeholder="t('note.writeSummaryContent')"
+        @update:model-value="handleChange"
+      />
     </VeeField>
 
     <div v-if="showCommitteeFields" class="flex max-w-lg flex-col gap-6">
