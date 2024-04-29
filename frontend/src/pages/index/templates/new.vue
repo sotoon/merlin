@@ -1,8 +1,16 @@
 <template>
   <PBox class="mx-auto max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
-    <PHeading class="mb-4 border-b border-gray-10 pb-4" level="h1" responsive>
-      {{ t('note.newTemplate') }}
-    </PHeading>
+    <div class="mb-4 flex items-center gap-4 border-b border-gray-10 pb-4">
+      <Icon
+        class="text-primary"
+        :name="NOTE_TYPE_ICON[NOTE_TYPE.template]"
+        size="32"
+      />
+
+      <PHeading level="h1" responsive>
+        {{ t('note.newTemplate') }}
+      </PHeading>
+    </div>
 
     <NoteTemplateForm
       :is-submitting="pending"

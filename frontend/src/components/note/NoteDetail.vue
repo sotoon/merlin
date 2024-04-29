@@ -1,10 +1,11 @@
 <template>
   <div class="px-4">
     <div class="flex items-start justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-4">
-        <PChip
-          v-if="!note.access_level.can_edit && note.type !== 'Template'"
-          :label="noteTypeLabel[note.type]"
+      <div>
+        <Icon
+          class="mb-3 me-4 text-primary"
+          :name="NOTE_TYPE_ICON[note.type]"
+          size="32"
         />
 
         <PText responsive variant="title" weight="bold">
@@ -186,13 +187,4 @@ const linkedNotes = computed(() => [
       },
     })) || []),
 ]);
-
-const noteTypeLabel = computed(() => ({
-  [NOTE_TYPE.goal]: t('noteType.goal'),
-  [NOTE_TYPE.meeting]: t('noteType.meeting'),
-  [NOTE_TYPE.message]: t('noteType.message'),
-  [NOTE_TYPE.personal]: t('noteType.personal'),
-  [NOTE_TYPE.proposal]: t('noteType.proposal'),
-  [NOTE_TYPE.task]: t('noteType.task'),
-}));
 </script>

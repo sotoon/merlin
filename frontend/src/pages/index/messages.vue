@@ -3,9 +3,13 @@
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <PHeading level="h1" responsive>
-        {{ t('common.messages') }}
-      </PHeading>
+      <div class="flex items-center gap-4">
+        <Icon class="text-primary" name="mdi:message-text" size="32" />
+
+        <PHeading level="h1" responsive>
+          {{ t('common.messages') }}
+        </PHeading>
+      </div>
     </div>
 
     <div v-if="!notes && pending" class="flex items-center justify-center py-8">

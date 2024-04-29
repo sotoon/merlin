@@ -78,13 +78,5 @@ defineProps<{
 
 const { t } = useI18n();
 
-const noteTypeLabel = computed(() => ({
-  [NOTE_TYPE.goal]: t('noteType.goal'),
-  [NOTE_TYPE.meeting]: t('noteType.meeting'),
-  [NOTE_TYPE.message]: t('noteType.message'),
-  [NOTE_TYPE.personal]: t('noteType.personal'),
-  [NOTE_TYPE.proposal]: t('noteType.proposal'),
-  [NOTE_TYPE.task]: t('noteType.task'),
-  [NOTE_TYPE.template]: t('noteType.template'),
-}));
+const noteTypeLabel = computed(() => getNoteTypeLabels(t));
 </script>

@@ -3,10 +3,13 @@
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <PHeading level="h1" responsive>
-        {{ t('common.templates') }}
-      </PHeading>
+      <div class="flex items-center gap-4">
+        <Icon class="text-primary" name="mdi:clipboard-text" size="32" />
 
+        <PHeading level="h1" responsive>
+          {{ t('common.templates') }}
+        </PHeading>
+      </div>
       <NuxtLink :to="{ name: 'template-create' }">
         <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
       </NuxtLink>
