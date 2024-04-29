@@ -1,8 +1,7 @@
 <template>
   <PCard
-    :footer-border="false"
-    :header-border="false"
-    header-variant="primary-dark"
+    class="transition-shadow duration-300 hover:shadow-lg"
+    header-border
     :title="note.title"
   >
     <EditorContentPreview class="text-gray-80" :content="note.content" />
@@ -15,6 +14,8 @@
       <div class="ms-4 hidden sm:block" @click.prevent>
         <NoteDeleteButton
           v-if="note.access_level.can_edit"
+          button-color="danger"
+          button-variant="ghost"
           :note-id="note.uuid"
         />
 

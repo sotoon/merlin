@@ -1,8 +1,7 @@
 <template>
   <PCard
-    :footer-border="false"
-    :header-border="false"
-    header-variant="primary-dark"
+    class="transition-shadow duration-300 hover:shadow-lg"
+    header-border
     :title="user.name"
   >
     <PText as="p" class="truncate text-gray-80" variant="caption1">

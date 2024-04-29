@@ -1,5 +1,5 @@
 <template>
-  <PText as="p" class="truncate">
+  <PText as="p" class="truncate" variant="caption1">
     {{ editor?.getText().substring(0, 100) }}
   </PText>
 </template>
