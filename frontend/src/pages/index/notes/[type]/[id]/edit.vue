@@ -1,20 +1,34 @@
 <template>
-  <NoteForm
-    :note="note"
-    :note-type="note.type"
-    :is-submitting="pending"
-    @submit="handleSubmit"
-    @cancel="handleCancel"
-  />
+  <div>
+    <div class="mb-4 flex items-center gap-4 border-b border-gray-10 pb-4">
+      <Icon class="text-primary" :name="NOTE_TYPE_ICON[note.type]" size="32" />
+
+      <PHeading level="h1" responsive>
+        {{ t('note.editX', [noteTypeLabels[note.type]]) }}
+      </PHeading>
+    </div>
+
+    <NoteForm
+      :note="note"
+      :note-type="note.type"
+      :is-submitting="pending"
+      @submit="handleSubmit"
+      @cancel="handleCancel"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
+import { PHeading } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-edit' });
 const props = defineProps<{ note: Note }>();
 
+const { t } = useI18n();
 const { execute: updateNote, pending } = useUpdateNote({ id: props.note.uuid });
+
+const noteTypeLabels = computed(() => getNoteTypeLabels(t));
 
 const handleSubmit = (
   values: NoteFormValues,
@@ -27,8 +41,8 @@ const handleSubmit = (
   updateNote({
     body: { ...values, date: dateString },
     onSuccess: () => {
-      ctx.resetForm();
       navigateTo({ name: 'note' });
+      ctx.resetForm();
     },
   });
 };

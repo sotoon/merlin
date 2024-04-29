@@ -3,18 +3,22 @@
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <PHeading level="h1" responsive>
-        {{ t('common.messages') }}
-      </PHeading>
+      <div class="flex items-center gap-4">
+        <Icon class="text-primary" name="mdi:message-text" size="32" />
+
+        <PHeading level="h1" responsive>
+          {{ t('common.messages') }}
+        </PHeading>
+      </div>
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div v-if="!notes && pending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 
     <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
       <PText as="p" class="text-center text-danger" responsive>
-        {{ t('note.getNotesError') }}
+        {{ t('note.getMessagesError') }}
       </PText>
 
       <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
@@ -32,6 +36,7 @@
           <NoteWriterFilter :notes="notes" />
           <NoteTypeFilter />
           <NotePeriodFilter :notes="notes" />
+          <NoteReadStatusFilter />
         </template>
       </NoteListControls>
 
@@ -40,10 +45,11 @@
         :notes="sortedNotes"
         display-writer
         display-type
+        display-read-status
       />
 
       <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
-        {{ t('note.noNotes') }}
+        {{ t('note.noMessages') }}
       </PText>
     </template>
   </div>
@@ -52,6 +58,8 @@
 <script lang="ts" setup>
 import { PButton, PHeading, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
+
+definePageMeta({ name: 'messages' });
 
 const { t } = useI18n();
 useHead({ title: t('common.messages') });

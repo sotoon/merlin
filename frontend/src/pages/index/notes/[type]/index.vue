@@ -3,9 +3,17 @@
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <PHeading level="h1" responsive>
-        {{ noteTitle }}
-      </PHeading>
+      <div class="flex items-center gap-4">
+        <Icon
+          class="text-primary"
+          :name="noteType ? NOTE_TYPE_ICON[noteType] : 'mdi:note-text'"
+          size="32"
+        />
+
+        <PHeading level="h1" responsive>
+          {{ noteTitle }}
+        </PHeading>
+      </div>
 
       <NuxtLink v-if="!isUser" :to="{ name: 'note-create' }">
         <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
