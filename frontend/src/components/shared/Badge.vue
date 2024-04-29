@@ -6,7 +6,7 @@
   >
     <PText
       v-if="count"
-      class="absolute left-4 block rounded bg-danger px-2 pt-1 text-center text-white"
+      class="absolute left-4 block min-h-5 min-w-5 rounded-full bg-danger px-1.5 pt-0.5 text-center text-white"
       variant="caption2"
       weight="medium"
     >

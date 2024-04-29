@@ -24,7 +24,6 @@
         />
 
         <NoteDeleteButton
-          button-color="danger"
           :note-id="note.uuid"
           @success="navigateTo({ name: 'notes' })"
         />

@@ -1,14 +1,14 @@
 <template>
   <div class="flex h-8 w-8 items-center justify-center">
-    <PLoading v-if="readStatusPending" class="text-white" />
+    <PLoading v-if="readStatusPending" class="text-primary" />
 
     <button
       v-else
-      class="rounded bg-primary p-1 text-white transition-colors hover:bg-primary-70 disabled:animate-pulse"
+      class="rounded p-1 transition-colors hover:bg-primary-10"
       @click="toggleReadStatus"
     >
-      <Icon v-if="note.read_status" class="opacity-50" name="mdi:email-open" />
-      <Icon v-else name="mdi:email" />
+      <Icon v-if="note.read_status" class="text-gray" name="mdi:email-open" />
+      <Icon v-else class="text-primary" name="mdi:email" />
     </button>
   </div>
 </template>

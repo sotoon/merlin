@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-8 w-8 items-center justify-center">
-    <PLoading v-if="isDeleteLoading" class="text-white" />
+    <PLoading v-if="isDeleteLoading" class="text-primary" />
 
     <PInlineConfirm
       v-else
@@ -11,7 +11,7 @@
       <PIconButton
         :color="buttonColor"
         :icon="PeyTrashIcon"
-        variant="fill"
+        :variant="buttonVariant"
         @click.prevent
       />
     </PInlineConfirm>
@@ -23,11 +23,17 @@ import { PIconButton, PInlineConfirm, PLoading } from '@pey/core';
 import { PeyTrashIcon } from '@pey/icons';
 
 type ButtonColor = 'primary' | 'danger';
+type ButtonVariant = 'fill' | 'ghost';
 
 const props = withDefaults(
-  defineProps<{ noteId: string; buttonColor?: ButtonColor }>(),
+  defineProps<{
+    noteId: string;
+    buttonColor?: ButtonColor;
+    buttonVariant?: ButtonVariant;
+  }>(),
   {
-    buttonColor: 'primary',
+    buttonColor: 'danger',
+    buttonVariant: 'fill',
   },
 );
 const emit = defineEmits<{ success: [] }>();
