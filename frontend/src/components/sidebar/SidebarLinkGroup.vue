@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PText as="h1" class="py-1" variant="subtitle">
+    <PText as="h1" class="py-1 ps-2" variant="subtitle">
       {{ title }}
     </PText>
 
