@@ -1,9 +1,5 @@
 <template>
   <div>
-    <PHeading class="mb-4 border-b border-gray-10 pb-4" level="h1" responsive>
-      {{ note ? t('note.editNote') : t('note.newNote') }}
-    </PHeading>
-
     <NoteTemplateSelect
       :should-confirm="Boolean(formValues.content)"
       @select="handleTemplateSelect"
@@ -152,7 +148,6 @@
 import {
   PButton,
   PDatePickerInput,
-  PHeading,
   PInput,
   PListbox,
   PListboxOption,

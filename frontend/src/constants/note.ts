@@ -27,6 +27,16 @@ export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.template]: 'mdi:clipboard-text',
 };
 
+export const getNoteTypeLabels = (t: (key: string) => string) => ({
+  [NOTE_TYPE.goal]: t('noteType.goal'),
+  [NOTE_TYPE.meeting]: t('noteType.meeting'),
+  [NOTE_TYPE.message]: t('noteType.message'),
+  [NOTE_TYPE.personal]: t('noteType.personal'),
+  [NOTE_TYPE.proposal]: t('noteType.proposal'),
+  [NOTE_TYPE.task]: t('noteType.task'),
+  [NOTE_TYPE.template]: t('noteType.template'),
+});
+
 export const NOTES_WITH_SUMMARY: NoteType[] = [
   NOTE_TYPE.goal,
   NOTE_TYPE.proposal,
