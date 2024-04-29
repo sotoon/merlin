@@ -53,29 +53,16 @@
       <hr class="mb-2 border-gray-10" />
 
       <SidebarProfileLink />
-
-      <button
-        class="flex items-center gap-3 rounded px-4 py-2 hover:bg-gray-00 focus:bg-gray-00"
-        type="button"
-        @click="logout"
-      >
-        <PeyLogoutIcon class="text-primary" />
-        <PText variant="caption1">
-          {{ t('common.logout') }}
-        </PText>
-      </button>
     </div>
   </nav>
 </template>
 
 <script lang="ts" setup>
 import { PScrollbar, PText } from '@pey/core';
-import { PeyLogoutIcon } from '@pey/icons';
 
 import { getNotesLinks } from '~/components/sidebar/SidebarLinks';
 
 const { t } = useI18n();
-const logout = useLogout();
 const { data: users } = useGetMyTeam();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 

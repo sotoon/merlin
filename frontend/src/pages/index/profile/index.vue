@@ -21,9 +21,18 @@
         </div>
       </div>
 
-      <NuxtLink :to="{ name: 'profile-edit' }">
-        <PIconButton class="shrink-0" :icon="PeyEditIcon" tabindex="-1" />
-      </NuxtLink>
+      <div class="flex items-center gap-3">
+        <NuxtLink :to="{ name: 'profile-edit' }">
+          <PIconButton class="shrink-0" :icon="PeyEditIcon" tabindex="-1" />
+        </NuxtLink>
+
+        <PIconButton
+          class="shrink-0"
+          color="danger"
+          :icon="PeyLogoutIcon"
+          @click="logout"
+        />
+      </div>
     </div>
 
     <div class="p-3">
@@ -64,12 +73,12 @@
 
 <script lang="ts" setup>
 import { PHeading, PIconButton, PText } from '@pey/core';
-import { PeyEditIcon, PeyUserIcon } from '@pey/icons';
+import { PeyEditIcon, PeyLogoutIcon, PeyUserIcon } from '@pey/icons';
 
 definePageMeta({ name: 'profile' });
 const props = defineProps<{ profile: User }>();
 
 const { t } = useI18n();
-
 useHead({ title: () => props.profile.name });
+const logout = useLogout();
 </script>
