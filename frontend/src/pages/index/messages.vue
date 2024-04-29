@@ -14,7 +14,7 @@
 
     <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
       <PText as="p" class="text-center text-danger" responsive>
-        {{ t('note.getNotesError') }}
+        {{ t('note.getMessagesError') }}
       </PText>
 
       <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
@@ -45,7 +45,7 @@
       />
 
       <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
-        {{ t('note.noNotes') }}
+        {{ t('note.noMessages') }}
       </PText>
     </template>
   </div>
