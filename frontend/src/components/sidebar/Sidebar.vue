@@ -24,7 +24,7 @@
               <li>
                 <SidebarLink
                   :badge-count="newMessagesCount"
-                  icon="💬"
+                  icon="mdi:message-text"
                   :label="t('common.messages')"
                   :to="{ name: 'messages' }"
                 />
@@ -32,7 +32,7 @@
 
               <li>
                 <SidebarLink
-                  icon="📋"
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.template]"
                   :label="t('common.templates')"
                   :to="{ name: 'templates' }"
                 />
@@ -40,7 +40,7 @@
 
               <li v-if="isLeader">
                 <SidebarLink
-                  icon="👥"
+                  icon="mdi:account-group"
                   :label="t('common.myTeam')"
                   :to="{ name: 'my-team' }"
                 />

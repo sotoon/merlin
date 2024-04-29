@@ -8,33 +8,51 @@ export interface SidebarLink {
 
 export const getNotesLinks = (t: (key: string) => string): SidebarLink[] => [
   {
-    icon: '🚀',
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.goal],
     label: t('common.goals'),
-    to: { name: 'notes', params: { type: 'goal' } },
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.goal] },
+    },
   },
   {
-    icon: '🛠️',
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.task],
     label: t('common.tasks'),
-    to: { name: 'notes', params: { type: 'task' } },
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.task] },
+    },
   },
   {
-    icon: '🤝',
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.meeting],
     label: t('common.meetings'),
-    to: { name: 'notes', params: { type: 'meeting' } },
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting] },
+    },
   },
   {
-    icon: '📈',
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.proposal],
     label: t('common.proposal'),
-    to: { name: 'notes', params: { type: 'proposal' } },
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+    },
   },
   {
-    icon: '📨',
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.message],
     label: t('common.messageToOthers'),
-    to: { name: 'notes', params: { type: 'message' } },
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
+    },
   },
   {
-    icon: '📝',
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.personal],
     label: t('common.personalNotes'),
-    to: { name: 'notes', params: { type: 'personal' } },
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.personal] },
+    },
   },
 ];

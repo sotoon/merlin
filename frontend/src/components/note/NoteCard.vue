@@ -7,7 +7,9 @@
     <EditorContentPreview class="text-gray-80" :content="note.content" />
 
     <template v-if="displayType" #icon>
-      <PChip :label="noteTypeLabel[note.type]" size="small" />
+      <div :title="noteTypeLabel[note.type]">
+        <Icon class="text-gray" :name="NOTE_TYPE_ICON[note.type]" />
+      </div>
     </template>
 
     <template v-if="note.access_level.can_edit || displayReadStatus" #toolbar>
@@ -24,7 +26,9 @@
     </template>
 
     <template #footer>
-      <div class="flex grow items-end justify-between gap-2 overflow-hidden">
+      <div
+        class="mt-2 flex grow items-end justify-between gap-2 overflow-hidden"
+      >
         <div
           class="flex flex-col gap-2 overflow-hidden text-gray-50 sm:flex-row sm:items-center"
         >
@@ -63,7 +67,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PCard, PChip, PText, PTooltip } from '@pey/core';
+import { PCard, PText, PTooltip } from '@pey/core';
 
 defineProps<{
   note: Note;
