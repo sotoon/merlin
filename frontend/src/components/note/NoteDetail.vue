@@ -1,22 +1,34 @@
 <template>
   <div class="px-4">
-    <div class="flex items-center justify-between gap-4">
-      <PText responsive variant="title" weight="bold">
-        {{ note.title }}
-      </PText>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <Icon
+          class="mb-3 me-4 text-primary"
+          :name="NOTE_TYPE_ICON[note.type]"
+          size="32"
+        />
 
-      <PIconButton
+        <PText responsive variant="title" weight="bold">
+          {{ note.title }}
+        </PText>
+      </div>
+
+      <div
         v-if="note.access_level.can_edit"
-        class="shrink-0"
-        :icon="PeyEditIcon"
-        type="button"
-        @click="navigateTo({ name: 'note-edit' })"
-      />
+        class="mt-2 flex items-center gap-4"
+      >
+        <PIconButton
+          class="shrink-0"
+          :icon="PeyEditIcon"
+          type="button"
+          @click="navigateTo({ name: 'note-edit' })"
+        />
 
-      <PChip
-        v-if="!note.access_level.can_edit && note.type !== 'Template'"
-        :label="noteTypeLabel[note.type]"
-      />
+        <NoteDeleteButton
+          :note-id="note.uuid"
+          @success="navigateTo({ name: 'notes' })"
+        />
+      </div>
     </div>
 
     <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -175,13 +187,4 @@ const linkedNotes = computed(() => [
       },
     })) || []),
 ]);
-
-const noteTypeLabel = computed(() => ({
-  [NOTE_TYPE.goal]: t('noteType.goal'),
-  [NOTE_TYPE.meeting]: t('noteType.meeting'),
-  [NOTE_TYPE.message]: t('noteType.message'),
-  [NOTE_TYPE.personal]: t('noteType.personal'),
-  [NOTE_TYPE.proposal]: t('noteType.proposal'),
-  [NOTE_TYPE.task]: t('noteType.task'),
-}));
 </script>

@@ -1,15 +1,20 @@
 <template>
   <NuxtLink v-slot="{ isActive }" class="group" :to="to">
     <div
-      class="flex items-center gap-3 rounded p-2"
+      class="relative flex items-center gap-3 rounded p-3"
       :class="{
         'bg-primary-10': isActive,
         'group-focus:bg-gray-00 hover:bg-gray-00': !isActive,
       }"
     >
-      <PText variant="subtitle">
-        {{ icon }}
-      </PText>
+      <Icon
+        :class="{
+          'text-primary': isActive,
+          'text-gray': !isActive,
+        }"
+        :name="icon"
+        size="20"
+      />
 
       <PText
         :class="{ 'text-gray-100': isActive, 'text-gray-80': !isActive }"
@@ -18,6 +23,8 @@
       >
         {{ label }}
       </PText>
+
+      <Badge :count="badgeCount" />
     </div>
   </NuxtLink>
 </template>
@@ -27,7 +34,9 @@ import { PText } from '@pey/core';
 
 import type { SidebarLink } from '~/components/sidebar/SidebarLinks';
 
-interface SidebarLinkProps extends SidebarLink {}
+interface SidebarLinkProps extends SidebarLink {
+  badgeCount?: number;
+}
 
 defineProps<SidebarLinkProps>();
 </script>

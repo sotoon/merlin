@@ -3,9 +3,13 @@
     <div
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <PHeading level="h1" responsive>
-        {{ t('common.myTeam') }}
-      </PHeading>
+      <div class="flex items-center gap-4">
+        <Icon class="text-primary" name="mdi:account-group" size="32" />
+
+        <PHeading level="h1" responsive>
+          {{ t('common.myTeam') }}
+        </PHeading>
+      </div>
     </div>
 
     <div v-if="pending" class="flex items-center justify-center py-8">

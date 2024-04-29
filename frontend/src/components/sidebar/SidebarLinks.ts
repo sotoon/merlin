@@ -1,45 +1,58 @@
+import type { RouteLocationRaw } from 'vue-router';
+
 export interface SidebarLink {
   icon: string;
   label: string;
-  to: string;
-  leaderLink?: boolean;
+  to: RouteLocationRaw;
 }
 
-export interface SidebarLinkGroup {
-  title: string;
-  links: SidebarLink[];
-}
-
-const getSidebarLinks = (t: (key: string) => string) =>
-  [
-    {
-      title: t('common.notes'),
-      links: [
-        { icon: '🚀', label: t('common.goals'), to: '/notes/goal' },
-        { icon: '🛠️', label: t('common.tasks'), to: '/notes/task' },
-        { icon: '🤝', label: t('common.meetings'), to: '/notes/meeting' },
-        { icon: '📈', label: t('common.proposal'), to: '/notes/proposal' },
-        {
-          icon: '📨',
-          label: t('common.messageToOthers'),
-          to: '/notes/message',
-        },
-        { icon: '📝', label: t('common.personalNotes'), to: '/notes/personal' },
-      ],
+export const getNotesLinks = (t: (key: string) => string): SidebarLink[] => [
+  {
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.goal],
+    label: t('common.goals'),
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.goal] },
     },
-    {
-      title: t('common.personal'),
-      links: [
-        { icon: '💬', label: t('common.messages'), to: '/messages' },
-        { icon: '📋', label: t('common.templates'), to: '/templates' },
-        {
-          icon: '👥',
-          label: t('common.myTeam'),
-          to: '/my-team',
-          leaderLink: true,
-        },
-      ],
+  },
+  {
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.task],
+    label: t('common.tasks'),
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.task] },
     },
-  ] satisfies SidebarLinkGroup[];
-
-export default getSidebarLinks;
+  },
+  {
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.meeting],
+    label: t('common.meetings'),
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting] },
+    },
+  },
+  {
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.proposal],
+    label: t('common.proposal'),
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+    },
+  },
+  {
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.message],
+    label: t('common.messageToOthers'),
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
+    },
+  },
+  {
+    icon: NOTE_TYPE_ICON[NOTE_TYPE.personal],
+    label: t('common.personalNotes'),
+    to: {
+      name: 'notes',
+      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.personal] },
+    },
+  },
+];
