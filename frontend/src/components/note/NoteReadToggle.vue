@@ -7,7 +7,11 @@
       class="rounded p-1 transition-colors hover:bg-primary-10"
       @click="toggleReadStatus"
     >
-      <Icon v-if="note.read_status" class="text-gray" name="mdi:email-open" />
+      <Icon
+        v-if="note.read_status"
+        class="text-gray-30"
+        name="mdi:email-open"
+      />
       <Icon v-else class="text-primary" name="mdi:email" />
     </button>
   </div>

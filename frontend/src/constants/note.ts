@@ -17,6 +17,16 @@ export const NOTE_TYPE_ROUTE_PARAM = {
   [NOTE_TYPE.task]: 'task',
 } as const;
 
+export const NOTE_TYPE_ICON = {
+  [NOTE_TYPE.goal]: 'mdi:target-arrow',
+  [NOTE_TYPE.meeting]: 'mdi:calendar',
+  [NOTE_TYPE.message]: 'mdi:email-fast',
+  [NOTE_TYPE.personal]: 'mdi:folder-lock',
+  [NOTE_TYPE.proposal]: 'mdi:chart-line',
+  [NOTE_TYPE.task]: 'mdi:check-circle',
+  [NOTE_TYPE.template]: 'mdi:clipboard-text',
+};
+
 export const NOTES_WITH_SUMMARY: NoteType[] = [
   NOTE_TYPE.goal,
   NOTE_TYPE.proposal,
