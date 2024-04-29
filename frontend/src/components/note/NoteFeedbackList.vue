@@ -1,12 +1,7 @@
 <template>
   <ul class="grid grid-cols-1 gap-2 py-4 lg:gap-3">
     <li v-for="feedback in feedbacks" :key="feedback.uuid">
-      <PCard
-        :footer-border="false"
-        :header-border="false"
-        header-variant="primary-dark"
-        :title="feedback.owner_name"
-      >
+      <PCard header-variant="primary" :title="feedback.owner_name">
         <article>
           <EditorContent :content="feedback.content" />
         </article>
@@ -15,6 +10,7 @@
           <PIconButton
             v-if="feedback.owner === profile?.email"
             :icon="PeyEditIcon"
+            variant="ghost"
             @click="
               navigateTo({
                 name: 'note-feedback',
