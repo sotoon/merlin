@@ -4,9 +4,9 @@
       :key="selectionDraft?.uuid"
       clearable
       hide-details
-      :label="t('note.template')"
       :loading="isTemplatesLoading"
       :model-value="selectedValue"
+      :placeholder="t('note.selectTemplate')"
       @update:model-value="handleUpdateValue"
     >
       <PListboxOption
