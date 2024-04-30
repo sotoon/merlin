@@ -1,10 +1,11 @@
 <template>
-  <div class="text-initial prose text-gray-100">
+  <PScrollbar class="text-initial prose text-gray-100">
     <TiptapEditorContent :editor="editor" />
-  </div>
+  </PScrollbar>
 </template>
 
 <script lang="ts" setup>
+import { PScrollbar } from '@pey/core';
 import { useCustomEditor } from './useCustomEditor';
 
 const props = defineProps<{ content: string }>();

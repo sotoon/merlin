@@ -31,6 +31,7 @@ export default {
                 color: '#2c5282',
               },
             },
+            maxWidth: '80ch',
           },
         },
       },

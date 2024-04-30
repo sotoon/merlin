@@ -12,6 +12,7 @@ export default defineNuxtConfig({
       ],
     },
   },
+  css: ['~/assets/css/tiptap.scss'],
   imports: {
     dirs: ['composables/**', 'constants', 'types'],
   },

@@ -98,6 +98,21 @@
       >
         <PeyLinkIcon :size="18" />
       </EditorToggleButton>
+
+      <EditorToggleButton
+        :active="editor.isActive('table')"
+        @toggle="
+          editor?.isActive('table')
+            ? editor.commands.focus()
+            : editor
+                ?.chain()
+                .focus()
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .run()
+        "
+      >
+        <Icon name="mdi:table" size="18" />
+      </EditorToggleButton>
     </div>
 
     <div class="ms-2 flex flex-wrap items-center gap-1">

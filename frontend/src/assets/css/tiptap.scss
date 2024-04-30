@@ -1,0 +1,38 @@
+.tiptap {
+  p.is-editor-empty:first-child::before {
+    @apply pointer-events-none absolute text-gray-30 content-[attr(data-placeholder)];
+  }
+
+  table {
+    @apply m-0 table-fixed overflow-hidden;
+
+    td,
+    th {
+      @apply relative min-w-4 border-2 border-gray-30 p-1.5 align-top;
+    }
+
+    th {
+      @apply bg-gray-00 text-start font-bold;
+    }
+
+    .selectedCell:after {
+      @apply pointer-events-none absolute inset-0 z-[2] bg-primary-30 bg-opacity-40 content-[''];
+    }
+
+    .column-resize-handle {
+      @apply pointer-events-none absolute -bottom-0.5 -right-0.5 top-0 w-1 bg-primary-30;
+    }
+
+    p {
+      @apply m-0;
+    }
+  }
+}
+
+.tableWrapper {
+  @apply overflow-x-auto py-4 scrollbar-primary;
+}
+
+.resize-cursor {
+  @apply cursor-ew-resize;
+}
