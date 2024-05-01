@@ -12,7 +12,11 @@ export const useCustomEditor = (options: Partial<EditorOptions> = {}) => {
   const editor = useEditor({
     ...options,
     extensions: [
-      TiptapStarterKit,
+      TiptapStarterKit.configure({
+        heading: {
+          levels: [1, 2, 3, 4],
+        },
+      }),
       TiptapUnderline,
       TiptapLink.extend({
         inclusive: false,
