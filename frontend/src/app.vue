@@ -15,7 +15,7 @@
       </template>
     </Head>
 
-    <Body class="scrollbar-primary">
+    <Body class="overflow-y-scroll scrollbar-primary">
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>
