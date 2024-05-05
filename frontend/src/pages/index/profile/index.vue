@@ -3,7 +3,7 @@
     <div
       class="flex items-end justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <div class="flex items-end gap-4">
+      <div class="flex items-end gap-4 overflow-hidden">
         <div
           class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary-20"
         >

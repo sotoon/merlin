@@ -6,6 +6,12 @@
   >
     <EditorContentPreview class="text-gray-80" :content="note.content" />
 
+    <template #title>
+      <PText as="h3" class="truncate" weight="medium">
+        {{ note.title }}
+      </PText>
+    </template>
+
     <template v-if="displayType" #icon>
       <div :title="noteTypeLabel[note.type]">
         <Icon class="text-gray" :name="NOTE_TYPE_ICON[note.type]" />
