@@ -1,7 +1,5 @@
 <template>
-  <nav
-    class="flex h-full w-60 flex-col overflow-hidden bg-white py-4 shadow-lg"
-  >
+  <nav class="flex h-full w-60 flex-col overflow-hidden py-4">
     <NuxtLink class="pb-4 pt-2 shadow" to="/">
       <PText as="p" class="text-center" weight="bold" variant="h4">
         {{ t('common.appName') }}

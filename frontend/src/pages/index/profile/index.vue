@@ -1,9 +1,9 @@
 <template>
   <div>
     <div
-      class="flex items-end justify-between gap-2 border-b border-gray-20 pb-4"
+      class="relative flex justify-between gap-2 border-b border-gray-20 pb-4 sm:items-end"
     >
-      <div class="flex items-end gap-4 overflow-hidden">
+      <div class="flex flex-col gap-4 overflow-hidden md:flex-row md:items-end">
         <div
           class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary-20"
         >
@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="absolute left-0 flex flex-col items-center gap-3 sm:flex-row">
         <NuxtLink :to="{ name: 'profile-edit' }">
           <PIconButton class="shrink-0" :icon="PeyEditIcon" tabindex="-1" />
         </NuxtLink>
