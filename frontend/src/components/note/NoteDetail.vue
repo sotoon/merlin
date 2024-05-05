@@ -15,7 +15,7 @@
 
       <div
         v-if="note.access_level.can_edit"
-        class="mt-2 flex items-center gap-4"
+        class="flex flex-col items-center gap-4 md:mt-2 md:flex-row"
       >
         <PIconButton
           class="shrink-0"
