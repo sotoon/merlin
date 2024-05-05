@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@pey/core':
-    specifier: ^1.15.4
-    version: 1.15.4(tailwindcss@3.4.1)(vue@3.4.20)
+    specifier: ^1.15.5
+    version: 1.15.5(tailwindcss@3.4.1)(vue@3.4.20)
   '@pey/icons':
     specifier: ^1.10.2
     version: 1.10.2(vue@3.4.20)
@@ -1767,8 +1767,8 @@ packages:
       '@parcel/watcher-win32-ia32': 2.4.1
       '@parcel/watcher-win32-x64': 2.4.1
 
-  /@pey/core@1.15.4(tailwindcss@3.4.1)(vue@3.4.20):
-    resolution: {integrity: sha512-8zn7JhQlFcbP2OFyS+UEnFaLjRlMfUSx1uWHmDOYYL8jy6RwFO+pbsu8kmZFg+yx0X2BqOGKwFkw+RI09M77pw==}
+  /@pey/core@1.15.5(tailwindcss@3.4.1)(vue@3.4.20):
+    resolution: {integrity: sha512-vbWyLcYxSFyCAicssgml221aUkPmiz0YIp67e50mcM/N+wzN8tPrGexVuI7A35KIaSGf/PKVrFgWwBskua2+yg==}
     peerDependencies:
       vue: '>=3.2.40 <4.0.0'
     dependencies:

@@ -9,7 +9,7 @@
     </PText>
 
     <template #footer>
-      <div class="grow">
+      <div dir="ltr" class="grow truncate">
         <PText class="text-gray-50" variant="caption2">
           {{ user.email }}
         </PText>
