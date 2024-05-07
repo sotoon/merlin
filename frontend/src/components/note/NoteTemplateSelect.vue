@@ -4,13 +4,26 @@
       :key="selectionDraft?.uuid"
       clearable
       hide-details
-      :loading="isTemplatesLoading"
+      :loading="isTemplatesLoading || isSharedTemplatesLoading"
       :model-value="selectedValue"
       :placeholder="t('note.selectTemplate')"
       @update:model-value="handleUpdateValue"
     >
       <PListboxOption
         v-for="template in templates"
+        :key="template.uuid"
+        :label="template.title"
+        :value="template"
+        @click="selectValue(template)"
+      />
+
+      <hr
+        v-if="templates?.length && sharedTemplates?.length"
+        class="my-2 border-gray-10"
+      />
+
+      <PListboxOption
+        v-for="template in sharedTemplates"
         :key="template.uuid"
         :label="template.title"
         :value="template"
@@ -66,6 +79,11 @@ const { t } = useI18n();
 const { data: templates, pending: isTemplatesLoading } = useGetNotes({
   type: NOTE_TYPE.template,
 });
+const { data: sharedTemplates, pending: isSharedTemplatesLoading } =
+  useGetNotes({
+    type: NOTE_TYPE.template,
+    retrieveMentions: true,
+  });
 
 const handleUpdateValue = (value: Note | '') => {
   if (!value) {

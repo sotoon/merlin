@@ -72,4 +72,4 @@ export interface NoteFeedbackFormValues {
 }
 
 export interface NoteTemplateFormValues
-  extends Pick<Note, 'title' | 'content'> {}
+  extends Pick<Note, 'title' | 'content' | 'mentioned_users'> {}

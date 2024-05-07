@@ -64,9 +64,15 @@ const { t } = useI18n();
 const { data: users } = useGetMyTeam();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 
+// TODO: filter out templates in the backend
+const messagesWithoutTemplates = computed(
+  () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
+);
 const notesLinks = computed(() => getNotesLinks(t));
 const isLeader = computed(() => Boolean(users.value?.length));
 const newMessagesCount = computed(
-  () => messages.value?.filter((message) => !message.read_status).length,
+  () =>
+    messagesWithoutTemplates.value?.filter((message) => !message.read_status)
+      .length,
 );
 </script>
