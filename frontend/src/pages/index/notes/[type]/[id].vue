@@ -34,22 +34,28 @@ import { PBox, PButton, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 
 const { t } = useI18n();
-const {
-  params: { id },
-} = useRoute();
+const route = useRoute();
 
 const noteId = computed(() => {
-  if (typeof id === 'string') {
-    return id;
+  if (typeof route.params.id === 'string') {
+    return route.params.id;
   }
 
   return '';
 });
 
+const { execute: updateNoteReadStatus } = useUpdateNoteReadStatus({
+  id: noteId.value,
+});
 const {
   data: note,
   pending,
   error,
   refresh,
-} = useGetNote({ id: noteId.value });
+} = useGetNote(
+  { id: noteId.value },
+  {
+    onResponse: route.query.read ? () => updateNoteReadStatus(true) : undefined,
+  },
+);
 </script>

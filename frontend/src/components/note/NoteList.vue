@@ -16,6 +16,10 @@
                   type: route.params.type || '-',
                   id: note.uuid,
                 },
+                query: {
+                  read:
+                    displayReadStatus && !note.read_status ? 'true' : undefined,
+                },
               }
         "
       >
