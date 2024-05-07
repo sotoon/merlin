@@ -19,7 +19,7 @@
     </template>
 
     <template v-if="note.access_level.can_edit || displayReadStatus" #toolbar>
-      <div class="ms-4 hidden sm:block" @click.prevent>
+      <div class="flex items-center justify-end sm:ms-4" @click.prevent>
         <NoteDeleteButton
           v-if="note.access_level.can_edit"
           button-color="danger"
