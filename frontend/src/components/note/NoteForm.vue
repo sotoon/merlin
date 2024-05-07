@@ -43,21 +43,11 @@
 
     <div v-if="noteType !== NOTE_TYPE.personal">
       <VeeField v-slot="{ componentField }" name="mentioned_users">
-        <PListbox
+        <UserSelect
           v-bind="componentField"
-          hide-details
           :label="t('note.mentionedUsers')"
-          :loading="isUsersLoading"
           multiple
-          searchable
-        >
-          <PListboxOption
-            v-for="user in users"
-            :key="user.uuid"
-            :label="`${user.name} (${user.email})`"
-            :value="user.email"
-          />
-        </PListbox>
+        />
       </VeeField>
     </div>
 
@@ -196,7 +186,6 @@ const {
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
-const { data: users, pending: isUsersLoading } = useGetUsers();
 const { data: notes, pending: isNotesLoading } = useGetNotes();
 
 const noteOptions = computed(() =>

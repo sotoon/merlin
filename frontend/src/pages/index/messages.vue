@@ -71,6 +71,11 @@ const {
 } = useGetNotes({
   retrieveMentions: true,
 });
-const filteredNotes = useFilterNotes(() => notes.value || []);
+
+// TODO: filter out templates in the backend
+const notesWithoutTemplates = computed(
+  () => notes.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
+);
+const filteredNotes = useFilterNotes(notesWithoutTemplates);
 const sortedNotes = useSortNotes(filteredNotes);
 </script>

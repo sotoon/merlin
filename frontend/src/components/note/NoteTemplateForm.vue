@@ -23,6 +23,14 @@
       />
     </VeeField>
 
+    <VeeField v-slot="{ componentField }" name="mentioned_users">
+      <UserSelect
+        v-bind="componentField"
+        :label="t('note.share')"
+        multiple
+      />
+    </VeeField>
+
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
       <PButton
         class="shrink-0"
@@ -68,6 +76,7 @@ const { meta, handleSubmit } = useForm<NoteTemplateFormValues>({
   initialValues: {
     title: props.note?.title || '',
     content: props.note?.content || '',
+    mentioned_users: props.note?.mentioned_users || [],
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
