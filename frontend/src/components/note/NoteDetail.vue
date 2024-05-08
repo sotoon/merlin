@@ -129,7 +129,13 @@
       </div>
     </div>
 
-    <div v-if="NOTES_WITH_SUMMARY.includes(note.type)" class="mt-8">
+    <div
+      v-if="
+        NOTES_WITH_SUMMARY.includes(note.type) &&
+        note.access_level.can_view_summary
+      "
+      class="mt-8"
+    >
       <NoteSummary :note="note" />
     </div>
 
