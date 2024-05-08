@@ -12,6 +12,7 @@ export interface Note {
     can_write_summary: boolean;
   };
   content: string;
+  content_preview?: string;
   date: string;
   date_created: string;
   date_updated: string;
