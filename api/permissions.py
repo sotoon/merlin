@@ -37,7 +37,7 @@ class SummaryPermission(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return NoteUserAccess.objects.filter(
-                note=view.get_note(), user=request.user, can_view=True
+                note=view.get_note(), user=request.user, can_view_summary=True
             ).exists()
         return NoteUserAccess.objects.filter(
             note=view.get_note(), user=request.user, can_write_summary=True
