@@ -295,9 +295,8 @@ class NoteUserAccess(MerlinBaseModel):
     )
     can_view = models.BooleanField(default=False, verbose_name="مشاهده")
     can_edit = models.BooleanField(default=False, verbose_name="ویرایش")
-    can_write_summary = models.BooleanField(
-        default=False, verbose_name="نوشتن جمع‌بندی"
-    )
+    can_view_summary = models.BooleanField(default=False, verbose_name="مشاهده جمع‌بندی")
+    can_write_summary = models.BooleanField(default=False, verbose_name="نوشتن جمع‌بندی")
     can_write_feedback = models.BooleanField(default=False, verbose_name="نوشتن فیدبک")
     can_view_feedbacks = models.BooleanField(
         default=False, verbose_name="مشاهده فیدبک‌ها"
@@ -320,7 +319,12 @@ class NoteUserAccess(MerlinBaseModel):
         cls.objects.update_or_create(
             user=note.owner,
             note=note,
-            defaults={"can_view": True, "can_edit": True, "can_view_feedbacks": True},
+            defaults={
+                "can_view": True,
+                "can_edit": True,
+                "can_view_summary": True,
+                "can_view_feedbacks": True,
+            },
         )
 
         if note.type == NoteType.Personal:
@@ -334,6 +338,7 @@ class NoteUserAccess(MerlinBaseModel):
                 note=note,
                 defaults={
                     "can_view": True,
+                    "can_view_summary": True,
                     "can_write_summary": True,
                     "can_write_feedback": True,
                     "can_view_feedbacks": True,
@@ -346,6 +351,7 @@ class NoteUserAccess(MerlinBaseModel):
             note=note,
             defaults={
                 "can_view": True,
+                "can_view_summary": True,
                 "can_write_summary": True,
                 "can_write_feedback": True,
                 "can_view_feedbacks": True,
@@ -360,6 +366,7 @@ class NoteUserAccess(MerlinBaseModel):
                     note=note,
                     defaults={
                         "can_view": True,
+                        "can_view_summary": True,
                         "can_write_summary": True,
                         "can_write_feedback": True,
                         "can_view_feedbacks": True,
