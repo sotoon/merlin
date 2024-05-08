@@ -5,7 +5,7 @@
     :title="note.title"
   >
     <PText as="p" class="truncate text-gray-80" variant="caption1">
-      {{ note.content }}
+      {{ note.content_preview }}
     </PText>
 
     <template #title>
