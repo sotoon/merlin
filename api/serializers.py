@@ -53,7 +53,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 class NoteUserAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = NoteUserAccess
-        fields = ["can_view", "can_edit", "can_write_summary", "can_write_feedback"]
+        fields = [
+            "can_view",
+            "can_edit",
+            "can_view_summary",
+            "can_write_summary",
+            "can_write_feedback",
+        ]
 
 
 class NoteSerializer(serializers.ModelSerializer):

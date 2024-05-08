@@ -7,6 +7,7 @@ export interface Note {
   access_level: {
     can_edit: boolean;
     can_view: boolean;
+    can_view_summary: boolean;
     can_write_feedback: boolean;
     can_write_summary: boolean;
   };
