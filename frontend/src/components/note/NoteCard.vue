@@ -4,7 +4,9 @@
     header-border
     :title="note.title"
   >
-    <EditorContentPreview class="text-gray-80" :content="note.content" />
+    <PText as="p" class="truncate text-gray-80" variant="caption1">
+      {{ note.content }}
+    </PText>
 
     <template #title>
       <PText as="h3" class="truncate" weight="medium">
