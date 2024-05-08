@@ -248,8 +248,8 @@ class SummaryAdmin(BaseModelAdmin):
 
 @admin.register(NoteUserAccess)
 class NoteUserAccessAdmin(BaseModelAdmin):
-    list_display = ("uuid", "note", "user", "can_view", "can_edit", "can_write_summary", "can_write_feedback", "can_view_feedbacks", "date_created", "date_updated",)
-    fields = ("uuid", "note", "user", "can_view", "can_edit", "can_write_summary", "can_write_feedback", "can_view_feedbacks", ("date_created", "date_updated"),)
+    list_display = ("uuid", "note", "user", "can_view", "can_edit", "can_view_summary", "can_write_summary", "can_write_feedback", "can_view_feedbacks", "date_created", "date_updated",)
+    fields = ("uuid", "note", "user", "can_view", "can_edit", "can_view_summary", "can_write_summary", "can_write_feedback", "can_view_feedbacks", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "uuid")
     search_fields = ["user__name", "user__email", "note__title"]

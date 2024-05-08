@@ -427,7 +427,7 @@ class SummaryViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         current_note = self.get_note()
         if NoteUserAccess.objects.filter(
-            note=current_note, user=self.request.user, can_view=True
+            note=current_note, user=self.request.user, can_view_summary=True
         ).exists():
             return Summary.objects.filter(note=current_note)
         return Summary.objects.none()
