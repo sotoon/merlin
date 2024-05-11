@@ -18,6 +18,7 @@ from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
     ProfileSerializer,
+    ProfileListSerializer,
     SummarySerializer,
     TokenSerializer,
     UserSerializer,
@@ -259,7 +260,7 @@ class UsersView(ListAPIView):
     """
 
     permission_classes = [IsAuthenticated]
-    serializer_class = ProfileSerializer
+    serializer_class = ProfileListSerializer
 
     def get_queryset(self):
         return User.objects.all()
