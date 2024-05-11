@@ -7,13 +7,15 @@
         'group-focus:bg-gray-00 hover:bg-gray-00': !isActive,
       }"
     >
-      <Icon
-        :class="{
-          'text-primary': isActive,
-          'text-gray': !isActive,
-        }"
-        :name="icon"
-        size="20"
+      <i
+        class="text-h4"
+        :class="[
+          icon,
+          {
+            'text-primary': isActive,
+            'text-gray': !isActive,
+          },
+        ]"
       />
 
       <PText

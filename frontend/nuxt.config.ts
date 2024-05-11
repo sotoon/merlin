@@ -38,7 +38,6 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@nuxtjs/tailwindcss',
     '@vee-validate/nuxt',
-    'nuxt-icon',
     'nuxt-tiptap-editor',
   ],
   srcDir: 'src/',

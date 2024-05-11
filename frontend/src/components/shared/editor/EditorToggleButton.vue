@@ -1,6 +1,7 @@
 <template>
   <PIconButton
     type="button"
+    class="text-subtitle"
     :disabled="disabled"
     :icon="slots.default || icon"
     :color="active ? 'primary' : 'gray'"

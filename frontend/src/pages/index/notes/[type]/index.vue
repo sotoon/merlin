@@ -4,10 +4,9 @@
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
-        <Icon
-          class="text-primary"
-          :name="noteType ? NOTE_TYPE_ICON[noteType] : 'mdi:note-text'"
-          size="32"
+        <i
+          class="text-h1 text-primary"
+          :class="noteType ? NOTE_TYPE_ICON[noteType] : 'i-mdi-note-text'"
         />
 
         <PHeading level="h1" responsive>

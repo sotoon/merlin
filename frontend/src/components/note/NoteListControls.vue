@@ -1,7 +1,7 @@
 <template>
   <PBox class="flex flex-wrap items-center gap-8 bg-white p-4">
     <div v-if="slots.sort" class="flex flex-wrap items-center gap-2">
-      <Icon class="text-gray-50" name="mdi:sort" role="presentation" />
+      <i class="i-mdi-sort text-h3 text-gray-50" />
       <slot name="sort" />
     </div>
 
