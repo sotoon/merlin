@@ -18,13 +18,13 @@ export const NOTE_TYPE_ROUTE_PARAM = {
 } as const;
 
 export const NOTE_TYPE_ICON = {
-  [NOTE_TYPE.goal]: 'mdi:target-arrow',
-  [NOTE_TYPE.meeting]: 'mdi:calendar',
-  [NOTE_TYPE.message]: 'mdi:email-fast',
-  [NOTE_TYPE.personal]: 'mdi:folder-lock',
-  [NOTE_TYPE.proposal]: 'mdi:chart-line',
-  [NOTE_TYPE.task]: 'mdi:check-circle',
-  [NOTE_TYPE.template]: 'mdi:clipboard-text',
+  [NOTE_TYPE.goal]: 'i-mdi-target-arrow',
+  [NOTE_TYPE.meeting]: 'i-mdi-calendar',
+  [NOTE_TYPE.message]: 'i-mdi-email-fast',
+  [NOTE_TYPE.personal]: 'i-mdi-folder-lock',
+  [NOTE_TYPE.proposal]: 'i-mdi-chart-line',
+  [NOTE_TYPE.task]: 'i-mdi-check-circle',
+  [NOTE_TYPE.template]: 'i-mdi-clipboard-text',
 };
 
 export const getNoteTypeLabels = (t: (key: string) => string) => ({

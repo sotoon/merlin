@@ -14,7 +14,7 @@
 
     <template v-if="displayType" #icon>
       <div :title="noteTypeLabel[note.type]">
-        <Icon class="text-gray" :name="NOTE_TYPE_ICON[note.type]" />
+        <i class="block text-h3 text-gray" :class="NOTE_TYPE_ICON[note.type]" />
       </div>
     </template>
 

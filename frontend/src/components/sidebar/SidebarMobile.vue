@@ -1,6 +1,6 @@
 <template>
   <button class="h-full" @click="sidebarOpen = true">
-    <Icon name="mdi:chevron-double-left" />
+    <i class="i-mdi-chevron-double-left text-h3" />
   </button>
 
   <PSheet
