@@ -7,43 +7,35 @@
       <EditorToggleButton
         @toggle="editor?.chain().focus().addColumnAfter().run()"
       >
-        <Icon
-          class="rtl:rotate-180"
-          name="mdi:table-column-plus-after"
-          size="18"
-        />
+        <i class="i-mdi-table-column-plus-after rtl:rotate-180" />
       </EditorToggleButton>
 
       <EditorToggleButton
         @toggle="editor?.chain().focus().addColumnBefore().run()"
       >
-        <Icon
-          class="rtl:rotate-180"
-          name="mdi:table-column-plus-before"
-          size="18"
-        />
+        <i class="i-mdi-table-column-plus-before rtl:rotate-180" />
       </EditorToggleButton>
 
       <EditorToggleButton
         @toggle="editor?.chain().focus().deleteColumn().run()"
       >
-        <Icon name="mdi:table-column-remove" size="18" />
+        <i class="i-mdi-table-column-remove" />
       </EditorToggleButton>
     </div>
 
     <div class="flex flex-wrap items-center gap-1">
       <EditorToggleButton @toggle="editor?.chain().focus().addRowAfter().run()">
-        <Icon name="mdi:table-row-plus-after" size="18" />
+        <i class="i-mdi-table-row-plus-after" />
       </EditorToggleButton>
 
       <EditorToggleButton
         @toggle="editor?.chain().focus().addRowBefore().run()"
       >
-        <Icon name="mdi:table-row-plus-before" size="18" />
+        <i class="i-mdi-table-row-plus-before" />
       </EditorToggleButton>
 
       <EditorToggleButton @toggle="editor?.chain().focus().deleteRow().run()">
-        <Icon name="mdi:table-row-remove" size="18" />
+        <i class="i-mdi-table-row-remove" />
       </EditorToggleButton>
     </div>
 
@@ -52,20 +44,15 @@
         :disabled="!editor?.can().mergeOrSplit()"
         @toggle="editor?.chain().focus().mergeOrSplit().run()"
       >
-        <Icon
-          v-if="editor?.can().splitCell()"
-          name="mdi:table-split-cell"
-          size="18"
-        />
-
-        <Icon v-else name="mdi:table-merge-cells" size="18" />
+        <i v-if="editor?.can().splitCell()" class="i-mdi-table-split-cell" />
+        <i v-else class="i-mdi-table-merge-cells" />
       </EditorToggleButton>
     </div>
 
     <div class="flex flex-wrap items-center gap-1">
       <PPopper show-arrow :offset="10">
         <EditorToggleButton>
-          <Icon name="mdi:table-headers-eye" size="18" />
+          <i class="i-mdi-table-headers-eye" />
         </EditorToggleButton>
 
         <template #content>
@@ -94,7 +81,7 @@
 
     <div class="flex flex-wrap items-center gap-1">
       <EditorToggleButton @toggle="editor?.chain().focus().deleteTable().run()">
-        <Icon name="mdi:table-remove" size="18" />
+        <i class="i-mdi-table-remove" />
       </EditorToggleButton>
     </div>
   </div>
