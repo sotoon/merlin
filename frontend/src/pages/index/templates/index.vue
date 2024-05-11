@@ -4,7 +4,7 @@
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
-        <Icon class="text-primary" name="mdi:clipboard-text" size="32" />
+        <i class="i-mdi-clipboard-text text-h1 text-primary" />
 
         <PHeading level="h1" responsive>
           {{ t('common.templates') }}

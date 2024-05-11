@@ -2,10 +2,9 @@
   <div class="px-4">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <Icon
-          class="mb-3 me-4 text-primary"
-          :name="NOTE_TYPE_ICON[note.type]"
-          size="32"
+        <i
+          class="mb-3 me-4 inline-block align-middle text-h1 text-primary"
+          :class="NOTE_TYPE_ICON[note.type]"
         />
 
         <PText responsive variant="title" weight="bold">

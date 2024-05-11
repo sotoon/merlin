@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
 
+import { iconsPlugin, getIconCollections } from '@egoist/tailwindcss-icons';
 import PeyTailwindPreset from '@pey/tailwind-preset';
 import Typography from '@tailwindcss/typography';
 
@@ -37,5 +38,10 @@ export default {
       },
     },
   },
-  plugins: [Typography],
+  plugins: [
+    iconsPlugin({
+      collections: getIconCollections(['mdi']),
+    }),
+    Typography,
+  ],
 } satisfies Config;

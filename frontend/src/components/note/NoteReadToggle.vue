@@ -4,15 +4,11 @@
 
     <button
       v-else
-      class="rounded p-1 transition-colors hover:bg-primary-10"
+      class="rounded p-1 text-h3 transition-colors hover:bg-primary-10"
       @click="toggleReadStatus"
     >
-      <Icon
-        v-if="note.read_status"
-        class="text-gray-30"
-        name="mdi:email-open"
-      />
-      <Icon v-else class="text-primary" name="mdi:email" />
+      <i v-if="note.read_status" class="i-mdi-email-open block text-gray-30" />
+      <i v-else class="i-mdi-email block text-primary" />
     </button>
   </div>
 </template>
