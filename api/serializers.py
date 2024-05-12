@@ -50,6 +50,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
 
+class ProfileListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "uuid",
+            "email",
+            "name",
+        )
+
+
 class NoteUserAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = NoteUserAccess
