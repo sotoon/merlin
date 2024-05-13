@@ -44,6 +44,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
       await renewToken();
 
+      if (!options.retry) {
+        options.retry = 1;
+      }
+
       options.onResponseError = () => {
         logout();
       };
