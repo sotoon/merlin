@@ -17,6 +17,7 @@ from api.permissions import FeedbackPermission, NotePermission, SummaryPermissio
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
+    NoteListSerializer,
     ProfileSerializer,
     ProfileListSerializer,
     SummarySerializer,
@@ -271,6 +272,16 @@ class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer
     permission_classes = (IsAuthenticated, NotePermission)
     search_fields = ["type"]
+
+    action_serializers = {
+        "list": NoteListSerializer,
+    }
+
+    def get_serializer_class(self):
+        if hasattr(self, "action_serializers"):
+            return self.action_serializers.get(self.action, self.serializer_class)
+
+        return super(NoteViewSet, self).get_serializer_class()
 
     def get_object(self):
         uuid = self.kwargs["uuid"]
