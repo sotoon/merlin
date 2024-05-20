@@ -1,8 +1,10 @@
 interface UseUnsavedChangesGuardOptions {
-  disabled?: () => boolean | Ref<boolean>;
+  disabled?: boolean | MaybeRefOrGetter<boolean> | ComputedRef<boolean>;
 }
 
-export const useUnsavedChangesGuard = ({ disabled }: UseUnsavedChangesGuardOptions = {}) => {
+export const useUnsavedChangesGuard = ({
+  disabled,
+}: UseUnsavedChangesGuardOptions = {}) => {
   const handleBeforeUnload = (event: BeforeUnloadEvent) => {
     if (!toValue(disabled)) {
       event.preventDefault();

@@ -174,6 +174,7 @@ const {
   values: formValues,
   handleSubmit,
   setFieldValue,
+  setValues,
 } = useForm<NoteFormValues>({
   initialValues: {
     title: props.note?.title || '',
@@ -185,8 +186,27 @@ const {
     linked_notes: props.note?.linked_notes || [],
   },
 });
-useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
 const { data: notes, pending: isNotesLoading } = useGetNotes();
+
+const isEditing = computed(() => Boolean(props.note));
+
+useUnsavedChangesGuard({
+  disabled: () => !isEditing.value || !meta.value.dirty,
+});
+useStoreDraft({
+  disabled: isEditing,
+  storageKey: () => `note:draft:${props.noteType}`,
+  values: computed(() => ({
+    title: formValues.title,
+    content: formValues.content,
+  })),
+  setValues: (values) =>
+    setValues({
+      ...formValues,
+      title: values.title,
+      content: values.content,
+    }),
+});
 
 const noteOptions = computed(() =>
   notes.value
