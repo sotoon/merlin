@@ -24,11 +24,7 @@
     </VeeField>
 
     <VeeField v-slot="{ componentField }" name="mentioned_users">
-      <UserSelect
-        v-bind="componentField"
-        :label="t('note.share')"
-        multiple
-      />
+      <UserSelect v-bind="componentField" :label="t('note.share')" multiple />
     </VeeField>
 
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
@@ -72,14 +68,38 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit } = useForm<NoteTemplateFormValues>({
+const {
+  meta,
+  values: formValues,
+  handleSubmit,
+  setValues,
+} = useForm<NoteTemplateFormValues>({
   initialValues: {
     title: props.note?.title || '',
     content: props.note?.content || '',
     mentioned_users: props.note?.mentioned_users || [],
   },
 });
-useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
+
+const isEditing = computed(() => Boolean(props.note));
+
+useUnsavedChangesGuard({
+  disabled: () => !isEditing.value || !meta.value.dirty,
+});
+useStoreDraft({
+  disabled: isEditing,
+  storageKey: 'note:draft:Template',
+  values: computed(() => ({
+    title: formValues.title,
+    content: formValues.content,
+  })),
+  setValues: (values) =>
+    setValues({
+      ...formValues,
+      title: values.title,
+      content: values.content,
+    }),
+});
 
 const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', values, ctx);
