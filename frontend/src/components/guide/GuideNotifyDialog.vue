@@ -9,11 +9,7 @@
     </PText>
 
     <template #footer>
-      <NuxtLink
-        class="w-full rounded"
-        target="_blank"
-        to="https://drive.google.com/drive/folders/1apf_S6E7jSgSpSVA5ZH42AjFgmv7usOf"
-      >
+      <NuxtLink class="w-full rounded" target="_blank" :to="GUIDE_DRIVE_LINK">
         <PButton
           type="button"
           aria-hidden="true"

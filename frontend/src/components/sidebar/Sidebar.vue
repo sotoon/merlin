@@ -48,9 +48,16 @@
         </ul>
       </PScrollbar>
 
-      <hr class="mb-2 border-gray-10" />
+      <div class="flex flex-col space-y-2 border-t border-gray-10 pt-2">
+        <SidebarLink
+          external
+          icon="i-mdi-help-circle"
+          :label="t('common.performanceManagementGuide')"
+          :to="GUIDE_DRIVE_LINK"
+        />
 
-      <SidebarProfileLink />
+        <SidebarProfileLink />
+      </div>
     </div>
   </nav>
 </template>
