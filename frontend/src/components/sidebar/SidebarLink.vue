@@ -1,10 +1,16 @@
 <template>
-  <NuxtLink v-slot="{ isActive }" class="group" :to="to">
+  <NuxtLink
+    v-slot="slot"
+    class="group"
+    :external
+    :target="external ? '_blank' : undefined"
+    :to
+  >
     <div
       class="relative flex items-center gap-3 rounded p-3"
       :class="{
-        'bg-primary-10': isActive,
-        'group-focus:bg-gray-00 hover:bg-gray-00': !isActive,
+        'bg-primary-10': slot?.isActive,
+        'group-focus:bg-gray-00 hover:bg-gray-00': !slot?.isActive,
       }"
     >
       <i
@@ -12,15 +18,18 @@
         :class="[
           icon,
           {
-            'text-primary': isActive,
-            'text-gray': !isActive,
+            'text-primary': slot?.isActive,
+            'text-gray': !slot?.isActive,
           },
         ]"
       />
 
       <PText
-        :class="{ 'text-gray-100': isActive, 'text-gray-80': !isActive }"
-        :weight="isActive ? 'medium' : 'regular'"
+        :class="{
+          'text-gray-100': slot?.isActive,
+          'text-gray-80': !slot?.isActive,
+        }"
+        :weight="slot?.isActive ? 'medium' : 'regular'"
         variant="caption1"
       >
         {{ label }}
@@ -38,6 +47,7 @@ import type { SidebarLink } from '~/components/sidebar/SidebarLinks';
 
 interface SidebarLinkProps extends SidebarLink {
   badgeCount?: number;
+  external?: boolean;
 }
 
 defineProps<SidebarLinkProps>();
