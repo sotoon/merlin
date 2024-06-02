@@ -1,5 +1,8 @@
 <template>
-  <NuxtPage />
+  <div>
+    <NuxtPage />
+    <GuideNotifyDialog />
+  </div>
 </template>
 
 <script lang="ts" setup>
