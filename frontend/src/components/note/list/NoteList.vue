@@ -39,7 +39,7 @@ const getNoteLink = (note: Note) => {
   if (note.type === NOTE_TYPE.message) {
     return {
       name: 'feedback',
-      params: { id: note.uuid },
+      params: { type: note.feedbackType, id: note.uuid },
       query: { read },
     };
   }

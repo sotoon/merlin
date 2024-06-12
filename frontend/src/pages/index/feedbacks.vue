@@ -4,6 +4,9 @@
 
 <script lang="ts" setup>
 definePageMeta({
-  redirect: { name: 'feedbacks' },
+  redirect: {
+    name: 'feedbacks',
+    params: { type: FEEDBACK_TYPE.Send },
+  },
 });
 </script>

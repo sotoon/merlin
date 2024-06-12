@@ -23,7 +23,15 @@
                 <SidebarLink
                   icon="i-mdi-feedback"
                   :label="t('common.sendFeedback')"
-                  :to="{ name: 'feedbacks' }"
+                  :to="{ name: 'feedbacks', params: { type: FEEDBACK_TYPE.Send  } }"
+                />
+              </li>
+
+              <li>
+                <SidebarLink
+                  icon="i-mdi-comment-question"
+                  :label="t('common.requestFeedback')"
+                  :to="{ name: 'feedbacks', params: { type: FEEDBACK_TYPE.Request  } }"
                 />
               </li>
             </SidebarLinkGroup>

@@ -32,7 +32,7 @@ const noteLinkTo = computed(() => {
   if (note.value.type === NOTE_TYPE.message) {
     return {
       name: 'feedback',
-      params: { id: note.value.uuid },
+      params: { type: note.value.feedbackType, id: note.value.uuid },
     };
   }
 
