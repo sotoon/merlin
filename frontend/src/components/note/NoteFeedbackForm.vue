@@ -1,5 +1,5 @@
 <template>
-  <form class="space-y-4" @submit="onSubmit">
+  <form v-if="visible" class="space-y-4" @submit="onSubmit">
     <VeeField v-slot="{ value, handleChange }" name="content">
       <Editor
         :model-value="value"
@@ -8,13 +8,13 @@
       />
     </VeeField>
 
-    <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
+    <div class="flex flex-wrap items-center justify-end gap-4">
       <PButton
         class="shrink-0"
         color="gray"
         type="button"
         variant="light"
-        @click="emit('cancel')"
+        @click="onCancel"
       >
         {{ t('common.cancel') }}
       </PButton>
@@ -34,29 +34,35 @@
 
 <script lang="ts" setup>
 import { PButton } from '@pey/core';
-import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
+  note: Note;
   feedback?: NoteFeedback;
-  isSubmitting?: boolean;
 }>();
-const emit = defineEmits<{
-  submit: [
-    values: NoteFeedbackFormValues,
-    ctx: SubmissionContext<NoteFeedbackFormValues>,
-  ];
-  cancel: [];
-}>();
+const visible = defineModel<boolean>('visible');
 
 const { t } = useI18n();
 const { meta, handleSubmit } = useForm<NoteFeedbackFormValues>({
   initialValues: {
     content: props.feedback?.content || '',
   },
+  keepValuesOnUnmount: true,
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
+const { execute: createNoteFeedback, pending: isSubmitting } =
+  useCreateNoteFeedback({ noteId: props.note.uuid });
 
 const onSubmit = handleSubmit((values, ctx) => {
-  emit('submit', values, ctx);
+  createNoteFeedback({
+    body: values,
+    onSuccess: () => {
+      ctx.resetForm();
+      visible.value = false;
+    },
+  });
 });
+
+const onCancel = () => {
+  visible.value = false;
+};
 </script>
