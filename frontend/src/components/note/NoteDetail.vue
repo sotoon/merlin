@@ -118,7 +118,7 @@
     </div>
 
     <div class="mt-8">
-      <NoteFeedbacks :note="note" />
+      <NoteFeedback :note="note" />
     </div>
   </div>
 </template>
