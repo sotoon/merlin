@@ -42,6 +42,7 @@
     "append": "اضافه",
     "committeeDate": "تاریخ کمیته",
     "confirmDeleteNote": "آیا می‌خواهید این یادداشت را حذف کنید؟",
+    "confirmDeleteNoteFeedback": "آیا می‌خواهید این فیدبک را حذف کنید؟",
     "createNewX": "ایجاد {0} جدید",
     "editTemplate": "ویرایش قالب",
     "editX": "ویرایش {0}",
