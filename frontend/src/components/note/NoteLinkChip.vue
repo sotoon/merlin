@@ -29,6 +29,13 @@ const noteLinkTo = computed(() => {
     };
   }
 
+  if (note.value.type === NOTE_TYPE.message) {
+    return {
+      name: 'feedback',
+      params: { id: note.value.uuid },
+    };
+  }
+
   return {
     name: 'note',
     params: {

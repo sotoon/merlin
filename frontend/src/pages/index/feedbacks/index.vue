@@ -4,17 +4,14 @@
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
-        <i
-          class="text-h1 text-primary"
-          :class="noteType ? NOTE_TYPE_ICON[noteType] : 'i-mdi-note-text'"
-        />
+        <i class="i-mdi-feedback text-h1 text-primary" />
 
         <PHeading level="h1" responsive>
-          {{ noteTitle }}
+          {{ t('common.sendFeedback') }}
         </PHeading>
       </div>
 
-      <NuxtLink v-if="!isUser" :to="{ name: 'note-create' }">
+      <NuxtLink :to="{ name: 'feedback-create' }">
         <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
       </NuxtLink>
     </div>
@@ -40,16 +37,11 @@
         </template>
 
         <template #filter>
-          <NoteListTypeFilter v-if="!noteType" />
           <NoteListPeriodFilter :notes="notes" />
         </template>
       </NoteListControls>
 
-      <NoteList
-        v-if="sortedNotes.length"
-        :notes="sortedNotes"
-        :display-type="isUser"
-      />
+      <NoteList v-if="sortedNotes.length" :notes="sortedNotes" />
 
       <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
         {{ t('note.noNotes') }}
@@ -62,12 +54,7 @@
 import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
-definePageMeta({ name: 'notes' });
-const props = defineProps<{
-  noteType?: Exclude<NoteType, 'Message' | 'Template'>;
-  userEmail?: string;
-  user?: User | null;
-}>();
+definePageMeta({ name: 'feedbacks' });
 
 const { t } = useI18n();
 const {
@@ -76,29 +63,12 @@ const {
   error,
   refresh,
 } = useGetNotes({
-  type: props.noteType,
-  user: props.userEmail,
+  type: NOTE_TYPE.message,
 });
 const filteredNotes = useFilterNotes(() => notes.value || []);
 const sortedNotes = useSortNotes(filteredNotes);
 
-const isUser = computed(() => Boolean(props.userEmail));
-const noteTitles = computed(() => ({
-  [NOTE_TYPE.goal]: t('common.goals'),
-  [NOTE_TYPE.meeting]: t('common.meetings'),
-  [NOTE_TYPE.personal]: t('common.personalNotes'),
-  [NOTE_TYPE.proposal]: t('common.proposal'),
-  [NOTE_TYPE.task]: t('common.tasks'),
-}));
-const noteTitle = computed(() =>
-  props.noteType
-    ? noteTitles.value[props.noteType]
-    : props.user
-      ? t('user.userNotes', { name: props.user.name })
-      : t('common.notes'),
-);
-
 useHead({
-  title: noteTitle,
+  title: t('common.sendFeedback'),
 });
 </script>

@@ -18,6 +18,18 @@
           </li>
 
           <li>
+            <SidebarLinkGroup :title="t('common.feedback')">
+              <li>
+                <SidebarLink
+                  icon="i-mdi-feedback"
+                  :label="t('common.sendFeedback')"
+                  :to="{ name: 'feedbacks' }"
+                />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
             <SidebarLinkGroup :title="t('common.personal')">
               <li>
                 <SidebarLink
