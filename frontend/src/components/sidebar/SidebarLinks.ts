@@ -40,14 +40,6 @@ export const getNotesLinks = (t: (key: string) => string): SidebarLink[] => [
     },
   },
   {
-    icon: NOTE_TYPE_ICON[NOTE_TYPE.message],
-    label: t('common.messageToOthers'),
-    to: {
-      name: 'notes',
-      params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
-    },
-  },
-  {
     icon: NOTE_TYPE_ICON[NOTE_TYPE.personal],
     label: t('common.personalNotes'),
     to: {

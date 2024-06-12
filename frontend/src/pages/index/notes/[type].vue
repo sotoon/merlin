@@ -17,8 +17,9 @@ const { data: users, refresh: getMyTeam } = useGetMyTeam({
 const noteType = computed(() => {
   if (
     typeof route.params.type === 'string' &&
-    route.params.type in NOTE_TYPE &&
-    route.params.type !== 'template'
+    (Object.values(NOTE_TYPE_ROUTE_PARAM) as string[]).includes(
+      route.params.type,
+    )
   ) {
     return NOTE_TYPE[route.params.type as NoteTypeRouteParam];
   }
