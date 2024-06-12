@@ -36,12 +36,12 @@
     <template v-else>
       <NoteListControls v-if="notes?.length">
         <template #sort>
-          <NoteSortControl />
+          <NoteListSortControl />
         </template>
 
         <template #filter>
-          <NoteTypeFilter v-if="!noteType" />
-          <NotePeriodFilter :notes="notes" />
+          <NoteListTypeFilter v-if="!noteType" />
+          <NoteListPeriodFilter :notes="notes" />
         </template>
       </NoteListControls>
 

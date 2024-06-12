@@ -29,14 +29,14 @@
     <template v-else>
       <NoteListControls v-if="notes?.length">
         <template #sort>
-          <NoteSortControl />
+          <NoteListSortControl />
         </template>
 
         <template #filter>
-          <NoteWriterFilter :notes="notes" />
-          <NoteTypeFilter />
-          <NotePeriodFilter :notes="notes" />
-          <NoteReadStatusFilter />
+          <NoteListWriterFilter :notes="notes" />
+          <NoteListTypeFilter />
+          <NoteListPeriodFilter :notes="notes" />
+          <NoteListReadStatusFilter />
         </template>
       </NoteListControls>
 
