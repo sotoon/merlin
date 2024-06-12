@@ -22,32 +22,36 @@
       <PIconButton
         v-if="note.access_level.can_write_feedback"
         class="shrink-0"
-        :icon="userHasWrittenFeedback ? PeyEditIcon : PeyPlusIcon"
+        :icon="userFeedbacks?.length ? PeyEditIcon : PeyPlusIcon"
         type="button"
-        @click="
-          navigateTo({
-            name: 'note-feedback',
-            query: {
-              owner: userHasWrittenFeedback ? profile?.email : undefined,
-            },
-          })
-        "
+        @click="handleShowForm"
       />
     </div>
 
-    <div class="p-4">
-      <NoteFeedbackList :feedbacks="feedbacks" />
+    <div class="px-4">
+      <NoteFeedbackList :note="note" :feedbacks="feedbacks" />
     </div>
   </template>
 
-  <PButton
-    v-else-if="note.access_level.can_write_feedback"
-    :icon-start="PeyPlusIcon"
-    variant="ghost"
-    @click="navigateTo({ name: 'note-feedback' })"
-  >
-    {{ t('note.writeFeedback') }}
-  </PButton>
+  <div v-if="note.access_level.can_write_feedback">
+    <div v-if="showForm" ref="formRef" class="p-4">
+      <NoteFeedbackForm
+        v-model:visible="showForm"
+        :note="note"
+        :feedback="userFeedbacks?.length ? userFeedbacks?.[0] : undefined"
+      />
+    </div>
+
+    <PButton
+      v-else-if="!userFeedbacks?.length"
+      type="button"
+      :icon-start="PeyPlusIcon"
+      variant="ghost"
+      @click="handleShowForm"
+    >
+      {{ t('note.writeFeedback') }}
+    </PButton>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -55,6 +59,9 @@ import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyEditIcon, PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
+
+const formRef = ref<HTMLElement | null>(null);
+const showForm = ref(false);
 
 const { t } = useI18n();
 const {
@@ -67,7 +74,16 @@ const {
 });
 const { data: profile } = useGetProfile();
 
-const userHasWrittenFeedback = computed(() =>
-  feedbacks.value?.some((feedback) => feedback.owner === profile.value?.email),
+const userFeedbacks = computed(() =>
+  feedbacks.value?.filter(
+    (feedback) => feedback.owner === profile.value?.email,
+  ),
 );
+
+const handleShowForm = () => {
+  showForm.value = true;
+  nextTick(() => {
+    formRef.value?.scrollIntoView({ behavior: 'smooth' });
+  });
+};
 </script>
