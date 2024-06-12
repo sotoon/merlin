@@ -25,6 +25,8 @@ export interface Note {
   type: NoteType;
   uuid: string;
   year: number;
+
+  feedbackType?: FeedbackType;
 }
 
 export interface NoteFormValues

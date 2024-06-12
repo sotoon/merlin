@@ -36,6 +36,14 @@ const getNoteLink = (note: Note) => {
   const read =
     props.displayReadStatus && !note.read_status ? 'true' : undefined;
 
+  if (note.type === NOTE_TYPE.message) {
+    return {
+      name: 'feedback',
+      params: { type: note.feedbackType, id: note.uuid },
+      query: { read },
+    };
+  }
+
   return {
     name: 'note',
     params: {
