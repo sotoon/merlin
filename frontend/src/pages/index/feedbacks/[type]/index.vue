@@ -4,10 +4,10 @@
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
-        <i class="i-mdi-feedback text-h1 text-primary" />
+        <i class="text-h1 text-primary" :class="pageIcon" />
 
         <PHeading level="h1" responsive>
-          {{ t('common.sendFeedback') }}
+          {{ pageTitle }}
         </PHeading>
       </div>
 
@@ -54,6 +54,7 @@
 import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
+const props = defineProps<{ type: FeedbackType }>();
 definePageMeta({ name: 'feedbacks' });
 
 const { t } = useI18n();
@@ -62,13 +63,28 @@ const {
   pending,
   error,
   refresh,
-} = useGetNotes({
-  type: NOTE_TYPE.message,
-});
+} = useGetNotes(
+  { type: NOTE_TYPE.message },
+  {
+    transform: (notes) =>
+      notes.filter((note) => note.feedbackType === props.type),
+  },
+);
 const filteredNotes = useFilterNotes(() => notes.value || []);
 const sortedNotes = useSortNotes(filteredNotes);
 
+const pageTitle = computed(() =>
+  props.type === FEEDBACK_TYPE.Send
+    ? t('common.sendFeedback')
+    : t('common.requestFeedback'),
+);
+const pageIcon = computed(() =>
+  props.type === FEEDBACK_TYPE.Send
+    ? 'i-mdi-feedback'
+    : 'i-mdi-comment-question',
+);
+
 useHead({
-  title: t('common.sendFeedback'),
+  title: pageTitle,
 });
 </script>
