@@ -11,7 +11,6 @@ export const NOTE_TYPE = {
 export const NOTE_TYPE_ROUTE_PARAM = {
   [NOTE_TYPE.goal]: 'goal',
   [NOTE_TYPE.meeting]: 'meeting',
-  [NOTE_TYPE.message]: 'message',
   [NOTE_TYPE.personal]: 'personal',
   [NOTE_TYPE.proposal]: 'proposal',
   [NOTE_TYPE.task]: 'task',
@@ -20,7 +19,7 @@ export const NOTE_TYPE_ROUTE_PARAM = {
 export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.goal]: 'i-mdi-target-arrow',
   [NOTE_TYPE.meeting]: 'i-mdi-calendar',
-  [NOTE_TYPE.message]: 'i-mdi-email-fast',
+  [NOTE_TYPE.message]: 'i-mdi-comment',
   [NOTE_TYPE.personal]: 'i-mdi-folder-lock',
   [NOTE_TYPE.proposal]: 'i-mdi-chart-line',
   [NOTE_TYPE.task]: 'i-mdi-check-circle',
