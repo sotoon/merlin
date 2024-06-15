@@ -3,7 +3,7 @@
     <VeeField v-slot="{ value, handleChange }" name="content">
       <Editor
         :model-value="value"
-        :placeholder="t('note.writeFeedbackContent')"
+        :placeholder="t('note.writeMessageContent')"
         @update:model-value="handleChange"
       />
     </VeeField>
