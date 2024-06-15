@@ -12,7 +12,7 @@
           <PInlineConfirm
             v-else
             :confirm-button-text="t('common.delete')"
-            :message="t('note.confirmDeleteNoteFeedback')"
+            :message="t('note.confirmDeleteMessage')"
             @confirm="deleteNoteFeedback"
           >
             <PIconButton color="danger" :icon="PeyTrashIcon" variant="ghost" />
