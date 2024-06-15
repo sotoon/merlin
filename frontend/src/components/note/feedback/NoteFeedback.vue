@@ -3,7 +3,11 @@
 
   <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
     <PText as="p" class="text-center text-danger" responsive>
-      {{ t('note.getFeedbacksError') }}
+      {{
+        noteIsFeedback
+          ? t('note.getResponsesError')
+          : t('note.getFeedbacksError')
+      }}
     </PText>
 
     <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
@@ -16,7 +20,7 @@
       class="flex items-center justify-between gap-4 border-b border-gray-10 pb-4"
     >
       <PHeading :lvl="3" responsive>
-        {{ t('note.feedbacks') }}
+        {{ noteIsFeedback ? t('note.responses') : t('note.feedbacks') }}
       </PHeading>
 
       <PIconButton
@@ -49,7 +53,7 @@
       variant="ghost"
       @click="handleShowForm"
     >
-      {{ t('note.writeFeedback') }}
+      {{ noteIsFeedback ? t('note.writeResponse') : t('note.writeFeedback') }}
     </PButton>
   </div>
 </template>
@@ -74,6 +78,9 @@ const {
 });
 const { data: profile } = useGetProfile();
 
+const noteIsFeedback = computed(
+  () => props.note.feedbackType === FEEDBACK_TYPE.Send,
+);
 const userFeedbacks = computed(() =>
   feedbacks.value?.filter(
     (feedback) => feedback.owner === profile.value?.email,
