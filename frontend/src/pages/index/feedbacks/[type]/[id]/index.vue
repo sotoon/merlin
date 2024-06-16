@@ -5,12 +5,12 @@
         class="shrink-0"
         :icon="PeyEditIcon"
         type="button"
-        @click="navigateTo({ name: 'note-edit' })"
+        @click="navigateTo({ name: 'feedback-edit' })"
       />
 
       <NoteDeleteButton
         :note-id="note.uuid"
-        @success="navigateTo({ name: 'notes' })"
+        @success="navigateTo({ name: 'feedbacks' })"
       />
     </template>
   </NoteDetail>
@@ -20,6 +20,6 @@
 import { PIconButton } from '@pey/core';
 import { PeyEditIcon } from '@pey/icons';
 
-definePageMeta({ name: 'note' });
+definePageMeta({ name: 'feedback' });
 defineProps<{ note: Note }>();
 </script>
