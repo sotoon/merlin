@@ -35,7 +35,7 @@
         {{ label }}
       </PText>
 
-      <Badge :count="badgeCount" />
+      <Badge class="absolute left-4" :count="badgeCount" :max="999" />
     </div>
   </NuxtLink>
 </template>
