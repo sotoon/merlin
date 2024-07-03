@@ -1,6 +1,16 @@
 <template>
   <PTabs v-model="selectedTab" class="rounded bg-white" variant="box">
-    <PTab v-for="{ label, value } in typeOptions" :key="value" :title="label" />
+    <PTab v-for="{ label, value } in typeOptions" :key="value" :title="label">
+      <template v-if="newMessagesCounts[value ?? 'all']" #append>
+        <div class="relative h-full w-1">
+          <Badge
+            class="absolute -left-2 top-0 -translate-x-1/2"
+            :count="newMessagesCounts[value ?? 'all']"
+            :max="99"
+          />
+        </div>
+      </template>
+    </PTab>
   </PTabs>
 </template>
 
@@ -10,7 +20,23 @@ import { useRouteQuery } from '@vueuse/router';
 
 const { t } = useI18n();
 const typeFilter = useRouteQuery<string | undefined>('type', undefined);
+const { data: messages } = useGetNotes({ retrieveMentions: true });
 
+// TODO: filter out templates in the backend
+const newMessagesCounts = computed(
+  () =>
+    messages.value
+      ?.filter(
+        (message) =>
+          message.type !== NOTE_TYPE.template && !message.read_status,
+      )
+      .reduce<Partial<Record<NoteType | 'all', number>>>((acc, message) => {
+        acc.all = (acc.all || 0) + 1;
+        acc[message.type] = (acc[message.type] || 0) + 1;
+
+        return acc;
+      }, {}) || {},
+);
 const typeOptions = computed(() => [
   { label: t('common.all') },
   { label: t('noteType.goal'), value: NOTE_TYPE.goal },

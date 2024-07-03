@@ -6,11 +6,16 @@
   >
     <PText
       v-if="count"
-      class="absolute left-4 block min-h-5 min-w-5 rounded-full bg-danger px-1.5 pt-0.5 text-center text-white"
+      class="block h-5 min-w-5 rounded-full bg-danger px-1.5 pt-0.5 text-center leading-normal text-white"
+      dir="ltr"
       variant="caption2"
       weight="medium"
     >
-      {{ count.toLocaleString('fa-IR') }}
+      {{
+        count <= max
+          ? count.toLocaleString('fa-IR')
+          : `${max.toLocaleString('fa-IR')}+`
+      }}
     </PText>
   </Transition>
 </template>
@@ -18,5 +23,8 @@
 <script lang="ts" setup>
 import { PText } from '@pey/core';
 
-defineProps<{ count?: number }>();
+withDefaults(defineProps<{ count?: number; max?: number }>(), {
+  count: 0,
+  max: 99,
+});
 </script>
