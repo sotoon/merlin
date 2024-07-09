@@ -27,6 +27,8 @@
     </div>
 
     <template v-else>
+      <NoteTypeFilter />
+
       <NoteListControls v-if="notes?.length">
         <template #sort>
           <NoteSortControl />
@@ -34,7 +36,6 @@
 
         <template #filter>
           <NoteWriterFilter :notes="notes" />
-          <NoteTypeFilter />
           <NotePeriodFilter :notes="notes" />
           <NoteReadStatusFilter />
         </template>
