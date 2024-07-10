@@ -59,4 +59,5 @@ export const NOTE_SORT_OPTION = {
   oldest: 'oldest',
   period: 'period',
   date: 'date',
+  title: 'title',
 } as const;
