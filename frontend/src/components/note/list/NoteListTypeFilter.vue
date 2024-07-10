@@ -43,7 +43,7 @@ const typeOptions = computed(() => [
   { label: t('noteType.task'), value: NOTE_TYPE.task },
   { label: t('noteType.meeting'), value: NOTE_TYPE.meeting },
   { label: t('noteType.proposal'), value: NOTE_TYPE.proposal },
-  { label: t('noteType.message'), value: NOTE_TYPE.message },
+  { label: t('common.feedback'), value: NOTE_TYPE.message },
 ]);
 const selectedTab = computed({
   get() {
