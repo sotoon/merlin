@@ -6,6 +6,7 @@
       hide-details
       :loading="usersPending"
       :placeholder="t('note.writer')"
+      searchable
       size="small"
       @update:model-value="
         (value) => (writerFilter = value === '' ? undefined : value)
