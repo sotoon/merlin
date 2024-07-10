@@ -1,4 +1,4 @@
-type GetNoteResponse = Note | null;
+type GetNoteResponse = Note;
 
 interface UseGetNoteOptions {
   id: string;
@@ -8,7 +8,8 @@ export const useGetNote = (
   { id }: UseGetNoteOptions,
   fetchOptions: UseApiFetchOptions<GetNoteResponse> = {},
 ) =>
-  useApiFetch<GetNoteResponse>(`/notes/${id}`, {
-    key: createNuxtDataKey(['note', id]),
+  useApiFetch<GetNoteResponse>(`/notes/${id}/`, {
     ...fetchOptions,
+    key: createNuxtDataKey(['note', id]),
+    transform: transformNoteResponse,
   });
