@@ -1,5 +1,9 @@
 <template>
   <PBox class="flex flex-wrap items-center gap-8 bg-white p-4">
+    <div v-if="slots.default" class="flex flex-wrap items-center gap-2">
+      <slot />
+    </div>
+
     <div v-if="slots.sort" class="flex flex-wrap items-center gap-2">
       <i class="i-mdi-sort text-h3 text-gray-50" />
       <slot name="sort" />
@@ -16,5 +20,5 @@
 import { PBox } from '@pey/core';
 import { PeyFilterIcon } from '@pey/icons';
 
-const slots = defineSlots<{ sort?: any; filter?: any }>();
+const slots = defineSlots<{ default?: any; sort?: any; filter?: any }>();
 </script>
