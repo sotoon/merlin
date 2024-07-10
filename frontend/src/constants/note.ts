@@ -55,6 +55,8 @@ export const SALARY_CHANGES = [0, 0.5, 1, 1.5, 2, 2.5, 3] as const;
 
 export const NOTE_SORT_OPTION = {
   update: 'update',
+  newest: 'newest',
+  oldest: 'oldest',
   period: 'period',
   date: 'date',
 } as const;
