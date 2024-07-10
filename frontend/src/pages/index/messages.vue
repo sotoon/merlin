@@ -37,6 +37,7 @@
         <template #filter>
           <NoteWriterFilter :notes="notes" />
           <NotePeriodFilter :notes="notes" />
+          <NoteTeamFilter v-if="isTeamLeader" />
           <NoteReadStatusFilter />
         </template>
       </NoteListControls>
@@ -72,6 +73,7 @@ const {
 } = useGetNotes({
   retrieveMentions: true,
 });
+const isTeamLeader = useIsTeamLeader();
 
 // TODO: filter out templates in the backend
 const notesWithoutTemplates = computed(

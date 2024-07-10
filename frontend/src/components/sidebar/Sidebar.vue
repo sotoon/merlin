@@ -36,7 +36,7 @@
                 />
               </li>
 
-              <li v-if="isLeader">
+              <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
                   :label="t('common.myTeam')"
@@ -68,15 +68,14 @@ import { PScrollbar, PText } from '@pey/core';
 import { getNotesLinks } from '~/components/sidebar/SidebarLinks';
 
 const { t } = useI18n();
-const { data: users } = useGetMyTeam();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
+const isTeamLeader = useIsTeamLeader();
 
 // TODO: filter out templates in the backend
 const messagesWithoutTemplates = computed(
   () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
 );
 const notesLinks = computed(() => getNotesLinks(t));
-const isLeader = computed(() => Boolean(users.value?.length));
 const newMessagesCount = computed(
   () =>
     messagesWithoutTemplates.value?.filter((message) => !message.read_status)
