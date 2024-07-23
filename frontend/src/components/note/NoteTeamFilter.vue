@@ -1,10 +1,6 @@
 <template>
   <PBox class="px-3 py-2">
-    <PSwitch
-      v-model="unreadModel"
-      :label="t('note.unreadMessages')"
-      size="small"
-    />
+    <PSwitch v-model="myTeamModel" :label="t('common.myTeam')" size="small" />
   </PBox>
 </template>
 
@@ -13,16 +9,16 @@ import { PBox, PSwitch } from '@pey/core';
 import { useRouteQuery } from '@vueuse/router';
 
 const { t } = useI18n();
-const unreadFilter = useRouteQuery('unread', undefined, {
+const myTeamFilter = useRouteQuery('my-team', undefined, {
   transform: (value) => value === 'true' || undefined,
 });
 
-const unreadModel = computed({
+const myTeamModel = computed({
   get() {
-    return Boolean(unreadFilter.value);
+    return Boolean(myTeamFilter.value);
   },
   set(newValue) {
-    unreadFilter.value = newValue || undefined;
+    myTeamFilter.value = newValue || undefined;
   },
 });
 </script>

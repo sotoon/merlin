@@ -35,6 +35,8 @@
 
     <template v-else>
       <NoteListControls v-if="notes?.length">
+        <NoteSearchFilter />
+
         <template #sort>
           <NoteSortControl />
         </template>

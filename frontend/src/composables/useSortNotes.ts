@@ -1,12 +1,20 @@
 import { useRouteQuery } from '@vueuse/router';
 
-const SORT_FUNCTIONS = {
-  [NOTE_SORT_OPTION.update]: (a: Note, b: Note) =>
+const SORT_FUNCTIONS: Record<
+  (typeof NOTE_SORT_OPTION)[keyof typeof NOTE_SORT_OPTION],
+  (a: Note, b: Note) => number
+> = {
+  [NOTE_SORT_OPTION.update]: (a, b) =>
     new Date(b.date_updated).getTime() - new Date(a.date_updated).getTime(),
-  [NOTE_SORT_OPTION.period]: (a: Note, b: Note) =>
+  [NOTE_SORT_OPTION.newest]: (a, b) =>
+    new Date(b.date_created).getTime() - new Date(a.date_created).getTime(),
+  [NOTE_SORT_OPTION.oldest]: (a, b) =>
+    new Date(a.date_created).getTime() - new Date(b.date_created).getTime(),
+  [NOTE_SORT_OPTION.period]: (a, b) =>
     (b.year - a.year) * 10 + (b.period - a.period),
-  [NOTE_SORT_OPTION.date]: (a: Note, b: Note) =>
+  [NOTE_SORT_OPTION.date]: (a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime(),
+  [NOTE_SORT_OPTION.title]: (a, b) => a.title.localeCompare(b.title),
 };
 
 export const useSortNotes = (notes: Ref<Note[]> | (() => Note[])) => {

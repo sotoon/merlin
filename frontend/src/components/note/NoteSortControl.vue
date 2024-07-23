@@ -26,7 +26,10 @@ const sort = useRouteQuery('sort', NOTE_SORT_OPTION.update);
 
 const sortOptions = [
   { label: t('note.lastEdit'), value: NOTE_SORT_OPTION.update },
+  { label: t('note.newest'), value: NOTE_SORT_OPTION.newest },
+  { label: t('note.oldest'), value: NOTE_SORT_OPTION.oldest },
   { label: t('note.evaluationPeriod'), value: NOTE_SORT_OPTION.period },
   { label: t('common.date'), value: NOTE_SORT_OPTION.date },
+  { label: t('note.title'), value: NOTE_SORT_OPTION.title },
 ];
 </script>
