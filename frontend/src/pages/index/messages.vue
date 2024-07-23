@@ -33,7 +33,7 @@
         <NoteSearchFilter />
 
         <template #sort>
-          <NoteSortControl />
+          <NoteSortControl :sort-by-date="typeFilter === NOTE_TYPE.meeting" />
         </template>
 
         <template #filter>
@@ -62,6 +62,7 @@
 <script lang="ts" setup>
 import { PButton, PHeading, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
+import { useRouteQuery } from '@vueuse/router';
 
 definePageMeta({ name: 'messages' });
 
@@ -83,4 +84,5 @@ const notesWithoutTemplates = computed(
 );
 const filteredNotes = useFilterNotes(notesWithoutTemplates);
 const sortedNotes = useSortNotes(filteredNotes);
+const typeFilter = useRouteQuery<string>('type');
 </script>
