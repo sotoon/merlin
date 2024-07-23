@@ -38,7 +38,7 @@
         <NoteSearchFilter />
 
         <template #sort>
-          <NoteSortControl />
+          <NoteSortControl :sort-by-date="noteType === NOTE_TYPE.meeting" />
         </template>
 
         <template #filter>
