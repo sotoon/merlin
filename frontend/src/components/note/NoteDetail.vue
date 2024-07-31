@@ -100,7 +100,7 @@
         <PChip
           v-for="user in mentionedUsers"
           :key="user.uuid"
-          :label="`${user.name} (${user.email})`"
+          :label="user.name || user.email"
           size="small"
         />
       </div>
