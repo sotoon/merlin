@@ -27,22 +27,24 @@
     </div>
 
     <template v-else>
-      <NoteTypeFilter />
+      <template v-if="notes?.length">
+        <NoteTypeFilter :notes />
 
-      <NoteListControls v-if="notes?.length">
-        <NoteSearchFilter />
+        <NoteListControls v-if="notes?.length">
+          <NoteSearchFilter />
 
-        <template #sort>
-          <NoteSortControl :sort-by-date="typeFilter === NOTE_TYPE.meeting" />
-        </template>
+          <template #sort>
+            <NoteSortControl :sort-by-date="typeFilter === NOTE_TYPE.meeting" />
+          </template>
 
-        <template #filter>
-          <NoteWriterFilter :notes="notes" />
-          <NotePeriodFilter :notes="notes" />
-          <NoteTeamFilter v-if="isTeamLeader" />
-          <NoteReadStatusFilter />
-        </template>
-      </NoteListControls>
+          <template #filter>
+            <NoteWriterFilter :notes />
+            <NotePeriodFilter :notes />
+            <NoteTeamFilter v-if="isTeamLeader" />
+            <NoteReadStatusFilter />
+          </template>
+        </NoteListControls>
+      </template>
 
       <NoteList
         v-if="sortedNotes.length"

@@ -18,15 +18,16 @@
 import { PTab, PTabs } from '@pey/core';
 import { useRouteQuery } from '@vueuse/router';
 
+const props = defineProps<{ notes: Note[] }>();
+
 const { t } = useI18n();
 const typeFilter = useRouteQuery<string | undefined>('type', undefined);
-const { data: messages } = useGetNotes({ retrieveMentions: true });
 
 // TODO: filter out templates in the backend
 const newMessagesCounts = computed(
   () =>
-    messages.value
-      ?.filter(
+    props.notes
+      .filter(
         (message) =>
           message.type !== NOTE_TYPE.template && !message.read_status,
       )
