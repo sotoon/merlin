@@ -7,24 +7,26 @@ interface UseUpdateNoteReadStatusOptions {
 export const useUpdateNoteReadStatus = ({
   id,
 }: UseUpdateNoteReadStatusOptions) => {
-  const { data: messages } = useNuxtData<Note[]>(
-    createNuxtDataKey(['notes', undefined, undefined, true]),
-  );
+  const nuxtApp = useNuxtApp();
 
-  const updateMessageNuxtData = (readStatus: boolean) => {
-    if (!messages.value) {
-      return;
-    }
+  const updateNoteReadStatus = (readStatus: boolean) => {
+    const nuxtData = nuxtApp.payload.data;
 
-    const messageIndex = messages.value.findIndex(
-      (message) => message.uuid === id,
+    const notesDataKeys = Object.keys(nuxtData).filter((key) =>
+      key.match(/^notes::.*:(true)?$/),
     );
 
-    if (messageIndex < 0) {
-      return;
-    }
+    notesDataKeys.forEach((key) => {
+      const messageIndex = nuxtData[key].findIndex(
+        (message: Note) => message.uuid === id,
+      );
 
-    messages.value[messageIndex].read_status = readStatus;
+      if (messageIndex < 0) {
+        return;
+      }
+
+      nuxtData[key][messageIndex].read_status = readStatus;
+    });
   };
 
   const { execute: markAsRead, pending: readPending } = useApiMutation<
@@ -34,7 +36,7 @@ export const useUpdateNoteReadStatus = ({
   >(`/notes/${id}/read/`, {
     method: 'POST',
     onSuccess: () => {
-      updateMessageNuxtData(true);
+      updateNoteReadStatus(true);
     },
   });
 
@@ -45,7 +47,7 @@ export const useUpdateNoteReadStatus = ({
   >(`/notes/${id}/unread/`, {
     method: 'POST',
     onSuccess: () => {
-      updateMessageNuxtData(false);
+      updateNoteReadStatus(false);
     },
   });
 
