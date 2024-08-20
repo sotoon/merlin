@@ -10,20 +10,7 @@
       @update:model-value="handleUpdateValue"
     >
       <PListboxOption
-        v-for="template in templates"
-        :key="template.uuid"
-        :label="template.title"
-        :value="template"
-        @click="selectValue(template)"
-      />
-
-      <hr
-        v-if="templates?.length && sharedTemplates?.length"
-        class="my-2 border-gray-10"
-      />
-
-      <PListboxOption
-        v-for="template in sharedTemplates"
+        v-for="template in [...(templates || []), ...(sharedTemplates || [])]"
         :key="template.uuid"
         :label="template.title"
         :value="template"
@@ -76,9 +63,8 @@ const selectionDraft = ref<Note | null>(null);
 const showConfirm = ref(false);
 
 const { t } = useI18n();
-const { data: templates, pending: isTemplatesLoading } = useGetNotes({
-  type: NOTE_TYPE.template,
-});
+const { data: templates, pending: isTemplatesLoading } = useGetTemplates();
+// TODO: integrate shared templates in the templates api
 const { data: sharedTemplates, pending: isSharedTemplatesLoading } =
   useGetNotes({
     type: NOTE_TYPE.template,
