@@ -34,23 +34,27 @@
     </div>
 
     <template v-else>
-      <NoteListControls v-if="notes?.length">
-        <NoteSearchFilter />
+      <template v-if="notes?.length">
+        <NoteTypeFilter v-if="!noteType" :notes />
 
-        <template #sort>
-          <NoteSortControl :sort-by-date="noteType === NOTE_TYPE.meeting" />
-        </template>
+        <NoteListControls>
+          <NoteSearchFilter />
 
-        <template #filter>
-          <NoteTypeFilter v-if="!noteType" />
-          <NotePeriodFilter :notes="notes" />
-        </template>
-      </NoteListControls>
+          <template #sort>
+            <NoteSortControl :sort-by-date="noteType === NOTE_TYPE.meeting" />
+          </template>
+
+          <template #filter>
+            <NotePeriodFilter :notes />
+          </template>
+        </NoteListControls>
+      </template>
 
       <NoteList
         v-if="sortedNotes.length"
         :notes="sortedNotes"
         :display-type="isUser"
+        :display-read-status="isUser"
       />
 
       <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
@@ -81,7 +85,10 @@ const {
   type: props.noteType,
   user: props.userEmail,
 });
-const filteredNotes = useFilterNotes(() => notes.value || []);
+// TODO: filter out templates in the backend
+const filteredNotes = useFilterNotes(
+  () => notes.value?.filter((note) => note.type !== NOTE_TYPE.template) || [],
+);
 const sortedNotes = useSortNotes(filteredNotes);
 
 const isUser = computed(() => Boolean(props.userEmail));
