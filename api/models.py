@@ -337,7 +337,6 @@ class NoteUserAccess(MerlinBaseModel):
                 user=leader,
                 note=note,
                 defaults={
-                    "can_view": True,
                     "can_view_summary": True,
                     "can_write_summary": True,
                     "can_write_feedback": True,
