@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers
 
 from api.models import Feedback, Note, NoteUserAccess, Summary, User
@@ -85,6 +87,7 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
+    content_preview = serializers.CharField(required=False, read_only=True)
 
     class Meta:
         model = Note
@@ -96,12 +99,85 @@ class NoteSerializer(serializers.ModelSerializer):
             "owner_name",
             "title",
             "content",
+            "content_preview",
             "date",
             "period",
             "year",
             "type",
             "mentioned_users",
             "linked_notes",
+            "read_status",
+            "access_level",
+        )
+        read_only_fields = [
+            "uuid",
+            "date_created",
+            "date_updated",
+            "read_status",
+            "access_level",
+        ]
+
+    def validate(self, data):
+        if not self.instance:
+            owner = self.context["request"].user
+            data["owner"] = owner
+        return super().validate(data)
+
+    def get_read_status(self, obj):
+        user = self.context["request"].user
+        return obj.read_by.filter(uuid=user.uuid).exists()
+
+    def get_access_level(self, obj):
+        user = self.context["request"].user
+        access_level = NoteUserAccess.objects.filter(user=user, note=obj).first()
+        if access_level:
+            return NoteUserAccessSerializer(access_level).data
+        return None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        if request and request.method == "GET":
+            data.pop("content_preview", None)
+        return data
+
+    def create(self, validated_data):
+        content = validated_data.get("content", None)
+        if content:
+            text_content = re.sub("<.*?>", " ", content)
+            validated_data["content_preview"] = text_content[:200]
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        content = validated_data.get("content", None)
+        if content:
+            text_content = re.sub("<.*?>", " ", content)
+            validated_data["content_preview"] = text_content[:200]
+        return super().update(instance, validated_data)
+
+
+class NoteListSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
+    )
+    owner_name = serializers.CharField(source="owner.name", read_only=True)
+    read_status = serializers.SerializerMethodField()
+    access_level = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Note
+        fields = (
+            "uuid",
+            "date_created",
+            "date_updated",
+            "owner",
+            "owner_name",
+            "title",
+            "content_preview",
+            "date",
+            "period",
+            "year",
+            "type",
             "read_status",
             "access_level",
         )

@@ -55,7 +55,7 @@ type SelectAction = 'replace' | 'append';
 
 const props = defineProps<{ shouldConfirm?: boolean }>();
 const emit = defineEmits<{
-  select: [{ action: SelectAction; value: Note | null }];
+  select: [{ action: SelectAction; value: string | null }];
 }>();
 
 const selectedValue = ref<Note | null>(null);
@@ -86,12 +86,12 @@ const selectValue = (value: Note) => {
   }
 
   selectedValue.value = value;
-  emit('select', { action: 'replace', value });
+  emit('select', { action: 'replace', value: value.uuid });
 };
 
 const handleConfirm = (action: SelectAction) => {
   selectedValue.value = selectionDraft.value;
-  emit('select', { action, value: selectedValue.value });
+  emit('select', { action, value: selectedValue.value?.uuid || null });
   showConfirm.value = false;
 };
 

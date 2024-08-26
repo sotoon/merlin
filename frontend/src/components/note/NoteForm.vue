@@ -222,19 +222,28 @@ const noteOptions = computed(() =>
 
 const handleTemplateSelect = ({
   action,
-  value,
+  value: noteId,
 }: {
   action: 'replace' | 'append';
-  value: Note | null;
+  value: string | null;
 }) => {
-  if (action === 'append') {
-    setFieldValue(
-      'content',
-      `${formValues.content}\n\n${value?.content || ''}`,
-    );
-  } else {
-    setFieldValue('content', value?.content || '');
+  if (!noteId) {
+    return;
   }
+
+  useApiFetch<Note>(`/notes/${noteId}`, {
+    key: createNuxtDataKey(['note', noteId]),
+    onResponse: ({ response: { _data } }) => {
+      if (action === 'append') {
+        setFieldValue(
+          'content',
+          `${formValues.content}\n\n${_data?.content || ''}`,
+        );
+      } else {
+        setFieldValue('content', _data?.content || '');
+      }
+    },
+  });
 };
 
 const onSubmit = handleSubmit((values, ctx) => {

@@ -213,6 +213,7 @@ class Note(MerlinBaseModel):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
     title = models.CharField(max_length=512, verbose_name="عنوان")
     content = models.TextField(verbose_name="محتوا")
+    content_preview = models.CharField(max_length=200, blank=True)
     date = models.DateField(verbose_name="تاریخ")
     period = models.IntegerField(default=0, verbose_name="دوره")
     year = models.IntegerField(default=1400, verbose_name="سال")
