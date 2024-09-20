@@ -35,8 +35,10 @@ class NoteType(models.TextChoices):
 leader_permissions = {
     NoteType.GOAL: {
         "can_view": True,
+        "can_edit": False,
         "can_view_summary": True,
         "can_write_summary": True,
+        "can_view_feedbacks": False,
         "can_write_feedback": True,
     }, NoteType.Proposal: {
         "can_view": True,
@@ -341,6 +343,19 @@ class NoteUserAccess(MerlinBaseModel):
         return f"{self.user} - {self.note}"
 
     @classmethod
+    def make_note_inaccessible_if_not(cls, user, note):
+        cls.objects.filter(user=user, note=note).update(
+            **{
+                "can_view": False,
+                "can_edit": False,
+                "can_view_summary": False,
+                "can_write_summary": False,
+                "can_view_feedbacks": False,
+                "can_write_feedback": False,
+            },
+        )
+
+    @classmethod
     def ensure_note_predefined_accesses(cls, note):
         # Owner
         cls.objects.update_or_create(
@@ -352,6 +367,7 @@ class NoteUserAccess(MerlinBaseModel):
                 "can_view_summary": True,
                 "can_write_summary": note.type == NoteType.GOAL,
                 "can_view_feedbacks": True,
+                "can_write_feedback": True,
             },
         )
 
@@ -361,12 +377,15 @@ class NoteUserAccess(MerlinBaseModel):
         # Leaders
         if (
             leader := note.owner.leader
-        ) is not None and note.type in leader_permissions.keys():
-            cls.objects.update_or_create(
-                user=leader,
-                note=note,
-                defaults=leader_permissions[note.type],
-            )
+        ) is not None:
+            if note.type in leader_permissions.keys():
+                cls.objects.update_or_create(
+                    user=leader,
+                    note=note,
+                    defaults=leader_permissions[note.type],
+                )
+            else:
+                cls.make_note_inaccessible_if_not(leader, note)
 
         # Agile Coach
         cls.objects.update_or_create(
@@ -374,6 +393,7 @@ class NoteUserAccess(MerlinBaseModel):
             note=note,
             defaults={
                 "can_view": True,
+                "can_edit": False,
                 "can_view_summary": True,
                 "can_write_summary": True,
                 "can_write_feedback": True,
@@ -384,24 +404,35 @@ class NoteUserAccess(MerlinBaseModel):
         # Committee members
         if (
             committee := note.owner.committee
-        ) is not None and note.type == NoteType.Proposal:
+        ) is not None:
             for member in committee.members.all():
-                cls.objects.update_or_create(
-                    user=member,
-                    note=note,
-                    defaults={
-                        "can_view": True,
-                        "can_view_summary": True,
-                        "can_write_summary": True,
-                        "can_write_feedback": True,
-                        "can_view_feedbacks": True,
-                    },
-                )
+                if note.type == NoteType.Proposal:
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults={
+                            "can_view": True,
+                            "can_edit": False,
+                            "can_view_summary": True,
+                            "can_write_summary": True,
+                            "can_write_feedback": True,
+                            "can_view_feedbacks": True,
+                        },
+                    )
+                else:
+                    cls.make_note_inaccessible_if_not(member, note)
 
         # Mentioned users
         for user in note.mentioned_users.all():
             cls.objects.update_or_create(
                 user=user,
                 note=note,
-                defaults={"can_view": True, "can_write_feedback": True},
+                defaults={
+                    "can_view": True,
+                    "can_edit": False,
+                    "can_view_summary": False,
+                    "can_write_summary": False,
+                    "can_view_feedbacks": False,
+                    "can_write_feedback": True
+                },
             )
