@@ -18,6 +18,37 @@ class MerlinBaseModel(models.Model):
         abstract = True
 
 
+class NoteType(models.TextChoices):
+    GOAL = "Goal", "هدف"
+    MEETING = "Meeting", "جلسه"
+    Personal = "Personal", "شخصی"
+    TASK = "Task", "فعالیت"
+    Proposal = "Proposal", "پروپوزال"
+    Message = "Message", "پیام"
+    Template = "Template", "قالب"
+
+    @classmethod
+    def default(cls):
+        return cls.GOAL
+
+
+leader_permissions = {
+    NoteType.GOAL: {
+        "can_view": True,
+        "can_view_summary": True,
+        "can_write_summary": True,
+        "can_write_feedback": True,
+    }, NoteType.Proposal: {
+        "can_view": True,
+        "can_edit": True,
+        "can_view_summary": True,
+        "can_write_summary": True,
+        "can_write_feedback": True,
+        "can_view_feedbacks": True,
+    }
+}
+
+
 class User(MerlinBaseModel, AbstractUser):
     email = models.EmailField(unique=True, verbose_name="ایمیل سازمانی")
     name = models.CharField(
@@ -72,8 +103,18 @@ class User(MerlinBaseModel, AbstractUser):
             return self.name
         return self.email
 
+    def ensure_new_leader_note_accesses(self, new_leader):
+        notes = Note.objects.filter(type__in=leader_permissions.keys(), owner=self)
+        for note in notes:
+            NoteUserAccess.ensure_note_predefined_accesses(note)
+
+
     def save(self, *args, **kwargs):
         self.username = self.email
+        if self.pk is not None: # Check if the object is being updated (not created)
+            original = User.objects.get(pk=self.pk)
+            if self.leader != original.leader:
+                self.ensure_new_leader_note_accesses(self.leader)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -193,20 +234,6 @@ class Committee(MerlinBaseModel):
 
     def __str__(self):
         return self.name
-
-
-class NoteType(models.TextChoices):
-    GOAL = "Goal", "هدف"
-    MEETING = "Meeting", "جلسه"
-    Personal = "Personal", "شخصی"
-    TASK = "Task", "فعالیت"
-    Proposal = "Proposal", "پروپوزال"
-    Message = "Message", "پیام"
-    Template = "Template", "قالب"
-
-    @classmethod
-    def default(cls):
-        return cls.GOAL
 
 
 class Note(MerlinBaseModel):
@@ -332,24 +359,9 @@ class NoteUserAccess(MerlinBaseModel):
             return
 
         # Leaders
-        leader_permissions = {
-            NoteType.GOAL: {
-                "can_view": True,
-                "can_view_summary": True,
-                "can_write_summary": True,
-                "can_write_feedback": True,
-            }, NoteType.Proposal: {
-                "can_view": True,
-                "can_edit": True,
-                "can_view_summary": True,
-                "can_write_summary": True,
-                "can_write_feedback": True,
-                "can_view_feedbacks": True,
-            }
-        }
-
-        leader = note.owner.leader
-        if leader is not None and note.type in leader_permissions.keys():
+        if (
+            leader := note.owner.leader
+        ) is not None and note.type in leader_permissions.keys():
             cls.objects.update_or_create(
                 user=leader,
                 note=note,
@@ -370,8 +382,10 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
         # Committee members
-        if note.owner.committee is not None and note.type == NoteType.Proposal:
-            for member in note.owner.committee.members.all():
+        if (
+            committee := note.owner.committee
+        ) is not None and note.type == NoteType.Proposal:
+            for member in committee.members.all():
                 cls.objects.update_or_create(
                     user=member,
                     note=note,
