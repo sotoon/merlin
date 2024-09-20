@@ -323,6 +323,7 @@ class NoteUserAccess(MerlinBaseModel):
                 "can_view": True,
                 "can_edit": True,
                 "can_view_summary": True,
+                "can_write_summary": note.type == NoteType.GOAL,
                 "can_view_feedbacks": True,
             },
         )
@@ -331,18 +332,30 @@ class NoteUserAccess(MerlinBaseModel):
             return
 
         # Leaders
-        leaders = note.owner.get_leaders()
-        for leader in leaders:
-            cls.objects.update_or_create(
-                user=leader,
-                note=note,
-                defaults={
-                    "can_view_summary": True,
-                    "can_write_summary": True,
-                    "can_write_feedback": True,
-                    "can_view_feedbacks": True,
-                },
-            )
+        leader_permissions = {
+            NoteType.GOAL: {
+                "can_view": True,
+                "can_view_summary": True,
+                "can_write_summary": True,
+                "can_write_feedback": True,
+            }, NoteType.Proposal: {
+                "can_view": True,
+                "can_edit": True,
+                "can_view_summary": True,
+                "can_write_summary": True,
+                "can_write_feedback": True,
+                "can_view_feedbacks": True,
+            }
+        }
+
+        if note.type in leader_permissions.keys():
+            leaders = note.owner.get_leaders()
+            for leader in leaders:
+                cls.objects.update_or_create(
+                    user=leader,
+                    note=note,
+                    defaults=leader_permissions[note.type],
+                )
 
         # Agile Coach
         cls.objects.update_or_create(
