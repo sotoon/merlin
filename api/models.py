@@ -348,14 +348,13 @@ class NoteUserAccess(MerlinBaseModel):
             }
         }
 
-        if note.type in leader_permissions.keys():
-            leaders = note.owner.get_leaders()
-            for leader in leaders:
-                cls.objects.update_or_create(
-                    user=leader,
-                    note=note,
-                    defaults=leader_permissions[note.type],
-                )
+        leader = note.owner.leader
+        if leader is not None and note.type in leader_permissions.keys():
+            cls.objects.update_or_create(
+                user=leader,
+                note=note,
+                defaults=leader_permissions[note.type],
+            )
 
         # Agile Coach
         cls.objects.update_or_create(
