@@ -97,6 +97,7 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
+    submit_status_name = serializers.CharField(source='get_submit_status_display')
 
     class Meta:
         model = Note
@@ -116,6 +117,8 @@ class NoteSerializer(serializers.ModelSerializer):
             "linked_notes",
             "read_status",
             "access_level",
+            "submit_status",
+            "submit_status_name",
         )
         read_only_fields = [
             "uuid",
@@ -180,6 +183,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    submit_status_name = serializers.CharField(source='get_submit_status_display')
 
     class Meta:
         model = Summary
@@ -192,6 +196,8 @@ class SummarySerializer(serializers.ModelSerializer):
             "bonus",
             "salary_change",
             "committee_date",
+            "submit_status",
+            "submit_status_name",
         )
         read_only_fields = ["uuid"]
 
