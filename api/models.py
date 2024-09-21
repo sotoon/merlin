@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 
 class MerlinBaseModel(models.Model):
@@ -248,6 +249,16 @@ class Committee(MerlinBaseModel):
         return self.name
 
 
+class SubmitStatus(models.IntegerChoices):
+    DRAFT = 0, _("درفت")
+    INITIAL_SUBMIT = 1, _("ثبت اولیه")
+    FINAL_SUBMIT = 2, _("ثبت نهایی")
+
+    @classmethod
+    def default(cls):
+        return cls.DRAFT
+
+
 class Note(MerlinBaseModel):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
     title = models.CharField(max_length=512, verbose_name="عنوان")
@@ -271,6 +282,11 @@ class Note(MerlinBaseModel):
     read_by = models.ManyToManyField(User, related_name="read_notes", blank=True)
     linked_notes = models.ManyToManyField(
         "Note", related_name="connected_notes", blank=True, verbose_name="پیوندها"
+    )
+    submit_status = models.IntegerField(
+        choices=SubmitStatus.choices,
+        default=SubmitStatus.default(),
+        verbose_name="وضعیت",
     )
 
     class Meta:
@@ -315,6 +331,11 @@ class Summary(MerlinBaseModel):
     salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
     committee_date = models.DateField(
         blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
+    )
+    submit_status = models.IntegerField(
+        choices=SubmitStatus.choices,
+        default=SubmitStatus.default(),
+        verbose_name="وضعیت",
     )
 
     class Meta:
@@ -368,7 +389,7 @@ class Question(MerlinBaseModel):
 
     def __str__(self):
         return f"{self.question_text} ({self.category})"
-    
+
 class FormResponse(MerlinBaseModel):
     answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
     user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="کاربر")
@@ -382,19 +403,19 @@ class FormResponse(MerlinBaseModel):
 
     def __str__(self):
         return f"Response by {self.user} to {self.question}"
-    
+
     def get_answer_display(self):
         # Ensure that None will be displayed as "I don't know"
         return self.answer if self.answer is not None else "I don't know"
 
-    
+
     def clean(self):
         if self.answer is not None:
             if not self.question.scale_min <= self.answer <= self.question.scale_max:
                 raise ValidationError({
                     'answer': f"The answer must be between {self.question.scale_min} and {self.question.scale_max}."
                 })
-        
+
 class FormAssignment(MerlinBaseModel):
     form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
     assigned_to = models.ForeignKey(User, on_delete=models.PROTECT, related_name="assigned_forms", verbose_name="گیرنده")
