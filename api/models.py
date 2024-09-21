@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class MerlinBaseModel(models.Model):
@@ -238,6 +239,16 @@ class Committee(MerlinBaseModel):
         return self.name
 
 
+class SubmitStatus(models.IntegerChoices):
+    DRAFT = 0, _("درفت")
+    INITIAL_SUBMIT = 1, _("ثبت اولیه")
+    FINAL_SUBMIT = 2, _("ثبت نهایی")
+
+    @classmethod
+    def default(cls):
+        return cls.DRAFT
+
+
 class Note(MerlinBaseModel):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
     title = models.CharField(max_length=512, verbose_name="عنوان")
@@ -261,6 +272,11 @@ class Note(MerlinBaseModel):
     read_by = models.ManyToManyField(User, related_name="read_notes", blank=True)
     linked_notes = models.ManyToManyField(
         "Note", related_name="connected_notes", blank=True, verbose_name="پیوندها"
+    )
+    submit_status = models.IntegerField(
+        choices=SubmitStatus.choices,
+        default=SubmitStatus.default(),
+        verbose_name="وضعیت",
     )
 
     class Meta:
@@ -305,6 +321,11 @@ class Summary(MerlinBaseModel):
     salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
     committee_date = models.DateField(
         blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
+    )
+    submit_status = models.IntegerField(
+        choices=SubmitStatus.choices,
+        default=SubmitStatus.default(),
+        verbose_name="وضعیت",
     )
 
     class Meta:
