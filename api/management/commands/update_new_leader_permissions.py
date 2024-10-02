@@ -1,12 +1,14 @@
 from django.core.management.base import BaseCommand
 from django.db.models.signals import post_save
 from django.conf import settings
+from django.contrib.auth import get_user_model
+
 
 from api.models import Note
 from api.models import Note, NoteUserAccess, User
 
 
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
 
 
 class Command(BaseCommand):
