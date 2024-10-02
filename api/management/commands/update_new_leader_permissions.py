@@ -34,14 +34,12 @@ class Command(BaseCommand):
         NoteUserAccess.objects.filter(user=former_leader) \
             .exclude(note__owner=former_leader) \
                 .update(
-                    defaults={
-                        "can_view": False,
-                        "can_edit": False,
-                        "can_view_summary": False,
-                        "can_write_summary": False,
-                        "can_write_feedback": False,
-                        "can_view_feedbacks": False,
-                        },
+                    can_view=False,
+                    can_edit=False,
+                    can_view_summary=False,
+                    can_write_summary=False,
+                    can_write_feedback=False,
+                    can_view_feedbacks=False,
                     )
 
         for note in Note.objects.all():
