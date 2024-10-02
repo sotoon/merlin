@@ -3,8 +3,6 @@ from django.contrib import admin
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
-from django_no_queryset_admin_actions import NoQuerySetAdminActionsMixin
-from django.core.management import call_command
 
 from api.models import (
     Chapter,
@@ -178,7 +176,7 @@ class CommitteeAdmin(BaseModelAdmin):
 
 
 @admin.register(User)
-class UserAdmin(NoQuerySetAdminActionsMixin, BaseModelAdmin):
+class UserAdmin(BaseModelAdmin):
     class UserResource(BaseModelResource):
         leader = RESOURCE_FIELDS["leader"]
         department = RESOURCE_FIELDS["department"]
@@ -199,14 +197,6 @@ class UserAdmin(NoQuerySetAdminActionsMixin, BaseModelAdmin):
     ordering = ("-date_created", "email")
     search_fields = ["email", "name", "phone"]
     search_help_text = "جستجو در نام کاربر، ایمیل، موبایل"
-    actions = ["deliver_abol_permissions", ]
-    no_queryset_actions = ["deliver_abol_permissions", ]
-
-    @admin.action(description="Deliver abol permissions to masoud montazeri")
-    def deliver_abol_permissions(self, request):
-        call_command('update_new_leader_permissions',
-                    former_email='taheri.abolfazl@sotoon.ir',
-                    new_email='masoud.montazeri@sotoon.ir',)
 
 
 @admin.register(Note)

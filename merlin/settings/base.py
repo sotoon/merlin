@@ -65,7 +65,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "import_export",
-    "django_no_queryset_admin_actions",
     "api",
 ]
 
