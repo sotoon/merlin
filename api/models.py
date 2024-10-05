@@ -18,6 +18,39 @@ class MerlinBaseModel(models.Model):
         abstract = True
 
 
+class NoteType(models.TextChoices):
+    GOAL = "Goal", "هدف"
+    MEETING = "Meeting", "جلسه"
+    Personal = "Personal", "شخصی"
+    TASK = "Task", "فعالیت"
+    Proposal = "Proposal", "پروپوزال"
+    Message = "Message", "پیام"
+    Template = "Template", "قالب"
+
+    @classmethod
+    def default(cls):
+        return cls.GOAL
+
+
+leader_permissions = {
+    NoteType.GOAL: {
+        "can_view": True,
+        "can_edit": False,
+        "can_view_summary": True,
+        "can_write_summary": True,
+        "can_view_feedbacks": False,
+        "can_write_feedback": True,
+    }, NoteType.Proposal: {
+        "can_view": True,
+        "can_edit": True,
+        "can_view_summary": True,
+        "can_write_summary": True,
+        "can_write_feedback": True,
+        "can_view_feedbacks": True,
+    }
+}
+
+
 class User(MerlinBaseModel, AbstractUser):
     email = models.EmailField(unique=True, verbose_name="ایمیل سازمانی")
     name = models.CharField(
@@ -72,8 +105,18 @@ class User(MerlinBaseModel, AbstractUser):
             return self.name
         return self.email
 
+    def ensure_new_leader_note_accesses(self, new_leader):
+        notes = Note.objects.filter(type__in=leader_permissions.keys(), owner=self)
+        for note in notes:
+            NoteUserAccess.ensure_note_predefined_accesses(note)
+
+
     def save(self, *args, **kwargs):
         self.username = self.email
+        if self.pk is not None: # Check if the object is being updated (not created)
+            original = User.objects.get(pk=self.pk)
+            if self.leader != original.leader:
+                self.ensure_new_leader_note_accesses(self.leader)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -195,20 +238,6 @@ class Committee(MerlinBaseModel):
         return self.name
 
 
-class NoteType(models.TextChoices):
-    GOAL = "Goal", "هدف"
-    MEETING = "Meeting", "جلسه"
-    Personal = "Personal", "شخصی"
-    TASK = "Task", "فعالیت"
-    Proposal = "Proposal", "پروپوزال"
-    Message = "Message", "پیام"
-    Template = "Template", "قالب"
-
-    @classmethod
-    def default(cls):
-        return cls.GOAL
-
-
 class Note(MerlinBaseModel):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
     title = models.CharField(max_length=512, verbose_name="عنوان")
@@ -314,6 +343,19 @@ class NoteUserAccess(MerlinBaseModel):
         return f"{self.user} - {self.note}"
 
     @classmethod
+    def make_note_inaccessible_if_not(cls, user, note):
+        cls.objects.filter(user=user, note=note).update(
+            **{
+                "can_view": False,
+                "can_edit": False,
+                "can_view_summary": False,
+                "can_write_summary": False,
+                "can_view_feedbacks": False,
+                "can_write_feedback": False,
+            },
+        )
+
+    @classmethod
     def ensure_note_predefined_accesses(cls, note):
         # Owner
         cls.objects.update_or_create(
@@ -323,7 +365,9 @@ class NoteUserAccess(MerlinBaseModel):
                 "can_view": True,
                 "can_edit": True,
                 "can_view_summary": True,
+                "can_write_summary": note.type == NoteType.GOAL,
                 "can_view_feedbacks": True,
+                "can_write_feedback": True,
             },
         )
 
@@ -331,19 +375,17 @@ class NoteUserAccess(MerlinBaseModel):
             return
 
         # Leaders
-        leaders = note.owner.get_leaders()
-        for leader in leaders:
-            cls.objects.update_or_create(
-                user=leader,
-                note=note,
-                defaults={
-                    "can_view": True,
-                    "can_view_summary": True,
-                    "can_write_summary": True,
-                    "can_write_feedback": True,
-                    "can_view_feedbacks": True,
-                },
-            )
+        if (
+            leader := note.owner.leader
+        ) is not None:
+            if note.type in leader_permissions.keys():
+                cls.objects.update_or_create(
+                    user=leader,
+                    note=note,
+                    defaults=leader_permissions[note.type],
+                )
+            else:
+                cls.make_note_inaccessible_if_not(leader, note)
 
         # Agile Coach
         cls.objects.update_or_create(
@@ -351,6 +393,7 @@ class NoteUserAccess(MerlinBaseModel):
             note=note,
             defaults={
                 "can_view": True,
+                "can_edit": False,
                 "can_view_summary": True,
                 "can_write_summary": True,
                 "can_write_feedback": True,
@@ -359,24 +402,37 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
         # Committee members
-        if note.owner.committee is not None and note.type == NoteType.Proposal:
-            for member in note.owner.committee.members.all():
-                cls.objects.update_or_create(
-                    user=member,
-                    note=note,
-                    defaults={
-                        "can_view": True,
-                        "can_view_summary": True,
-                        "can_write_summary": True,
-                        "can_write_feedback": True,
-                        "can_view_feedbacks": True,
-                    },
-                )
+        if (
+            committee := note.owner.committee
+        ) is not None:
+            for member in committee.members.all():
+                if note.type == NoteType.Proposal:
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults={
+                            "can_view": True,
+                            "can_edit": False,
+                            "can_view_summary": True,
+                            "can_write_summary": True,
+                            "can_write_feedback": True,
+                            "can_view_feedbacks": True,
+                        },
+                    )
+                else:
+                    cls.make_note_inaccessible_if_not(member, note)
 
         # Mentioned users
         for user in note.mentioned_users.all():
             cls.objects.update_or_create(
                 user=user,
                 note=note,
-                defaults={"can_view": True, "can_write_feedback": True},
+                defaults={
+                    "can_view": True,
+                    "can_edit": False,
+                    "can_view_summary": False,
+                    "can_write_summary": False,
+                    "can_view_feedbacks": False,
+                    "can_write_feedback": True
+                },
             )
