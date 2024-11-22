@@ -34,6 +34,15 @@ class NoteType(models.TextChoices):
         return cls.GOAL
 
 
+class SubmitStatus(models.IntegerChoices):
+    INITIAL_SUBMIT = 1, _("ثبت اولیه")
+    FINAL_SUBMIT = 2, _("ثبت نهایی")
+
+    @classmethod
+    def default(cls):
+        return cls.INITIAL_SUBMIT
+
+
 leader_permissions = {
     NoteType.GOAL: {
         "can_view": True,
@@ -44,7 +53,7 @@ leader_permissions = {
         "can_write_feedback": True,
     }, NoteType.Proposal: {
         "can_view": True,
-        "can_edit": True,
+        "can_edit": False,
         "can_view_summary": True,
         "can_write_summary": True,
         "can_write_feedback": True,
@@ -249,16 +258,6 @@ class Committee(MerlinBaseModel):
         return self.name
 
 
-class SubmitStatus(models.IntegerChoices):
-    DRAFT = 0, _("درفت")
-    INITIAL_SUBMIT = 1, _("ثبت اولیه")
-    FINAL_SUBMIT = 2, _("ثبت نهایی")
-
-    @classmethod
-    def default(cls):
-        return cls.DRAFT
-
-
 class Note(MerlinBaseModel):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="نویسنده")
     title = models.CharField(max_length=512, verbose_name="عنوان")
@@ -288,6 +287,9 @@ class Note(MerlinBaseModel):
         default=SubmitStatus.default(),
         verbose_name="وضعیت",
     )
+
+    def is_sent_to_committee(self):
+        return self.type == NoteType.Proposal and self.submit_status == SubmitStatus.FINAL_SUBMIT
 
     class Meta:
         verbose_name = "یادداشت"
@@ -476,7 +478,7 @@ class NoteUserAccess(MerlinBaseModel):
             note=note,
             defaults={
                 "can_view": True,
-                "can_edit": True,
+                "can_edit": not note.is_sent_to_committee(),
                 "can_view_summary": True,
                 "can_write_summary": note.type == NoteType.GOAL,
                 "can_view_feedbacks": True,
@@ -524,7 +526,7 @@ class NoteUserAccess(MerlinBaseModel):
                         user=member,
                         note=note,
                         defaults={
-                            "can_view": True,
+                            "can_view": note.is_sent_to_committee(),
                             "can_edit": False,
                             "can_view_summary": True,
                             "can_write_summary": True,
@@ -537,6 +539,8 @@ class NoteUserAccess(MerlinBaseModel):
 
         # Mentioned users
         for user in note.mentioned_users.all():
+            if user in committee.members.all():
+                continue
             cls.objects.update_or_create(
                 user=user,
                 note=note,
