@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Feedback, Note, NoteUserAccess, Summary, User
+from api.models import Feedback, Note, NoteUserAccess, Summary, User, SubmitStatus
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -85,7 +85,8 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
-    submit_status_name = serializers.CharField(source='get_submit_status_display')
+    submit_status_name = serializers.CharField(source='get_submit_status_display', read_only=True)
+    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Note
@@ -116,6 +117,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "access_level",
             "submit_status_name",
         ]
+        write_only_fields = ['submit_status', ]
 
     def validate(self, data):
         if not self.instance:
@@ -172,7 +174,8 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
-    submit_status_name = serializers.CharField(source='get_submit_status_display')
+    submit_status_name = serializers.CharField(source='get_submit_status_display', read_only=True)
+    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Summary
@@ -189,6 +192,7 @@ class SummarySerializer(serializers.ModelSerializer):
             "submit_status_name",
         )
         read_only_fields = ["uuid", "submit_status_name", ]
+        write_only_fields = ['submit_status', ]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
