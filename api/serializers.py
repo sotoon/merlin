@@ -136,6 +136,11 @@ class NoteSerializer(serializers.ModelSerializer):
             return NoteUserAccessSerializer(access_level).data
         return None
 
+    def to_representation(self, instance):
+        data = super(NoteSerializer, self).to_representation(instance)
+        data['submit_status'] = data.pop('submit_status_name')
+        return data
+
 
 class FeedbackSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
@@ -204,3 +209,8 @@ class SummarySerializer(serializers.ModelSerializer):
             note=validated_data["note"], defaults=validated_data
         )
         return instance
+
+    def to_representation(self, instance):
+        data = super(NoteSerializer, self).to_representation(instance)
+        data['submit_status'] = data.pop('submit_status_name')
+        return data
