@@ -126,6 +126,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "date_updated",
             "read_status",
             "access_level",
+            "submit_status_name",
         ]
 
     def validate(self, data):
@@ -199,7 +200,7 @@ class SummarySerializer(serializers.ModelSerializer):
             "submit_status",
             "submit_status_name",
         )
-        read_only_fields = ["uuid"]
+        read_only_fields = ["uuid", "submit_status_name", ]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
