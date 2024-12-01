@@ -7,6 +7,7 @@ from api.models import (
         NoteUserAccess,
         Summary,
         User,
+        SubmitStatus,
         Form,
         Question,
         FormAssignment,
@@ -97,7 +98,8 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
-    submit_status_name = serializers.CharField(source='get_submit_status_display')
+    submit_status_name = serializers.CharField(source='get_submit_status_display', read_only=True)
+    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Note
@@ -128,6 +130,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "access_level",
             "submit_status_name",
         ]
+        write_only_fields = ['submit_status', ]
 
     def validate(self, data):
         if not self.instance:
@@ -184,7 +187,8 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
-    submit_status_name = serializers.CharField(source='get_submit_status_display')
+    submit_status_name = serializers.CharField(source='get_submit_status_display', read_only=True)
+    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Summary
@@ -201,6 +205,7 @@ class SummarySerializer(serializers.ModelSerializer):
             "submit_status_name",
         )
         read_only_fields = ["uuid", "submit_status_name", ]
+        write_only_fields = ['submit_status', ]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
@@ -223,7 +228,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class FormSerializer(serializers.ModelSerializer):
     """
-    Serializer for listing forms, along with its cycle metadata, 
+    Serializer for listing forms, along with its cycle metadata,
     and assignment completion status.
     """
     cycle_name = serializers.CharField(source="cycle.name", read_only=True)
@@ -238,7 +243,7 @@ class FormSerializer(serializers.ModelSerializer):
             return obj.cycle.end_date < timezone.now()
         else:
             return not FormAssignment.objects.filter(form=obj, deadline__gte=timezone.now().date()).exists()
-    
+
     def get_is_filled(self, obj):
         """Returns True if the requesting user has already filled this form."""
         user = self.context['request'].user
@@ -246,7 +251,7 @@ class FormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Form
-        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 
+        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle',
                   'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
                   'is_filled']
 
@@ -263,16 +268,16 @@ class FormDetailSerializer(FormSerializer):
         user = self.context["request"].user
         responses = FormResponse.objects.filter(form=obj, user=user)
         return {f"question_{r.question.id}": r.answer for r in responses}
-    
+
     def get_assigned_by(self, obj):
         """Fetch the assigned_by as the assessed user."""
         user = self.context["request"].user
         assignment = FormAssignment.objects.filter(form=obj, assigned_to=user).first()
-        return assignment.assigned_by.name if assignment and assignment.assigned_by else None 
+        return assignment.assigned_by.name if assignment and assignment.assigned_by else None
 
 
     class Meta(FormSerializer.Meta):
-        model = Form  
+        model = Form
         fields = FormSerializer.Meta.fields + ['questions', 'previous_responses', 'assigned_by']
 
 
