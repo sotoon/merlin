@@ -98,8 +98,6 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
-    submit_status_name = serializers.CharField(source='get_submit_status_display', read_only=True)
-    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Note
@@ -120,7 +118,6 @@ class NoteSerializer(serializers.ModelSerializer):
             "read_status",
             "access_level",
             "submit_status",
-            "submit_status_name",
         )
         read_only_fields = [
             "uuid",
@@ -128,7 +125,6 @@ class NoteSerializer(serializers.ModelSerializer):
             "date_updated",
             "read_status",
             "access_level",
-            "submit_status_name",
         ]
         write_only_fields = ['submit_status', ]
 
@@ -148,11 +144,6 @@ class NoteSerializer(serializers.ModelSerializer):
         if access_level:
             return NoteUserAccessSerializer(access_level).data
         return None
-
-    def to_representation(self, instance):
-        data = super(NoteSerializer, self).to_representation(instance)
-        data['submit_status'] = data.pop('submit_status_name')
-        return data
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
@@ -192,7 +183,6 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
-    submit_status_name = serializers.CharField(source='get_submit_status_display', read_only=True)
     submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
@@ -207,9 +197,8 @@ class SummarySerializer(serializers.ModelSerializer):
             "salary_change",
             "committee_date",
             "submit_status",
-            "submit_status_name",
         )
-        read_only_fields = ["uuid", "submit_status_name", ]
+        read_only_fields = ["uuid", ]
         write_only_fields = ['submit_status', ]
 
     def validate(self, data):
