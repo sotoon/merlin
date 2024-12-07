@@ -7,7 +7,6 @@ from api.models import (
         NoteUserAccess,
         Summary,
         User,
-        SubmitStatus,
         Form,
         Question,
         FormAssignment,
@@ -183,7 +182,6 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
-    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Summary
