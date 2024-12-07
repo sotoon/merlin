@@ -1,5 +1,5 @@
 <template>
-  <PBox class="mx-auto max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
+  <PBox class="mx-auto max-w-3xl bg-white px-2 py-8 sm:px-4 lg:px-8 lg:pt-10">
     <PLoading v-if="pending" class="text-primary" :size="20" />
 
     <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
