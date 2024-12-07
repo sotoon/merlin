@@ -125,7 +125,6 @@ class NoteSerializer(serializers.ModelSerializer):
             "read_status",
             "access_level",
         ]
-        write_only_fields = ['submit_status', ]
 
     def validate(self, data):
         if not self.instance:
@@ -197,7 +196,6 @@ class SummarySerializer(serializers.ModelSerializer):
             "submit_status",
         )
         read_only_fields = ["uuid", ]
-        write_only_fields = ['submit_status', ]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
