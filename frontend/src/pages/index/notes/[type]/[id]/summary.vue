@@ -45,13 +45,13 @@ const handleSubmit = (
     body: { ...values, committee_date: committeeDateString },
     onSuccess: () => {
       ctx.resetForm();
-      navigateTo({ name: 'note' });
+      navigateTo({ name: 'note', replace: true });
     },
   });
 };
 
 const handleCancel = () => {
-  navigateTo({ name: 'note' });
+  navigateTo({ name: 'note', replace: true });
 };
 
 onMounted(() => {

@@ -14,6 +14,7 @@ interface CreateNotePayload
     | 'year'
     | 'period'
     | 'linked_notes'
+    | 'submit_status'
   > {
   content: string;
   date: string;

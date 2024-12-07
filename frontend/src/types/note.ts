@@ -3,6 +3,12 @@ export type NoteType = (typeof NOTE_TYPE)[keyof typeof NOTE_TYPE];
 export type NoteTypeRouteParam =
   (typeof NOTE_TYPE_ROUTE_PARAM)[keyof typeof NOTE_TYPE_ROUTE_PARAM];
 
+export type NoteSubmitStatus =
+  (typeof NOTE_SUBMIT_STATUS)[keyof typeof NOTE_SUBMIT_STATUS];
+
+export type NoteSummarySubmitStatus =
+  (typeof NOTE_SUMMARY_SUBMIT_STATUS)[keyof typeof NOTE_SUMMARY_SUBMIT_STATUS];
+
 export interface Note {
   access_level: {
     can_edit: boolean;
@@ -21,6 +27,7 @@ export interface Note {
   owner_name: string;
   period: number;
   read_status: boolean;
+  submit_status: NoteSubmitStatus;
   title: string;
   type: NoteType;
   uuid: string;
@@ -45,6 +52,7 @@ export interface NoteSummary {
   note: string;
   performance_label: string;
   salary_change: number;
+  submit_status: NoteSummarySubmitStatus;
   uuid: string;
 }
 
