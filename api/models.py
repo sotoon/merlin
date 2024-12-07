@@ -33,9 +33,18 @@ class NoteType(models.TextChoices):
         return cls.GOAL
 
 
-class SubmitStatus(models.IntegerChoices):
+class NoteSubmitStatus(models.IntegerChoices):
     INITIAL_SUBMIT = 1, _("ثبت اولیه")
-    FINAL_SUBMIT = 2, _("ثبت نهایی")
+    PENDING = 2, _("در حال بررسی")
+    REVIEWED = 3, _("ثبت نهایی")
+
+    @classmethod
+    def default(cls):
+        return cls.INITIAL_SUBMIT
+
+class SummarySubmitStatus(models.IntegerChoices):
+    INITIAL_SUBMIT = 1, _("ثبت اولیه")
+    DONE = 2, _("نهایی‌ شده")
 
     @classmethod
     def default(cls):
@@ -273,13 +282,13 @@ class Note(MerlinBaseModel):
         "Note", related_name="connected_notes", blank=True, verbose_name="پیوندها"
     )
     submit_status = models.IntegerField(
-        choices=SubmitStatus.choices,
-        default=SubmitStatus.default(),
+        choices=NoteSubmitStatus.choices,
+        default=NoteSubmitStatus.default(),
         verbose_name="وضعیت",
     )
 
     def is_sent_to_committee(self):
-        return self.type == NoteType.Proposal and self.submit_status == SubmitStatus.FINAL_SUBMIT
+        return self.type == NoteType.Proposal and self.submit_status == NoteSubmitStatus.PENDING
 
     class Meta:
         verbose_name = "یادداشت"
@@ -325,8 +334,8 @@ class Summary(MerlinBaseModel):
         blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
     )
     submit_status = models.IntegerField(
-        choices=SubmitStatus.choices,
-        default=SubmitStatus.default(),
+        choices=SummarySubmitStatus.choices,
+        default=SummarySubmitStatus.default(),
         verbose_name="وضعیت",
     )
 

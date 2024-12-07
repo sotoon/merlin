@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Feedback, Note, NoteUserAccess, Summary, User, SubmitStatus
+from api.models import Feedback, Note, NoteUserAccess, Summary, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -170,7 +170,6 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
-    submit_status = serializers.IntegerField(write_only=True, default=SubmitStatus.default())
 
     class Meta:
         model = Summary
