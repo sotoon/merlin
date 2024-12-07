@@ -1,32 +1,77 @@
 <template>
-  <div class="px-4">
-    <div class="flex items-start justify-between gap-4">
+  <div class="px-2 sm:px-4">
+    <div class="flex items-start justify-between gap-8">
       <div>
         <i
           class="mb-3 me-4 inline-block align-middle text-h1 text-primary"
           :class="NOTE_TYPE_ICON[note.type]"
         />
 
-        <PText responsive variant="title" weight="bold">
+        <PText responsive variant="h1" weight="bold">
           {{ note.title }}
         </PText>
       </div>
 
-      <div
-        v-if="note.access_level.can_edit"
-        class="flex flex-col items-center gap-4 md:mt-2 md:flex-row"
-      >
-        <PIconButton
-          class="shrink-0"
-          :icon="PeyEditIcon"
-          type="button"
-          @click="navigateTo({ name: 'note-edit' })"
-        />
+      <div class="mt-2 flex flex-col items-end gap-4">
+        <div v-if="note.access_level.can_edit" class="flex items-center gap-4">
+          <PIconButton
+            class="shrink-0"
+            :icon="PeyEditIcon"
+            type="button"
+            @click="navigateTo({ name: 'note-edit' })"
+          />
 
-        <NoteDeleteButton
-          :note-id="note.uuid"
-          @success="navigateTo({ name: 'notes' })"
-        />
+          <NoteDeleteButton
+            :note-id="note.uuid"
+            @success="navigateTo({ name: 'notes' })"
+          />
+        </div>
+
+        <template v-if="note.type === NOTE_TYPE.proposal">
+          <PInlineConfirm
+            v-if="note.submit_status === NOTE_SUBMIT_STATUS.initial"
+            confirm-button-color="primary"
+            :confirm-button-text="t('note.finalSubmit')"
+            @confirm="finalizeNoteSubmission"
+          >
+            <template #text>
+              <PText as="p" class="text-gray-80">
+                {{ t('note.confirmSubmitProposal') }}
+              </PText>
+
+              <PText as="p" class="mt-2 text-gray-80">
+                {{ t('note.confirmSubmitProposalMessage') }}
+              </PText>
+            </template>
+
+            <PButton
+              type="button"
+              class="whitespace-nowrap"
+              color="primary"
+              :icon-start="PeyCircleTickOutlineIcon"
+              :loading="updatingNote"
+              variant="fill"
+            >
+              {{ t('note.finalSubmit') }}
+            </PButton>
+          </PInlineConfirm>
+
+          <PChip
+            v-else-if="note.submit_status === NOTE_SUBMIT_STATUS.final"
+            class="whitespace-nowrap"
+            color="secondary"
+            :icon="PeyClockIcon"
+            :label="t('note.submitStatus.pending')"
+          />
+
+          <PChip
+            v-else
+            class="whitespace-nowrap"
+            color="success"
+            :icon="PeyCircleTickOutlineIcon"
+            :label="t('note.submitStatus.reviewed')"
+          />
+        </template>
       </div>
     </div>
 
@@ -145,8 +190,21 @@
 </template>
 
 <script lang="ts" setup>
-import { PChip, PHeading, PIconButton, PText, PTooltip } from '@pey/core';
-import { PeyEditIcon, PeyLinkIcon } from '@pey/icons';
+import {
+  PButton,
+  PChip,
+  PHeading,
+  PIconButton,
+  PInlineConfirm,
+  PText,
+  PTooltip,
+} from '@pey/core';
+import {
+  PeyCircleTickOutlineIcon,
+  PeyClockIcon,
+  PeyEditIcon,
+  PeyLinkIcon,
+} from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
 
@@ -154,6 +212,9 @@ const { t } = useI18n();
 const { data: users } = useGetUsers();
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
+const { execute: updateNote, pending: updatingNote } = useUpdateNote({
+  id: props.note.uuid,
+});
 
 const mentionedUsers = computed(() =>
   users.value?.filter(({ email }) =>
@@ -192,4 +253,12 @@ const linkedNotes = computed(() => [
       },
     })) || []),
 ]);
+
+const finalizeNoteSubmission = () => {
+  updateNote({
+    body: {
+      submit_status: NOTE_SUBMIT_STATUS.final,
+    },
+  });
+};
 </script>
