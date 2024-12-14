@@ -288,7 +288,8 @@ class Note(MerlinBaseModel):
     )
 
     def is_sent_to_committee(self):
-        return self.type == NoteType.Proposal and self.submit_status == NoteSubmitStatus.PENDING
+        return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
+                                                                         NoteSubmitStatus.REVIEWED)
 
     class Meta:
         verbose_name = "یادداشت"
