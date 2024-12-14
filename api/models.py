@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class MerlinBaseModel(models.Model):
@@ -32,6 +33,24 @@ class NoteType(models.TextChoices):
         return cls.GOAL
 
 
+class NoteSubmitStatus(models.IntegerChoices):
+    INITIAL_SUBMIT = 1, _("ثبت اولیه")
+    PENDING = 2, _("در حال بررسی")
+    REVIEWED = 3, _("ثبت نهایی")
+
+    @classmethod
+    def default(cls):
+        return cls.INITIAL_SUBMIT
+
+class SummarySubmitStatus(models.IntegerChoices):
+    INITIAL_SUBMIT = 1, _("ثبت اولیه")
+    DONE = 2, _("نهایی‌ شده")
+
+    @classmethod
+    def default(cls):
+        return cls.INITIAL_SUBMIT
+
+
 leader_permissions = {
     NoteType.GOAL: {
         "can_view": True,
@@ -42,7 +61,7 @@ leader_permissions = {
         "can_write_feedback": True,
     }, NoteType.Proposal: {
         "can_view": True,
-        "can_edit": True,
+        "can_edit": False,
         "can_view_summary": True,
         "can_write_summary": True,
         "can_write_feedback": True,
@@ -262,6 +281,15 @@ class Note(MerlinBaseModel):
     linked_notes = models.ManyToManyField(
         "Note", related_name="connected_notes", blank=True, verbose_name="پیوندها"
     )
+    submit_status = models.IntegerField(
+        choices=NoteSubmitStatus.choices,
+        default=NoteSubmitStatus.default(),
+        verbose_name="وضعیت",
+    )
+
+    def is_sent_to_committee(self):
+        return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
+                                                                         NoteSubmitStatus.REVIEWED)
 
     class Meta:
         verbose_name = "یادداشت"
@@ -305,6 +333,11 @@ class Summary(MerlinBaseModel):
     salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
     committee_date = models.DateField(
         blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
+    )
+    submit_status = models.IntegerField(
+        choices=SummarySubmitStatus.choices,
+        default=SummarySubmitStatus.default(),
+        verbose_name="وضعیت",
     )
 
     class Meta:
@@ -363,7 +396,7 @@ class NoteUserAccess(MerlinBaseModel):
             note=note,
             defaults={
                 "can_view": True,
-                "can_edit": True,
+                "can_edit": not note.is_sent_to_committee(),
                 "can_view_summary": True,
                 "can_write_summary": note.type == NoteType.GOAL,
                 "can_view_feedbacks": True,
@@ -411,7 +444,7 @@ class NoteUserAccess(MerlinBaseModel):
                         user=member,
                         note=note,
                         defaults={
-                            "can_view": True,
+                            "can_view": note.is_sent_to_committee(),
                             "can_edit": False,
                             "can_view_summary": True,
                             "can_write_summary": True,
@@ -424,6 +457,8 @@ class NoteUserAccess(MerlinBaseModel):
 
         # Mentioned users
         for user in note.mentioned_users.all():
+            if user in committee.members.all():
+                continue
             cls.objects.update_or_create(
                 user=user,
                 note=note,
