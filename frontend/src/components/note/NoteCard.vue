@@ -24,8 +24,8 @@
       "
       #toolbar
     >
-      <div class="flex items-center justify-end sm:ms-4" @click.prevent>
-        <div v-if="displaySubmitStatus" class="my-1 me-1">
+      <div class="flex items-center justify-end gap-1 sm:ms-4" @click.prevent>
+        <template v-if="displaySubmitStatus">
           <PChip
             v-if="note.submit_status === NOTE_SUBMIT_STATUS.initial"
             class="whitespace-nowrap"
@@ -52,7 +52,7 @@
             :label="t('note.submitStatus.reviewed')"
             size="small"
           />
-        </div>
+        </template>
 
         <NoteDeleteButton
           v-if="note.access_level.can_edit"
