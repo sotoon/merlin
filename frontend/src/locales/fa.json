@@ -53,6 +53,8 @@
     "evaluationPeriod": "دوره ارزیابی",
     "feedbacks": "فیدبک‌ها",
     "finalSubmit": "ثبت نهایی",
+    "finalSubmitProposalHint": "پروپوزال را ثبت نهایی کنید تا به کمیته ارسال شود.",
+    "finalSubmitSummaryHint": "جمع‌بندی را ثبت نهایی کنید تا به نویسنده پروپوزال نمایش داده شود.",
     "geMessagesError": "خطا در دریافت پیام‌ها",
     "getFeedbacksError": "خطا در دریافت فیدبک‌ها",
     "getNoteError": "خطا در دریافت یادداشت",
