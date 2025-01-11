@@ -4,6 +4,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MerlinBaseModel(models.Model):
@@ -95,6 +98,9 @@ class User(MerlinBaseModel, AbstractUser):
     team = models.ForeignKey(
         "Team", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="تیم"
     )
+    organization = models.ForeignKey(
+        "Organization", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="ارگانیزیشن"
+    )
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
@@ -124,6 +130,18 @@ class User(MerlinBaseModel, AbstractUser):
         if self.name:
             return self.name
         return self.email
+
+    @property
+    def tribe(self):
+        return self.team.tribe
+
+    def show_roles(self):
+        for role in self.committee.roles.all():
+            role_scope = role.role_scope.lower()
+            role_type = role.role_type.lower()
+            scope_object = getattr(self, role_scope)
+            found = getattr(scope_object, role_type)
+            print(role_scope, role_type, found)
 
     def ensure_new_leader_note_accesses(self, new_leader):
         notes = Note.objects.filter(type__in=leader_permissions.keys(), owner=self)
@@ -212,6 +230,14 @@ class Tribe(MerlinBaseModel):
         related_name="tribe_leader",
         verbose_name="لیدر",
     )
+    director = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="tribe_director",
+        verbose_name="دیرکتور",
+    )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
     class Meta:
@@ -244,6 +270,7 @@ class Team(MerlinBaseModel):
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
+
     class Meta:
         verbose_name = "تیم"
         verbose_name_plural = "تیم‌ها"
@@ -252,12 +279,99 @@ class Team(MerlinBaseModel):
         return self.name
 
 
+class Organization(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    cto = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="organization_cto",
+        verbose_name="سی تی او",
+    )
+    vp = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="organization_vp",
+        verbose_name="وی پی",
+    )
+    ceo = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="organization_ceo",
+        verbose_name="سی ای او",
+    )
+    function_owner = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="organization_function_owner",
+        verbose_name="فانکشن اونر",
+    )
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "ارگانیزیشن"
+        verbose_name_plural = "ارگانیزیشن‌ها"
+
+    def __str__(self):
+        return self.name
+
+
+class RoleType(models.TextChoices):
+    LEADER = "Leader", "لیدر" # chapter and team
+    PR = "PR", "پی آر" # team
+    CTO = "CTO", "سی تی او" # organization
+    DIRECTOR = "Director", "دیرکتور" # tribe
+    VP = "VP", "وی پی" # organization
+    CEO = "CEO", "سی ای او" # organization
+    FUNCTION_OWNER = "Function Owner", "فانکشن اونر" # organization
+
+    @classmethod
+    def default(cls):
+        return cls.TEAM_LEADER
+
+
+class RoleScope(models.TextChoices):
+    TEAM = "Team", "تیم"
+    ORGANIZATION = "Organization", "سازمان"
+    TRIBE = "TRIBE", "قبیله"
+    CHAPTER = "Chapter", "چپتر"
+
+    @classmethod
+    def default(cls):
+        return cls.TEAM
+
+
+class Role(MerlinBaseModel):
+    role_type = models.CharField(
+        max_length=50,
+        choices=RoleType.choices,
+        default=RoleType.default,
+    )
+    role_scope = models.CharField(
+        max_length=50,
+        choices=RoleScope.choices,
+        default=RoleScope.default,
+    )
+    
+    class Meta:
+        unique_together = ('role_type', 'role_scope')
+        verbose_name = "نقش"
+        verbose_name_plural = "نقش‌ها"
+
+    def __str__(self):
+        return f"{self.get_role_type_display()} - {self.get_role_scope_display()}"
+
+
 class Committee(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
     members = models.ManyToManyField(
         User, related_name="committee_members", verbose_name="اعضا"
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
+    roles = models.ManyToManyField(Role, related_name='role_committees')
 
     class Meta:
         verbose_name = "کمیته"
