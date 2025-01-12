@@ -435,9 +435,8 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
         # Committee members
-        if (
-            committee := note.owner.committee
-        ) is not None:
+        committee = note.owner.committee
+        if committee is not None:
             for member in committee.members.all():
                 if note.type == NoteType.Proposal:
                     cls.objects.update_or_create(
@@ -457,7 +456,7 @@ class NoteUserAccess(MerlinBaseModel):
 
         # Mentioned users
         for user in note.mentioned_users.all():
-            if user in committee.members.all():
+            if committee is not None and user in committee.members.all():
                 continue
             cls.objects.update_or_create(
                 user=user,
