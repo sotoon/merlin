@@ -35,7 +35,7 @@ def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
     NoteUserAccess.ensure_note_predefined_accesses(instance)
 
 @receiver(post_save, sender=Summary)
-def ensure_note_predefined_access(sender, instance, created, **kwargs):
+def ensure_summary_predefined_access(sender, instance, created, **kwargs):
     if instance.submit_status == SummarySubmitStatus.DONE:
         instance.note.submit_status = NoteSubmitStatus.REVIEWED
         instance.note.save()
