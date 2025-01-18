@@ -187,6 +187,9 @@ const finalizeSummarySubmission = () => {
       ...summaries.value[0],
       submit_status: NOTE_SUMMARY_SUBMIT_STATUS.final,
     },
+    onSuccess: () => {
+      invalidateNuxtData(['note', props.note.uuid]);
+    },
   });
 };
 
