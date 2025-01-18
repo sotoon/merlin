@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import logging
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,17 @@ leader_permissions = {
     }, NoteType.Proposal: {
         "can_view": True,
         "can_edit": True,
+        "can_view_summary": True,
+        "can_write_summary": True,
+        "can_write_feedback": True,
+        "can_view_feedbacks": True,
+    }
+}
+
+committee_roles_permissions = {
+    NoteType.Proposal: {
+        "can_view": True,
+        "can_edit": False,
         "can_view_summary": True,
         "can_write_summary": True,
         "can_write_feedback": True,
@@ -470,7 +482,7 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
     @classmethod
-    def ensure_note_predefined_accesses(cls, note):
+    def ensure_note_predefined_accesses(cls, note: Note):
         # Owner
         cls.objects.update_or_create(
             user=note.owner,
@@ -516,9 +528,8 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
         # Committee members
-        if (
-            committee := note.owner.committee
-        ) is not None:
+        committee = note.owner.committee
+        if committee is not None:
             for member in committee.members.all():
                 if note.type == NoteType.Proposal:
                     cls.objects.update_or_create(
@@ -532,6 +543,21 @@ class NoteUserAccess(MerlinBaseModel):
                             "can_write_feedback": True,
                             "can_view_feedbacks": True,
                         },
+                    )
+                else:
+                    cls.make_note_inaccessible_if_not(member, note)
+
+            # Committee roles
+            for role in committee.roles.all():
+                role_scope: str = role.role_scope.lower()
+                role_type: str = role.role_type.lower()
+                scope_object: Union[Chapter, Tribe, Organization, Team] = getattr(note.owner, role_scope)
+                member: User = getattr(scope_object, role_type)
+                if note.type in committee_roles_permissions.keys():
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults=committee_roles_permissions[note.type],
                     )
                 else:
                     cls.make_note_inaccessible_if_not(member, note)
