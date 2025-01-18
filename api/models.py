@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class MerlinBaseModel(models.Model):
@@ -314,11 +315,25 @@ class Summary(MerlinBaseModel):
     def __str__(self):
         return "جمع‌بندیِ " + str(self.note)
 
+# 360 Assesment Form models
+
 class Form(MerlinBaseModel):
+    class FormType(models.TextChoices):
+        PM = "PM", "Product Manager"
+        TL = "TL", "Team Leader"
+        MANAGER = "MANAGER", "Manager"
+        GENERAL = "GENERAL", "General"
+
     name = models.CharField(max_length=256, verbose_name="نام")
     description = models.TextField(null=True, blank=True, verbose_name="توضیحات")
     is_default = models.BooleanField(verbose_name="فرم پیش‌فرض")
-    # form_type = models.
+    form_type = models.CharField(
+        max_length=20,
+        choices=FormType.choices,
+        verbose_name="نوع فرم",
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = "فرم"
@@ -327,6 +342,40 @@ class Form(MerlinBaseModel):
     def __str__(self):
         return self.name
 
+class Question(MerlinBaseModel):
+    question_text = models.TextField(verbose_name="متن سوال")
+    scale_min = models.PositiveIntegerField(default=1, verbose_name="حداقل امتیاز")
+    scale_max = models.PositiveIntegerField(default=5, verbose_name="حداکثر امتیاز")
+    form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
+
+    class Meta:
+        verbose_name = "سوال"
+        verbose_name_plural = "سوال‌ها"
+
+    def __str__(self):
+        return self.name
+    
+class Response(MerlinBaseModel):
+    answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
+    text_response = models.TextField(null=True, blank=True, verbose_name="پاسخ متنی")
+    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="کاربر")
+    form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
+    question = models.ForeignKey(Question, on_delete=models.PROTECT, verbose_name="سوال")
+
+    class Meta:
+        verbose_name = "پاسخ"
+        verbose_name_plural = "پاسخ‌ها"
+
+    def __str__(self):
+        return f"Response by {self.user} to {self.question}"
+    
+    def clean(self):
+        if self.answer is not None:
+            if not self.question.scale_min <= self.answer <= self.question.scale_max:
+                raise ValidationError({
+                    'answer': f"The answer must be between {self.question.scale_min} and {self.question.scale_max}."
+                })
+        
 class NoteUserAccess(MerlinBaseModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, verbose_name="کاربر"
