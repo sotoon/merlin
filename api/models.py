@@ -369,6 +369,11 @@ class Response(MerlinBaseModel):
     def __str__(self):
         return f"Response by {self.user} to {self.question}"
     
+    def get_answer_display(self):
+        # Ensure that None will be interpreted as "I don't know"
+        return self.answer if self.answer is not None else "I don't know"
+
+    
     def clean(self):
         if self.answer is not None:
             if not self.question.scale_min <= self.answer <= self.question.scale_max:
