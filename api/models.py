@@ -314,6 +314,18 @@ class Summary(MerlinBaseModel):
     def __str__(self):
         return "جمع‌بندیِ " + str(self.note)
 
+class Form(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    description = models.TextField(null=True, blank=True, verbose_name="توضیحات")
+    is_default = models.BooleanField(verbose_name="فرم پیش‌فرض")
+    # form_type = models.
+
+    class Meta:
+        verbose_name = "فرم"
+        verbose_name_plural = "فرم‌ها"
+
+    def __str__(self):
+        return self.name
 
 class NoteUserAccess(MerlinBaseModel):
     user = models.ForeignKey(
