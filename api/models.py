@@ -5,6 +5,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 import logging
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,17 @@ leader_permissions = {
         "can_view_feedbacks": False,
         "can_write_feedback": True,
     }, NoteType.Proposal: {
+        "can_view": True,
+        "can_edit": False,
+        "can_view_summary": True,
+        "can_write_summary": True,
+        "can_write_feedback": True,
+        "can_view_feedbacks": True,
+    }
+}
+
+committee_roles_permissions = {
+    NoteType.Proposal: {
         "can_view": True,
         "can_edit": False,
         "can_view_summary": True,
@@ -602,7 +614,7 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
     @classmethod
-    def ensure_note_predefined_accesses(cls, note):
+    def ensure_note_predefined_accesses(cls, note: Note):
         # Owner
         cls.objects.update_or_create(
             user=note.owner,
@@ -662,6 +674,21 @@ class NoteUserAccess(MerlinBaseModel):
                             "can_view_feedbacks": True,
                         },
                     )
+
+            # Committee roles
+            for role in committee.roles.all():
+                role_scope: str = role.role_scope.lower()
+                role_type: str = role.role_type.lower()
+                scope_object: Union[Chapter, Tribe, Organization, Team] = getattr(note.owner, role_scope)
+                member: User = getattr(scope_object, role_type)
+                if note.type in committee_roles_permissions.keys():
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults=committee_roles_permissions[note.type],
+                    )
+                else:
+                    cls.make_note_inaccessible_if_not(member, note)
 
         # Mentioned users
         for user in note.mentioned_users.all():
