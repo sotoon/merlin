@@ -376,6 +376,17 @@ class Response(MerlinBaseModel):
                     'answer': f"The answer must be between {self.question.scale_min} and {self.question.scale_max}."
                 })
         
+class FormAssignment(MerlinBaseModel):
+    form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
+    assigned_to = models.ForeignKey(User, on_delete=models.PROTECT, related_name="assigned_forms", verbose_name="گیرنده")
+    assigned_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="created_assignments", verbose_name="فرستنده")
+    message = models.TextField(null=True, blank=True, verbose_name="پیام")
+    is_completed = models.BooleanField(default=False, verbose_name="تکمیل‌شده")
+
+    def __str__(self):
+        return f"{self.form.name} assigned to {self.assigned_to}"
+
+
 class NoteUserAccess(MerlinBaseModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, verbose_name="کاربر"
