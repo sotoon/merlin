@@ -15,6 +15,9 @@ from api.models import (
     Team,
     Tribe,
     User,
+    Response,
+    Question,
+    Form,
 )
 
 
@@ -255,4 +258,48 @@ class NoteUserAccessAdmin(BaseModelAdmin):
     search_fields = ["user__name", "user__email", "note__title"]
     search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت"
 
+class QuestionInline(admin.TabularInline):
+    model = Question
+    extra = 1
+    fields = ('question_text', 'scale_min', 'scale_max')
+    readonly_fields = ()
+
+@admin.register(Form)
+class FormAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'is_default', 'form_type')
+    list_filter = ('form_type')
+    search_fields = ('name', 'description')
+    inlines = [QuestionInline]
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ('question_text', 'scale_min', 'scale_max', 'form')
+    list_filter = ('form')
+    search_fields = ('question_text', 'form__name')
+
+@admin.register(Response)
+class ResponseAdmin(admin.ModelAdmin):
+    list_display = ('user', 'form', 'question', 'get_answer_display', 'text_response')
+    list_filter = ('form', 'question', 'user')
+    search_fields = ('user__username', 'form__name', 'question__question_text', 'text_response')
+    readonly_fields = ('get_answer_display',)
+   
+    def get_answer_display(self, obj):
+        return obj.get_answer_display()
+    get_answer_display.short_description = 'Answer'
+
+    # Grouping for better UX
+    fieldsets = (
+        ("Response Information", {
+            'fields': ('user', 'form', 'question')
+        }),
+        ("Answer Details", {
+            'fields': ('answer', 'get_answer_display', 'text_response')
+        }),
+    )
+
+    def get_answer_display(self, obj):
+        return obj.get_answer_display()
+    get_answer_display.short_description = 'Answer'
+                           
 # fmt: on
