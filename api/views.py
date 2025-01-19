@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary, User
+from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary, User, Form, Question, FormResponse, FormAssignment
 from api.permissions import FeedbackPermission, NotePermission, SummaryPermission
 from api.serializers import (
     FeedbackSerializer,
@@ -22,6 +22,9 @@ from api.serializers import (
     SummarySerializer,
     TokenSerializer,
     UserSerializer,
+    FormSerializer,
+    FormDetailSerializer,
+    FormSubmissionSerializer,
 )
 
 AUTH_RESPONSE_SCHEMA = openapi.Schema(
@@ -432,3 +435,104 @@ class SummaryViewSet(viewsets.ModelViewSet):
         ).exists():
             return Summary.objects.filter(note=current_note)
         return Summary.objects.none()
+
+class FormViewSet(viewsets.ViewSet):
+    """
+    A ViewSet to handle CRUD operations on forms, and their assignments.
+    """
+    permission_classes = [IsAuthenticated]  # FUTURE ENHANCEMENT: Add FormPermission
+
+    def list(self, request):
+        """
+        List forms available to the authenticated user.
+        Includes:
+        - Default forms available to everyone. (e.g. TL Form and PM Form)
+        - Forms assigned specifically to the user.
+        """
+
+        user = request.user
+
+        # fetch default and manually assigned forms, separately
+        default_forms = Form.objects.filter(is_default=True)
+        assigned_forms = Form.objects.filter(formassignment__assigned_to=user).distinct()
+
+        all_forms = (default_forms | assigned_forms).distinct()
+
+        serializer = FormSerializer(all_forms, many=True)
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk=None):
+        """
+        Retrieve a specific form and its questions.
+        """
+        form = get_object_or_404(Form,id=pk)
+
+        serializer = FormDetailSerializer(form)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], url_path='submit')
+    def submit(self, request, pk=None):
+        # Fetch the form and all of its questions
+        form = get_object_or_404(Form, id=pk)
+        questions = Question.objects.filter(form=form)
+    
+        # Validate the incoming request
+        serializer = FormSubmissionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        responses = serializer.validated_data.get("responses", {})
+        general_comment = serializer.validated_data.get("general_comment", "")
+
+        for question in questions:
+            question_key = f"question_{question.id}"
+
+            answer = responses.get(question_key, None)  # Check if an answer exists for this question; if not, use `None`
+
+            # Save the response for this question in the FormResponse table
+            FormResponse.objects.create(
+                user=request.user,
+                form=form,
+                question=question,
+                answer=answer,
+            )
+        
+        # Check if the form is assigned to anyone
+        assignment = FormAssignment.objects.filter(form=form, assigned_to=request.user).first()
+        if assignment:
+            assignment.is_completed=True 
+            assignment.save()
+
+        return Response({"status": "Form submitted successfully"}, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=['post'], url_path='assign')
+    def assign(self, request):
+        """
+        Assign a form to a specific user with an optional message.
+        - Ensure thath the form is visible to the assignee.
+        - Prevents duplicate assignments.
+        """
+
+        form_id = request.data.get("form_id")
+        assigned_to_id = request.data.get("assigned_to")
+        message = request.data.get("message", "")
+
+        # Validate that the form and the user exist
+        form = get_object_or_404(Form, id=form_id)
+        assigned_to = get_object_or_404(User, id=assigned_to_id)
+
+        # Assign, prevent duplication
+        assignment, created = FormAssignment.objects.get_or_create(
+            form=form,
+            assigned_to=assigned_to,
+            assigned_by=request.user,
+            message=message,
+            defaults={"message":message},
+        )
+
+        if not created:
+            return Response(
+                {"detail": "This form has already been assigned to this user."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        return Response({"status": "Form assigned successfully."}, status=status.HTTP_201_CREATED)
