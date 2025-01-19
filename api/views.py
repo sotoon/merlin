@@ -438,7 +438,7 @@ class SummaryViewSet(viewsets.ModelViewSet):
 
 class FormViewSet(viewsets.ViewSet):
     """
-    A ViewSet to handle CRUD operations on forms, and their assignments.
+    A ViewSet to handle CRUD operations on forms, and form assignment.
     """
     permission_classes = [IsAuthenticated]  # FUTURE ENHANCEMENT: Add FormPermission
 
@@ -481,12 +481,12 @@ class FormViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         responses = serializer.validated_data.get("responses", {})
-        general_comment = serializer.validated_data.get("general_comment", "")
+        comment = serializer.validated_data.get("comment", "")
 
-        for question in questions:
-            question_key = f"question_{question.id}"
-
-            answer = responses.get(question_key, None)  # Check if an answer exists for this question; if not, use `None`
+        for index, question in enumerate(questions or [None]):
+            question_key = f"question_{question.id}" if question else None
+            # Check if an answer exists for this question; if not, use `None`
+            answer = responses.get(question_key, None) if question else None
 
             # Save the response for this question in the FormResponse table
             FormResponse.objects.create(
@@ -494,6 +494,7 @@ class FormViewSet(viewsets.ViewSet):
                 form=form,
                 question=question,
                 answer=answer,
+                comment=comment if index == len(questions) - 1 else None    # Attach the comment on top of the last question
             )
         
         # Check if the form is assigned to anyone
