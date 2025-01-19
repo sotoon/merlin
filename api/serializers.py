@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from api.models import Feedback, Note, NoteUserAccess, Summary, User
+from api.models import (
+        Feedback,
+        Note,
+        NoteUserAccess,
+        Summary,
+        User,
+        Form,
+        Question,
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -193,3 +201,36 @@ class SummarySerializer(serializers.ModelSerializer):
             note=validated_data["note"], defaults=validated_data
         )
         return instance
+
+class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for individual questions.
+    """
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'scale_min', 'scale_max']
+
+class FormSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing forms.
+    """
+    class Meta:
+        model = Form
+        fields = ['id', 'name', 'description', 'is_default', 'form_type']
+
+class FormDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for all questions of a form.
+    """
+    questions = QuestionSerializer(many=True, read_only=True, source='question_set')
+
+    class Meta:
+        model = Form
+        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'questions']
+
+class FormSubmissionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for form submission data.
+    """
+    responses = serializers.DictField(child=serializers.IntegerField(), required=True)
+    general_comment = serializers.CharField(required=False, allow_blank=True)
