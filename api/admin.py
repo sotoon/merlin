@@ -267,14 +267,14 @@ class QuestionInline(admin.TabularInline):
 @admin.register(Form)
 class FormAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'is_default', 'form_type')
-    list_filter = ('form_type')
+    list_filter = ('form_type', 'is_default')
     search_fields = ('name', 'description')
     inlines = [QuestionInline]
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'scale_min', 'scale_max', 'form')
-    list_filter = ('form')
+    list_filter = ['form']
     search_fields = ('question_text', 'form__name')
 
 @admin.register(FormResponse)
