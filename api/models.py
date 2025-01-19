@@ -370,7 +370,7 @@ class Response(MerlinBaseModel):
         return f"Response by {self.user} to {self.question}"
     
     def get_answer_display(self):
-        # Ensure that None will be interpreted as "I don't know"
+        # Ensure that None will be displayed as "I don't know"
         return self.answer if self.answer is not None else "I don't know"
 
     
