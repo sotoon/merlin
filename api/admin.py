@@ -15,7 +15,7 @@ from api.models import (
     Team,
     Tribe,
     User,
-    Response,
+    FormResponse,
     Question,
     Form,
 )
@@ -277,7 +277,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = ('form')
     search_fields = ('question_text', 'form__name')
 
-@admin.register(Response)
+@admin.register(FormResponse)
 class ResponseAdmin(admin.ModelAdmin):
     list_display = ('user', 'form', 'question', 'get_answer_display', 'text_response')
     list_filter = ('form', 'question', 'user')

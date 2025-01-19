@@ -355,7 +355,7 @@ class Question(MerlinBaseModel):
     def __str__(self):
         return self.name
     
-class Response(MerlinBaseModel):
+class FormResponse(MerlinBaseModel):
     answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
     text_response = models.TextField(null=True, blank=True, verbose_name="پاسخ متنی")
     user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="کاربر")
