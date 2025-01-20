@@ -228,9 +228,15 @@ class FormDetailSerializer(serializers.ModelSerializer):
         model = Form
         fields = ['id', 'name', 'description', 'is_default', 'form_type', 'questions']
 
-class FormSubmissionSerializer(serializers.ModelSerializer):
+class FormSubmissionSerializer(serializers.Serializer):
     """
     Serializer for form submission data.
     """
-    responses = serializers.DictField(child=serializers.IntegerField(), required=True)
-    general_comment = serializers.CharField(required=False, allow_blank=True)
+    responses = serializers.DictField(
+        child=serializers.IntegerField(allow_null=True),
+        required=True
+    )
+    general_comment = serializers.CharField(
+        required=False,
+        allow_blank=True
+    )
