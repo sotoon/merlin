@@ -18,6 +18,7 @@ from api.models import (
     FormResponse,
     Question,
     Form,
+    FormAssignment,
 )
 
 
@@ -264,12 +265,18 @@ class QuestionInline(admin.TabularInline):
     fields = ('question_text', 'scale_min', 'scale_max')
     readonly_fields = ()
 
+class FormAssignmentInline(admin.TabularInline):
+    model = FormAssignment
+    extra = 1
+    fields = ('assigned_to', 'message', 'is_completed', 'assigned_by')
+    readonly_fields = ('is_completed', 'assigned_by')
+
 @admin.register(Form)
 class FormAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'is_default', 'form_type')
     list_filter = ('form_type', 'is_default')
     search_fields = ('name', 'description')
-    inlines = [QuestionInline]
+    inlines = [QuestionInline, FormAssignmentInline]
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
