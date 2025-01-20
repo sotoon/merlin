@@ -436,16 +436,17 @@ class SummaryViewSet(viewsets.ModelViewSet):
             return Summary.objects.filter(note=current_note)
         return Summary.objects.none()
 
-class FormViewSet(viewsets.ViewSet):
+class FormViewSet(viewsets.ModelViewSet):
     """
     A ViewSet to handle CRUD operations on forms, and form assignment.
     """
+    queryset = Form.objects.all()
+    serializer_class = FormSerializer
     permission_classes = [IsAuthenticated]  # FUTURE ENHANCEMENT: Add FormPermission
 
     def list(self, request):
         """
-        List forms available to the authenticated user.
-        Includes:
+        Override the default list to include default and assigned forms.
         - Default forms available to everyone. (e.g. TL Form and PM Form)
         - Forms assigned specifically to the user.
         """
@@ -454,7 +455,7 @@ class FormViewSet(viewsets.ViewSet):
 
         # fetch default and manually assigned forms, separately
         default_forms = Form.objects.filter(is_default=True)
-        assigned_forms = Form.objects.filter(formassignment__assigned_to=user).distinct()
+        assigned_forms = Form.objects.filter(formassignment__assigned_to=user)
 
         all_forms = (default_forms | assigned_forms).distinct()
 
@@ -474,6 +475,14 @@ class FormViewSet(viewsets.ViewSet):
     def submit(self, request, pk=None):
         # Fetch the form and all of its questions
         form = get_object_or_404(Form, id=pk)
+
+         # Check if the user has already submitted this form
+        if FormResponse.objects.filter(form=form, user=request.user).exists():
+            return Response(
+                {"detail": "You have already submitted this form."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    
         questions = Question.objects.filter(form=form)
     
         # Validate the incoming request
