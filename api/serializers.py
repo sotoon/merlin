@@ -236,7 +236,3 @@ class FormSubmissionSerializer(serializers.Serializer):
         child=serializers.IntegerField(allow_null=True),
         required=True
     )
-    general_comment = serializers.CharField(
-        required=False,
-        allow_blank=True
-    )

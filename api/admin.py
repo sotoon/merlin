@@ -286,9 +286,9 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(FormResponse)
 class ResponseAdmin(admin.ModelAdmin):
-    list_display = ('user', 'form', 'question', 'get_answer_display', 'comment')
+    list_display = ('user', 'form', 'question', 'get_answer_display')
     list_filter = ('form', 'question', 'user')
-    search_fields = ('user__username', 'form__name', 'question__question_text', 'comment')
+    search_fields = ('user__username', 'form__name', 'question__question_text')
     readonly_fields = ('get_answer_display',)
    
     def get_answer_display(self, obj):
@@ -301,7 +301,7 @@ class ResponseAdmin(admin.ModelAdmin):
             'fields': ('user', 'form', 'question')
         }),
         ("Answer Details", {
-            'fields': ('answer', 'get_answer_display', 'comment')
+            'fields': ('answer', 'get_answer_display')
         }),
     )
 

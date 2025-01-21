@@ -357,7 +357,6 @@ class Question(MerlinBaseModel):
     
 class FormResponse(MerlinBaseModel):
     answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
-    comment = models.TextField(null=True, blank=True, verbose_name="پاسخ متنی")
     user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="کاربر")
     form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
     question = models.ForeignKey(Question, on_delete=models.PROTECT, verbose_name="سوال")

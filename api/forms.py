@@ -16,9 +16,3 @@ class FormResponseForm(forms.Form):
                 label=question.question_text
             )
 
-        # A single optional text box for each form
-        self.fields['general_comment'] = forms.CharField(
-            required=False,
-            widget=forms.Textarea(attrs={"rows": 4, "placeholder": "اگه دوست داری می‌تونی نظرت رو بنویسی"}),
-            label="Additional Comment",
-        )
