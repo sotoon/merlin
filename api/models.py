@@ -353,7 +353,7 @@ class Question(MerlinBaseModel):
         verbose_name_plural = "سوال‌ها"
 
     def __str__(self):
-        return self.name
+        return self.question_text
     
 class FormResponse(MerlinBaseModel):
     answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
@@ -365,6 +365,7 @@ class FormResponse(MerlinBaseModel):
     class Meta:
         verbose_name = "پاسخ"
         verbose_name_plural = "پاسخ‌ها"
+        unique_together = ("user", "form", "question")
 
     def __str__(self):
         return f"Response by {self.user} to {self.question}"
