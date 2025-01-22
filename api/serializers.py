@@ -208,7 +208,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Question
-        fields = ['id', 'question_text', 'scale_min', 'scale_max']
+        fields = ['id', 'question_text', 'category', 'scale_min', 'scale_max']
 
 class FormSerializer(serializers.ModelSerializer):
     """

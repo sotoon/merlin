@@ -280,7 +280,7 @@ class FormAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('question_text', 'scale_min', 'scale_max', 'form')
+    list_display = ('question_text', 'scale_min', 'scale_max', 'category', 'form')
     list_filter = ['form']
     search_fields = ('question_text', 'form__name')
 

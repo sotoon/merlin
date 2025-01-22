@@ -346,6 +346,10 @@ class Question(MerlinBaseModel):
     question_text = models.TextField(verbose_name="متن سوال")
     scale_min = models.PositiveIntegerField(default=1, verbose_name="حداقل امتیاز")
     scale_max = models.PositiveIntegerField(default=5, verbose_name="حداکثر امتیاز")
+    category = models.CharField(
+        max_length=100,
+        verbose_name="دسته‌بندی"
+    )
     form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
 
     class Meta:
@@ -353,7 +357,7 @@ class Question(MerlinBaseModel):
         verbose_name_plural = "سوال‌ها"
 
     def __str__(self):
-        return self.question_text
+        return f"{self.question_text} ({self.category})"
     
 class FormResponse(MerlinBaseModel):
     answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
