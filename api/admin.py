@@ -274,7 +274,7 @@ class QuestionInline(admin.TabularInline):
 class FormAssignmentInline(admin.TabularInline):
     model = FormAssignment
     extra = 1
-    fields = ('assigned_to', 'message', 'is_completed', 'assigned_by')
+    fields = ('assigned_to', 'message', 'deadline', 'is_completed', 'assigned_by')
     readonly_fields = ('is_completed', 'assigned_by')
 
 @admin.register(Form)
