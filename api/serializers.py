@@ -8,6 +8,7 @@ from api.models import (
         User,
         Form,
         Question,
+        FormAssignment,
 )
 
 
@@ -212,7 +213,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class FormSerializer(serializers.ModelSerializer):
     """
-    Serializer for listing forms, along with cycle metadata
+    Serializer for listing forms, along with its cycle metadata
     """
     cycle_name = serializers.CharField(source="cycle.name", read_only=True)
     cycle_start_date = serializers.DateTimeField(source="cycle.start_date", read_only=True)
@@ -240,3 +241,10 @@ class FormSubmissionSerializer(serializers.Serializer):
         child=serializers.IntegerField(allow_null=True),
         required=True
     )
+
+class FormAssignmentSerializer(serializers.ModelSerializer):
+    form_name = serializers.CharField(source="form.name", read_only=True)
+
+    class Meta:
+        model = FormAssignment
+        fields = ["form_name", "assigned_to", "deadline", "is_completed"]
