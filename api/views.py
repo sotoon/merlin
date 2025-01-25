@@ -539,6 +539,7 @@ class FormViewSet(viewsets.ModelViewSet):
         form_id = request.data.get("form_id")
         assigned_to_id = request.data.get("assigned_to")
         message = request.data.get("message", "")
+        deadline = request.data.get("deadline")
 
         # Validate that the form and the user exist
         form = get_object_or_404(Form, id=form_id)
@@ -550,7 +551,7 @@ class FormViewSet(viewsets.ModelViewSet):
             assigned_to=assigned_to,
             assigned_by=request.user,
             message=message,
-            defaults={"message":message},
+            defaults={"message":message, "deadline":deadline},
         )
 
         if not created:
