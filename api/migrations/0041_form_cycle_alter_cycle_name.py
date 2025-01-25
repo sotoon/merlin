@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             model_name="form",
             name="cycle",
             field=models.ForeignKey(
-                default="default",
+                default="2",
                 on_delete=django.db.models.deletion.PROTECT,
                 to="api.cycle",
                 verbose_name="دوره",
