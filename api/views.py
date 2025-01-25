@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary, User, Form, Question, FormResponse, FormAssignment
+from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary, User, Form, Question, FormResponse, FormAssignment, Cycle
 from api.permissions import FeedbackPermission, NotePermission, SummaryPermission
 from api.serializers import (
     FeedbackSerializer,
@@ -26,6 +26,7 @@ from api.serializers import (
     FormSerializer,
     FormDetailSerializer,
     FormSubmissionSerializer,
+    FormResultsSerializer,
 )
 
 AUTH_RESPONSE_SCHEMA = openapi.Schema(
@@ -559,3 +560,52 @@ class FormViewSet(viewsets.ModelViewSet):
             )
         
         return Response({"status": "Form assigned successfully."}, status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=["get"], url_path="results")
+    def results(self, request, pk=None):
+        """
+        Fetch aggregated results for a form.
+        Results are only shown if:
+        - The cycle (for default forms) has ended.
+        - The deadline (for assigned forms) has passed.
+        """
+        form = self.get_object()
+        cycle_id = request.query_params.get("cycle_id") # Should be sent by client side
+
+        if cycle_id:
+            cycle = get_object_or_404(Cycle, id=cycle_id)
+
+            if cycle.end_date > timezone.now().date():
+                return Response(
+                    {"detail": "Results for this form are not available until the cycle ends."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+            # Fetch responses within the cycle date range
+            responses = FormResponse.objects.filter(
+                question__form=form,
+                created_at__range=(cycle.start_date, cycle.end_date)
+            )
+
+        # Handle manually assigned forms
+        else:
+            assignments = FormAssignment.objects.filter(form=form, assigned_to=request.user)
+
+            # Validate that all deadlines have passed
+            for assignment in assignments:
+                if assignment.deadline and assignment.deadline > timezone.now():
+                    return Response(
+                        {"detail": "Results for this form are not available until the deadline passes."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # Fetch responses for the assigned users
+            responses = FormResponse.objects.filter(
+                question__form=form,
+                user__in=assignments.values_list("assigned_to", flat=True)
+            )
+
+        # Calculate aggregated results
+        results = calculate_form_results(responses, form)
+        serializer = FormResultsSerializer(results)
+        return Response(serializer.data)
