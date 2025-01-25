@@ -104,6 +104,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "linked_notes",
             "read_status",
             "access_level",
+            "submit_status",
         )
         read_only_fields = [
             "uuid",
@@ -180,8 +181,9 @@ class SummarySerializer(serializers.ModelSerializer):
             "bonus",
             "salary_change",
             "committee_date",
+            "submit_status",
         )
-        read_only_fields = ["uuid"]
+        read_only_fields = ["uuid", ]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
