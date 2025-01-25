@@ -138,8 +138,8 @@ class User(MerlinBaseModel, AbstractUser):
 
 class Cycle(MerlinBaseModel):
     name = models.CharField(max_length=150, verbose_name="نام دوره")
-    start_date = models.DateField(verbose_name="تاریخ شروع")
-    end_date = models.DateField(verbose_name="تاریخ پایان")
+    start_date = models.DateTimeField(verbose_name="تاریخ شروع")
+    end_date = models.DateTimeField(verbose_name="تاریخ پایان")
     description = models.TextField(null=True, blank=True, verbose_name="توضیحات")
     is_active = models.BooleanField(default=True, verbose_name="فعال‌سازی")
 
