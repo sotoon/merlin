@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -455,7 +456,7 @@ class FormViewSet(viewsets.ModelViewSet):
 
         # fetch default and manually assigned forms, separately
         # NOTE: Alternative Method: Sending all forms and put the separation queries there.
-        
+
         default_forms = Form.objects.filter(is_default=True, cycle__is_active=True)
         assigned_forms = Form.objects.filter(formassignment__assigned_to=user)
 
@@ -475,6 +476,9 @@ class FormViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='submit')
     def submit(self, request, pk=None):
+        """
+        Handle form submission. Saves responses for each question and marks the assignment as completed.
+        """
         # Fetch the form and all of its questions
         form = get_object_or_404(Form, id=pk)
 
@@ -485,6 +489,15 @@ class FormViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
     
+        # Check if for is default and its cycle is active
+        if form.is_default and not form.cycle.is_active:
+            return Response({"detail": "This form is not active."}, status=400)
+        
+        # Validate deadline for assigned forms
+        assignment = FormAssignment.objects.filter(form=form, assigned_to=request.user).first()
+        if assignment and assignment.deadline < timezone.now():
+            return Response({"detail": "Submission deadline has passed."}, status=400)
+
         questions = Question.objects.filter(form=form)
     
         # Validate the incoming request
@@ -492,9 +505,8 @@ class FormViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         responses = serializer.validated_data.get("responses", {})
-        comment = serializer.validated_data.get("comment", "")
 
-        for index, question in enumerate(questions or [None]):
+        for question in questions:
             question_key = f"question_{question.id}" if question else None
             # Check if an answer exists for this question; if not, use `None`
             answer = responses.get(question_key, None) if question else None
@@ -505,10 +517,9 @@ class FormViewSet(viewsets.ModelViewSet):
                 form=form,
                 question=question,
                 answer=answer,
-                comment=comment if index == len(questions) - 1 else None    # Attach the comment on top of the last question
             )
         
-        # Check if the form is assigned to anyone
+        # Update the FormAssignment status if applicable
         assignment = FormAssignment.objects.filter(form=form, assigned_to=request.user).first()
         if assignment:
             assignment.is_completed=True 
