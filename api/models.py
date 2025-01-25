@@ -137,7 +137,7 @@ class User(MerlinBaseModel, AbstractUser):
         return leaders
 
 class Cycle(MerlinBaseModel):
-    name = models.CharField(max_length=150, verbose_name="نام چرخه")
+    name = models.CharField(max_length=150, verbose_name="نام دوره")
     start_date = models.DateField(verbose_name="تاریخ شروع")
     end_date = models.DateField(verbose_name="تاریخ پایان")
     description = models.TextField(null=True, blank=True, verbose_name="توضیحات")
@@ -343,6 +343,7 @@ class Form(MerlinBaseModel):
         null=True,
         blank=True
     )
+    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT, verbose_name="دوره")
 
     class Meta:
         verbose_name = "فرم"
