@@ -136,6 +136,15 @@ class User(MerlinBaseModel, AbstractUser):
                 break
         return leaders
 
+class Cycle(MerlinBaseModel):
+    name = models.CharField(max_length=150, verbose_name="نام چرخه")
+    start_date = models.DateField(verbose_name="تاریخ شروع")
+    end_date = models.DateField(verbose_name="تاریخ پایان")
+    description = models.TextField(null=True, blank=True, verbose_name="توضیحات")
+    is_active = models.BooleanField(default=True, verbose_name="فعال‌سازی")
+
+    def __str__(self):
+        return f"{self.name} ({self.start_date} - {self.end_date})"
 
 class Department(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
