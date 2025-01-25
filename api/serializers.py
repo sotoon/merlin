@@ -212,11 +212,15 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class FormSerializer(serializers.ModelSerializer):
     """
-    Serializer for listing forms.
+    Serializer for listing forms, along with cycle metadata
     """
+    cycle_name = serializers.CharField(source="cycle.name", read_only=True)
+    cycle_start_date = serializers.DateTimeField(source="cycle.start_date", read_only=True)
+    cycle_end_date = serializers.DateTimeField(source="cycle.end_date", read_only=True)
+
     class Meta:
         model = Form
-        fields = ['id', 'name', 'description', 'is_default', 'form_type']
+        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle_name', 'cycle_start_date', 'cycle_end_date']
 
 class FormDetailSerializer(serializers.ModelSerializer):
     """
