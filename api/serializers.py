@@ -218,35 +218,6 @@ class FormSerializer(serializers.ModelSerializer):
         model = Form
         fields = ['id', 'name', 'description', 'is_default', 'form_type']
 
-class UserFormListSerializer(serializers.ModelSerializer):
-    deadline = serializers.SerializerMethodField()
-    is_completed = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Form
-        fields = ["id", "name", "description", "is_default", "form_type", "deadline", "is_completed"]
- 
-    def get_deadline(self, obj):
-        user = self.context.get("user")
-
-        if obj.is_default:
-            # For default forms, derive deadline from the cycle status
-            cycle = obj.cycle_set.filter(is_active=True).first()
-            return cycle.end_date if cycle else None
-        else:
-            # For assigned forms, derive deadline from FormAssignment.deadline
-            assignment = obj.formassignment_set.filter(assigned_to=user).first()
-            return assignment.deadline if assignment else None
-        
-    def get_is_completed(self, obj):
-        user = self.context.get("user")
-
-        if not obj.is_default:
-            assignment = obj.formassignment_set.filter(assigned_to=user).first()
-            return assignment.is_completed if assignment else None
-
-        return None
-
 class FormDetailSerializer(serializers.ModelSerializer):
     """
     Serializer for all questions of a form.
