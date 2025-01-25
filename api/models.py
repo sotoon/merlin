@@ -399,6 +399,7 @@ class FormAssignment(MerlinBaseModel):
     assigned_to = models.ForeignKey(User, on_delete=models.PROTECT, related_name="assigned_forms", verbose_name="گیرنده")
     assigned_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="created_assignments", verbose_name="فرستنده")
     message = models.TextField(null=True, blank=True, verbose_name="پیام")
+    deadline = models.DateField(verbose_name="ددلاین")
     is_completed = models.BooleanField(default=False, verbose_name="تکمیل‌شده")
 
     def __str__(self):
