@@ -9,6 +9,7 @@ from api.models import (
         Form,
         Question,
         FormAssignment,
+        Cycle,
 )
 
 
@@ -218,10 +219,11 @@ class FormSerializer(serializers.ModelSerializer):
     cycle_name = serializers.CharField(source="cycle.name", read_only=True)
     cycle_start_date = serializers.DateTimeField(source="cycle.start_date", read_only=True)
     cycle_end_date = serializers.DateTimeField(source="cycle.end_date", read_only=True)
+    cycle = serializers.PrimaryKeyRelatedField(queryset=Cycle.objects.all())
 
     class Meta:
         model = Form
-        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle_name', 'cycle_start_date', 'cycle_end_date']
+        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 'cycle_name', 'cycle_start_date', 'cycle_end_date']
 
 class FormDetailSerializer(serializers.ModelSerializer):
     """
