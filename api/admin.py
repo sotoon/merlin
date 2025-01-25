@@ -20,6 +20,8 @@ from api.models import (
     Team,
     Tribe,
     User,
+    Role,
+    Organization,
     FormResponse,
     Question,
     Form,
@@ -78,6 +80,11 @@ RESOURCE_FIELDS = {
         column_name="tribe",
         attribute="tribe",
         widget=ForeignKeyWidget(Tribe, field="name"),
+    ),
+    "organization": fields.Field(
+        column_name="organization",
+        attribute="organization",
+        widget=ForeignKeyWidget(Organization, field="name"),
     ),
     "committee": fields.Field(
         column_name="committee",
@@ -149,6 +156,24 @@ class TribeAdmin(BaseModelAdmin):
     search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
 
 
+@admin.register(Organization)
+class TribeAdmin(BaseModelAdmin):
+    class OrganizationResource(BaseModelResource):
+        class Meta:
+            model = Organization
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "description", )
+
+    resource_class = OrganizationResource
+    list_display = ("name", "date_created", "date_updated",)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "description", ("date_created", "date_updated"),)
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "name")
+    # search_fields = ["name", "cto__name", "cto__email"]
+    # search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
+    search_fields = ["name"]
+
+
+
 @admin.register(Chapter)
 class ChapterAdmin(BaseModelAdmin):
     list_display = ("name", "department", "leader", "date_created", "date_updated",)
@@ -182,7 +207,7 @@ class TeamAdmin(BaseModelAdmin):
 @admin.register(Committee)
 class CommitteeAdmin(BaseModelAdmin):
     list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid", "name", "description", "members", ("date_created", "date_updated"),)
+    fields = ("uuid", "name", "description", "members", "roles", ("date_created", "date_updated"),)
     filter_horizontal = ("members",)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
@@ -197,17 +222,18 @@ class UserAdmin(BaseModelAdmin):
         department = RESOURCE_FIELDS["department"]
         team = RESOURCE_FIELDS["team"]
         chapter = RESOURCE_FIELDS["chapter"]
+        organization = RESOURCE_FIELDS["organization"]
         committee = RESOURCE_FIELDS["committee"]
         lookup_field = "email"
 
         class Meta:
             model = User
             import_id_fields = ("email",)
-            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter",)
+            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter", "organization", )
 
     resource_class = UserResource
-    list_display = ("email", "name", "phone", "department", "chapter", "team", "leader", "agile_coach", "date_created", "date_updated",)
-    fields = ("uuid", "name", "phone", ("email", "gmail"), ("department", "chapter", "team", "level", "leader", "agile_coach", "committee"), ("date_created", "date_updated"),)
+    list_display = ("email", "name", "phone", "department", "chapter", "team", "organization", "leader", "agile_coach", "date_created", "date_updated",)
+    fields = ("uuid", "name", "phone", ("email", "gmail"), ("department", "chapter", "team", "organization", "level", "leader", "agile_coach", "committee"), ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "email")
     search_fields = ["email", "name", "phone"]
@@ -474,4 +500,14 @@ class FormAssignmentAdmin(admin.ModelAdmin):
     search_fields = ("assigned_to__email", "form__name")
 
                            
+
+@admin.register(Role)
+class RoleAdmin(BaseModelAdmin):
+    list_display = ("role_type", "role_scope", "date_created", "date_updated",)
+    fields = ("role_type", "role_scope", ("date_created", "date_updated"),)
+    readonly_fields = ("date_created", "date_updated",)
+    ordering = ("-date_created", "role_scope")
+    search_fields = ["role_type", "role_scope"]
+    search_help_text = "جستجو در نوع نقش، سطح نقش"
+
 # fmt: on
