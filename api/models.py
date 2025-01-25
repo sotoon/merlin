@@ -301,6 +301,13 @@ class Note(MerlinBaseModel):
         return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
                                                                          NoteSubmitStatus.REVIEWED)
 
+    def has_summary_with_done_submit_status(self):
+        """
+        Checks if this note has an associated summary and if summary status is 'done'.
+        """
+        return hasattr(self, 'summary') and self.summary.submit_status == SummarySubmitStatus.DONE
+
+
     class Meta:
         verbose_name = "یادداشت"
         verbose_name_plural = "یادداشت‌ها"
@@ -489,7 +496,7 @@ class NoteUserAccess(MerlinBaseModel):
             defaults={
                 "can_view": True,
                 "can_edit": not note.is_sent_to_committee(),
-                "can_view_summary": True,
+                "can_view_summary": note.has_summary_with_done_submit_status(),
                 "can_write_summary": note.type == NoteType.GOAL,
                 "can_view_feedbacks": True,
                 "can_write_feedback": True,
