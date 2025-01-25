@@ -243,8 +243,23 @@ class FormSubmissionSerializer(serializers.Serializer):
     )
 
 class FormAssignmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for assigning forms.
+    """
     form_name = serializers.CharField(source="form.name", read_only=True)
 
     class Meta:
         model = FormAssignment
         fields = ["form_name", "assigned_to", "deadline", "is_completed"]
+
+class FormResultsSerializer(serializers.Serializer):
+    """
+    Serializer for results display. (AVG score based on categories and questions)
+    """
+    total_average = serializers.FloatField()
+    categories = serializers.DictField(
+        child=serializers.FloatField()
+    )
+    questions = serializers.ListField(
+        child=serializers.DictField()
+    )
