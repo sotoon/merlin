@@ -533,8 +533,10 @@ class FormViewSet(viewsets.ModelViewSet):
     def assign(self, request):
         """
         Assign a form to a specific user with an optional message.
-        - Ensure thath the form is visible to the assignee.
+        - Ensure that the form is visible to the assignee.
         - Prevents duplicate assignments.
+        
+        For default forms, this is managed automatically through signals.
         """
 
         form_id = request.data.get("form_id")
@@ -545,6 +547,12 @@ class FormViewSet(viewsets.ModelViewSet):
         # Validate that the form and the user exist
         form = get_object_or_404(Form, id=form_id)
         assigned_to = get_object_or_404(User, id=assigned_to_id)
+
+        if form.is_default:
+            return Response(
+                {"detail": "Default forms cannot be assigned manually."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Assign, prevent duplication
         assignment, created = FormAssignment.objects.get_or_create(
