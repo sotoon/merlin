@@ -480,18 +480,21 @@ class FormViewSet(viewsets.ModelViewSet):
     def submit(self, request, pk=None):
         """
         Handle form submission. Saves responses for each question and marks the assignment as completed.
+
+        For default forms:
+        - Set `assigned_by` to the leader for TL forms.
         """
         # Fetch the form and all of its questions
         form = get_object_or_404(Form, id=pk)
 
-         # Check if the user has already submitted this form
+        # Check if the user has already submitted this form
         if FormResponse.objects.filter(form=form, user=request.user).exists():
             return Response(
                 {"detail": "You have already submitted this form."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
     
-        # Check if for is default and its cycle is active
+        # Check if form is default and active
         if form.is_default and not form.cycle.is_active:
             return Response({"detail": "This form is not active."}, status=400)
         
@@ -500,6 +503,13 @@ class FormViewSet(viewsets.ModelViewSet):
         if assignment and assignment.deadline < timezone.now().date():
             return Response({"detail": "Submission deadline has passed."}, status=400)
 
+        # Validate TL forms require leaders
+        if form.form_type == Form.FormType.TL and not request.user.get_leader():
+            return Response(
+                {"detail": "Cannot submit this form. No leader assigned."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         questions = Question.objects.filter(form=form)
     
         # Validate the incoming request
@@ -520,9 +530,18 @@ class FormViewSet(viewsets.ModelViewSet):
                 question=question,
                 answer=answer,
             )
-        
+            
+        # Update assigned_by for default forms
+        if form.is_default and not assignment:
+            assigned_by = request.user.get_leader() if form.form_type == Form.FormType.TL else None
+            assignment = FormAssignment.objects.create(
+                form=form,
+                assigned_to=request.user,
+                assigned_by=assigned_by,
+                deadline=form.cycle.end_date,
+            )
+            
         # Update the FormAssignment status if applicable
-        assignment = FormAssignment.objects.filter(form=form, assigned_to=request.user).first()
         if assignment:
             assignment.is_completed=True 
             assignment.save()
