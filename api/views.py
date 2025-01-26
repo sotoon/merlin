@@ -497,7 +497,7 @@ class FormViewSet(viewsets.ModelViewSet):
         
         # Validate deadline for assigned forms
         assignment = FormAssignment.objects.filter(form=form, assigned_to=request.user).first()
-        if assignment and assignment.deadline < timezone.now():
+        if assignment and assignment.deadline < timezone.now().date():
             return Response({"detail": "Submission deadline has passed."}, status=400)
 
         questions = Question.objects.filter(form=form)
@@ -577,7 +577,7 @@ class FormViewSet(viewsets.ModelViewSet):
         if cycle_id:
             cycle = get_object_or_404(Cycle, id=cycle_id)
 
-            if cycle.end_date > timezone.now().date():
+            if cycle.end_date > timezone.now():
                 return Response(
                     {"detail": "Results for this form are not available until the cycle ends."},
                     status=status.HTTP_400_BAD_REQUEST
@@ -586,7 +586,7 @@ class FormViewSet(viewsets.ModelViewSet):
             # Fetch responses within the cycle date range
             responses = FormResponse.objects.filter(
                 question__form=form,
-                created_at__range=(cycle.start_date, cycle.end_date)
+                date_created__range=(cycle.start_date, cycle.end_date)
             )
 
         # Handle manually assigned forms
