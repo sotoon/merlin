@@ -23,7 +23,7 @@ def calculate_form_results(responses, form):
     for category in set(response.question.category for response in responses):
         category_responses = responses.filter(question__category=category)
         category_avg = category_responses.aggregate(avg=Avg("answer"))["avg"] or 0
-        category_averages[category] = round(category_avg, 2)
+        category_averages[category] = category_avg
 
     # Calculate per-question averages
     for question in Question.objects.filter(form=form):
@@ -32,7 +32,7 @@ def calculate_form_results(responses, form):
         question_averages.append({
             "id": question.id,
             "text": question.question_text,
-            "average": round(question_avg, 2),
+            "average": question_avg,
         })
 
         # Add to total for overall average
