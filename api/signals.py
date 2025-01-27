@@ -33,25 +33,48 @@ def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
 def assign_default_forms(sender, instance, created, **kwargs):
     """
     Automatically assign default forms to users when a form is marked default,
-    and its cycle is active.
+    and its cycle is active. Prevent duplicate assignments.
     """
     if instance.is_default and instance.cycle.is_active:
         users = User.objects.all()
         assignments = []
+        affected_users = []
+        skipped_users = []
 
         for user in users:
-            if instance.form_type == Form.FormType.TL and not user.get_leaders():
-                print(f"Warning: Skipping user {user.email}, no leader assigned.")
+            # Check if the user is already assigned to this form
+            if FormAssignment.objects.filter(form=instance, assigned_to=user).exists():
+                skipped_users.append(user)
                 continue
 
-            assigned_by = user.get_leaders() if instance.form_type == Form.FormType.TL else None
+            assigned_by = None 
+
+            if instance.form_type == Form.FormType.TL:
+                leaders = user.get_leaders()
+                if not leaders:
+                    skipped_users.append(user)
+                    continue
+                assigned_by = leaders[0]
+                affected_users.append(user)
+
+            elif instance.form_type == Form.FormType.PM:
+                # PM forms require manual assignment for now            FUTURE ENHANCEMENT: dynamic assignment for PMs
+                skipped_users.append(user)
+                continue 
             
-            assignment = FormAssignment(
-                    form=instance,
-                    assigned_to=user,
-                    assigned_by=assigned_by,
-                    deadline=instance.cycle.end_date
-                )
-            assignments.append(assignment)
+            else:
+                skipped_users.append(user)
+                assigned_by = None
+
+        # Run the query only for affected_users
+        assignments = [
+            FormAssignment(
+                form=instance,
+                assigned_to=user,
+                assigned_by=assigned_by,
+                deadline=instance.cycle.end_date
+            )
+            for user in affected_users
+        ]
 
         FormAssignment.objects.bulk_create(assignments)
