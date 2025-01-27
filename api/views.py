@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from datetime import datetime, time
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -504,7 +505,7 @@ class FormViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Submission deadline has passed."}, status=400)
 
         # Validate TL forms require leaders
-        if form.form_type == Form.FormType.TL and not request.user.get_leader():
+        if form.form_type == Form.FormType.TL and not request.user.get_leaders():
             return Response(
                 {"detail": "Cannot submit this form. No leader assigned."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -533,14 +534,14 @@ class FormViewSet(viewsets.ModelViewSet):
             
         # Update assigned_by for default forms
         if form.is_default and not assignment:
-            assigned_by = request.user.get_leader() if form.form_type == Form.FormType.TL else None
+            assigned_by = request.user.get_leaders() if form.form_type == Form.FormType.TL else None
             assignment = FormAssignment.objects.create(
                 form=form,
                 assigned_to=request.user,
                 assigned_by=assigned_by,
                 deadline=form.cycle.end_date,
             )
-            
+
         # Update the FormAssignment status if applicable
         if assignment:
             assignment.is_completed=True 
@@ -589,52 +590,87 @@ class FormViewSet(viewsets.ModelViewSet):
             )
         
         return Response({"status": "Form assigned successfully."}, status=status.HTTP_201_CREATED)
-    
+       
     @action(detail=True, methods=["get"], url_path="results")
     def results(self, request, pk=None):
         """
         Fetch aggregated results for a form.
         Results are only shown if:
-        - The cycle (for default forms) has ended.
-        - The deadline (for assigned forms) has passed.
+        - The cycle (for all forms) has ended.
+        - The deadline (for non-default forms) has passed.
         """
         form = self.get_object()
-        cycle_id = request.query_params.get("cycle_id") # Should be sent by client side
+        cycle_id = request.query_params.get("cycle_id")
 
-        if cycle_id:
-            cycle = get_object_or_404(Cycle, id=cycle_id)
+        # Validate cycle existence
+        if not cycle_id:
+            return Response(
+                {"detail": "Cycle ID is required to fetch results."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        cycle = get_object_or_404(Cycle, id=cycle_id)
 
-            if cycle.end_date > timezone.now():
+        # Debug: Print cycle dates
+        print("DEBUG: Cycle start_date:", cycle.start_date)
+        print("DEBUG: Cycle end_date:", cycle.end_date)
+
+        # Ensure the cycle has ended
+        if cycle.end_date > timezone.now():
+            print("DEBUG: Current time:", timezone.now())
+            return Response(
+                {"detail": "Results for this form are not available until the cycle ends."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Initialize response queryset
+        responses = None
+
+        # Handle non-default forms
+        if not form.is_default:
+            # Fetch assignments for this form and user
+            assignments = FormAssignment.objects.filter(
+                form=form,
+                assigned_to=request.user,
+                deadline__lte=timezone.now().date(),
+            )
+
+            print("DEBUG: Assignments for user:", assignments)
+
+            if not assignments.exists():
                 return Response(
-                    {"detail": "Results for this form are not available until the cycle ends."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Results for this form are not available until the assignment deadline passes."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-        
-            # Fetch responses within the cycle date range
+
+            # Extend end_date to include the entire day
+            adjusted_end_date = datetime.combine(cycle.end_date, time.max)
+
+            # Fetch responses only for assigned users and within the cycle range
             responses = FormResponse.objects.filter(
                 question__form=form,
-                date_created__range=(cycle.start_date, cycle.end_date)
+                user__in=assignments.values_list("assigned_to", flat=True),
+                date_created__range=(cycle.start_date, adjusted_end_date),
             )
 
-        # Handle manually assigned forms
+        # Handle default forms
         else:
-            assignments = FormAssignment.objects.filter(form=form, assigned_to=request.user)
+            # Extend end_date to include the entire day
+            adjusted_end_date = datetime.combine(cycle.end_date, time.max)
 
-            # Validate that all deadlines have passed
-            for assignment in assignments:
-                if assignment.deadline and assignment.deadline > timezone.now():
-                    return Response(
-                        {"detail": "Results for this form are not available until the deadline passes."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            # Fetch responses for the assigned users
             responses = FormResponse.objects.filter(
                 question__form=form,
-                user__in=assignments.values_list("assigned_to", flat=True)
+                date_created__range=(cycle.start_date, adjusted_end_date),
             )
+
+
+        # Debugging: Print fetched responses and associated questions
+        print("DEBUG: Responses fetched:", responses)
+        print("DEBUG: Associated questions:", form.question_set.all())
+        print("DEBUG: Response dates:", responses.values_list("date_created", flat=True))
 
         # Calculate aggregated results
         results = calculate_form_results(responses, form)
+        print("DEBUG: Calculated results:", results)  # Debug calculated results
+
         serializer = FormResultsSerializer(results)
         return Response(serializer.data)
