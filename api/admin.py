@@ -1,5 +1,9 @@
 # flake8: noqa: E501
-from django.contrib import admin
+import csv
+from django.contrib import admin, messages
+from django.utils.html import format_html
+from django.urls import path
+from django.http import HttpResponse
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
@@ -279,10 +283,105 @@ class FormAssignmentInline(admin.TabularInline):
 
 @admin.register(Form)
 class FormAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'is_default', 'form_type')
+    list_display = ('name', 'description', 'is_default', 'form_type', 'cycle')
     list_filter = ('form_type', 'is_default')
     search_fields = ('name', 'description')
     inlines = [QuestionInline, FormAssignmentInline]
+    actions = ['export_skipped_users_csv']
+
+    def calculate_user_assignments(self, form, check_existing_assignments=True):
+        """
+        Calculate affected and skipped users for a given form.
+        Returns two lists: affected_users and skipped_users.
+
+        Args:
+            form (Form): The form instance being processed.
+            check_existing_assignments (bool): Whether to check for existing assignments in the database.
+        """
+        users = User.objects.all()
+        affected_users = []
+        skipped_users = []
+
+        for user in users:
+            if check_existing_assignments and FormAssignment.objects.filter(form=form, assigned_to=user).exists():
+                skipped_users.append({"user": user, "reason": "Already assigned"})
+                continue
+
+            if form.form_type == Form.FormType.TL:
+                leaders = user.get_leaders()
+                if not leaders:
+                    skipped_users.append({"user": user, "reason": "No leader assigned"})
+                    continue
+                affected_users.append(user)
+
+            elif form.form_type == Form.FormType.PM:              # FUTURE ENHANCEMENT: automated assignment for PMs
+                skipped_users.append({"user": user, "reason": "Manual assignment required"})
+                continue
+
+            else:
+                skipped_users.append({"user": user, "reason": "This form type is not applicable"})
+
+        return affected_users, skipped_users
+    
+    def save_model(self, request, obj, form, change):
+        """
+        Override save_model to handle default form assignment notification.
+        """
+        super().save_model(request, obj, form, change)
+        if obj.is_default and obj.cycle.is_active:
+            # Exclude `Already Assigned` instances for the instant notification in admin panel
+            affected_users, skipped_users = self.calculate_user_assignments(obj, check_existing_assignments=False)
+
+            # Notify the admin with a summary
+            self.message_user(
+                request,
+                f"Form '{obj.name}' processed. Affected: {len(affected_users)} users. "
+                f"Skipped: {len(skipped_users)} users.",
+                level="info"
+            )
+
+
+    def export_skipped_users_csv(self, request, queryset):
+        """
+        Export skipped users as a CSV file for selected forms.
+        """
+        if not queryset:
+            self.message_user(request, "No forms selected.", level="warning")
+            return
+        
+        # Create CSV response
+        response = HttpResponse(
+            content_type="text/csv",
+            headers={"Content-Disposition": 'attachment; filename="skipped_users.csv"'},
+        )
+        writer = csv.writer(response)
+        writer.writerow(["Form Name", "User Email", "User Name", "Reason Skipped"])
+
+        # Iterate over selected forms
+        skipped_count = 0
+
+        for form in queryset:
+            _, skipped_users = self.calculate_user_assignments(form)
+
+            for entry in skipped_users:
+                user = entry["user"]
+                writer.writerow([form.name, user.email, user.name, entry["reason"]])
+                skipped_count += 1
+
+        if skipped_count == 0:
+            self.message_user(request, "No skipped users to export for the selected forms.", level="info")
+            return
+
+        self.message_user(
+            request,
+            f"Exported skipped users for {skipped_count} entries across selected forms.",
+            level="success"
+        )
+
+        return response
+
+    export_skipped_users_csv.short_description = "Export Skipped Users to CSV"
+
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
