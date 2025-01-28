@@ -1,5 +1,6 @@
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 from .models import (
     Committee,
@@ -34,7 +35,10 @@ def assign_default_forms(sender, instance, created, **kwargs):
     """
     Automatically assign default forms to users when a form is marked default,
     and its cycle is active. Prevent duplicate assignments.
-    """
+    """ 
+    if not instance.is_default:  # Skip non-default forms
+        return
+    
     if instance.is_default and instance.cycle.is_active:
         users = User.objects.all()
         assignments = []
