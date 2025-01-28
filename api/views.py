@@ -452,13 +452,13 @@ class FormViewSet(viewsets.ModelViewSet):
         """
         Override the default list to include default and assigned forms.
         - Default forms available to everyone. (based on active cycle)
-        - Forms assigned specifically to the user. (with costum deadlines)
+        - Forms assigned specifically to the user. (with custom deadlines)
         """
 
         user = request.user
 
         # fetch default and manually assigned forms, separately
-        # NOTE: Alternative Method: Sending all forms and put the separation queries there.
+        # NOTE: Alternative Method: Sending all forms and put the separation queries in the front side.
 
         default_forms = Form.objects.filter(is_default=True, cycle__is_active=True)
         assigned_forms = Form.objects.filter(formassignment__assigned_to=user)
