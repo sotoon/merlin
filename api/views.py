@@ -453,8 +453,9 @@ class FormViewSet(viewsets.ModelViewSet):
         Override the default list to include default and assigned forms.
         - Default forms available to everyone. (based on active cycle)
         - Forms assigned specifically to the user. (with custom deadlines)
-        """
 
+        Return a list of active and expired forms assigned to the user.
+        """
         user = request.user
 
         # fetch default and manually assigned forms, separately
