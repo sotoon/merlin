@@ -482,8 +482,10 @@ class FormViewSet(viewsets.ModelViewSet):
                 else:
                     expired_forms.append(form)
 
-        serializer = FormSerializer(all_forms, many=True)
-        return Response(serializer.data)
+        return Response({
+            "active_forms": FormSerializer(active_forms, many=True).data,
+            "expired_forms": FormSerializer(expired_forms, many=True).data,
+        })
     
     def retrieve(self, request, pk=None):
         """
