@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from api.models import (
@@ -214,16 +215,25 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class FormSerializer(serializers.ModelSerializer):
     """
-    Serializer for listing forms, along with its cycle metadata
+    Serializer for listing forms, along with its cycle metadata, 
+    and assignment completion status.
     """
     cycle_name = serializers.CharField(source="cycle.name", read_only=True)
     cycle_start_date = serializers.DateTimeField(source="cycle.start_date", read_only=True)
     cycle_end_date = serializers.DateTimeField(source="cycle.end_date", read_only=True)
     cycle = serializers.PrimaryKeyRelatedField(queryset=Cycle.objects.all())
+    is_expired = serializers.SerializerMethodField()
+
+    def get_is_expired(self, obj):
+        if obj.is_default:
+            return obj.cycle.end_date < timezone.now()
+        else:
+            return not FormAssignment.objects.filter(form=obj, deadline__gte=timezone.now().date()).exists()
 
     class Meta:
         model = Form
-        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 'cycle_name', 'cycle_start_date', 'cycle_end_date']
+        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 
+                  'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired']
 
 class FormDetailSerializer(serializers.ModelSerializer):
     """
