@@ -465,6 +465,23 @@ class FormViewSet(viewsets.ModelViewSet):
 
         all_forms = (default_forms | assigned_forms).distinct()
 
+        active_forms = []
+        expired_forms = []
+
+        for form in all_forms:
+            if form.is_default:
+                # Default forms: Use the cycle and end date to determine expiration
+                if form.cycle.end_date >= timezone.now():
+                    active_forms.append(form)
+                else:
+                    expired_forms.append(form)
+            else:
+                # Non-default forms: Use the assignment's deadline to determine expiration
+                if FormAssignment.objects.filter(form=form, assigned_to=user, deadline__gte=timezone.now().date()).exists():
+                    active_forms.append(form)
+                else:
+                    expired_forms.append(form)
+
         serializer = FormSerializer(all_forms, many=True)
         return Response(serializer.data)
     
@@ -610,13 +627,8 @@ class FormViewSet(viewsets.ModelViewSet):
             )
         cycle = get_object_or_404(Cycle, id=cycle_id)
 
-        # Debug: Print cycle dates
-        print("DEBUG: Cycle start_date:", cycle.start_date)
-        print("DEBUG: Cycle end_date:", cycle.end_date)
-
         # Ensure the cycle has ended
         if cycle.end_date > timezone.now():
-            print("DEBUG: Current time:", timezone.now())
             return Response(
                 {"detail": "Results for this form are not available until the cycle ends."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -633,8 +645,6 @@ class FormViewSet(viewsets.ModelViewSet):
                 assigned_to=request.user,
                 deadline__lte=timezone.now().date(),
             )
-
-            print("DEBUG: Assignments for user:", assignments)
 
             if not assignments.exists():
                 return Response(
@@ -662,15 +672,8 @@ class FormViewSet(viewsets.ModelViewSet):
                 date_created__range=(cycle.start_date, adjusted_end_date),
             )
 
-
-        # Debugging: Print fetched responses and associated questions
-        print("DEBUG: Responses fetched:", responses)
-        print("DEBUG: Associated questions:", form.question_set.all())
-        print("DEBUG: Response dates:", responses.values_list("date_created", flat=True))
-
         # Calculate aggregated results
         results = calculate_form_results(responses, form)
-        print("DEBUG: Calculated results:", results)  # Debug calculated results
 
         serializer = FormResultsSerializer(results)
         return Response(serializer.data)
