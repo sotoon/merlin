@@ -4,6 +4,7 @@ from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.urls import path
 from django.http import HttpResponse
+from django.core.exceptions import ValidationError
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
@@ -279,7 +280,7 @@ class FormAssignmentInline(admin.TabularInline):
     model = FormAssignment
     extra = 1
     fields = ('assigned_to', 'message', 'deadline', 'is_completed', 'assigned_by')
-    readonly_fields = ('is_completed', 'assigned_by')
+    readonly_fields = ('is_completed', 'assigned_by')   
 
 @admin.register(Form)
 class FormAdmin(admin.ModelAdmin):
@@ -288,6 +289,58 @@ class FormAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     inlines = [QuestionInline, FormAssignmentInline]
     actions = ['export_skipped_users_csv']
+
+    def save_related(self, request, form, formsets, change):
+        """
+        Validate inline assignments for default forms during the save process.
+        Default forms should not accept manual assignment.
+        """
+        obj = form.instance 
+        if obj.is_default:
+            # Check all inline FormAssignment entries
+            for formset in formsets:
+                for inline_form in formset.forms:
+                    if inline_form.cleaned_data and not inline_form.cleaned_data.get('DELETE', False):
+                        assigned_to = inline_form.cleaned_data.get('assigned_to')
+                        if assigned_to:
+                            raise ValidationError(
+                                "Manual assignment to default forms is not allowed. Default forms are assigned automatically."
+                            )
+        super().save_related(request, form, formsets, change)
+
+    def save_formset(self, request, form, formset, change):
+        """
+        Override save_formset to ensure `assigned_by` is set for non-default forms.
+        """
+        instances = formset.save(commit=False)
+
+        for instance in instances:
+            if instance.form.is_default:
+                continue
+
+            if isinstance(instance, FormAssignment):
+
+                if not getattr(instance, "assigned_by_id", None):
+                    instance.assigned_by = request.user
+
+            instance.save()
+
+        formset.save_m2m()
+
+        instances = formset.save(commit=False)  # Fetch unsaved formset instances
+
+        for instance in instances:
+            # Skip saving for default forms, as the signal handles these
+            if instance.form.is_default:
+                continue
+
+            # Ensure `assigned_by` is set for non-default forms
+            if isinstance(instance, FormAssignment) and not instance.assigned_by:
+                instance.assigned_by = request.user
+
+            instance.save()
+
+        formset.save_m2m()  # Save many-to-many relationships, if any
 
     def calculate_user_assignments(self, form, check_existing_assignments=True):
         """
@@ -326,7 +379,7 @@ class FormAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """
         Override save_model to handle default form assignment notification.
-        """
+        """ 
         super().save_model(request, obj, form, change)
         if obj.is_default and obj.cycle.is_active:
             # Exclude `Already Assigned` instances for the instant notification in admin panel
