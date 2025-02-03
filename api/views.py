@@ -484,8 +484,8 @@ class FormViewSet(viewsets.ModelViewSet):
                     expired_forms.append(form)
 
         return Response({
-            "active_forms": FormSerializer(active_forms, many=True).data,
-            "expired_forms": FormSerializer(expired_forms, many=True).data,
+            "active_forms": FormSerializer(active_forms, many=True, context={"request": request}).data,
+            "expired_forms": FormSerializer(expired_forms, many=True, context={"request": request}).data,
         })
     
     def retrieve(self, request, pk=None):
