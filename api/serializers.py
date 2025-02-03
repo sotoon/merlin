@@ -10,6 +10,7 @@ from api.models import (
         Form,
         Question,
         FormAssignment,
+        FormResponse,
         Cycle,
 )
 
@@ -223,17 +224,29 @@ class FormSerializer(serializers.ModelSerializer):
     cycle_end_date = serializers.DateTimeField(source="cycle.end_date", read_only=True)
     cycle = serializers.PrimaryKeyRelatedField(queryset=Cycle.objects.all())
     is_expired = serializers.SerializerMethodField()
+    is_filled = serializers.SerializerMethodField()
+    previous_responses = serializers.SerializerMethodField()
 
     def get_is_expired(self, obj):
         if obj.is_default:
             return obj.cycle.end_date < timezone.now()
         else:
             return not FormAssignment.objects.filter(form=obj, deadline__gte=timezone.now().date()).exists()
+    
+    def get_is_filled(self, obj):
+        user = self.context['request'].user
+        return FormResponse.objects.filter(form=obj, user=user).exists()
+    
+    def get_previous_responses(self, obj):
+        user = self.context['request'].user
+        responses = FormResponse.objects.filter(form=obj, user=user)
+        return {f"question_{resp.question.id}": resp.answer for resp in responses}
 
     class Meta:
         model = Form
         fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 
-                  'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired']
+                  'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
+                  'is_filled', 'previous_responses']
 
 class FormDetailSerializer(serializers.ModelSerializer):
     """
