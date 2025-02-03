@@ -234,10 +234,12 @@ class FormSerializer(serializers.ModelSerializer):
             return not FormAssignment.objects.filter(form=obj, deadline__gte=timezone.now().date()).exists()
     
     def get_is_filled(self, obj):
+        """Returns True if the requesting user has already filled this form."""
         user = self.context['request'].user
         return FormResponse.objects.filter(form=obj, user=user).exists()
     
     def get_previous_responses(self, obj):
+        """Fetch previous responses of the requesting user for this form."""
         user = self.context['request'].user
         responses = FormResponse.objects.filter(form=obj, user=user)
         return {f"question_{resp.question.id}": resp.answer for resp in responses}
