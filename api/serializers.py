@@ -243,7 +243,7 @@ class FormSerializer(serializers.ModelSerializer):
                   'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
                   'is_filled']
 
-class FormDetailSerializer(serializers.ModelSerializer):
+class FormDetailSerializer(FormSerializer):
     """
     Serializer for all questions of a form.
     """
@@ -251,11 +251,6 @@ class FormDetailSerializer(serializers.ModelSerializer):
     is_filled = serializers.SerializerMethodField()
     previous_responses = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Form
-        fields = ['id', 'name', 'description', 'is_default', 'form_type',
-                  'questions', 'is_filled', 'previous_responses']
- 
     def get_is_filled(self, obj):
         """Returns True if the requesting user has already filled this form."""
         user = self.context["request"].user
@@ -266,6 +261,11 @@ class FormDetailSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         responses = FormResponse.objects.filter(form=obj, user=user)
         return {f"question_{r.question.id}": r.answer for r in responses}
+
+    class Meta(FormSerializer.Meta):
+        model = Form  
+        fields = FormSerializer.Meta.fields + ['questions', 'previous_responses']
+
 
 class FormSubmissionSerializer(serializers.Serializer):
     """
