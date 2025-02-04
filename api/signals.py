@@ -58,7 +58,7 @@ def assign_default_forms(sender, instance, created, **kwargs):
                 if not leaders:
                     skipped_users.append(user)
                     continue
-                assigned_by = leaders[0]
+
                 affected_users.append(user)
 
             elif instance.form_type == Form.FormType.PM:
@@ -75,7 +75,7 @@ def assign_default_forms(sender, instance, created, **kwargs):
             FormAssignment(
                 form=instance,
                 assigned_to=user,
-                assigned_by=assigned_by,
+                assigned_by=user.get_leaders()[0] if user.get_leaders() else None,
                 deadline=instance.cycle.end_date
             )
             for user in affected_users
