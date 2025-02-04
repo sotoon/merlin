@@ -466,5 +466,12 @@ class ResponseAdmin(admin.ModelAdmin):
     def get_answer_display(self, obj):
         return obj.get_answer_display()
     get_answer_display.short_description = 'Answer'
+
+@admin.register(FormAssignment)
+class FormAssignmentAdmin(admin.ModelAdmin):
+    list_display = ("form", "assigned_to", "assigned_by", "deadline", "is_completed")
+    list_filter = ("form", "is_completed")
+    search_fields = ("assigned_to__email", "form__name")
+
                            
 # fmt: on
