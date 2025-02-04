@@ -225,7 +225,6 @@ class FormSerializer(serializers.ModelSerializer):
     cycle = serializers.PrimaryKeyRelatedField(queryset=Cycle.objects.all())
     is_expired = serializers.SerializerMethodField()
     is_filled = serializers.SerializerMethodField()
-    previous_responses = serializers.SerializerMethodField()
 
     def get_is_expired(self, obj):
         if obj.is_default:
@@ -237,28 +236,36 @@ class FormSerializer(serializers.ModelSerializer):
         """Returns True if the requesting user has already filled this form."""
         user = self.context['request'].user
         return FormResponse.objects.filter(form=obj, user=user).exists()
-    
-    def get_previous_responses(self, obj):
-        """Fetch previous responses of the requesting user for this form."""
-        user = self.context['request'].user
-        responses = FormResponse.objects.filter(form=obj, user=user)
-        return {f"question_{resp.question.id}": resp.answer for resp in responses}
 
     class Meta:
         model = Form
         fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 
                   'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
-                  'is_filled', 'previous_responses']
+                  'is_filled']
 
 class FormDetailSerializer(serializers.ModelSerializer):
     """
     Serializer for all questions of a form.
     """
     questions = QuestionSerializer(many=True, read_only=True, source='question_set')
+    is_filled = serializers.SerializerMethodField()
+    previous_responses = serializers.SerializerMethodField()
 
     class Meta:
         model = Form
-        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'questions']
+        fields = ['id', 'name', 'description', 'is_default', 'form_type',
+                  'questions', 'is_filled', 'previous_responses']
+ 
+    def get_is_filled(self, obj):
+        """Returns True if the requesting user has already filled this form."""
+        user = self.context["request"].user
+        return FormResponse.objects.filter(form=obj, user=user).exists()
+
+    def get_previous_responses(self, obj):
+        """Fetch previous responses of the requesting user for this form."""
+        user = self.context["request"].user
+        responses = FormResponse.objects.filter(form=obj, user=user)
+        return {f"question_{r.question.id}": r.answer for r in responses}
 
 class FormSubmissionSerializer(serializers.Serializer):
     """
