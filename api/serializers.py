@@ -248,23 +248,25 @@ class FormDetailSerializer(FormSerializer):
     Serializer for all questions of a form.
     """
     questions = QuestionSerializer(many=True, read_only=True, source='question_set')
-    is_filled = serializers.SerializerMethodField()
     previous_responses = serializers.SerializerMethodField()
-
-    def get_is_filled(self, obj):
-        """Returns True if the requesting user has already filled this form."""
-        user = self.context["request"].user
-        return FormResponse.objects.filter(form=obj, user=user).exists()
+    assigned_by = serializers.SerializerMethodField()
 
     def get_previous_responses(self, obj):
         """Fetch previous responses of the requesting user for this form."""
         user = self.context["request"].user
         responses = FormResponse.objects.filter(form=obj, user=user)
         return {f"question_{r.question.id}": r.answer for r in responses}
+    
+    def get_assigned_by(self, obj):
+        """Fetch the assigned_by as the assessed user."""
+        user = self.context["request"].user
+        assignment = FormAssignment.objects.filter(form=obj, assigned_to=user).first()
+        return assignment.assigned_by.name if assignment and assignment.assigned_by else None 
+
 
     class Meta(FormSerializer.Meta):
         model = Form  
-        fields = FormSerializer.Meta.fields + ['questions', 'previous_responses']
+        fields = FormSerializer.Meta.fields + ['questions', 'previous_responses', 'assigned_by']
 
 
 class FormSubmissionSerializer(serializers.Serializer):
