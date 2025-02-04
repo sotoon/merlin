@@ -494,7 +494,7 @@ class FormViewSet(viewsets.ModelViewSet):
         """
         form = get_object_or_404(Form,id=pk)
 
-        serializer = FormDetailSerializer(form)
+        serializer = FormDetailSerializer(form, context={"request": request})
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'], url_path='submit')
