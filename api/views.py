@@ -461,10 +461,11 @@ class FormViewSet(viewsets.ModelViewSet):
         # fetch default and manually assigned forms, separately
         # NOTE: Alternative Method: Sending all forms and put the separation queries in the front side.
 
-        default_forms = Form.objects.filter(is_default=True, cycle__is_active=True)
+        # default_forms = Form.objects.filter(is_default=True, cycle__is_active=True)
         assigned_forms = Form.objects.filter(formassignment__assigned_to=user)
 
-        all_forms = (default_forms | assigned_forms).distinct()
+        # all_forms = (default_forms | assigned_forms).distinct()
+        all_forms = assigned_forms
 
         active_forms = []
         expired_forms = []
