@@ -14,6 +14,9 @@ feedbacks_router.register(r"feedbacks", views.FeedbackViewSet, basename="feedbac
 summaries_router = routers.NestedDefaultRouter(router, r"notes", lookup="note")
 summaries_router.register(r"summaries", views.SummaryViewSet, basename="summaries")
 
+forms_router = routers.DefaultRouter()
+forms_router.register(r"forms", views.FormViewSet, basename="forms")
+
 urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
     path("bepa-callback/", views.BepaCallbackView.as_view(), name="bepa-callback"),
@@ -26,6 +29,7 @@ urlpatterns = [
     path("", include(router.urls)),
     path("", include(feedbacks_router.urls)),
     path("", include(summaries_router.urls)),
+    path("", include(forms_router.urls)),
 ]
 
 if settings.SIGNUP_DISABLED != "true":

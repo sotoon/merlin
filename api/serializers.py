@@ -1,6 +1,18 @@
+from django.utils import timezone
 from rest_framework import serializers
 
-from api.models import Feedback, Note, NoteUserAccess, Summary, User
+from api.models import (
+        Feedback,
+        Note,
+        NoteUserAccess,
+        Summary,
+        User,
+        Form,
+        Question,
+        FormAssignment,
+        FormResponse,
+        Cycle,
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -193,3 +205,97 @@ class SummarySerializer(serializers.ModelSerializer):
             note=validated_data["note"], defaults=validated_data
         )
         return instance
+
+class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for individual questions.
+    """
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'category', 'scale_min', 'scale_max']
+
+class FormSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing forms, along with its cycle metadata, 
+    and assignment completion status.
+    """
+    cycle_name = serializers.CharField(source="cycle.name", read_only=True)
+    cycle_start_date = serializers.DateTimeField(source="cycle.start_date", read_only=True)
+    cycle_end_date = serializers.DateTimeField(source="cycle.end_date", read_only=True)
+    cycle = serializers.PrimaryKeyRelatedField(queryset=Cycle.objects.all())
+    is_expired = serializers.SerializerMethodField()
+    is_filled = serializers.SerializerMethodField()
+
+    def get_is_expired(self, obj):
+        if obj.is_default:
+            return obj.cycle.end_date < timezone.now()
+        else:
+            return not FormAssignment.objects.filter(form=obj, deadline__gte=timezone.now().date()).exists()
+    
+    def get_is_filled(self, obj):
+        """Returns True if the requesting user has already filled this form."""
+        user = self.context['request'].user
+        return FormResponse.objects.filter(form=obj, user=user).exists()
+
+    class Meta:
+        model = Form
+        fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle', 
+                  'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
+                  'is_filled']
+
+class FormDetailSerializer(FormSerializer):
+    """
+    Serializer for all questions of a form.
+    """
+    questions = QuestionSerializer(many=True, read_only=True, source='question_set')
+    previous_responses = serializers.SerializerMethodField()
+    assigned_by = serializers.SerializerMethodField()
+
+    def get_previous_responses(self, obj):
+        """Fetch previous responses of the requesting user for this form."""
+        user = self.context["request"].user
+        responses = FormResponse.objects.filter(form=obj, user=user)
+        return {f"question_{r.question.id}": r.answer for r in responses}
+    
+    def get_assigned_by(self, obj):
+        """Fetch the assigned_by as the assessed user."""
+        user = self.context["request"].user
+        assignment = FormAssignment.objects.filter(form=obj, assigned_to=user).first()
+        return assignment.assigned_by.name if assignment and assignment.assigned_by else None 
+
+
+    class Meta(FormSerializer.Meta):
+        model = Form  
+        fields = FormSerializer.Meta.fields + ['questions', 'previous_responses', 'assigned_by']
+
+
+class FormSubmissionSerializer(serializers.Serializer):
+    """
+    Serializer for form submission data.
+    """
+    responses = serializers.DictField(
+        child=serializers.IntegerField(allow_null=True),
+        required=True
+    )
+
+class FormAssignmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for assigning forms.
+    """
+    form_name = serializers.CharField(source="form.name", read_only=True)
+
+    class Meta:
+        model = FormAssignment
+        fields = ["form_name", "assigned_to", "deadline", "is_completed"]
+
+class FormResultsSerializer(serializers.Serializer):
+    """
+    Serializer for results display. (AVG score based on categories and questions)
+    """
+    total_average = serializers.FloatField()
+    categories = serializers.DictField(
+        child=serializers.FloatField()
+    )
+    questions = serializers.ListField(
+        child=serializers.DictField()
+    )
