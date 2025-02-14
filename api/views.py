@@ -611,7 +611,7 @@ class FormViewSet(viewsets.ModelViewSet):
             )
         
         return Response({"status": "Form assigned successfully."}, status=status.HTTP_201_CREATED)
-       
+
     @action(detail=True, methods=["get"], url_path="results")
     def results(self, request, pk=None):
         """
@@ -619,6 +619,7 @@ class FormViewSet(viewsets.ModelViewSet):
         Results are only shown if:
         - The cycle (for all forms) has ended.
         - The deadline (for non-default forms) has passed.
+        - The current user is the `assigned_by` for the form.
         """
         form = self.get_object()
         cycle_id = request.query_params.get("cycle_id")
@@ -629,52 +630,45 @@ class FormViewSet(viewsets.ModelViewSet):
                 {"detail": "Cycle ID is required to fetch results."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
         cycle = get_object_or_404(Cycle, id=cycle_id)
 
-        # Ensure the cycle has ended
-        if cycle.end_date > timezone.now():
+        # Filter assignments to check if the current user is the assigned_by
+        assignments = FormAssignment.objects.filter(form=form, assigned_by=request.user)
+
+        if not assignments.exists():
             return Response(
-                {"detail": "Results for this form are not available until the cycle ends."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Initialize response queryset
-        responses = None
-
-        # Handle non-default forms
-        if not form.is_default:
-            # Fetch assignments for this form and user
-            assignments = FormAssignment.objects.filter(
-                form=form,
-                assigned_to=request.user,
-                deadline__lte=timezone.now().date(),
-            )
-
-            if not assignments.exists():
-                return Response(
-                    {"detail": "Results for this form are not available until the assignment deadline passes."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Extend end_date to include the entire day
-            adjusted_end_date = datetime.combine(cycle.end_date, time.max)
-
-            # Fetch responses only for assigned users and within the cycle range
-            responses = FormResponse.objects.filter(
-                question__form=form,
-                user__in=assignments.values_list("assigned_to", flat=True),
-                date_created__range=(cycle.start_date, adjusted_end_date),
+                {"detail": "You are not authorized to view results for this form."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         # Handle default forms
+        if form.is_default:
+            if cycle.end_date > timezone.now():
+                return Response(
+                    {"detail": f"Results for this form are not available until the cycle ends."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            valid_assignments = assignments  # all assignments are valid if cycle has ended.
+        
+        # Handle non-default forms
         else:
-            # Extend end_date to include the entire day
-            adjusted_end_date = datetime.combine(cycle.end_date, time.max)
+            # For manually assigned forms, only include assignments whose deadline has passed.
+            valid_assignments = assignments.filter(deadline__lte=timezone.now().date())
+            if not valid_assignments.exists():
+                return Response(
+                    {"detail": "Results for this form are not available until the deadline passes."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-            responses = FormResponse.objects.filter(
-                question__form=form,
-                date_created__range=(cycle.start_date, adjusted_end_date),
-            )
+        # Adjust the cycle's end date to include the entire day
+        adjusted_end_date = datetime.combine(cycle.end_date, time.max)
+
+        responses = FormResponse.objects.filter(
+            question__form=form,
+            user__in=valid_assignments.values_list("assigned_to", flat=True),
+            date_created__range=(cycle.start_date, adjusted_end_date),
+        )
 
         # Calculate aggregated results
         results = calculate_form_results(responses, form)
