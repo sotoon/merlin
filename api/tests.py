@@ -4,6 +4,59 @@ from django.utils import timezone
 from datetime import timedelta
 from api.models import Form, FormAssignment, User, Cycle, FormResponse, Question
 
+class FormAssignedByAPITestCase(APITestCase):
+
+    def setUp(self):
+        self.cycle = Cycle.objects.create(
+            name="Test Cycle",
+            start_date=timezone.now() - timedelta(days=10),
+            end_date=timezone.now() + timedelta(days=5),
+        )
+
+        # Create users
+        self.user_leader = User.objects.create(email="leader@example.com", password="password123", name="Leader User")
+        self.user_member1 = User.objects.create(email="member1@example.com", password="password123", name="Member User 1")
+        self.user_member2 = User.objects.create(email="member2@example.com", password="password123", name="Member User 2")
+
+        # Create forms
+        self.form1 = Form.objects.create(name="Form 1", is_default=False, form_type="TL", cycle=self.cycle)
+        self.form2 = Form.objects.create(name="Form 2", is_default=False, form_type="TL", cycle=self.cycle)
+        self.form3 = Form.objects.create(name="Form 3", is_default=False, form_type="PM", cycle=self.cycle)
+
+        # Assign forms where `user_leader` is the `assigned_by`
+        FormAssignment.objects.create(form=self.form1, assigned_to=self.user_member1, assigned_by=self.user_leader, deadline=self.cycle.end_date)
+        FormAssignment.objects.create(form=self.form2, assigned_to=self.user_member2, assigned_by=self.user_leader, deadline=self.cycle.end_date)
+
+        # Assign a form where `user_member1` is `assigned_by` (should NOT be returned in the test)
+        FormAssignment.objects.create(form=self.form3, assigned_to=self.user_member2, assigned_by=self.user_member1, deadline=self.cycle.end_date)
+
+    def test_list_forms_assigned_by_current_user(self):
+        """Test that only forms assigned BY the current user are returned"""
+        url = "/api/forms/assigned-by/"
+
+        # Authenticate as the leader
+        self.client.force_authenticate(user=self.user_leader)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+        form_ids = [form["id"] for form in response.data]
+        self.assertIn(self.form1.id, form_ids)
+        self.assertIn(self.form2.id, form_ids)
+        self.assertNotIn(self.form3.id, form_ids)
+
+    def test_no_forms_if_not_assigned_by_current_user(self):
+        """Test that a user who has not assigned any forms gets an empty response"""
+        url = "/api/forms/assigned-by/"
+
+        # Authenticate as a user who hasn't assigned any forms
+        self.client.force_authenticate(user=self.user_member2)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
 class FormResultsAPITestCase(APITestCase):
     
     def setUp(self):
