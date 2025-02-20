@@ -14,6 +14,7 @@ interface UpdateNotePayload
     | 'year'
     | 'period'
     | 'linked_notes'
+    | 'submit_status'
   > {}
 
 interface UseUpdateNoteOptions {

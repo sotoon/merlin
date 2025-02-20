@@ -1,5 +1,5 @@
 # build stage
-FROM node:20-slim as build-stage
+FROM node:20-slim AS build-stage
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -13,7 +13,7 @@ RUN pnpm build
 RUN find ./.output -name '*.map' -delete
 
 # run stage
-FROM node:20-slim as run-stage
+FROM node:20-slim AS run-stage
 ENV NITRO_CLUSTER_WORKERS=5
 
 COPY --from=build-stage /app/.output .

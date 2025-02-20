@@ -1,33 +1,103 @@
 <template>
-  <div class="px-4">
-    <div class="flex items-start justify-between gap-4">
+  <div class="px-2 sm:px-4">
+    <div class="flex items-start justify-between gap-8">
       <div>
         <i
           class="mb-3 me-4 inline-block align-middle text-h1 text-primary"
           :class="NOTE_TYPE_ICON[note.type]"
         />
 
-        <PText responsive variant="title" weight="bold">
+        <PText responsive variant="h1" weight="bold">
           {{ note.title }}
         </PText>
       </div>
 
-      <div
-        v-if="note.access_level.can_edit"
-        class="flex flex-col items-center gap-4 md:mt-2 md:flex-row"
-      >
-        <PIconButton
-          class="shrink-0"
-          :icon="PeyEditIcon"
-          type="button"
-          @click="navigateTo({ name: 'note-edit' })"
+      <div class="mt-2 flex flex-col items-end gap-4">
+        <div v-if="note.access_level.can_edit" class="flex items-center gap-4">
+          <PIconButton
+            class="shrink-0"
+            :icon="PeyEditIcon"
+            type="button"
+            @click="navigateTo({ name: 'note-edit' })"
+          />
+
+          <NoteDeleteButton
+            :note-id="note.uuid"
+            @success="navigateTo({ name: 'notes' })"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="note.type === NOTE_TYPE.proposal"
+      class="mt-6 flex flex-wrap items-center justify-between gap-4"
+    >
+      <template v-if="note.submit_status === NOTE_SUBMIT_STATUS.initial">
+        <PChip
+          class="whitespace-nowrap"
+          color="warning"
+          :icon="PeyCreateIcon"
+          :label="t('note.submitStatus.initial')"
         />
 
-        <NoteDeleteButton
-          :note-id="note.uuid"
-          @success="navigateTo({ name: 'notes' })"
-        />
-      </div>
+        <PTooltip
+          v-if="note.access_level.can_edit"
+          :model-value="finalSubmitHintVisibility"
+          placement="right"
+        >
+          <template #content>
+            <PText as="p" class="max-w-sm">
+              {{ t('note.finalSubmitProposalHint') }}
+            </PText>
+          </template>
+
+          <div>
+            <PInlineConfirm
+              confirm-button-color="primary"
+              :confirm-button-text="t('note.finalSubmit')"
+              @confirm="finalizeNoteSubmission"
+            >
+              <template #text>
+                <PText as="p" class="text-gray-80">
+                  {{ t('note.confirmSubmitProposal') }}
+                </PText>
+
+                <PText as="p" class="mt-2 text-gray-80">
+                  {{ t('note.confirmSubmitProposalMessage') }}
+                </PText>
+              </template>
+
+              <PButton
+                type="button"
+                class="whitespace-nowrap"
+                color="primary"
+                :icon-start="PeyCircleTickOutlineIcon"
+                :loading="updatingNote"
+                variant="fill"
+              >
+                {{ t('note.finalSubmit') }}
+              </PButton>
+            </PInlineConfirm>
+          </div>
+        </PTooltip>
+      </template>
+
+      <PChip
+        v-else-if="note.submit_status === NOTE_SUBMIT_STATUS.final"
+        class="whitespace-nowrap"
+        color="secondary"
+        :icon="PeyClockIcon"
+        :label="t('note.submitStatus.pending')"
+      />
+
+      <PChip
+        v-else
+        class="whitespace-nowrap"
+        color="success"
+        :icon="PeyCircleTickOutlineIcon"
+        :label="t('note.submitStatus.reviewed')"
+      />
     </div>
 
     <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -47,7 +117,9 @@
       </PText>
 
       <PText
-        v-if="!note.access_level.can_edit"
+        v-if="
+          !note.access_level.can_edit && profile && note.owner !== profile.email
+        "
         as="p"
         class="text-gray-50"
         variant="caption1"
@@ -145,15 +217,36 @@
 </template>
 
 <script lang="ts" setup>
-import { PChip, PHeading, PIconButton, PText, PTooltip } from '@pey/core';
-import { PeyEditIcon, PeyLinkIcon } from '@pey/icons';
+import {
+  PButton,
+  PChip,
+  PHeading,
+  PIconButton,
+  PInlineConfirm,
+  PText,
+  PTooltip,
+} from '@pey/core';
+import {
+  PeyCircleTickOutlineIcon,
+  PeyClockIcon,
+  PeyCreateIcon,
+  PeyEditIcon,
+  PeyLinkIcon,
+} from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
 
 const { t } = useI18n();
+const { data: profile } = useGetProfile();
 const { data: users } = useGetUsers();
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
+const { execute: updateNote, pending: updatingNote } = useUpdateNote({
+  id: props.note.uuid,
+});
+
+let finalSubmitHintTimeout: NodeJS.Timeout | null = null;
+const finalSubmitHintVisibility = ref(false);
 
 const mentionedUsers = computed(() =>
   users.value?.filter(({ email }) =>
@@ -192,4 +285,28 @@ const linkedNotes = computed(() => [
       },
     })) || []),
 ]);
+
+const finalizeNoteSubmission = () => {
+  updateNote({
+    body: {
+      submit_status: NOTE_SUBMIT_STATUS.final,
+    },
+  });
+};
+
+onMounted(() => {
+  if (props.note.type === NOTE_TYPE.proposal) {
+    finalSubmitHintTimeout = setTimeout(() => {
+      finalSubmitHintVisibility.value = true;
+
+      finalSubmitHintTimeout = setTimeout(() => {
+        finalSubmitHintVisibility.value = false;
+      }, 5000);
+    }, 1000);
+  }
+});
+
+onBeforeUnmount(() => {
+  finalSubmitHintTimeout && clearTimeout(finalSubmitHintTimeout);
+});
 </script>
