@@ -662,7 +662,7 @@ class FormViewSet(viewsets.ModelViewSet):
                 )
 
         # Adjust the cycle's end date to include the entire day
-        adjusted_end_date = datetime.combine(cycle.end_date, time.max)
+        adjusted_end_date = timezone.make_aware(datetime.combine(cycle.end_date, time.max))
 
         responses = FormResponse.objects.filter(
             question__form=form,
@@ -674,4 +674,19 @@ class FormViewSet(viewsets.ModelViewSet):
         results = calculate_form_results(responses, form)
 
         serializer = FormResultsSerializer(results)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=["get"], url_path="assigned-by")
+    def fetch_assigned_by_forms(self, request):
+        """
+        Returns a list of forms where the current user is the assigned_by.
+        """
+        user = request.user
+
+        # Fetch all unique forms where the current user is the assigned_by
+        assigned_forms=Form.objects.filter(
+            formassignment__assigned_by=user
+        ).distinct()
+
+        serializer = FormSerializer(assigned_forms, many=True, context={"request": request})
         return Response(serializer.data)
