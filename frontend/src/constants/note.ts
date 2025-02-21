@@ -61,3 +61,14 @@ export const NOTE_SORT_OPTION = {
   date: 'date',
   title: 'title',
 } as const;
+
+export const NOTE_SUBMIT_STATUS = {
+  initial: 1,
+  final: 2,
+  reviewed: 3,
+} as const;
+
+export const NOTE_SUMMARY_SUBMIT_STATUS = {
+  initial: 1,
+  final: 2,
+} as const;

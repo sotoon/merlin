@@ -7,6 +7,13 @@ WORKDIR /app
 
 COPY requirements.txt .
 
+RUN mkdir /logs/
+RUN touch /logs/gunicorn.log
+RUN touch /logs/access.log
+RUN touch /logs/info.log
+RUN touch /logs/error.log
+RUN touch /logs/trace.log
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

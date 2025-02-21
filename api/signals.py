@@ -7,9 +7,13 @@ from .models import (
     Note,
     NoteType,
     NoteUserAccess,
+    Summary,
+    SummarySubmitStatus,
+    NoteSubmitStatus,
     User,
     Form,
-    FormAssignment,)
+    FormAssignment,
+)
 
 
 @receiver(post_save, sender=Note)
@@ -30,15 +34,21 @@ def handle_committee_members_changed(sender, instance, action, pk_set, **kwargs)
 def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
     NoteUserAccess.ensure_note_predefined_accesses(instance)
 
+@receiver(post_save, sender=Summary)
+def ensure_summary_predefined_access(sender, instance, created, **kwargs):
+    if instance.submit_status == SummarySubmitStatus.DONE:
+        instance.note.submit_status = NoteSubmitStatus.REVIEWED
+        instance.note.save()
+
 @receiver(post_save, sender=Form)
 def assign_default_forms(sender, instance, created, **kwargs):
     """
     Automatically assign default forms to users when a form is marked default,
     and its cycle is active. Prevent duplicate assignments.
-    """ 
+    """
     if not instance.is_default:  # Skip non-default forms
         return
-    
+
     if instance.is_default and instance.cycle.is_active:
         users = User.objects.all()
         assignments = []
@@ -51,7 +61,7 @@ def assign_default_forms(sender, instance, created, **kwargs):
                 skipped_users.append(user)
                 continue
 
-            assigned_by = None 
+            assigned_by = None
 
             if instance.form_type == Form.FormType.TL:
                 leaders = user.get_leaders()
@@ -64,8 +74,8 @@ def assign_default_forms(sender, instance, created, **kwargs):
             elif instance.form_type == Form.FormType.PM:
                 # PM forms require manual assignment for now            FUTURE ENHANCEMENT: dynamic assignment for PMs
                 skipped_users.append(user)
-                continue 
-            
+                continue
+
             else:
                 skipped_users.append(user)
                 assigned_by = None

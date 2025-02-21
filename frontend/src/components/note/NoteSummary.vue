@@ -19,12 +19,70 @@
         {{ t('note.summary') }}
       </PHeading>
 
-      <PIconButton
-        v-if="note.access_level.can_write_summary"
-        class="shrink-0"
-        :icon="PeyEditIcon"
-        type="button"
-        @click="navigateTo({ name: 'note-summary' })"
+      <div
+        v-if="
+          summaries[0]?.submit_status === NOTE_SUMMARY_SUBMIT_STATUS.initial
+        "
+        class="flex items-center gap-2"
+      >
+        <template v-if="note.access_level.can_write_summary">
+          <PTooltip
+            :model-value="finalSubmitHintVisibility"
+            placement="top-end"
+          >
+            <template #content>
+              <PText as="p" class="max-w-xs">
+                {{ t('note.finalSubmitSummaryHint') }}
+              </PText>
+            </template>
+
+            <div ref="finalSubmitButton">
+              <PInlineConfirm
+                v-if="note.type === NOTE_TYPE.proposal"
+                confirm-button-color="primary"
+                :confirm-button-text="t('note.finalSubmit')"
+                @confirm="finalizeSummarySubmission"
+              >
+                <template #text>
+                  <PText as="p" class="text-gray-80">
+                    {{ t('note.confirmSubmitSummary') }}
+                  </PText>
+
+                  <PText as="p" class="mt-2 text-gray-80">
+                    {{ t('note.confirmSubmitSummaryMessage') }}
+                  </PText>
+                </template>
+
+                <PButton
+                  color="primary"
+                  :icon-start="PeyCircleTickOutlineIcon"
+                  :loading="updatingSummary"
+                  size="small"
+                  type="button"
+                  variant="fill"
+                >
+                  {{ t('note.finalSubmit') }}
+                </PButton>
+              </PInlineConfirm>
+            </div>
+          </PTooltip>
+
+          <PIconButton
+            class="shrink-0"
+            :icon="PeyEditIcon"
+            type="button"
+            @click="navigateTo({ name: 'note-summary' })"
+          />
+        </template>
+      </div>
+
+      <PChip
+        v-else
+        class="whitespace-nowrap"
+        color="success"
+        :icon="PeyCircleTickOutlineIcon"
+        :label="t('note.submitStatus.final')"
+        size="small"
       />
     </div>
 
@@ -86,14 +144,26 @@
 import {
   PBox,
   PButton,
+  PChip,
   PHeading,
   PIconButton,
+  PInlineConfirm,
   PLoading,
   PText,
+  PTooltip,
 } from '@pey/core';
-import { PeyEditIcon, PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
+import {
+  PeyCircleTickOutlineIcon,
+  PeyEditIcon,
+  PeyPlusIcon,
+  PeyRetryIcon,
+} from '@pey/icons';
 
 const props = defineProps<{ note: Note }>();
+
+let finalSubmitHintTimeout: NodeJS.Timeout | null = null;
+const finalSubmitHintVisibility = ref(false);
+const finalSubmitButton = ref<HTMLElement | null>(null);
 
 const { t } = useI18n();
 const {
@@ -103,5 +173,57 @@ const {
   refresh,
 } = useGetNoteSummaries({
   noteId: props.note.uuid,
+});
+const { execute: updateSummary, pending: updatingSummary } =
+  useCreateNoteSummary({
+    noteId: props.note.uuid,
+  });
+
+const finalizeSummarySubmission = () => {
+  if (!summaries.value?.length) return;
+
+  updateSummary({
+    body: {
+      ...summaries.value[0],
+      submit_status: NOTE_SUMMARY_SUBMIT_STATUS.final,
+    },
+    onSuccess: () => {
+      invalidateNuxtData(['note', props.note.uuid]);
+    },
+  });
+};
+
+watch(
+  finalSubmitButton,
+  () => {
+    if (props.note.type === NOTE_TYPE.proposal && finalSubmitButton.value) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            finalSubmitHintTimeout = setTimeout(() => {
+              finalSubmitHintVisibility.value = true;
+
+              finalSubmitHintTimeout = setTimeout(() => {
+                finalSubmitHintVisibility.value = false;
+              }, 5000);
+            }, 1000);
+
+            observer.disconnect();
+          }
+        },
+        {
+          root: null,
+          rootMargin: '-100px',
+        },
+      );
+
+      observer.observe(finalSubmitButton.value);
+    }
+  },
+  { once: true },
+);
+
+onBeforeUnmount(() => {
+  finalSubmitHintTimeout && clearTimeout(finalSubmitHintTimeout);
 });
 </script>

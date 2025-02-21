@@ -18,8 +18,42 @@
       </div>
     </template>
 
-    <template v-if="note.access_level.can_edit || displayReadStatus" #toolbar>
-      <div class="flex items-center justify-end sm:ms-4" @click.prevent>
+    <template
+      v-if="
+        note.access_level.can_edit || displayReadStatus || displaySubmitStatus
+      "
+      #toolbar
+    >
+      <div class="flex items-center justify-end gap-1 sm:ms-4" @click.prevent>
+        <template v-if="displaySubmitStatus">
+          <PChip
+            v-if="note.submit_status === NOTE_SUBMIT_STATUS.initial"
+            class="whitespace-nowrap"
+            color="warning"
+            :icon="PeyCreateIcon"
+            :label="t('note.submitStatus.initial')"
+            size="small"
+          />
+
+          <PChip
+            v-else-if="note.submit_status === NOTE_SUBMIT_STATUS.final"
+            class="whitespace-nowrap"
+            color="secondary"
+            :icon="PeyClockIcon"
+            :label="t('note.submitStatus.pending')"
+            size="small"
+          />
+
+          <PChip
+            v-else
+            class="whitespace-nowrap"
+            color="success"
+            :icon="PeyCircleTickOutlineIcon"
+            :label="t('note.submitStatus.reviewed')"
+            size="small"
+          />
+        </template>
+
         <NoteDeleteButton
           v-if="note.access_level.can_edit"
           button-color="danger"
@@ -73,9 +107,14 @@
 </template>
 
 <script lang="ts" setup>
-import { PCard, PText, PTooltip } from '@pey/core';
+import { PCard, PChip, PText, PTooltip } from '@pey/core';
+import {
+  PeyCircleTickOutlineIcon,
+  PeyClockIcon,
+  PeyCreateIcon,
+} from '@pey/icons';
 
-defineProps<{
+const props = defineProps<{
   note: Note;
   displayWriter?: boolean;
   displayType?: boolean;
@@ -85,4 +124,8 @@ defineProps<{
 const { t } = useI18n();
 
 const noteTypeLabel = computed(() => getNoteTypeLabels(t));
+
+const displaySubmitStatus = computed(
+  () => props.note.type === NOTE_TYPE.proposal,
+);
 </script>
