@@ -17,7 +17,9 @@ interface CreateNoteSummaryPayload
     | 'bonus'
     | 'salary_change'
     | 'committee_date'
-  > {}
+  > {
+  submit_status?: NoteSummarySubmitStatus;
+}
 
 export const useCreateNoteSummary = ({
   noteId,

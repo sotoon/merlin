@@ -227,8 +227,8 @@ class NoteAdmin(BaseModelAdmin):
             fields = ("uuid", "owner", "title", "content", "date", "type", "mentioned_users", "linked_notes",)
 
     resource_class = NoteResource
-    list_display = ("title", "type", "owner", "date", "date_created", "date_updated")
-    fields = ( "uuid", ("title", "type"), ("owner", "date", "period", "year"), "content", "mentioned_users", "is_public", ("date_created", "date_updated"),)
+    list_display = ("title", "type", "owner", "date", "submit_status", "date_created", "date_updated")
+    fields = ( "uuid", ("title", "type"), ("owner", "date", "period", "year"), "content", "mentioned_users", "is_public", "submit_status", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")
     ordering = ("-date_updated", "title")
     search_fields = ["uuid", "title", "owner__name", "owner__email"]
@@ -253,8 +253,8 @@ class SummaryAdmin(BaseModelAdmin):
             model = Summary
             fields = ("uuid", "note", "content", "performance_label", "ladder_change", "bonus", "salary_change", "committee_date",)
     resource_class = SummaryResource
-    list_display = ("uuid", "note", "performance_label", "committee_date", "date_created", "date_updated")
-    fields = ("uuid", "note", "content", "performance_label", "ladder_change", "bonus", "salary_change", "committee_date", ("date_created", "date_updated"),)
+    list_display = ("uuid", "note", "performance_label", "committee_date", "submit_status", "date_created", "date_updated")
+    fields = ("uuid", "note", "content", "performance_label", "ladder_change", "bonus", "salary_change", "committee_date", "submit_status", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "uuid")
     search_fields = ["note__title", "note__owner__name", "note__owner__email"]
