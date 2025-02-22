@@ -625,13 +625,17 @@ class FormViewSet(viewsets.ModelViewSet):
         cycle_id = request.query_params.get("cycle_id")
 
         # Validate cycle existence
-        if not cycle_id:
+        if cycle_id:
+            cycle = get_object_or_404(Cycle, id=cycle_id)
+        else:
+            # Fetch the latest cycle if `cycle_id` is missing               FUTURE ENHANCEMENT: this will not support simultaneous cycles
+            cycle = Cycle.objects.order_by("-end_date").first()
+
+        if not cycle:
             return Response(
-                {"detail": "Cycle ID is required to fetch results."},
+                {"detail": "No valid cycle found to fetch results."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
-        cycle = get_object_or_404(Cycle, id=cycle_id)
 
         # Filter assignments to check if the current user is the assigned_by
         assignments = FormAssignment.objects.filter(form=form, assigned_by=request.user)
