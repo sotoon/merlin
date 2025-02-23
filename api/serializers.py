@@ -306,3 +306,5 @@ class FormResultsSerializer(serializers.Serializer):
     questions = serializers.ListField(
         child=serializers.DictField()
     )
+    assigned_by = serializers.IntegerField()
+    assigned_by_name = serializers.CharField() 
