@@ -619,7 +619,7 @@ class FormViewSet(viewsets.ModelViewSet):
         Results are only shown if:
         - The cycle (for all forms) has ended.
         - The deadline (for non-default forms) has passed.
-        - The current user is the `assigned_by` for the form.
+        - The current user is the `assigned_by` for the form or their leader.
         """
         form = self.get_object()
         cycle_id = request.query_params.get("cycle_id")
@@ -637,10 +637,14 @@ class FormViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Filter assignments to check if the current user is the assigned_by
-        assignments = FormAssignment.objects.filter(form=form, assigned_by=request.user)
-
-        if not assignments.exists():
+        # Determine allowed assignments based on who the current user is.
+        if FormAssignment.objects.filter(form=form, assigned_by=request.user).exists():
+            # Current user is the assessed user; use their assignments.
+            relevant_assignments = FormAssignment.objects.filter(form=form, assigned_by=request.user)
+        elif FormAssignment.objects.filter(form=form, assigned_by__leader=request.user).exists():
+            # Current user is the leader of an assessed user; fetch assignments for those assessed users.
+            relevant_assignments = FormAssignment.objects.filter(form=form, assigned_by__leader=request.user)
+        else:
             return Response(
                 {"detail": "You are not authorized to view results for this form."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -653,12 +657,12 @@ class FormViewSet(viewsets.ModelViewSet):
                     {"detail": f"Results for this form are not available until the cycle ends."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            valid_assignments = assignments  # all assignments are valid if cycle has ended.
+            valid_assignments = relevant_assignments  # all assignments are valid if cycle has ended.
         
         # Handle non-default forms
         else:
             # For manually assigned forms, only include assignments whose deadline has passed.
-            valid_assignments = assignments.filter(deadline__lte=timezone.now().date())
+            valid_assignments = relevant_assignments.filter(deadline__lte=timezone.now().date())
             if not valid_assignments.exists():
                 return Response(
                     {"detail": "Results for this form are not available until the deadline passes."},
@@ -674,10 +678,22 @@ class FormViewSet(viewsets.ModelViewSet):
             date_created__range=(cycle.start_date, adjusted_end_date),
         )
 
-        # Calculate aggregated results
-        results = calculate_form_results(responses, form)
-
-        serializer = FormResultsSerializer(results)
+        # Compute aggregated results per assessed user (i.e. per distinct assigned_by)
+        aggregated_list = []
+        assessed_ids = relevant_assignments.values_list("assigned_by", flat=True).distinct()
+        for assessed_id in assessed_ids:
+            assignments_for_assessed = relevant_assignments.filter(assigned_by=assessed_id)
+            responses = FormResponse.objects.filter(
+                question__form=form,
+                user__in=assignments_for_assessed.values_list("assigned_to", flat=True),
+                date_created__range=(cycle.start_date, adjusted_end_date),
+            )
+            aggregated = calculate_form_results(responses, form)
+            aggregated["assigned_by"] = assessed_id
+            aggregated["assigned_by_name"] = User.objects.get(id=assessed_id).name  # Add the name of the assessed user
+            aggregated_list.append(aggregated)
+    
+        serializer = FormResultsSerializer(aggregated_list, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=["get"], url_path="assigned-by")

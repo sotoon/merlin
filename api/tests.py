@@ -70,7 +70,11 @@ class FormResultsAPITestCase(APITestCase):
         # Create unique users for testing
         self.user_leader = User.objects.create(email="leader_1@example.com", password="password123", name="Leader User")
         self.user_member = User.objects.create(email="member_1@example.com", password="password123", name="Member User")
+        self.manager_user = User.objects.create(email="manager@example.com", password="password123", name="Manager User")
         
+        self.user_leader.leader = self.manager_user
+        self.user_leader.save()
+
         # Create a default form (results shown after cycle.end_date)
         self.form_default = Form.objects.create(
             name="Default Form",
@@ -170,7 +174,19 @@ class FormResultsAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.user_leader)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("total_average", response.data)
+        # Expect the response to be a list with at least one aggregated result.
+        self.assertIsInstance(response.data, list)
+        # Check that each item contains the aggregated fields and user info.
+        for result in response.data:
+            self.assertIn("total_average", result)
+            self.assertIn("categories", result)
+            self.assertIn("questions", result)
+            self.assertIn("assigned_by", result)
+            self.assertIn("assigned_by_name", result)
+
+           # Since self.user_leader is the assessed user in this test, assigned_by should match.
+            self.assertEqual(result["assigned_by"], self.user_leader.id)
+            self.assertEqual(result["assigned_by_name"], self.user_leader.name)
 
     def test_results_with_valid_cycle_and_assigned_by_manual(self):
         """
@@ -182,11 +198,18 @@ class FormResultsAPITestCase(APITestCase):
         # Both assignments exist; this query should pick the one with deadline <= today.
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("total_average", response.data)
+        self.assertIsInstance(response.data, list)
+        for result in response.data:
+            self.assertIn("total_average", result)
+            self.assertIn("assigned_by", result)
+            self.assertIn("assigned_by_name", result)
+            # The result's assessed user should be self.user_leader
+            self.assertEqual(result["assigned_by"], self.user_leader.id)
+            self.assertEqual(result["assigned_by_name"], self.user_leader.name)
 
     def test_results_without_permission(self):
         """
-        A user who is not the assigned_by (i.e. not the assessor) should get a 403 Forbidden.
+        A user who is neither the assessed user nor the leader of the assessed user should get a 403 Forbidden.
         """
         url = f"/api/forms/{self.form_default.id}/results/?cycle_id={self.cycle.id}"
         self.client.force_authenticate(user=self.user_member)  # Not the assigned_by
@@ -207,3 +230,18 @@ class FormResultsAPITestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Results for this form are not available until the deadline passes", response.data["detail"])
+    
+    def test_results_accessible_by_manager(self):
+        """
+        Test that a manager (i.e., the leader of the assessed user) can see the results.
+        """
+        url = f"/api/forms/{self.form_default.id}/results/?cycle_id={self.cycle.id}"
+        # Authenticate as the manager (manager_user), which is the leader of user_leader.
+        self.client.force_authenticate(user=self.manager_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.data, list)
+        for result in response.data:
+            # The results should reflect that the assessed user is user_leader.
+            self.assertEqual(result["assigned_by"], self.user_leader.id)
+            self.assertEqual(result["assigned_by_name"], self.user_leader.name)
