@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
+from django.db.models import Q
 
 from api.models import (
         Feedback,
@@ -248,7 +249,7 @@ class FormSerializer(serializers.ModelSerializer):
         model = Form
         fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle',
                   'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
-                  'is_filled']
+                  'is_filled',]
 
 class FormDetailSerializer(FormSerializer):
     """
@@ -270,11 +271,9 @@ class FormDetailSerializer(FormSerializer):
         assignment = FormAssignment.objects.filter(form=obj, assigned_to=user).first()
         return assignment.assigned_by.name if assignment and assignment.assigned_by else None
 
-
     class Meta(FormSerializer.Meta):
         model = Form
         fields = FormSerializer.Meta.fields + ['questions', 'previous_responses', 'assigned_by']
-
 
 class FormSubmissionSerializer(serializers.Serializer):
     """
@@ -295,16 +294,13 @@ class FormAssignmentSerializer(serializers.ModelSerializer):
         model = FormAssignment
         fields = ["form_name", "assigned_to", "deadline", "is_completed"]
 
-class FormResultsSerializer(serializers.Serializer):
-    """
-    Serializer for results display. (AVG score based on categories and questions)
-    """
-    total_average = serializers.FloatField()
-    categories = serializers.DictField(
-        child=serializers.FloatField()
-    )
-    questions = serializers.ListField(
-        child=serializers.DictField()
-    )
+class AggregatedResultSerializer(serializers.Serializer):
     assigned_by = serializers.IntegerField()
-    assigned_by_name = serializers.CharField() 
+    assigned_by_name = serializers.CharField()
+    total_average = serializers.FloatField(allow_null=True)
+    categories = serializers.DictField(child=serializers.FloatField())
+    questions = serializers.ListField(child=serializers.DictField())
+
+class FormResultsSerializer(serializers.Serializer):
+    my_results = AggregatedResultSerializer(many=True)
+    team_results = AggregatedResultSerializer(many=True)

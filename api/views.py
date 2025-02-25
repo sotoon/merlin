@@ -616,10 +616,12 @@ class FormViewSet(viewsets.ModelViewSet):
     def results(self, request, pk=None):
         """
         Fetch aggregated results for a form.
-        Results are only shown if:
-        - The cycle (for all forms) has ended.
-        - The deadline (for non-default forms) has passed.
-        - The current user is the `assigned_by` for the form or their leader.
+        Returns a structured JSON with:
+          - "my_results": aggregated results for the current user (if they are the assessed user)
+          - "team_results": a list of aggregated results for each subordinate (if any)
+        Availability conditions:
+          - Default forms: results are shown only if the cycle has ended.
+          - Manual forms: results are shown only if the assignment deadline(s) have passed.
         """
         form = self.get_object()
         cycle_id = request.query_params.get("cycle_id")
@@ -636,77 +638,93 @@ class FormViewSet(viewsets.ModelViewSet):
                 {"detail": "No valid cycle found to fetch results."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # Determine allowed assignments based on who the current user is.
-        if FormAssignment.objects.filter(form=form, assigned_by=request.user).exists():
-            # Current user is the assessed user; use their assignments.
-            relevant_assignments = FormAssignment.objects.filter(form=form, assigned_by=request.user)
-        elif FormAssignment.objects.filter(form=form, assigned_by__leader=request.user).exists():
-            # Current user is the leader of an assessed user; fetch assignments for those assessed users.
-            relevant_assignments = FormAssignment.objects.filter(form=form, assigned_by__leader=request.user)
-        else:
-            return Response(
-                {"detail": "You are not authorized to view results for this form."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
+        
+        now = timezone.now()
         # Handle default forms
         if form.is_default:
-            if cycle.end_date > timezone.now():
+            if cycle.end_date > now:
                 return Response(
                     {"detail": f"Results for this form are not available until the cycle ends."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            valid_assignments = relevant_assignments  # all assignments are valid if cycle has ended.
-        
+            
+            # For default forms, use all assignments (no deadline filtering)
+            my_assignments = form.formassignment_set.filter(assigned_by=request.user)
+            team_assignments = form.formassignment_set.filter(assigned_by__leader=request.user)
+            
+            if not my_assignments.exists() and not team_assignments.exists():
+                return Response(
+                    {"detail": "You are not authorized to view results for this form."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         # Handle non-default forms
         else:
-            # For manually assigned forms, only include assignments whose deadline has passed.
-            valid_assignments = relevant_assignments.filter(deadline__lte=timezone.now().date())
-            if not valid_assignments.exists():
+            # For manual forms, only include assignments whose deadline has passed
+            today = now.date()
+            my_assignments = form.formassignment_set.filter(
+                assigned_by=request.user,
+                deadline__lte=today
+            )
+            team_assignments = form.formassignment_set.filter(
+                assigned_by__leader=request.user,
+                deadline__lte=today
+            )
+            if not my_assignments.exists() and not team_assignments.exists():
                 return Response(
                     {"detail": "Results for this form are not available until the deadline passes."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
+        
+        # Check permissions: if no assignments exist for current user or their subordinates, deny access.
+        if not my_assignments.exists() and not team_assignments.exists():
+            return Response(
+                {"detail": "You are not authorized to view results for this form."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
         # Adjust the cycle's end date to include the entire day
         adjusted_end_date = timezone.make_aware(datetime.combine(cycle.end_date, time.max))
 
-        responses = FormResponse.objects.filter(
-            question__form=form,
-            user__in=valid_assignments.values_list("assigned_to", flat=True),
-            date_created__range=(cycle.start_date, adjusted_end_date),
-        )
+        # A helper to fetch and calculate results given a queryset of assignments
+        def get_aggregated_results(assignments):
+            # If there are no assignments, return None
+            if not assignments.exists():
+                return None
+            # We want to group by the assessed user (assigned_by).
+            aggregated_list = []
+            distinct_assessed_ids = assignments.values_list("assigned_by", flat=True).distinct()
+            for assessed_id in distinct_assessed_ids:
+                # Get assignments for this assessed user
+                assignments_for_assessed = assignments.filter(assigned_by=assessed_id)
+                responses = FormResponse.objects.filter(
+                    question__form=form,
+                    user__in=assignments_for_assessed.values_list("assigned_to", flat=True),
+                    date_created__range=(cycle.start_date, adjusted_end_date),
+                )
+                aggregated = calculate_form_results(responses, form)
+                # Add the assessed user's id and name
+                aggregated["assigned_by"] = assessed_id
+                try:
+                    user_obj = User.objects.get(id=assessed_id)
+                    aggregated["assigned_by_name"] = user_obj.name
+                except User.DoesNotExist:
+                    aggregated["assigned_by_name"] = ""
+                aggregated_list.append(aggregated)
 
-        # Compute aggregated results per assessed user (i.e. per distinct assigned_by)
-        aggregated_list = []
-        assessed_ids = relevant_assignments.values_list("assigned_by", flat=True).distinct()
-        for assessed_id in assessed_ids:
-            assignments_for_assessed = relevant_assignments.filter(assigned_by=assessed_id)
-            responses = FormResponse.objects.filter(
-                question__form=form,
-                user__in=assignments_for_assessed.values_list("assigned_to", flat=True),
-                date_created__range=(cycle.start_date, adjusted_end_date),
-            )
-            aggregated = calculate_form_results(responses, form)
-            aggregated["assigned_by"] = assessed_id
-            aggregated["assigned_by_name"] = User.objects.get(id=assessed_id).name  # Add the name of the assessed user
-            aggregated_list.append(aggregated)
-    
-        serializer = FormResultsSerializer(aggregated_list, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=["get"], url_path="assigned-by")
-    def fetch_assigned_by_forms(self, request):
-        """
-        Returns a list of forms where the current user is the assigned_by.
-        """
-        user = request.user
+            return aggregated_list
 
-        # Fetch all unique forms where the current user is the assigned_by
-        assigned_forms=Form.objects.filter(
-            formassignment__assigned_by=user
-        ).distinct()
+        # Get results for the current user (My Results)
+        my_results_data = get_aggregated_results(my_assignments)
+        # Since the current user is the assessed user, we expect a single aggregated result.
+        my_results = my_results_data if my_results_data else []
+        # Get results for the team (My Team's Results)
+        team_results = get_aggregated_results(team_assignments) or []
 
-        serializer = FormSerializer(assigned_forms, many=True, context={"request": request})
-        return Response(serializer.data)
+        # Prepare the structured response
+        response_data = {
+            "my_results": my_results,
+            "team_results": team_results,
+        }
+
+        serializer = FormResultsSerializer(response_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
