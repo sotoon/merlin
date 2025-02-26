@@ -756,18 +756,18 @@ class FormViewSet(viewsets.ModelViewSet):
         # Annotate each form with a custom attribute for assigned_by_name.
         for form in my_forms:
             form._assigned_by_name = request.user.name
+            form._assigned_by = request.user.id
         for form in team_forms:
             assignment = form.formassignment_set.filter(assigned_by__leader=request.user).order_by('id').first()
             if assignment and assignment.assigned_by:
                 form._assigned_by_name = assignment.assigned_by.name
+                form._assigned_by = assignment.assigned_by.id
             else:
                 form._assigned_by_name = ""
+                form._assigned_by = ""
         
         my_serializer = FormSerializer(my_forms, many=True, context={"request": request})
         team_serializer = FormSerializer(team_forms, many=True, context={"request": request})
-        
-        print("my data: " + str(my_serializer.data))
-        print("team data: " + str(team_serializer.data))
 
         return Response({
             "my_forms": my_serializer.data,
