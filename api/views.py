@@ -728,3 +728,48 @@ class FormViewSet(viewsets.ModelViewSet):
 
         serializer = FormResultsSerializer(response_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="assigned-by")
+    def fetch_assigned_by_forms(self, request):
+        """
+        Returns a structured JSON object with two keys:
+        - "my_forms": forms where the current user is directly the assessed user (assigned_by == request.user)
+        - "team_forms": forms where the current user is the leader of an assessed user (assigned_by__leader == request.user)
+        Optionally filters by cycle (using cycle_id). If omitted, uses the latest cycle.
+        Each form is serialized using FormSerializer.
+        """
+        cycle_id = request.query_params.get("cycle_id")
+        if cycle_id:
+            cycle = get_object_or_404(Cycle, id=cycle_id)
+        else:
+            cycle = Cycle.objects.order_by("-end_date").first()
+            if not cycle:
+                return Response({"detail": "No valid cycle found."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        forms = Form.objects.filter(cycle=cycle)
+        # my_forms: forms where an assignment exists with assigned_by == request.user.
+        my_forms = forms.filter(formassignment__assigned_by=request.user).distinct()
+        # team_forms: forms where an assignment exists with assigned_by__leader == request.user,
+        # exclude those already in my_forms.
+        team_forms = forms.filter(formassignment__assigned_by__leader=request.user).exclude(id__in=my_forms.values_list('id', flat=True)).distinct()
+        
+        # Annotate each form with a custom attribute for assigned_by_name.
+        for form in my_forms:
+            form._assigned_by_name = request.user.name
+        for form in team_forms:
+            assignment = form.formassignment_set.filter(assigned_by__leader=request.user).order_by('id').first()
+            if assignment and assignment.assigned_by:
+                form._assigned_by_name = assignment.assigned_by.name
+            else:
+                form._assigned_by_name = ""
+        
+        my_serializer = FormSerializer(my_forms, many=True, context={"request": request})
+        team_serializer = FormSerializer(team_forms, many=True, context={"request": request})
+        
+        print("my data: " + str(my_serializer.data))
+        print("team data: " + str(team_serializer.data))
+
+        return Response({
+            "my_forms": my_serializer.data,
+            "team_forms": team_serializer.data
+        })

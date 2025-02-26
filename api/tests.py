@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from api.models import Form, FormAssignment, User, Cycle, FormResponse, Question
+from api.serializers import FormSerializer
 
 class FormAssignedByAPITestCase(APITestCase):
 
@@ -478,3 +479,174 @@ class FormResultsAPITestCase(APITestCase):
         # Since there are no assignments, we should return a 403 Forbidden response
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["detail"], "You are not authorized to view results for this form.")
+
+class AssignedByEndpointTestCase(APITestCase):
+    def setUp(self):
+        # Create a cycle that has ended
+        self.cycle = Cycle.objects.create(
+            name="Test Cycle",
+            start_date=timezone.now() - timedelta(days=10),
+            end_date=timezone.now() - timedelta(days=5)
+        )
+        
+        # Create users
+        self.user_manager = User.objects.create(email="manager@example.com", password="password123", name="Manager User")
+        self.user_leader = User.objects.create(email="leader@example.com", password="password123", name="Leader User")
+        self.user_leader2 = User.objects.create(email="leader2@example.com", password="password123", name="Leader User 2")
+        self.user_member = User.objects.create(email="member@example.com", password="password123", name="Member User")
+        self.user_other = User.objects.create(email="other@example.com", password="password123", name="Other User")
+        self.user_other2 = User.objects.create(email="other2@example.com", password="password123", name="Other User2")
+
+        
+        # Set leadership relations
+        self.user_leader.leader = self.user_manager
+        self.user_leader2.leader = self.user_manager
+        self.user_member.leader = self.user_leader
+        self.user_leader.save()
+        self.user_leader2.save()
+        self.user_member.save()
+        
+        # Create forms
+        self.form1 = Form.objects.create(name="Form 1", is_default=False, form_type="TL", cycle=self.cycle)
+        self.form2 = Form.objects.create(name="Form 2", is_default=False, form_type="TL", cycle=self.cycle)
+        self.form3 = Form.objects.create(name="Form 3", is_default=False, form_type="PM", cycle=self.cycle)
+        self.form_manager = Form.objects.create(name="Manager Form", is_default=False, form_type="MANAGER", cycle=self.cycle)
+        
+        # Create assignments:
+        # For form1, the assessed user is user_leader.
+        FormAssignment.objects.create(
+            form=self.form1, assigned_to=self.user_member, assigned_by=self.user_leader, deadline=self.cycle.end_date
+        )
+        # For form2, the assessed user is user_leader2.
+        FormAssignment.objects.create(
+            form=self.form2, assigned_to=self.user_member, assigned_by=self.user_leader2, deadline=self.cycle.end_date
+        )
+        # For form3, assigned_by is user_other (should not be returned for user_leader or user_manager)
+        FormAssignment.objects.create(
+            form=self.form3, assigned_to=self.user_member, assigned_by=self.user_other, deadline=self.cycle.end_date
+        )
+        # For form_manager: manager is directly assessed.
+        FormAssignment.objects.create(form=self.form_manager, assigned_to=self.user_leader, assigned_by=self.user_manager, deadline=self.cycle.end_date
+        )
+
+    def test_fetch_assigned_forms_for_assessed_user(self):
+        """
+        When the current user is directly the assessed user, the form should appear under "my_forms".
+        For example, user_leader should see Form 1.
+        """
+        url = f"/api/forms/assigned-by/?cycle_id={self.cycle.id}"
+        self.client.force_authenticate(user=self.user_leader)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.assertIn("my_forms", response.data)
+        self.assertIn("team_forms", response.data)
+        my_forms_ids = [form["id"] for form in response.data["my_forms"]]
+        self.assertIn(self.form1.id, my_forms_ids)
+        # Verify that the serializer returns the current user's name.
+        for form in response.data["my_forms"]:
+            if form["id"] == self.form1.id:
+                self.assertEqual(form["assigned_by_name"], self.user_leader.name)
+
+    def test_assigned_forms_for_leader(self):
+        """
+        When a manager (who is the leader of assessed users) fetches the endpoint,
+        they should see subordinate forms in "team_forms" and their own form in "my_forms".
+        For example, user_manager should see Form 1 and Form 2. 
+        """
+        url = f"/api/forms/assigned-by/?cycle_id={self.cycle.id}"
+        self.client.force_authenticate(user=self.user_manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.assertIn("my_forms", response.data)
+        self.assertIn("team_forms", response.data)
+        team_forms_ids = [form["id"] for form in response.data["team_forms"]]
+        self.assertIn(self.form1.id, team_forms_ids)
+        self.assertIn(self.form2.id, team_forms_ids)
+        self.assertNotIn(self.form3.id, team_forms_ids)
+        # Verify that assigned_by_name is the subordinate's name:
+        for form in response.data["team_forms"]:
+            if form["id"] == self.form1.id:
+                self.assertEqual(form["assigned_by_name"], self.user_leader.name)
+            if form["id"] == self.form2.id:
+                self.assertEqual(form["assigned_by_name"], self.user_leader2.name)
+
+    def test_fetch_assigned_forms_for_mixed_scenario(self):
+        """
+        When a manager is also directly assessed, the endpoint should return:
+          - Forms where the manager is directly assessed in "my_forms".
+          - And forms where the manager is the leader of the assessed user in "team_forms".
+        For this test, user_manager is directly assessed in Form Manager.
+        """
+        url = f"/api/forms/assigned-by/?cycle_id={self.cycle.id}"
+        self.client.force_authenticate(user=self.user_manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("my_forms", response.data)
+        self.assertIn("team_forms", response.data)
+        my_forms_ids = [form["id"] for form in response.data["my_forms"]]
+        team_forms_ids = [form["id"] for form in response.data["team_forms"]]
+        # Manager should see their own form in my_forms
+        self.assertIn(self.form_manager.id, my_forms_ids)
+        # And see subordinate forms (form1 and form2) in team_forms.
+        self.assertIn(self.form1.id, team_forms_ids)
+        self.assertIn(self.form2.id, team_forms_ids)
+        # Check that names are correct:
+        for form in response.data["my_forms"]:
+            if form["id"] == self.form_manager.id:
+                self.assertEqual(form["assigned_by_name"], self.user_manager.name)
+        for form in response.data["team_forms"]:
+            if form["id"] == self.form1.id:
+                self.assertEqual(form["assigned_by_name"], self.user_leader.name)
+            if form["id"] == self.form2.id:
+                self.assertEqual(form["assigned_by_name"], self.user_leader2.name)
+
+    def test_assigned_forms_empty_for_non_involved_user(self):
+        """
+        A user with no relevant assignments should get an empty result.
+        For example, a user with no assignments should see both lists empty.
+        """
+        url = f"/api/forms/assigned-by/?cycle_id={self.cycle.id}"
+        # Use a user who is not involved at all. Here, we use self.user_other.
+        self.client.force_authenticate(user=self.user_other2)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["my_forms"]), 0)
+        self.assertEqual(len(response.data["team_forms"]), 0)
+
+    def test_assigned_forms_invalid_cycle(self):
+        """
+        Test that if an invalid cycle_id is provided, the endpoint returns an error.
+        """
+        url = f"/api/forms/assigned-by/?cycle_id=9999"
+        self.client.force_authenticate(user=self.user_manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_serializer_get_assigned_by_name_logic(self):
+        """
+        Directly test the get_assigned_by_name method of FormSerializer.
+        The method should return:
+          - For a form in my_forms, the current user's name (if they are the assessed user).
+          - For a form in team_forms, the subordinate's name (i.e. the assessed user's name from the assignment where assigned_by__leader == request.user).
+        """
+        from rest_framework.request import Request
+        from rest_framework.test import APIRequestFactory
+        factory = APIRequestFactory()
+        request = factory.get("/dummy-url/")
+        
+        # Case: For form1, when the current user is user_leader (assessed user).
+        request.user = self.user_leader
+        serializer = FormSerializer(instance=self.form1, context={"request": request})
+        # In our endpoint, our view would annotate form1 with _assigned_by_name.
+        # For testing directly, we simulate that:
+        self.form1._assigned_by_name = self.user_leader.name
+        self.assertEqual(serializer.get_assigned_by_name(self.form1), self.user_leader.name)
+        
+        # Case: For form1, when current user is user_manager (leader of user_leader).
+        request.user = self.user_manager
+        serializer = FormSerializer(instance=self.form1, context={"request": request})
+        # In our endpoint, form1 would be annotated with user_leader.name because user_manager is the leader.
+        self.form1._assigned_by_name = self.user_leader.name
+        self.assertEqual(serializer.get_assigned_by_name(self.form1), self.user_leader.name)
