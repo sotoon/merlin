@@ -1,16 +1,15 @@
-from decouple import config 
 from merlin.settings.base import *
 
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = True
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('MERLIN_DATABASE_NAME', default='merlin'),
-        'USER': config('MERLIN_DATABASE_USER', default='merlin_user'),
-        'PASSWORD': config('MERLIN_DATABASE_PASSWORD', default='merlin_psql'),
-        'HOST': config('MERLIN_DATABASE_HOST', default='localhost'),
-        'PORT': config('MERLIN_DATABASE_PORT', default=5432, cast=int),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "merlin",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": os.environ.get("DATABASE_HOST", "localhost"),
+        "PORT": "5432",
         "OPTIONS": {
             "connect_timeout": 60,
         },
