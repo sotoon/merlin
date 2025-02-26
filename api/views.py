@@ -751,7 +751,7 @@ class FormViewSet(viewsets.ModelViewSet):
         my_forms = forms.filter(formassignment__assigned_by=request.user).distinct()
         # team_forms: forms where an assignment exists with assigned_by__leader == request.user,
         # exclude those already in my_forms.
-        team_forms = forms.filter(formassignment__assigned_by__leader=request.user).exclude(id__in=my_forms.values_list('id', flat=True)).distinct()
+        team_forms = forms.filter(formassignment__assigned_by__leader=request.user).distinct()
         
         # Annotate each form with a custom attribute for assigned_by_name.
         for form in my_forms:
