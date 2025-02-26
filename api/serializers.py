@@ -234,6 +234,8 @@ class FormSerializer(serializers.ModelSerializer):
     is_expired = serializers.SerializerMethodField()
     is_filled = serializers.SerializerMethodField()
     assigned_by_name = serializers.SerializerMethodField()
+    assigned_by = serializers.SerializerMethodField()
+
 
     def get_is_expired(self, obj):
         if obj.is_default:
@@ -246,11 +248,19 @@ class FormSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return FormResponse.objects.filter(form=obj, user=user).exists()
 
+    def get_assigned_by(self, obj):
+        """
+        Returns a representative assigned_by id for the form.
+        """
+        # If the `fetch_assigned_by_forms` view method annotated the form:
+        if hasattr(obj, "_assigned_by"):
+            return obj._assigned_by 
+        
     def get_assigned_by_name(self, obj):
         """
         Returns a representative assigned_by_name for the form.
         """
-        # If the `fetch_assigned_by_forms`` view method annotated the form:
+        # If the `fetch_assigned_by_forms` view method annotated the form:
         if hasattr(obj, "_assigned_by_name"):
             return obj._assigned_by_name
         
@@ -270,7 +280,7 @@ class FormSerializer(serializers.ModelSerializer):
         model = Form
         fields = ['id', 'name', 'description', 'is_default', 'form_type', 'cycle',
                   'cycle_name', 'cycle_start_date', 'cycle_end_date', 'is_expired',
-                  'is_filled','assigned_by_name']
+                  'is_filled','assigned_by_name', 'assigned_by']
 
 class FormDetailSerializer(FormSerializer):
     """
