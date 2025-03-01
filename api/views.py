@@ -749,22 +749,23 @@ class FormViewSet(viewsets.ModelViewSet):
         forms = Form.objects.filter(cycle=cycle)
         # my_forms: forms where an assignment exists with assigned_by == request.user.
         my_forms = forms.filter(formassignment__assigned_by=request.user).distinct()
-        # team_forms: forms where an assignment exists with assigned_by__leader == request.user,
-        # exclude those already in my_forms.
-        team_forms = forms.filter(formassignment__assigned_by__leader=request.user).distinct()
         
         # Annotate each form with a custom attribute for assigned_by_name.
         for form in my_forms:
             form._assigned_by_name = request.user.name
             form._assigned_by = request.user.id
-        for form in team_forms:
-            assignment = form.formassignment_set.filter(assigned_by__leader=request.user).order_by('id').first()
-            if assignment and assignment.assigned_by:
-                form._assigned_by_name = assignment.assigned_by.name
-                form._assigned_by = assignment.assigned_by.id
-            else:
-                form._assigned_by_name = ""
-                form._assigned_by = ""
+        
+        # team_forms: forms where an assignment exists with assigned_by__leader == request.user,
+        team_assignments = FormAssignment.objects.filter(form__cycle=cycle, assigned_by__leader=request.user)
+        team_forms = []
+        for assignment in team_assignments:
+            # For each assignment, get its form and annotate it with this assignment's assessed user info.
+            form = assignment.form
+            # Create a copy or annotate the form (so that multiple assignments for the same form show as separate entries)
+            form._assigned_by_name = assignment.assigned_by.name if assignment.assigned_by else ""
+            form._assigned_by = assignment.assigned_by.id if assignment.assigned_by else None
+            team_forms.append(form)
+
         
         my_serializer = FormSerializer(my_forms, many=True, context={"request": request})
         team_serializer = FormSerializer(team_forms, many=True, context={"request": request})
