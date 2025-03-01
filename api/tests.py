@@ -652,6 +652,41 @@ class AssignedByEndpointTestCase(APITestCase):
         self.form1._assigned_by_name = self.user_leader.name
         self.assertEqual(serializer.get_assigned_by_name(self.form1), self.user_leader.name)
 
+    def test_manager_sees_all_subordinate_assignments(self):
+        """
+        Verify that if a manager has multiple subordinate assignments on the same form,
+        each subordinate assignment appears separately in team_forms.
+        """
+        # Create a new subordinate leader to simulate multiple subordinates
+        user_leader3 = User.objects.create(email="leader3@example.com", password="password123", name="Leader User 3")
+        user_leader3.leader = self.user_manager
+        user_leader3.save()
+        
+        # Create a new form for this test
+        form_multi = Form.objects.create(name="Multi Subordinate Form", is_default=False, form_type="TL", cycle=self.cycle)
+        
+        # Create assignments from three different subordinate leaders
+        FormAssignment.objects.create(form=form_multi, assigned_to=self.user_member, assigned_by=self.user_leader, deadline=self.cycle.end_date)
+        FormAssignment.objects.create(form=form_multi, assigned_to=self.user_member, assigned_by=self.user_leader2, deadline=self.cycle.end_date)
+        FormAssignment.objects.create(form=form_multi, assigned_to=self.user_member, assigned_by=user_leader3, deadline=self.cycle.end_date)
+        
+        url = f"/api/forms/assigned-by/?cycle_id={self.cycle.id}"
+        self.client.force_authenticate(user=self.user_manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Count how many times form_multi appears in team_forms
+        count = sum(1 for form in response.data["team_forms"] if form["id"] == form_multi.id)
+        # We expect it to appear 3 times, once for each subordinate assignment.
+        self.assertEqual(count, 3)
+        
+        # Optionally, verify that each entry has the correct assigned_by_name.
+        names = [form["assigned_by_name"] for form in response.data["team_forms"] if form["id"] == form_multi.id]
+        self.assertIn(self.user_leader.name, names)
+        self.assertIn(self.user_leader2.name, names)
+        self.assertIn(user_leader3.name, names)
+
+
 class ResultsAggregationMathTestCase(APITestCase):
     def setUp(self):
         # Create a cycle that has ended
