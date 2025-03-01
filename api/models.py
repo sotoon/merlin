@@ -516,8 +516,6 @@ class NoteUserAccess(MerlinBaseModel):
                     note=note,
                     defaults=leader_permissions[note.type],
                 )
-            else:
-                cls.make_note_inaccessible_if_not(leader, note)
 
         # Agile Coach
         cls.objects.update_or_create(
@@ -550,8 +548,6 @@ class NoteUserAccess(MerlinBaseModel):
                             "can_view_feedbacks": True,
                         },
                     )
-                else:
-                    cls.make_note_inaccessible_if_not(member, note)
 
         # Mentioned users
         for user in note.mentioned_users.all():
