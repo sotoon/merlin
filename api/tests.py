@@ -1,10 +1,12 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime, time
 
 from api.models import Form, FormAssignment, User, Cycle, FormResponse, Question
 from api.serializers import FormSerializer
+from api.utils import calculate_form_results
+
 
 class FormAssignedByAPITestCase(APITestCase):
 
@@ -175,7 +177,6 @@ class FormAssignedByAPITestCase(APITestCase):
         self.assertEqual(results_by_assigned_by[self.user_leader.id], self.user_leader.name)
         self.assertIn(self.user_leader2.id, results_by_assigned_by)
         self.assertEqual(results_by_assigned_by[self.user_leader2.id], self.user_leader2.name)
-
 
 class FormResultsAPITestCase(APITestCase):
     
@@ -650,3 +651,142 @@ class AssignedByEndpointTestCase(APITestCase):
         # In our endpoint, form1 would be annotated with user_leader.name because user_manager is the leader.
         self.form1._assigned_by_name = self.user_leader.name
         self.assertEqual(serializer.get_assigned_by_name(self.form1), self.user_leader.name)
+
+class ResultsAggregationMathTestCase(APITestCase):
+    def setUp(self):
+        # Create a cycle that has ended
+        self.cycle = Cycle.objects.create(
+            name="Aggregation Cycle",
+            start_date=timezone.now() - timedelta(days=15),
+            end_date=timezone.now() - timedelta(days=10)
+        )
+        # Create two distinct assessed leaders
+        self.leader1 = User.objects.create(email="leader1@example.com", password="password123", name="Leader 1")
+        self.leader2 = User.objects.create(email="leader2@example.com", password="password123", name="Leader 2")
+        # Create a form and a single question for that form
+        self.form = Form.objects.create(name="Aggregation Form", is_default=False, form_type="TL", cycle=self.cycle)
+        self.question = Question.objects.create(
+            form=self.form,
+            question_text="Rate performance?",
+            category="Performance",
+            scale_min=1,
+            scale_max=5
+        )
+        # Create more than 10 assessors for each group (no overlap)
+        self.assessors_group1 = []
+        self.assessors_group2 = []
+        for i in range(10):
+            user = User.objects.create(email=f"assessor1_{i}@example.com", password="password123", name=f"Assessor1_{i}")
+            self.assessors_group1.append(user)
+        for i in range(10):
+            user = User.objects.create(email=f"assessor2_{i}@example.com", password="password123", name=f"Assessor2_{i}")
+            self.assessors_group2.append(user)
+        # Create assignments for group1: assessed by leader1
+        for assessor in self.assessors_group1:
+            FormAssignment.objects.create(
+                form=self.form,
+                assigned_to=assessor,
+                assigned_by=self.leader1,
+                deadline=self.cycle.end_date 
+            )
+        # Create assignments for group2: assessed by leader2
+        for assessor in self.assessors_group2:
+            FormAssignment.objects.create(
+                form=self.form,
+                assigned_to=assessor,
+                assigned_by=self.leader2,
+                deadline=self.cycle.end_date
+            )
+
+        response_date = self.cycle.start_date + timedelta(days=1)
+
+        # Create responses:
+        # For group1: every response is 4
+        for assessor in self.assessors_group1:
+            r = FormResponse.objects.create(
+                form=self.form,
+                user=assessor,
+                question=self.question,
+                answer=4,
+                date_created=response_date
+            )
+        # For group2: every response is 3
+        for assessor in self.assessors_group2:
+            FormResponse.objects.create(
+                form=self.form,
+                user=assessor,
+                question=self.question,
+                answer=3,
+                date_created=response_date
+            )
+
+        # This is to avoid model's auto_now_add field
+        FormResponse.objects.all().update(date_created=response_date)
+
+    def test_aggregation_math_for_group1(self):
+        """
+        Verify that the aggregated results for group1 (assessed by Leader 1) yield an overall average of 4.0.
+        """
+        adjusted_end_date = timezone.make_aware(datetime.combine(self.cycle.end_date, time.max))
+        # Calculate the adjusted end date to match our query range.
+        assignments_group1 = self.form.formassignment_set.filter(assigned_by=self.leader1)
+
+        responses = FormResponse.objects.filter(
+            question__form=self.form,
+            user__in=assignments_group1.values_list("assigned_to", flat=True),
+            date_created__range=(self.cycle.start_date, adjusted_end_date)
+        )
+
+        result = calculate_form_results(responses, self.form)
+        self.assertAlmostEqual(result["total_average"], 4.0, places=2)
+
+        for q in result["questions"]:
+            self.assertAlmostEqual(q["average"], 4.0, places=2)
+
+    def test_aggregation_math_for_group2(self):
+        """
+        Verify that the aggregated results for group2 (assessed by Leader 2) yield an overall average of 3.0.
+        """
+        adjusted_end_date = timezone.make_aware(datetime.combine(self.cycle.end_date, time.max))
+        assignments_group2 = self.form.formassignment_set.filter(assigned_by=self.leader2)
+        responses = FormResponse.objects.filter(
+            question__form=self.form,
+            user__in=assignments_group2.values_list("assigned_to", flat=True),
+            date_created__range=(self.cycle.start_date, adjusted_end_date)
+        )
+        result = calculate_form_results(responses, self.form)
+        self.assertAlmostEqual(result["total_average"], 3.0, places=2)
+        for q in result["questions"]:
+            self.assertAlmostEqual(q["average"], 3.0, places=2)
+
+    def test_aggregation_with_null_response(self):
+        """
+        Verify that if one response in group1 is null, the aggregated results still yield an overall average of 4.0.
+        (Django's Avg aggregation ignores nulls.)
+        """
+        # Get all assignments for group1 (assessed by leader1)
+        assignments_group1 = self.form.formassignment_set.filter(assigned_by=self.leader1)
+        # Get the responses for this question for group1
+        responses_qs = FormResponse.objects.filter(
+            question_id=self.question.id,
+            user__in=assignments_group1.values_list("assigned_to", flat=True)
+        )
+        # Ensure at least one response exists, then update one to be null.
+        first_response = responses_qs.first()
+        first_response.answer = None
+        first_response.save()
+        
+        # Re-fetch responses using the date range.
+        adjusted_end_date = timezone.make_aware(datetime.combine(self.cycle.end_date, time.max))
+        responses = FormResponse.objects.filter(
+            question_id=self.question.id,
+            user__in=assignments_group1.values_list("assigned_to", flat=True),
+            date_created__range=(self.cycle.start_date, adjusted_end_date)
+        )
+        
+        result = calculate_form_results(responses, self.form)
+        
+        # Expected: Even if one response is null, Django's Avg ignores it.
+        self.assertAlmostEqual(result["total_average"], 4.0, places=2)
+        for q in result["questions"]:
+            self.assertAlmostEqual(q["average"], 4.0, places=2)

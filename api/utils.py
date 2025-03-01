@@ -28,8 +28,9 @@ def calculate_form_results(responses, form):
 
     # Calculate per-question averages
     for question in Question.objects.filter(form=form):
-        question_responses = responses.filter(question=question)
+        question_responses = responses.filter(question_id=question.id)
         question_avg = question_responses.aggregate(avg=Avg("answer"))["avg"]
+
         question_averages.append({
             "id": question.id,
             "text": question.question_text,
@@ -42,7 +43,7 @@ def calculate_form_results(responses, form):
 
     # Calculate overall average, passing None if there's no data
     total_average = None if total_count == 0 else total_sum / total_count
-    total_average = total_average
+
     return {
         "total_average": total_average,     # float
         "categories": category_averages,    # dict
