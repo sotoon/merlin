@@ -1,4 +1,4 @@
-import requests
+import requests, copy
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -757,16 +757,23 @@ class FormViewSet(viewsets.ModelViewSet):
         
         # team_forms: forms where an assignment exists with assigned_by__leader == request.user,
         team_assignments = FormAssignment.objects.filter(form__cycle=cycle, assigned_by__leader=request.user)
-        team_forms = []
-        for assignment in team_assignments:
-            # For each assignment, get its form and annotate it with this assignment's assessed user info.
-            form = assignment.form
-            # Create a copy or annotate the form (so that multiple assignments for the same form show as separate entries)
-            form._assigned_by_name = assignment.assigned_by.name if assignment.assigned_by else ""
-            form._assigned_by = assignment.assigned_by.id if assignment.assigned_by else None
-            team_forms.append(form)
+        # Group by form and assessed user.
+        distinct_pairs = team_assignments.values_list("form_id", "assigned_by", flat=False).distinct()
 
-        
+        team_forms = []
+        for form_id, assessed_id in distinct_pairs:
+            form = Form.objects.get(id=form_id)
+
+            try:
+                assigned_by_name = User.objects.get(id=assessed_id).name
+            except User.DoesNotExist:
+                assigned_by_name = ""
+            # Shallow-copy the form so that each entry is independent.
+            form_copy = copy.copy(form) 
+            form_copy._assigned_by = assessed_id
+            form_copy._assigned_by_name = assigned_by_name
+            team_forms.append(form_copy)
+                
         my_serializer = FormSerializer(my_forms, many=True, context={"request": request})
         team_serializer = FormSerializer(team_forms, many=True, context={"request": request})
 
