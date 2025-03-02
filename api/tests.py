@@ -686,6 +686,63 @@ class AssignedByEndpointTestCase(APITestCase):
         self.assertIn(self.user_leader2.name, names)
         self.assertIn(user_leader3.name, names)
 
+    def test_manager_sees_distinct_team_forms_for_multiple_subordinates(self):
+        """
+        Verify that if a manager has three subordinate leaders (each with 5 assignments on the same form),
+        the endpoint returns one team_forms entry per subordinate (a total of 3 entries for that form),
+        each with the correct assessed user (assigned_by) information.
+        """
+        # Create an additional subordinate leader
+        user_leader3 = User.objects.create(
+            email="leader3@example.com", password="password123", name="Leader User 3"
+        )
+        user_leader3.leader = self.user_manager
+        user_leader3.save()
+        
+        # Create a new form for this test.
+        form_test = Form.objects.create(
+            name="Test Form", is_default=False, form_type="TL", cycle=self.cycle
+        )
+        
+        # Create 5 assignments from each subordinate leader for the same form.
+        for _ in range(5):
+            FormAssignment.objects.create(
+                form=form_test,
+                assigned_to=self.user_member,   # Same assessor for simplicity.
+                assigned_by=self.user_leader,     # First subordinate leader.
+                deadline=self.cycle.end_date
+            )
+        for _ in range(5):
+            FormAssignment.objects.create(
+                form=form_test,
+                assigned_to=self.user_member,
+                assigned_by=self.user_leader2,    # Second subordinate leader.
+                deadline=self.cycle.end_date
+            )
+        for _ in range(5):
+            FormAssignment.objects.create(
+                form=form_test,
+                assigned_to=self.user_member,
+                assigned_by=user_leader3,          # Third subordinate leader.
+                deadline=self.cycle.end_date
+            )
+        
+        # Call the assigned-by endpoint as the manager.
+        url = f"/api/forms/assigned-by/?cycle_id={self.cycle.id}"
+        self.client.force_authenticate(user=self.user_manager)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # In the team_forms section, the test form should appear once per subordinate.
+        team_entries = [entry for entry in response.data["team_forms"] if entry["id"] == form_test.id]
+        # We expect exactly 3 entries (one for each distinct subordinate leader).
+        self.assertEqual(len(team_entries), 3, f"Expected 3 entries for form_test, but found {len(team_entries)}.")
+        
+        # Verify that each entry's assigned_by_name is correct.
+        expected_names = {self.user_leader.name, self.user_leader2.name, user_leader3.name}
+        returned_names = {entry["assigned_by_name"] for entry in team_entries}
+        self.assertEqual(returned_names, expected_names)
+
 
 class ResultsAggregationMathTestCase(APITestCase):
     def setUp(self):
