@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
                 ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
                 ('date_created', models.DateTimeField(auto_now_add=True, null=True, verbose_name='تاریخ ساخت')),
                 ('date_updated', models.DateTimeField(auto_now=True, null=True, verbose_name='تاریخ بروزرسانی')),
-                ('role_type', models.CharField(choices=[('Leader', 'لیدر'), ('PR', 'پی آر'), ('CTO', 'سی تی او'), ('Director', 'دیرکتور'), ('VP', 'وی پی'), ('CEO', 'سی ای او'), ('Function Owner', 'فانکشن اونر')], default=api.models.RoleType.default, max_length=50)),
-                ('role_scope', models.CharField(choices=[('Team', 'تیم'), ('Organization', 'سازمان'), ('TRIBE', 'قبیله'), ('Chapter', 'چپتر')], default=api.models.RoleScope.default, max_length=50)),
+                ('role_type', models.CharField(choices=[("Leader", "لیدر"), ("CTO", "سی تی او"), ("Director", "دیرکتور"), ("VP", "وی پی"), ("CEO", "سی ای او"), ("Function Owner", "فانکشن اونر"), ("Product Manager", "پروداکت منجر")], default=api.models.RoleType.default, max_length=50)),
+                ('role_scope', models.CharField(choices=[("User", "کاربر"), ('Team', 'تیم'), ('Organization', 'سازمان'), ('TRIBE', 'قبیله'), ('Chapter', 'چپتر')], default=api.models.RoleScope.default, max_length=50)),
             ],
             options={
                 'verbose_name': 'نقش',
