@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0033_noteuseraccess_can_view_summary_initialize'),
+        ('api', '0043_merge_20250220_2313'),
     ]
 
     operations = [
