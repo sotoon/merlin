@@ -1,6 +1,6 @@
 from collections import defaultdict
 from django.db.models import Avg
-from api.models import Form, Question
+from api.models import Question
 
 def calculate_form_results(responses, form):
     """
@@ -13,7 +13,7 @@ def calculate_form_results(responses, form):
     Returns:
         dict: Aggregated results including averages by question, category, and overall.
     """
-    results = defaultdict(list)
+    _ = defaultdict(list)
     category_averages = {}
     question_averages = []
     total_sum = 0

@@ -1,5 +1,4 @@
 from django import forms
-from .models import FormResponse, Question
 
 class FormResponseForm(forms.Form):
     def __init__(self, *args, **kwargs):
