@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0035_populate_roles'),
+        ('api', '0045_populate_roles'),
     ]
 
     operations = [

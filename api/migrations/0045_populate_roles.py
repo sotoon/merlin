@@ -26,7 +26,7 @@ def reverse_populate_roles(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0034_add_role_committee'),
+        ('api', '0044_add_role_committee'),
     ]
 
     operations = [
