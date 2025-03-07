@@ -135,6 +135,14 @@ class User(MerlinBaseModel, AbstractUser):
     level = models.CharField(
         max_length=256, default="", blank=True, null=True, verbose_name="سطح"
     )
+    product_manager = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="product_manager_users",
+        verbose_name="PM/پروداکت منجر",
+    )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -147,13 +155,23 @@ class User(MerlinBaseModel, AbstractUser):
     def tribe(self):
         return self.team.tribe
 
-    def show_roles(self):
+    def get_committee_role_members(self):
+        committee_role_members = []
         for role in self.committee.roles.all():
             role_scope = role.role_scope.lower()
             role_type = role.role_type.lower()
-            scope_object = getattr(self, role_scope)
-            found = getattr(scope_object, role_type)
-            print(role_scope, role_type, found)
+            member = None
+
+            if role.role_scope == RoleScope.USER:
+                member = getattr(self, role_type)
+            else:
+                scope_object = getattr(self, role_scope)
+                if scope_object:
+                    member = getattr(scope_object, role_type)
+
+            if member:
+                committee_role_members.append(member)
+        return committee_role_members
 
     def ensure_new_leader_note_accesses(self, new_leader):
         notes = Note.objects.filter(type__in=leader_permissions.keys(), owner=self)
@@ -332,13 +350,13 @@ class Organization(MerlinBaseModel):
 
 
 class RoleType(models.TextChoices):
-    LEADER = "Leader", "لیدر" # chapter and team
-    PR = "PR", "پی آر" # team
-    CTO = "CTO", "سی تی او" # organization
-    DIRECTOR = "Director", "دیرکتور" # tribe
-    VP = "VP", "وی پی" # organization
-    CEO = "CEO", "سی ای او" # organization
-    FUNCTION_OWNER = "Function Owner", "فانکشن اونر" # organization
+    LEADER = "Leader", "لیدر"  # chapter and user
+    CTO = "CTO", "سی تی او"  # organization
+    DIRECTOR = "Director", "دیرکتور"  # tribe
+    VP = "VP", "وی پی"  # organization
+    CEO = "CEO", "سی ای او"  # organization
+    FUNCTION_OWNER = "Function Owner", "فانکشن اونر"  # organization
+    PRODUCT_MANAGER = "Product Manager", "پروداکت منجر"  # user
 
     @classmethod
     def default(cls):
@@ -346,6 +364,7 @@ class RoleType(models.TextChoices):
 
 
 class RoleScope(models.TextChoices):
+    USER = "User", "کاربر"
     TEAM = "Team", "تیم"
     ORGANIZATION = "Organization", "سازمان"
     TRIBE = "TRIBE", "قبیله"
@@ -353,7 +372,7 @@ class RoleScope(models.TextChoices):
 
     @classmethod
     def default(cls):
-        return cls.TEAM
+        return cls.USER
 
 
 class Role(MerlinBaseModel):
@@ -367,7 +386,7 @@ class Role(MerlinBaseModel):
         choices=RoleScope.choices,
         default=RoleScope.default,
     )
-    
+
     class Meta:
         unique_together = ('role_type', 'role_scope')
         verbose_name = "نقش"
@@ -675,20 +694,14 @@ class NoteUserAccess(MerlinBaseModel):
                         },
                     )
 
-            # Committee roles
-            for role in committee.roles.all():
-                role_scope: str = role.role_scope.lower()
-                role_type: str = role.role_type.lower()
-                scope_object: Union[Chapter, Tribe, Organization, Team] = getattr(note.owner, role_scope)
-                member: User = getattr(scope_object, role_type)
-                if note.type in committee_roles_permissions.keys():
+            # Committee role members
+            if note.submit_status in (NoteSubmitStatus.PENDING, NoteSubmitStatus.REVIEWED) and note.type in committee_roles_permissions.keys():
+                for member in note.owner.get_committee_role_members():
                     cls.objects.update_or_create(
                         user=member,
                         note=note,
                         defaults=committee_roles_permissions[note.type],
                     )
-                else:
-                    cls.make_note_inaccessible_if_not(member, note)
 
         # Mentioned users
         for user in note.mentioned_users.all():
