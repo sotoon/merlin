@@ -644,7 +644,7 @@ class FormViewSet(viewsets.ModelViewSet):
         if form.is_default:
             if cycle.end_date > now:
                 return Response(
-                    {"detail": f"Results for this form are not available until the cycle ends."},
+                    {"detail": "Results for this form are not available until the cycle ends."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             
