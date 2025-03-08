@@ -157,11 +157,7 @@ class User(MerlinBaseModel, AbstractUser):
     def get_committee_role_members(self):
         committee_role_members = set()
 
-        specific_roles_queryset = self.committee.roles.all()
-        general_roles_queryset = GeneralRole.objects.all()
-        combined_roels_queryset = specific_roles_queryset.union(general_roles_queryset)
-
-        for role in combined_roels_queryset:
+        for role in self.committee.roles.distinct():
             role_scope = role.role_scope.lower()
             role_type = role.role_type.lower()
             member = None
@@ -377,27 +373,6 @@ class RoleScope(models.TextChoices):
     @classmethod
     def default(cls):
         return cls.USER
-
-
-class GeneralRole(MerlinBaseModel):
-    role_type = models.CharField(
-        max_length=50,
-        choices=RoleType.choices,
-        default=RoleType.default,
-    )
-    role_scope = models.CharField(
-        max_length=50,
-        choices=RoleScope.choices,
-        default=RoleScope.default,
-    )
-
-    class Meta:
-        unique_together = ('role_type', 'role_scope')
-        verbose_name = "نقش جنرال"
-        verbose_name_plural = "نقش‌های جنرال"
-
-    def __str__(self):
-        return f"{self.get_role_type_display()} - {self.get_role_scope_display()}"
 
 
 class Role(MerlinBaseModel):
