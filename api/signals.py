@@ -1,6 +1,5 @@
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
 
 from .models import (
     Committee,
@@ -61,7 +60,6 @@ def assign_default_forms(sender, instance, created, **kwargs):
                 skipped_users.append(user)
                 continue
 
-            assigned_by = None
 
             if instance.form_type == Form.FormType.TL:
                 leaders = user.get_leaders()
@@ -78,7 +76,6 @@ def assign_default_forms(sender, instance, created, **kwargs):
 
             else:
                 skipped_users.append(user)
-                assigned_by = None
 
         # Run the query only for affected_users
         assignments = [

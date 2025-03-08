@@ -20,6 +20,8 @@ from api.models import (
     Team,
     Tribe,
     User,
+    Role,
+    Organization,
     FormResponse,
     Question,
     Form,
@@ -54,6 +56,16 @@ RESOURCE_FIELDS = {
         attribute="leader",
         widget=ForeignKeyWidget(User, field="email"),
     ),
+    "product_manager": fields.Field(
+        column_name="product_manager",
+        attribute="product_manager",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "director": fields.Field(
+        column_name="director",
+        attribute="director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
     "owner": fields.Field(
         column_name="owner",
         attribute="owner",
@@ -78,6 +90,11 @@ RESOURCE_FIELDS = {
         column_name="tribe",
         attribute="tribe",
         widget=ForeignKeyWidget(Tribe, field="name"),
+    ),
+    "organization": fields.Field(
+        column_name="organization",
+        attribute="organization",
+        widget=ForeignKeyWidget(Organization, field="name"),
     ),
     "committee": fields.Field(
         column_name="committee",
@@ -135,18 +152,37 @@ class TribeAdmin(BaseModelAdmin):
     class TribeResource(BaseModelResource):
         leader = RESOURCE_FIELDS["leader"]
         department = RESOURCE_FIELDS["department"]
+        director = RESOURCE_FIELDS["director"]
 
         class Meta:
             model = Tribe
-            fields = ("name", "leader", "department")
+            fields = ("name", "leader", "department", "director", )
 
     resource_class = TribeResource
-    list_display = ("name", "department", "leader", "date_created", "date_updated",)
-    fields = ("uuid","name", ("department", "leader"), "description", ("date_created", "date_updated"),)
+    list_display = ("name", "department", "leader", "director", "date_created", "date_updated",)
+    fields = ("uuid","name", ("department", "leader", "director", ), "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__name", "leader__email"]
     search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
+
+
+@admin.register(Organization)
+class OrganizationAdmin(BaseModelAdmin):
+    class OrganizationResource(BaseModelResource):
+        class Meta:
+            model = Organization
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "description", )
+
+    resource_class = OrganizationResource
+    list_display = ("name", "date_created", "date_updated",)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "description", ("date_created", "date_updated"),)
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "name")
+    # search_fields = ["name", "cto__name", "cto__email"]
+    # search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
+    search_fields = ["name"]
+
 
 
 @admin.register(Chapter)
@@ -182,7 +218,7 @@ class TeamAdmin(BaseModelAdmin):
 @admin.register(Committee)
 class CommitteeAdmin(BaseModelAdmin):
     list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid", "name", "description", "members", ("date_created", "date_updated"),)
+    fields = ("uuid", "name", "description", "members", "roles", ("date_created", "date_updated"),)
     filter_horizontal = ("members",)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
@@ -197,17 +233,19 @@ class UserAdmin(BaseModelAdmin):
         department = RESOURCE_FIELDS["department"]
         team = RESOURCE_FIELDS["team"]
         chapter = RESOURCE_FIELDS["chapter"]
+        organization = RESOURCE_FIELDS["organization"]
         committee = RESOURCE_FIELDS["committee"]
+        product_manager = RESOURCE_FIELDS["product_manager"]
         lookup_field = "email"
 
         class Meta:
             model = User
             import_id_fields = ("email",)
-            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter",)
+            fields = ("email", "name", "gmail", "phone", "leader", "level", "department", "team", "chapter", "organization", "product_manager", )
 
     resource_class = UserResource
-    list_display = ("email", "name", "phone", "department", "chapter", "team", "leader", "agile_coach", "date_created", "date_updated",)
-    fields = ("uuid", "name", "phone", ("email", "gmail"), ("department", "chapter", "team", "level", "leader", "agile_coach", "committee"), ("date_created", "date_updated"),)
+    list_display = ("email", "name", "phone", "department", "chapter", "team", "organization", "leader", "agile_coach", "product_manager", "date_created", "date_updated",)
+    fields = ("uuid", "name", "phone", ("email", "gmail"), ("department", "chapter", "team", "organization", "level", "leader", "agile_coach", "committee", "product_manager", ), ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "email")
     search_fields = ["email", "name", "phone"]
@@ -467,11 +505,21 @@ class ResponseAdmin(admin.ModelAdmin):
         return obj.get_answer_display()
     get_answer_display.short_description = 'Answer'
 
+
 @admin.register(FormAssignment)
 class FormAssignmentAdmin(admin.ModelAdmin):
     list_display = ("form", "assigned_to", "assigned_by", "deadline", "is_completed")
     list_filter = ("form", "is_completed")
-    search_fields = ("assigned_to__email", "form__name")
+    search_fields = ("assigned_to__email", "form__name")            
 
-                           
+
+@admin.register(Role)
+class RoleAdmin(BaseModelAdmin):
+    list_display = ("role_type", "role_scope", "date_created", "date_updated",)
+    fields = ("role_type", "role_scope", ("date_created", "date_updated"),)
+    readonly_fields = ("date_created", "date_updated",)
+    ordering = ("-date_created", "role_scope")
+    search_fields = ["role_type", "role_scope"]
+    search_help_text = "جستجو در نوع نقش، سطح نقش"
+
 # fmt: on
