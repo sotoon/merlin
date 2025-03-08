@@ -28,6 +28,22 @@ class Migration(migrations.Migration):
                 'unique_together': {('role_type', 'role_scope')},
             },
         ),
+        migrations.CreateModel(
+            name="GeneralRole",
+            fields=[
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("uuid", models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                ("date_created", models.DateTimeField(auto_now_add=True, null=True, verbose_name="تاریخ ساخت")),
+                ("date_updated", models.DateTimeField(auto_now=True, null=True, verbose_name="تاریخ بروزرسانی")),
+                ('role_type', models.CharField(choices=[("Leader", "لیدر"), ("CTO", "سی تی او"), ("Director", "دیرکتور"), ("VP", "وی پی"), ("CEO", "سی ای او"), ("Function Owner", "فانکشن اونر"), ("Product Manager", "پروداکت منجر")], default=api.models.RoleType.default, max_length=50)),
+                ('role_scope', models.CharField(choices=[("User", "کاربر"), ('Team', 'تیم'), ('Organization', 'سازمان'), ('TRIBE', 'قبیله'), ('Chapter', 'چپتر')], default=api.models.RoleScope.default, max_length=50)),
+            ],
+            options={
+                "verbose_name": "نقش جنرال",
+                "verbose_name_plural": "نقش\u200cهای جنرال",
+                "unique_together": {("role_type", "role_scope")},
+            },
+        ),
         migrations.AddField(
             model_name='committee',
             name='roles',

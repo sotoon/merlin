@@ -21,6 +21,7 @@ from api.models import (
     Tribe,
     User,
     Role,
+    GeneralRole,
     Organization,
     FormResponse,
     Question,
@@ -493,16 +494,26 @@ class ResponseAdmin(admin.ModelAdmin):
         return obj.get_answer_display()
     get_answer_display.short_description = 'Answer'
 
+
 @admin.register(FormAssignment)
 class FormAssignmentAdmin(admin.ModelAdmin):
     list_display = ("form", "assigned_to", "assigned_by", "deadline", "is_completed")
     list_filter = ("form", "is_completed")
-    search_fields = ("assigned_to__email", "form__name")
+    search_fields = ("assigned_to__email", "form__name")            
 
-                           
 
 @admin.register(Role)
 class RoleAdmin(BaseModelAdmin):
+    list_display = ("role_type", "role_scope", "date_created", "date_updated",)
+    fields = ("role_type", "role_scope", ("date_created", "date_updated"),)
+    readonly_fields = ("date_created", "date_updated",)
+    ordering = ("-date_created", "role_scope")
+    search_fields = ["role_type", "role_scope"]
+    search_help_text = "جستجو در نوع نقش، سطح نقش"
+
+
+@admin.register(GeneralRole)
+class GeneralRoleAdmin(BaseModelAdmin):
     list_display = ("role_type", "role_scope", "date_created", "date_updated",)
     fields = ("role_type", "role_scope", ("date_created", "date_updated"),)
     readonly_fields = ("date_created", "date_updated",)
