@@ -61,6 +61,11 @@ RESOURCE_FIELDS = {
         attribute="product_manager",
         widget=ForeignKeyWidget(User, field="email"),
     ),
+    "director": fields.Field(
+        column_name="director",
+        attribute="director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
     "owner": fields.Field(
         column_name="owner",
         attribute="owner",
@@ -147,14 +152,15 @@ class TribeAdmin(BaseModelAdmin):
     class TribeResource(BaseModelResource):
         leader = RESOURCE_FIELDS["leader"]
         department = RESOURCE_FIELDS["department"]
+        director = RESOURCE_FIELDS["director"]
 
         class Meta:
             model = Tribe
-            fields = ("name", "leader", "department")
+            fields = ("name", "leader", "department", "director", )
 
     resource_class = TribeResource
-    list_display = ("name", "department", "leader", "date_created", "date_updated",)
-    fields = ("uuid","name", ("department", "leader"), "description", ("date_created", "date_updated"),)
+    list_display = ("name", "department", "leader", "director", "date_created", "date_updated",)
+    fields = ("uuid","name", ("department", "leader", "director", ), "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__name", "leader__email"]
@@ -162,7 +168,7 @@ class TribeAdmin(BaseModelAdmin):
 
 
 @admin.register(Organization)
-class TribeAdmin(BaseModelAdmin):
+class OrganizationAdmin(BaseModelAdmin):
     class OrganizationResource(BaseModelResource):
         class Meta:
             model = Organization
