@@ -361,7 +361,7 @@ class RoleType(models.TextChoices):
 
     @classmethod
     def default(cls):
-        return cls.TEAM_LEADER
+        return cls.LEADER
 
 
 class RoleScope(models.TextChoices):
