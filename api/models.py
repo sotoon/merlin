@@ -357,6 +357,7 @@ class RoleType(models.TextChoices):
     CEO = "CEO", "سی ای او"  # organization
     FUNCTION_OWNER = "Function Owner", "فانکشن اونر"  # organization
     PRODUCT_MANAGER = "Product Manager", "پروداکت منجر"  # user
+    CPO = "CPO", "سی پی او"  # organization
 
     @classmethod
     def default(cls):
