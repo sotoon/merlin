@@ -9,6 +9,8 @@ from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
+from .email_notifications import admin as email_notifications_admin
+
 from api.models import (
     Chapter,
     Committee,
