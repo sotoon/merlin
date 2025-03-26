@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "import_export",
+    "django_extensions",
     "api",
 ]
 

@@ -5,6 +5,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from .email_notifications import models as email_notifications_models
 
 class MerlinBaseModel(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
