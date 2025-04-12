@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import EmailTemplate, EmailTrigger, EmailLog
+
+from api.models import EmailTemplate, EmailTrigger, EmailLog
 
 @admin.register(EmailTemplate)
 class EmailTemplateAdmin(admin.ModelAdmin):

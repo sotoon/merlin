@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
-from api.base_models import MerlinBaseModel
+from api.models.base import MerlinBaseModel
+
+__all__ = ['EmailTemplate', 'EmailTrigger', 'EmailLog']
 
 class EmailTemplate(MerlinBaseModel):
     name = models.CharField(
