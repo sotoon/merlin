@@ -1,4 +1,4 @@
-from .models import EmailTrigger
+from ..models.email import EmailTrigger
 from .utils import send_bulk_email
 from .template_helpers import replace_placeholders
 from api.models import User
