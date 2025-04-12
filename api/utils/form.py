@@ -1,6 +1,10 @@
 from collections import defaultdict
 from django.db.models import Avg
-from api.models import Form, Question
+from api.models import Question
+
+
+__all__ = ['calculate_form_results']
+
 
 def calculate_form_results(responses, form):
     """

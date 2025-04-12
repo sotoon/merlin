@@ -178,6 +178,7 @@ class FormAssignedByAPITestCase(APITestCase):
         self.assertIn(self.user_leader2.id, results_by_assigned_by)
         self.assertEqual(results_by_assigned_by[self.user_leader2.id], self.user_leader2.name)
 
+
 class FormResultsAPITestCase(APITestCase):
     
     def setUp(self):
@@ -480,6 +481,7 @@ class FormResultsAPITestCase(APITestCase):
         # Since there are no assignments, we should return a 403 Forbidden response
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["detail"], "You are not authorized to view results for this form.")
+
 
 class AssignedByEndpointTestCase(APITestCase):
     def setUp(self):

@@ -4,7 +4,7 @@ from django.conf import settings
 
 from celery import shared_task
 
-from .models import EmailTrigger, EmailLog
+from ..models.email import EmailTrigger, EmailLog
 from api.models import User
 from .template_helpers import replace_placeholders
 
