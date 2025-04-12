@@ -1,11 +1,9 @@
-from django.core.mail import send_mail
-from django.template import Template, Context
-from django.conf import settings
-
 from merlin.celery import app as celery_app
 
-from .template_helpers import build_dynamic_context
-from .models import EmailTrigger
+from ..email_notifications.template_helpers import build_dynamic_context
+from ..models.email import EmailTrigger
+
+__all__ = ['send_email', 'send_bulk_emails']
 
 # Here, we have the email sending mechanisms
 
@@ -18,6 +16,7 @@ def send_email(event_type, user, **kwargs):
         args=[event_type, user.id, kwargs],
         countdown=1
     )
+
 
 def send_bulk_emails(event_type, users_queryset):
     """
