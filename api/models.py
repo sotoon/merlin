@@ -78,7 +78,7 @@ committee_roles_permissions = {
         "can_view": True,
         "can_edit": False,
         "can_view_summary": True,
-        "can_write_summary": True,
+        "can_write_summary": False,
         "can_write_feedback": True,
         "can_view_feedbacks": True,
     }
@@ -315,6 +315,7 @@ class Organization(MerlinBaseModel):
         User,
         on_delete=models.PROTECT,
         null=True,
+        blank=True,
         related_name="organization_cto",
         verbose_name="سی تی او",
     )
@@ -322,6 +323,7 @@ class Organization(MerlinBaseModel):
         User,
         on_delete=models.PROTECT,
         null=True,
+        blank=True,
         related_name="organization_vp",
         verbose_name="وی پی",
     )
@@ -329,6 +331,7 @@ class Organization(MerlinBaseModel):
         User,
         on_delete=models.PROTECT,
         null=True,
+        blank=True,
         related_name="organization_ceo",
         verbose_name="سی ای او",
     )
@@ -336,8 +339,17 @@ class Organization(MerlinBaseModel):
         User,
         on_delete=models.PROTECT,
         null=True,
+        blank=True,
         related_name="organization_function_owner",
         verbose_name="فانکشن اونر",
+    )
+    cpo = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cpo",
+        verbose_name="سی پی او",
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
@@ -403,7 +415,7 @@ class Committee(MerlinBaseModel):
         User, related_name="committee_members", verbose_name="اعضا"
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
-    roles = models.ManyToManyField(Role, related_name='role_committees')
+    roles = models.ManyToManyField(Role, related_name='role_committees', blank=True)
 
     class Meta:
         verbose_name = "کمیته"
@@ -664,40 +676,34 @@ class NoteUserAccess(MerlinBaseModel):
                 )
 
         # Agile Coach
-        cls.objects.update_or_create(
-            user=note.owner.agile_coach,
-            note=note,
-            defaults={
-                "can_view": True,
-                "can_edit": False,
-                "can_view_summary": True,
-                "can_write_summary": True,
-                "can_write_feedback": True,
-                "can_view_feedbacks": True,
-            },
-        )
+        if (
+            agile_coach := note.owner.agile_coach
+        ) is not None:
+            cls.objects.update_or_create(
+                user=agile_coach,
+                note=note,
+                defaults={
+                    "can_view": True,
+                    "can_edit": False,
+                    "can_view_summary": True,
+                    "can_write_summary": True,
+                    "can_write_feedback": True,
+                    "can_view_feedbacks": True,
+                },
+            )
 
         # Committee members
-        committee = note.owner.committee
+        committee: Committee = note.owner.committee
         if committee is not None:
-            for member in committee.members.all():
-                if note.type == NoteType.Proposal:
-                    cls.objects.update_or_create(
-                        user=member,
-                        note=note,
-                        defaults={
-                            "can_view": note.is_sent_to_committee(),
-                            "can_edit": False,
-                            "can_view_summary": True,
-                            "can_write_summary": True,
-                            "can_write_feedback": True,
-                            "can_view_feedbacks": True,
-                        },
-                    )
-
             # Committee role members
             if note.submit_status in (NoteSubmitStatus.PENDING, NoteSubmitStatus.REVIEWED) and note.type in committee_roles_permissions.keys():
                 for member in note.owner.get_committee_role_members():
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults=committee_roles_permissions[note.type],
+                    )
+                for member in committee.members.all():
                     cls.objects.update_or_create(
                         user=member,
                         note=note,

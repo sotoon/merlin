@@ -172,11 +172,11 @@ class OrganizationAdmin(BaseModelAdmin):
     class OrganizationResource(BaseModelResource):
         class Meta:
             model = Organization
-            fields = ("name", "cto", "vp", "ceo", "function_owner", "description", )
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "description", )
 
     resource_class = OrganizationResource
     list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "description", ("date_created", "date_updated"),)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
     # search_fields = ["name", "cto__name", "cto__email"]
