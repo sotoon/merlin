@@ -209,10 +209,6 @@ class SummarySerializer(serializers.ModelSerializer):
         )
         return instance
 
-    def to_representation(self, instance):
-        data = super(NoteSerializer, self).to_representation(instance)
-        data['submit_status'] = data.pop('submit_status_name')
-        return data
 
 class QuestionSerializer(serializers.ModelSerializer):
     """
