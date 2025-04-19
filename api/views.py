@@ -4,8 +4,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import datetime, time
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
@@ -31,29 +31,20 @@ from api.serializers import (
     FormResultsSerializer,
 )
 
-AUTH_RESPONSE_SCHEMA = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        "name": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Name of the user"
-        ),
-        "email": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Email of the user"
-        ),
-        "tokens": openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "refresh": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="Refresh token",
-                ),
-                "access": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Access token"
-                ),
+AUTH_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "description": "Name of the user"},
+        "email": {"type": "string", "description": "Email of the user"},
+        "tokens": {
+            "type": "object",
+            "properties": {
+                "refresh": {"type": "string", "description": "Refresh token"},
+                "access": {"type": "string", "description": "Access token"},
             },
-        ),
+        },
     },
-)
+}
 
 
 class SignupView(APIView):
@@ -63,13 +54,14 @@ class SignupView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        request_body=UserSerializer,
+    @extend_schema(
+        request=UserSerializer,
         responses={
-            201: openapi.Response(
-                "Successfully Signed Up!",
-                schema=AUTH_RESPONSE_SCHEMA,
+            201: OpenApiResponse(
+                description="Successfully Signed Up!",
+                response=AUTH_RESPONSE_SCHEMA,
             ),
+            400: OpenApiResponse(description="Bad Request"),
         },
     )
     def post(self, request, *args, **kwargs):
@@ -98,13 +90,14 @@ class LoginView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        request_body=UserSerializer,
+    @extend_schema(
+        request=UserSerializer,
         responses={
-            200: openapi.Response(
-                "Successfully Logged In!",
-                schema=AUTH_RESPONSE_SCHEMA,
-            )
+            200: OpenApiResponse(
+                description="Successfully Logged In!",
+                response=AUTH_RESPONSE_SCHEMA,
+            ),
+            401: OpenApiResponse(description="Invalid credentials"),
         },
     )
     def post(self, request, *args, **kwargs):
@@ -136,20 +129,21 @@ class BepaCallbackView(APIView):
     Gets the code from the BEPA and exchanges it for an access token.
     """
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                "code",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="code",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
                 description="Code from BEPA",
             )
         ],
         responses={
-            200: openapi.Response(
-                "Successfully Logged In!",
-                schema=AUTH_RESPONSE_SCHEMA,
-            )
+            200: OpenApiResponse(
+                description="Successfully Logged In!",
+                response=AUTH_RESPONSE_SCHEMA,
+            ),
+            400: OpenApiResponse(description="Bad Request"),
         },
     )
     def get(self, request, *args, **kwargs):
@@ -214,19 +208,20 @@ class VerifyTokenView(GenericAPIView):
 
     serializer_class = TokenSerializer
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                "token",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="token",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
                 description="Token",
             )
         ],
         responses={
-            200: openapi.Response(
-                description="Verified Successfully", schema=UserSerializer
-            )
+            200: OpenApiResponse(
+                description="Verified Successfully", response=UserSerializer
+            ),
+            401: OpenApiResponse(description="Unauthorized"),
         },
     )
     def post(self, request, *args, **kwargs):
