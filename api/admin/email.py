@@ -2,6 +2,10 @@ from django.contrib import admin
 
 from api.models import EmailTemplate, EmailTrigger, EmailLog
 
+
+__all__ = ['EmailTemplateAdmin', 'EmailTriggerAdmin', 'EmailLogAdmin']
+
+
 @admin.register(EmailTemplate)
 class EmailTemplateAdmin(admin.ModelAdmin):
     list_display = ('name', 'subject', 'date_created')
