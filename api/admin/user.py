@@ -3,6 +3,10 @@ from django.contrib import admin
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
 from api.models import User
 
+
+__all__ = ['UserAdmin']
+
+
 @admin.register(User)
 class UserAdmin(BaseModelAdmin):
     class UserResource(BaseModelResource):

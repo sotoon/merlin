@@ -8,6 +8,10 @@ from api.models import (
     NoteUserAccess
 )
 
+
+__all__ = ['NoteAdmin', 'FeedbackAdmin', 'SummaryAdmin', 'NoteUserAccessAdmin']
+
+
 @admin.register(Note)
 class NoteAdmin(BaseModelAdmin):
     class NoteResource(BaseModelResource):

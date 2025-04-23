@@ -4,6 +4,10 @@ from django.contrib import admin
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
 from api.models import Department, Tribe, Chapter, Team, Committee
 
+
+__all__ = ['DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin']
+
+
 @admin.register(Department)
 class DepartmentAdmin(BaseModelAdmin):
     list_display = ("name", "date_created", "date_updated")
