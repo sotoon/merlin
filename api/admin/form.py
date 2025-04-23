@@ -12,6 +12,11 @@ from api.models import(
     User
 )
 
+
+__all__ = ['QuestionInline', 'FormAssignmentInline', 'FormAdmin', 'QuestionAdmin', 
+           'ResponseAdmin', 'FormAssignmentAdmin']
+
+
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 1
