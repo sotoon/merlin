@@ -1,7 +1,6 @@
-from ..models.email import EmailTrigger
-from .utils import send_bulk_email
+from api.utils import send_bulk_email
 from .template_helpers import replace_placeholders
-from api.models import User
+from api.models import User, EmailTrigger
 
 # Here, we isolate the emails submodule business logic
 
