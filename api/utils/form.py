@@ -20,6 +20,7 @@ def calculate_form_results(responses, form):
     results = defaultdict(list)
     category_averages = {}
     question_averages = []
+    category_counts = {}    # This is for keeping the number of assessing users
     total_sum = 0
     total_count = 0
 
@@ -29,6 +30,7 @@ def calculate_form_results(responses, form):
         category_avg = category_responses.aggregate(avg=Avg("answer"))["avg"]
 
         category_averages[category] = category_avg
+        category_counts[category] = category_responses.count()
 
     # Calculate per-question averages
     for question in Question.objects.filter(form=form):
@@ -39,6 +41,7 @@ def calculate_form_results(responses, form):
             "id": question.id,
             "text": question.question_text,
             "average": question_avg,
+            "count": question_responses.count()
         })
 
         # Add to total for overall average
@@ -52,4 +55,6 @@ def calculate_form_results(responses, form):
         "total_average": total_average,     # float
         "categories": category_averages,    # dict
         "questions": question_averages,     # list of dicts
+        "category_counts": category_counts, # list of integers
+        "questions": question_averages,     # list of integers
     }

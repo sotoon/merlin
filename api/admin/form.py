@@ -205,7 +205,8 @@ class FormAdmin(admin.ModelAdmin):
             "Assessed User",
             "Type",
             "Item",
-            "Average"
+            "Average Score",
+            "Response Count"
         ])
 
         for form in queryset:
@@ -238,7 +239,8 @@ class FormAdmin(admin.ModelAdmin):
                         assessed_user.name,
                         "Category",
                         category,
-                        f"{avg:.2f}" if avg is not None else ""
+                        f"{avg:.2f}" if avg is not None else "",
+                        results["category_counts"].get(category, 0)
                     ])
 
                 # write per‑question averages
@@ -248,7 +250,8 @@ class FormAdmin(admin.ModelAdmin):
                         assessed_user.name,
                         "Question",
                         q["text"],
-                        f"{q['average']:.2f}" if q["average"] is not None else ""
+                        f"{q['average']:.2f}" if q["average"] is not None else "",
+                        q.get("count", 0)
                     ])
 
         self.message_user(
