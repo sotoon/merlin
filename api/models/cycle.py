@@ -1,6 +1,6 @@
 from django.db import models
 
-from .base import MerlinBaseModel
+from api.models.base import MerlinBaseModel
 
 __all__ = ['Cycle']
 

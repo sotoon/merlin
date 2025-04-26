@@ -1,8 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import MerlinBaseModel
-from .user import User
+from api.models.base import MerlinBaseModel
+from api.models.user import User
 
 __all__ = ['Department', 'Chapter', 'Tribe', 'Team', 'Committee']
 
