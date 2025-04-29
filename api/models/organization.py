@@ -2,9 +2,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from .base import MerlinBaseModel
-from .user import User
 
-__all__ = ['Department', 'Chapter', 'Tribe', 'Team', 'Committee']
+__all__ = ['Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'Organization', ]
 
 class Department(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
@@ -24,7 +23,7 @@ class Chapter(MerlinBaseModel):
         Department, on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
     )
     leader = models.ForeignKey(
-        User,
+        "api.User",
         on_delete=models.PROTECT,
         null=True,
         related_name="chapter_leader",
@@ -46,12 +45,20 @@ class Tribe(MerlinBaseModel):
         Department, on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
     )
     leader = models.ForeignKey(
-        User,
+        "api.User",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="tribe_leader",
         verbose_name="لیدر",
+    )
+    director = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="tribe_director",
+        verbose_name="دیرکتور",
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
@@ -69,7 +76,7 @@ class Team(MerlinBaseModel):
         Department, on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
     )
     leader = models.ForeignKey(
-        User,
+        "api.User",
         on_delete=models.PROTECT,
         null=True,
         related_name="team_leader",
@@ -96,13 +103,66 @@ class Team(MerlinBaseModel):
 class Committee(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
     members = models.ManyToManyField(
-        User, related_name="committee_members", verbose_name="اعضا"
+        "api.User", related_name="committee_members", verbose_name="اعضا"
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
+    roles = models.ManyToManyField("api.Role", related_name='role_committees', blank=True)
 
     class Meta:
         verbose_name = "کمیته"
         verbose_name_plural = "کمیته‌ها"
+
+    def __str__(self):
+        return self.name
+
+
+class Organization(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    cto = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cto",
+        verbose_name="سی تی او",
+    )
+    vp = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_vp",
+        verbose_name="وی پی",
+    )
+    ceo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_ceo",
+        verbose_name="سی ای او",
+    )
+    function_owner = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_function_owner",
+        verbose_name="فانکشن اونر",
+    )
+    cpo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cpo",
+        verbose_name="سی پی او",
+    )
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "ارگانیزیشن"
+        verbose_name_plural = "ارگانیزیشن‌ها"
 
     def __str__(self):
         return self.name

@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
-from api.models import Department, Tribe, Chapter, Team, Committee
+from api.models import Department, Tribe, Chapter, Team, Committee, Organization
 
 
 __all__ = ['DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin']
@@ -23,18 +23,36 @@ class TribeAdmin(BaseModelAdmin):
     class TribeResource(BaseModelResource):
         leader = RESOURCE_FIELDS["leader"]
         department = RESOURCE_FIELDS["department"]
+        director = RESOURCE_FIELDS["director"]
 
         class Meta:
             model = Tribe
-            fields = ("name", "leader", "department")
+            fields = ("name", "leader", "department", "director", )
 
     resource_class = TribeResource
-    list_display = ("name", "department", "leader", "date_created", "date_updated",)
-    fields = ("uuid","name", ("department", "leader"), "description", ("date_created", "date_updated"),)
+    list_display = ("name", "department", "leader", "director", "date_created", "date_updated",)
+    fields = ("uuid","name", ("department", "leader", "director", ), "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__name", "leader__email"]
     search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
+
+
+@admin.register(Organization)
+class OrganizationAdmin(BaseModelAdmin):
+    class OrganizationResource(BaseModelResource):
+        class Meta:
+            model = Organization
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "description", )
+
+    resource_class = OrganizationResource
+    list_display = ("name", "date_created", "date_updated",)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "description", ("date_created", "date_updated"),)
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "name")
+    # search_fields = ["name", "cto__name", "cto__email"]
+    # search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
+    search_fields = ["name"]
 
 
 @admin.register(Chapter)
@@ -70,7 +88,7 @@ class TeamAdmin(BaseModelAdmin):
 @admin.register(Committee)
 class CommitteeAdmin(BaseModelAdmin):
     list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid", "name", "description", "members", ("date_created", "date_updated"),)
+    fields = ("uuid", "name", "description", "members", "roles", ("date_created", "date_updated"),)
     filter_horizontal = ("members",)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")

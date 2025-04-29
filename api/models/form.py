@@ -3,10 +3,10 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from .base import MerlinBaseModel
-from .user import User
 from .cycle import Cycle
 
 __all__ = ['Form', 'Question', 'FormResponse', 'FormAssignment']
+
 
 class Form(MerlinBaseModel):
     class FormType(models.TextChoices):
@@ -53,7 +53,7 @@ class Question(MerlinBaseModel):
 
 class FormResponse(MerlinBaseModel):
     answer = models.PositiveBigIntegerField(null=True, blank=True, verbose_name="امتیاز")   # null represents "I don't know"
-    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="کاربر")
+    user = models.ForeignKey("api.User", on_delete=models.PROTECT, verbose_name="کاربر")
     form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
     question = models.ForeignKey(Question, on_delete=models.PROTECT, verbose_name="سوال")
 
@@ -79,8 +79,8 @@ class FormResponse(MerlinBaseModel):
 
 class FormAssignment(MerlinBaseModel):
     form = models.ForeignKey(Form, on_delete=models.PROTECT, verbose_name="فرم")
-    assigned_to = models.ForeignKey(User, on_delete=models.PROTECT, related_name="assigned_forms", verbose_name="گیرنده")
-    assigned_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="created_assignments", verbose_name="فرستنده")
+    assigned_to = models.ForeignKey("api.User", on_delete=models.PROTECT, related_name="assigned_forms", verbose_name="گیرنده")
+    assigned_by = models.ForeignKey("api.User", on_delete=models.PROTECT, related_name="created_assignments", verbose_name="فرستنده")
     message = models.TextField(null=True, blank=True, verbose_name="پیام")
     deadline = models.DateField(verbose_name="ددلاین")
     is_completed = models.BooleanField(default=False, verbose_name="تکمیل‌شده")

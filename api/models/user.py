@@ -2,8 +2,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import MerlinBaseModel
-from .note import Note, NoteUserAccess, leader_permissions
+from api.models.base import MerlinBaseModel
+from api.models.note import Note, NoteUserAccess, leader_permissions
+from api.models.role import RoleScope
 
 __all__ = ['User']
 
@@ -31,6 +32,9 @@ class User(MerlinBaseModel, AbstractUser):
     team = models.ForeignKey(
         "Team", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="تیم"
     )
+    organization = models.ForeignKey(
+        "Organization", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="ارگانیزیشن"
+    )
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
     )
@@ -53,6 +57,14 @@ class User(MerlinBaseModel, AbstractUser):
     level = models.CharField(
         max_length=256, default="", blank=True, null=True, verbose_name="سطح"
     )
+    product_manager = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="product_manager_users",
+        verbose_name="PM/پروداکت منجر",
+    )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -60,6 +72,29 @@ class User(MerlinBaseModel, AbstractUser):
         if self.name:
             return self.name
         return self.email
+
+    @property
+    def tribe(self):
+        return self.team.tribe
+
+    def get_committee_role_members(self):
+        committee_role_members = set()
+
+        for role in self.committee.roles.distinct():
+            role_scope = role.role_scope.lower()
+            role_type = role.role_type.lower()
+            member = None
+
+            if role.role_scope == RoleScope.USER:
+                member = getattr(self, role_type)
+            else:
+                scope_object = getattr(self, role_scope)
+                if scope_object:
+                    member = getattr(scope_object, role_type)
+
+            if member:
+                committee_role_members.add(member)
+        return committee_role_members
 
     def ensure_new_leader_note_accesses(self, new_leader):
         notes = Note.objects.filter(type__in=leader_permissions.keys(), owner=self)

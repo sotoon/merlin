@@ -2,8 +2,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from .base import MerlinBaseModel
+from api.models.organization import Committee
 
 __all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Feedback', 'Summary', 'NoteUserAccess']
+
 
 class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
@@ -50,6 +52,17 @@ leader_permissions = {
         "can_edit": False,
         "can_view_summary": True,
         "can_write_summary": True,
+        "can_write_feedback": True,
+        "can_view_feedbacks": True,
+    }
+}
+
+committee_roles_permissions = {
+    NoteType.Proposal: {
+        "can_view": True,
+        "can_edit": False,
+        "can_view_summary": True,
+        "can_write_summary": False,
         "can_write_feedback": True,
         "can_view_feedbacks": True,
     }
@@ -195,7 +208,7 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
     @classmethod
-    def ensure_note_predefined_accesses(cls, note):
+    def ensure_note_predefined_accesses(cls, note: Note):
         # Owner
         cls.objects.update_or_create(
             user=note.owner,
@@ -225,35 +238,38 @@ class NoteUserAccess(MerlinBaseModel):
                 )
 
         # Agile Coach
-        cls.objects.update_or_create(
-            user=note.owner.agile_coach,
-            note=note,
-            defaults={
-                "can_view": True,
-                "can_edit": False,
-                "can_view_summary": True,
-                "can_write_summary": True,
-                "can_write_feedback": True,
-                "can_view_feedbacks": True,
-            },
-        )
+        if (
+            agile_coach := note.owner.agile_coach
+        ) is not None:
+            cls.objects.update_or_create(
+                user=agile_coach,
+                note=note,
+                defaults={
+                    "can_view": True,
+                    "can_edit": False,
+                    "can_view_summary": True,
+                    "can_write_summary": True,
+                    "can_write_feedback": True,
+                    "can_view_feedbacks": True,
+                },
+            )
 
         # Committee members
-        committee = note.owner.committee
+        committee: Committee = note.owner.committee
         if committee is not None:
-            for member in committee.members.all():
-                if note.type == NoteType.Proposal:
+            # Committee role members
+            if note.submit_status in (NoteSubmitStatus.PENDING, NoteSubmitStatus.REVIEWED) and note.type in committee_roles_permissions.keys():
+                for member in note.owner.get_committee_role_members():
                     cls.objects.update_or_create(
                         user=member,
                         note=note,
-                        defaults={
-                            "can_view": note.is_sent_to_committee(),
-                            "can_edit": False,
-                            "can_view_summary": True,
-                            "can_write_summary": True,
-                            "can_write_feedback": True,
-                            "can_view_feedbacks": True,
-                        },
+                        defaults=committee_roles_permissions[note.type],
+                    )
+                for member in committee.members.all():
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults=committee_roles_permissions[note.type],
                     )
 
         # Mentioned users

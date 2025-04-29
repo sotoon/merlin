@@ -60,7 +60,6 @@ def assign_default_forms(sender, instance, created, **kwargs):
                 skipped_users.append(user)
                 continue
 
-            assigned_by = None
 
             if instance.form_type == Form.FormType.TL:
                 leaders = user.get_leaders()
@@ -77,7 +76,6 @@ def assign_default_forms(sender, instance, created, **kwargs):
 
             else:
                 skipped_users.append(user)
-                assigned_by = None
 
         # Run the query only for affected_users
         assignments = [
