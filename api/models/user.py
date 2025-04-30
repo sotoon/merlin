@@ -2,8 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import MerlinBaseModel
-from .note import Note, NoteUserAccess, leader_permissions
+from api.models.base import MerlinBaseModel
+from api.models.note import Note, NoteUserAccess, leader_permissions
 
 __all__ = ['User']
 

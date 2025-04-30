@@ -15,12 +15,13 @@ from api.serializers import (
     FormSubmissionSerializer,
     FormResultsSerializer,
 )
+from api.views.mixins import CycleQueryParamMixin
 
 
 __all__ = ['FormViewSet']
 
 
-class FormViewSet(viewsets.ModelViewSet):
+class FormViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     """
     A ViewSet to handle CRUD operations on forms, and form assignment.
     """
