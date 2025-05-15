@@ -1,11 +1,19 @@
 from rest_framework import serializers
+from django.utils import timezone
+from django.db import transaction
 
+from api.utils import grant_oneonone_access
 from api.models import (
         Feedback,
         Note,
+        NoteType,
         NoteUserAccess,
         Summary,
         User,
+        OneOnOne,
+        OneOnOneTagLink,
+        ValueTag,
+        Cycle,
 )
 
 
@@ -147,3 +155,54 @@ class SummarySerializer(serializers.ModelSerializer):
             note=validated_data["note"], defaults=validated_data
         )
         return instance
+
+
+class OneOnOneTagLinkSerializer(serializers.ModelSerializer):
+    tag_id = serializers.PrimaryKeyRelatedField(queryset=ValueTag.objects.all(), source="tag", write_only=True)
+
+    class Meta:
+        model = OneOnOneTagLink
+        fields = ("tag_id", "section")
+
+
+class OneOnOneSerializer(serializers.ModelSerializer):
+    tags = OneOnOneTagLinkSerializer(many=True, write_only=True)
+    member_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source="member")
+
+    class Meta:
+        model = OneOnOne
+        exclude = ("organisation", "note", "created_at", "updated_at")
+        read_only_fields = ("id", "cycle")
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop("tags", [])
+        request = self.context["request"]
+        cycle = Cycle.get_current_cycle()
+        member = self.context["member"]  # injected by ViewSet
+
+
+        with transaction.atomic():
+            note = Note.objects.create(
+                owner=request.user,
+                title=f"1:1 • {validated_data['member']}",
+                content="",
+                date=validated_data.get("date", timezone.now().date()),
+                type=NoteType.ONE_ON_ONE,
+                cycle=cycle,
+            )
+            note.mentioned_users.add(validated_data["member"])
+            oneonone = OneOnOne.objects.create(note=note, member=member, cycle=cycle, **validated_data)
+            for tag in tags_data:
+                OneOnOneTagLink.objects.create(one_on_one=oneonone, **tag)
+            grant_oneonone_access(note)
+        return oneonone
+
+    # Prevent leader and member to access each others vibe marks
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        user = self.context["request"].user
+        if instance.note.owner_id == user.id:
+            data.pop("member_vibe", None)
+        elif instance.member_id == user.id:
+            data.pop("leader_vibe", None)
+        return data
