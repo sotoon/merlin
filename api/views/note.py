@@ -1,17 +1,19 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions, mixins
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import Feedback, Note, NoteType, NoteUserAccess, Summary
-from api.permissions import FeedbackPermission, NotePermission, SummaryPermission
+from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne)
+from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
     SummarySerializer,
+    OneOnOneSerializer,
 )
 
 
@@ -169,3 +171,41 @@ class SummaryViewSet(viewsets.ModelViewSet):
         ).exists():
             return Summary.objects.filter(note=current_note)
         return Summary.objects.none()
+
+
+class OneOnOneViewSet(CycleQueryParamMixin,
+                      mixins.CreateModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.ListModelMixin,
+                      viewsets.GenericViewSet):
+    """CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`."""
+
+    serializer_class = OneOnOneSerializer
+    permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess)
+
+    # Fetches user form the id in the url, with a guard-rail
+    def _load_member(self):
+        from api.models.user import User
+        self.member_obj = User.objects.get(pk=self.kwargs["member_id"])
+        if self.member_obj.leader_id != self.request.user.id:
+            raise PermissionDenied("Not your direct report")
+
+    # Loads member_obj once, and stores it on self before any list/create/detail methods
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if "member_id" in self.kwargs:
+            self._load_member()
+
+    # Injecting the loaded member into context, so the create() attach the correct FK automatically
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        if hasattr(self, "member_obj"):
+            ctx["member"] = self.member_obj
+        return ctx
+
+    def get_queryset(self):
+        qs = OneOnOne.objects.select_related("member", "cycle", "note")
+        if "member_id" in self.kwargs:
+            qs = qs.filter(member_id=self.kwargs["member_id"], note__owner=self.request.user)
+        return super().filter_queryset(qs)

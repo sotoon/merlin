@@ -8,6 +8,10 @@ from api import views
 router = routers.DefaultRouter()
 router.register(r"notes", views.NoteViewSet, basename="note")
 
+router.register(r"my-team", views.MyTeamViewSet, basename="my-team")
+team_router = routers.NestedDefaultRouter(router, r"my-team", lookup="member")
+team_router.register(r"one-on-ones", views.OneOnOneViewSet, basename="member-oneonones")
+
 feedbacks_router = routers.NestedDefaultRouter(router, r"notes", lookup="note")
 feedbacks_router.register(r"feedbacks", views.FeedbackViewSet, basename="feedbacks")
 
@@ -23,13 +27,13 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("verify-token/", views.VerifyTokenView.as_view(), name="verify-token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
-    path("my-team/", views.MyTeamView.as_view(), name="my-team"),
     path("users/", views.UsersView.as_view(), name="users"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("", include(router.urls)),
     path("", include(feedbacks_router.urls)),
     path("", include(summaries_router.urls)),
     path("", include(forms_router.urls)),
+    path("", include(team_router.urls)),
 ]
 
 if settings.SIGNUP_DISABLED != "true":

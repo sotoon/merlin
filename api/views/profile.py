@@ -1,16 +1,17 @@
-from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateAPIView
+from django.db.models import Max, Count, Q
+from rest_framework import permissions, viewsets
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import User
+from api.models import User, Cycle
 from api.serializers import (
     ProfileSerializer,
     ProfileListSerializer,
 )
 
 
-__all__ = ['ProfileView', 'UsersView', 'MyTeamView']
+__all__ = ['ProfileView', 'UsersView', 'MyTeamViewSet']
 
 
 class ProfileView(RetrieveUpdateAPIView):
@@ -42,17 +43,30 @@ class UsersView(ListAPIView):
         return User.objects.all()
 
 
-class MyTeamView(GenericAPIView):
-    """
-    List users that the current user lead
-    """
+class MyTeamViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only list of the current user's direct reports with 1:1 metadata, for the current cycle."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProfileSerializer
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        team_users = User.objects.filter(leader=user)
-        serializer = self.get_serializer(team_users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+    def get_queryset(self):
+        leader = self.request.user
+        cycle  = Cycle.get_current_cycle()
+        return (
+            User.objects.filter(leader=leader)
+            .annotate(
+                latest_oneonone=Max(
+                    "one_on_ones__note__date",
+                    filter=Q(one_on_ones__note__owner=leader,
+                             one_on_ones__cycle=cycle,
+                             ),
+                    
+                ),
+                oneonone_count=Count(
+                    "one_on_ones",
+                    filter=Q(one_on_ones__note__owner=leader,
+                             one_on_ones__cycle=cycle,
+                             ),
+                ),
+            )
+        )

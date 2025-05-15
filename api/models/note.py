@@ -1,9 +1,11 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from .base import MerlinBaseModel
+from api.models import ValueTag, ValueSection, Cycle
 
-__all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Feedback', 'Summary', 'NoteUserAccess']
+__all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Feedback', 'Summary', 'NoteUserAccess', 'Vibe',
+           'OneOnOne', 'OneOnOneTagLink']
 
 class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
@@ -13,6 +15,7 @@ class NoteType(models.TextChoices):
     Proposal = "Proposal", "پروپوزال"
     Message = "Message", "پیام"
     Template = "Template", "قالب"
+    ONE_ON_ONE = "OneOnOne", "یک‌به‌یک"
 
     @classmethod
     def default(cls):
@@ -272,3 +275,59 @@ class NoteUserAccess(MerlinBaseModel):
                     "can_write_feedback": True
                 },
             )
+
+
+class Vibe(models.TextChoices):
+    HAPPY = ":)", "😊"
+    NEUTRAL = ":|", "😐"
+    SAD = ":(", "☹️"
+
+class OneOnOne(MerlinBaseModel):
+    """Detail table linked 1-to-1 with a generic Note row."""
+
+    note = models.OneToOneField(Note, on_delete=models.CASCADE, related_name="one_on_one")
+    organisation = models.ForeignKey(
+        "api.Organization", on_delete=models.PROTECT, null=True, blank=True
+    )
+    member = models.ForeignKey(
+        "api.User", on_delete=models.CASCADE, related_name="one_on_ones"
+    )
+    # --- 400-char summaries ---
+    personal_summary = models.CharField(max_length=400, null=True, blank=True)
+    career_summary = models.CharField(max_length=400, null=True, blank=True)
+    communication_summary = models.CharField(max_length=400, null=True, blank=True)    
+    performance_summary = models.CharField(max_length=400)
+
+    # Actions text
+    actions = models.TextField()
+
+    # Vibes
+    leader_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True, blank=True)
+    member_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True, blank=True)
+
+    # Cycle auto-filled in serializer
+    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)
+
+    tags = models.ManyToManyField(
+        ValueTag, through="OneOnOneTagLink", related_name="one_on_one_tags"
+    )
+
+    other_notes = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "One-on-One"
+        verbose_name_plural = "One-on-Ones"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"1-on-1 • {self.member} • {self.note.date}"
+
+class OneOnOneTagLink(models.Model):
+    one_on_one = models.ForeignKey(OneOnOne, on_delete=models.CASCADE)
+    tag = models.ForeignKey(ValueTag, on_delete=models.CASCADE)
+    section = models.CharField(max_length=32, choices=ValueSection.choices)
+
+    class Meta:
+        unique_together = ("one_on_one", "tag", "section")
+        verbose_name = "One-on-One Tag Link"
+        verbose_name_plural = "One-on-One Tag Links"
