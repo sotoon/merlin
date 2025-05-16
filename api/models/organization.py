@@ -6,6 +6,59 @@ from api.models.user import User
 
 __all__ = ['Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag']
 
+
+class Organization(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    cto = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cto",
+        verbose_name="سی تی او",
+    )
+    vp = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_vp",
+        verbose_name="وی پی",
+    )
+    ceo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_ceo",
+        verbose_name="سی ای او",
+    )
+    function_owner = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_function_owner",
+        verbose_name="فانکشن اونر",
+    )
+    cpo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cpo",
+        verbose_name="سی پی او",
+    )
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "سازمان"
+        verbose_name_plural = "سازمان‌ها"
+
+    def __str__(self):
+        return self.name
+
+
 class Department(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
     description = models.TextField(blank=True, verbose_name="توضیحات")
