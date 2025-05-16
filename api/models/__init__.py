@@ -1,17 +1,17 @@
 from . import (
     base,
+    organization,
     cycle,
     form,
     note,
-    organization,
     user
 )
 
 from .base import *
+from .organization import *
 from .cycle import *
 from .form import *
 from .note import *
-from .organization import *
 from .user import *
 
 # This is for more clarity and preventing unintended names getting imported

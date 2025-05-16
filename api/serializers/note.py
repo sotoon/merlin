@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
 
-from api.utils import grant_oneonone_access
+from api.services import grant_oneonone_access
 from api.models import (
         Feedback,
         Note,
@@ -17,7 +17,8 @@ from api.models import (
 )
 
 
-__all__ = ['NoteUserAccessSerializer', 'NoteSerializer', 'FeedbackSerializer', 'SummarySerializer']
+__all__ = ['NoteUserAccessSerializer', 'NoteSerializer', 'FeedbackSerializer', 'SummarySerializer',
+           'OneOnOneSerializer', 'OneOnOneTagLinkSerializer']
 
 
 class NoteUserAccessSerializer(serializers.ModelSerializer):
