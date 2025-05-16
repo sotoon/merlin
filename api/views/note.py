@@ -18,7 +18,7 @@ from api.serializers import (
 from api.views.mixins import CycleQueryParamMixin
 
 
-__all__ = ['NoteViewSet', 'TemplatesView', 'FeedbackViewSet', 'SummaryViewSet']
+__all__ = ['NoteViewSet', 'TemplatesView', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet']
 
 
 class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
