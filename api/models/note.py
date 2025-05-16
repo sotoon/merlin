@@ -2,10 +2,11 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from .base import MerlinBaseModel
-from api.models import ValueTag, ValueSection, Cycle
+from api.models.organization import ValueTag, ValueSection
+from api.models.cycle import Cycle
 
 __all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Feedback', 'Summary', 'NoteUserAccess', 'Vibe',
-           'OneOnOne', 'OneOnOneTagLink']
+           'OneOnOne', 'OneOnOneTagLink', 'leader_permissions']
 
 class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
@@ -157,6 +158,7 @@ class Summary(MerlinBaseModel):
         return "جمع‌بندیِ " + str(self.note)
 
 
+                                                        # FUTURE ENHANCEMENT: Move this to api/services
 class NoteUserAccess(MerlinBaseModel):
     user = models.ForeignKey(
         "api.User", on_delete=models.CASCADE, null=True, verbose_name="کاربر"
