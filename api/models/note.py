@@ -325,7 +325,7 @@ class OneOnOne(MerlinBaseModel):
     class Meta:
         verbose_name = "One-on-One"
         verbose_name_plural = "One-on-Ones"
-        ordering = ("-created_at",)
+        ordering = ("-date_created",)
 
     def __str__(self):
         return f"1-on-1 • {self.member} • {self.note.date}"
