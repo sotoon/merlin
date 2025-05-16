@@ -89,6 +89,8 @@ class Note(MerlinBaseModel):
         default=NoteSubmitStatus.default(),
         verbose_name="وضعیت",
     )
+    cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True, )
 
     def is_sent_to_committee(self):
         return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
@@ -113,6 +115,8 @@ class Feedback(MerlinBaseModel):
     owner = models.ForeignKey("api.User", on_delete=models.CASCADE, verbose_name="نویسنده")
     content = models.TextField(verbose_name="محتوا")
     note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
+    cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True)
 
     class Meta:
         unique_together = (
@@ -149,6 +153,8 @@ class Summary(MerlinBaseModel):
         default=SummarySubmitStatus.default(),
         verbose_name="وضعیت",
     )
+    cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True)
 
     class Meta:
         verbose_name = "جمع‌بندی"
