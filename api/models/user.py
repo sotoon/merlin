@@ -65,6 +65,14 @@ class User(MerlinBaseModel, AbstractUser):
         related_name="product_manager_users",
         verbose_name="PM/پروداکت منجر",
     )
+    hrbp = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="hrbp_users",
+        verbose_name="اچ‌آربی‌پی",
+    )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

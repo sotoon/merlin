@@ -23,15 +23,16 @@ class TribeAdmin(BaseModelAdmin):
     class TribeResource(BaseModelResource):
         leader = RESOURCE_FIELDS["leader"]
         department = RESOURCE_FIELDS["department"]
-        director = RESOURCE_FIELDS["director"]
+        product_director = RESOURCE_FIELDS["product_director"]
+        engineering_director = RESOURCE_FIELDS["engineering_director"]
 
         class Meta:
             model = Tribe
-            fields = ("name", "leader", "department", "director", )
+            fields = ("name", "leader", "department", "product_director", "engineering_director", )
 
     resource_class = TribeResource
-    list_display = ("name", "department", "leader", "director", "date_created", "date_updated",)
-    fields = ("uuid","name", ("department", "leader", "director", ), "description", ("date_created", "date_updated"),)
+    list_display = ("name", "department", "leader", "product_director", "engineering_director", "date_created", "date_updated",)
+    fields = ("uuid","name", ("department", "leader", "product_director", "engineering_director", ), "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__name", "leader__email"]
@@ -43,11 +44,11 @@ class OrganizationAdmin(BaseModelAdmin):
     class OrganizationResource(BaseModelResource):
         class Meta:
             model = Organization
-            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "description", )
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", )
 
     resource_class = OrganizationResource
     list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "description", ("date_created", "date_updated"),)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
     # search_fields = ["name", "cto__name", "cto__email"]
@@ -94,4 +95,3 @@ class CommitteeAdmin(BaseModelAdmin):
     ordering = ("-date_created", "name")
     search_fields = ["name"]
     search_help_text = "جستجو در نام کمیته"
-
