@@ -48,9 +48,24 @@ RESOURCE_FIELDS = {
         attribute="product_manager",
         widget=ForeignKeyWidget(User, field="email"),
     ),
+    "hrbp": fields.Field(
+        column_name="hrbp",
+        attribute="hrbp",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
     "director": fields.Field(
         column_name="director",
         attribute="director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "product_director": fields.Field(
+        column_name="product_director",
+        attribute="product_director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "engineering_director": fields.Field(
+        column_name="engineering_director",
+        attribute="engineering_director",
         widget=ForeignKeyWidget(User, field="email"),
     ),
     "owner": fields.Field(
@@ -117,4 +132,3 @@ class BaseModelResource(resources.ModelResource):
             except self._meta.model.DoesNotExist:
                 return None
         return None
-

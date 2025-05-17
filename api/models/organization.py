@@ -52,13 +52,21 @@ class Tribe(MerlinBaseModel):
         related_name="tribe_leader",
         verbose_name="لیدر",
     )
-    director = models.ForeignKey(
+    product_director = models.ForeignKey(
         "api.User",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        related_name="tribe_director",
-        verbose_name="دیرکتور",
+        related_name="product_director_tribes",
+        verbose_name="دیرکتور محصولی",
+    )
+    engineering_director = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="engineering_director_tribes",
+        verbose_name="دیرکتور فنی",
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
@@ -157,6 +165,30 @@ class Organization(MerlinBaseModel):
         blank=True,
         related_name="organization_cpo",
         verbose_name="سی پی او",
+    )
+    hr_manager = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_hr_manager",
+        verbose_name="مدیر اچ‌آر",
+    )
+    sales_manager = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_sales_manager",
+        verbose_name="مدیر فروش",
+    )
+    cfo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cfo",
+        verbose_name="سی‌اف‌او",
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 

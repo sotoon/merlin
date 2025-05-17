@@ -7,12 +7,17 @@ __all__ = ['RoleType', 'RoleScope', 'Role', ]
 class RoleType(models.TextChoices):
     LEADER = "Leader", "لیدر"  # chapter and user
     CTO = "CTO", "سی تی او"  # organization
-    DIRECTOR = "Director", "دیرکتور"  # tribe
+    PRODUCT_DIRECTOR = "Product Director", "دیرکتور پروداکت"  # tribe
     VP = "VP", "وی پی"  # organization
     CEO = "CEO", "سی ای او"  # organization
     FUNCTION_OWNER = "Function Owner", "فانکشن اونر"  # organization
     PRODUCT_MANAGER = "Product Manager", "پروداکت منجر"  # user
     CPO = "CPO", "سی پی او"  # organization
+    HR_MANAGER = "HR Manager", "اچ آر منجر"  # organization
+    SALES_MANAGER = "Sales Manager", "مدیر فروش"  # organization
+    CFO = "CFO", "سی اف او"  # organization
+    HRBP = "HRBP", "اچ آر بی پی"
+    ENGINEERING_DIRECTOR = "Engineering Director", "دیرکتور مهندسی"  # tribe
 
     @classmethod
     def default(cls):
