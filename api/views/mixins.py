@@ -13,6 +13,6 @@ class CycleQueryParamMixin:
     def filter_queryset(self, queryset):
         cycle = self.get_cycle()
         if cycle is not None:
-            currnet_cycle = Cycle.get_current_cycle()
-            queryset = queryset.filter(cycle=currnet_cycle)
+            current_cycle = Cycle.get_current_cycle()
+            queryset = queryset.filter(cycle=current_cycle)
         return super().filter_queryset(queryset)
