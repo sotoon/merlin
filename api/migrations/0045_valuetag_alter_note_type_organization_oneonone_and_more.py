@@ -216,22 +216,18 @@ class Migration(migrations.Migration):
                 (
                     "leader_vibe",
                     models.CharField(
-                        blank=True,
                         choices=[(":)", "😊"), (":|", "😐"), (":(", "☹️")],
                         max_length=2,
-                        null=True,
                     ),
                 ),
                 (
                     "member_vibe",
                     models.CharField(
-                        blank=True,
                         choices=[(":)", "😊"), (":|", "😐"), (":(", "☹️")],
                         max_length=2,
-                        null=True,
                     ),
                 ),
-                ("other_notes", models.TextField(blank=True, null=True)),
+                ("extra_notes", models.TextField(blank=True, null=True)),
                 (
                     "cycle",
                     models.ForeignKey(
