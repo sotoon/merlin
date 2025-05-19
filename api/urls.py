@@ -29,6 +29,7 @@ urlpatterns = [
     path("profile/", views.ProfileView.as_view(), name="profile"),
     path("users/", views.UsersView.as_view(), name="users"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
+    path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
     path("", include(router.urls)),
     path("", include(feedbacks_router.urls)),
     path("", include(summaries_router.urls)),
