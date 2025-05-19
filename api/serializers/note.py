@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from api.services import grant_oneonone_access
+from api.serializers import TagReadSerializer
 from api.models import (
         Feedback,
         Note,
@@ -158,25 +159,63 @@ class SummarySerializer(serializers.ModelSerializer):
         return instance
 
 
-class OneOnOneTagLinkSerializer(serializers.ModelSerializer):
-    tag_id = serializers.PrimaryKeyRelatedField(queryset=ValueTag.objects.all(), source="tag", write_only=True)
+class NoteMetaSerializer(serializers.ModelSerializer):
+    """Nested minimal Note info for UI convenience (title, date, mentions, links)."""
+    class Meta:
+        model = Note
+        fields = ["id", "title", "date", "mentioned_users", "linked_notes"]
 
+
+# Used for analytics endpoints
+class OneOnOneTagLinkReadSerializer(serializers.ModelSerializer):
+    """
+    Read-only: return tag/section per link on each 1:1
+    """
+    tag = TagReadSerializer()
     class Meta:
         model = OneOnOneTagLink
-        fields = ("tag_id", "section")
+        fields = ["id", "tag", "section"]
 
 
 class OneOnOneSerializer(serializers.ModelSerializer):
-    tags = OneOnOneTagLinkSerializer(many=True, write_only=True)
-    member_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source="member")
+    """
+    Handles 1:1 CRUD with:
+    - Client sends 'tags': [id, ...]
+    - Server creates Note, OneOnOne, TagLinks in a single transaction
+    - 'tag_links' read-only for analytics/reporting
+    - 'note_meta' nested for UI
+    """
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ValueTag.objects.filter(orgvaluetag__is_enabled=True)
+    )
+    tag_links = OneOnOneTagLinkReadSerializer(
+        source="oneononetaglink_set", many=True, read_only=True
+    )
+    note_meta = NoteMetaSerializer(source="note", read_only=True)
+    linked_notes = serializers.PrimaryKeyRelatedField(
+        queryset=Note.objects.all(), many=True, required=False
+    )
+    mentioned_users = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), many=True, required=False
+    )
+    # member_id injects by the ViewSet
 
     class Meta:
         model = OneOnOne
-        exclude = ("organisation", "note", "created_at", "updated_at")
-        read_only_fields = ("id", "cycle")
+        fields = [
+            "id", "note", "note_meta", "member", "cycle",
+            "personal_summary", "career_summary", "performance_summary", "communication_summary",
+            "actions", "leader_vibe", "member_vibe",
+            "tags",         # input/output: flat list of IDs
+            "tag_links",    # output: sectioned/grouped per 1:1 instance
+        ]        
+        read_only_fields = ("id", "note", "member")
 
     def create(self, validated_data):
-        tags_data = validated_data.pop("tags", [])
+        tags = validated_data.pop("tags", [])
+        linked_notes = validated_data.pop("linked_notes", [])
+        mentioned_users = validated_data.pop("mentioned_users", [])
         request = self.context["request"]
         cycle = Cycle.get_current_cycle()
         member = self.context["member"]  # injected by ViewSet
@@ -191,11 +230,43 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                 type=NoteType.ONE_ON_ONE,
                 cycle=cycle,
             )
-            note.mentioned_users.add(validated_data["member"])
+            note.linked_notes.set(linked_notes)
+            note.mentioned_users.set(mentioned_users + [member])  # always mention member
             oneonone = OneOnOne.objects.create(note=note, member=member, cycle=cycle, **validated_data)
-            for tag in tags_data:
-                OneOnOneTagLink.objects.create(one_on_one=oneonone, **tag)
+            for tag in tags:
+                OneOnOneTagLink.objects.create(one_on_one=oneonone, 
+                                               tag=tag, 
+                                               section=tag.section)
             grant_oneonone_access(note)
+        return oneonone
+
+    def update(self, instance, validated_data):
+        """
+        Update OneOnOne, Note.linked_notes, Note.mentioned_users, and TagLinks.
+        Tag links are fully replaced; section always comes from tag.section.
+        """
+        tags = validated_data.pop("tags", None)
+        linked_notes = validated_data.pop("linked_notes", None)
+        mentioned_users = validated_data.pop("mentioned_users", None)
+
+        with transaction.atomic():
+            oneonone = super().update(instance, validated_data)
+            note = oneonone.note
+
+            if linked_notes is not None:
+                note.linked_notes.set(linked_notes)
+
+            if mentioned_users is not None:
+                note.mentioned_users.set(list(set(mentioned_users + [oneonone.member])))
+
+            if tags is not None:
+                OneOnOneTagLink.objects.filter(one_on_one=oneonone).delete()
+                for tag in tags:
+                    OneOnOneTagLink.objects.create(
+                        one_on_one=oneonone,
+                        tag=tag,
+                        section=tag.section
+                    )
         return oneonone
 
     # Prevent leader and member to access each others vibe marks

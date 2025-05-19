@@ -25,7 +25,7 @@ def grant_oneonone_access(note):
     NoteUserAccess.objects.filter(note=note).delete()
 
     # leader / owner
-    NoteUserAccess.objects.create(
+    NoteUserAccess.objects.update_or_create(
         user=note.owner,
         note=note,
         can_view=True,  can_edit=True,
@@ -34,7 +34,7 @@ def grant_oneonone_access(note):
     )
 
     # member
-    NoteUserAccess.objects.create(
+    NoteUserAccess.objects.update_or_create(
         user=member,
         note=note,
         can_view=True,  can_edit=False,
