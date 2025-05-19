@@ -20,9 +20,6 @@ def grant_oneonone_access(note):
     from api.models import NoteUserAccess
 
     member = note.one_on_one.member
-    
-    # Remove any default rows created via mentioned_users etc.
-    NoteUserAccess.objects.filter(note=note).delete()
 
     # leader / owner
     NoteUserAccess.objects.update_or_create(
