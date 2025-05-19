@@ -310,8 +310,8 @@ class OneOnOne(MerlinBaseModel):
     actions = models.TextField()
 
     # Vibes
-    leader_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True, blank=True)
-    member_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True, blank=True)
+    leader_vibe = models.CharField(max_length=2, choices=Vibe.choices)
+    member_vibe = models.CharField(max_length=2, choices=Vibe.choices)
 
     # Cycle auto-filled in serializer
     cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)
@@ -320,7 +320,7 @@ class OneOnOne(MerlinBaseModel):
         ValueTag, through="OneOnOneTagLink", related_name="one_on_one_tags"
     )
 
-    other_notes = models.TextField(null=True, blank=True)
+    extra_notes = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = "One-on-One"
