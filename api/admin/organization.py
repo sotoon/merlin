@@ -1,11 +1,10 @@
-
 from django.contrib import admin
 
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
-from api.models import Department, Tribe, Chapter, Team, Committee
+from api.models import Department, Tribe, Chapter, Team, Committee, ValueTag
 
 
-__all__ = ['DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin']
+__all__ = ['DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin']
 
 
 @admin.register(Department)
@@ -77,3 +76,13 @@ class CommitteeAdmin(BaseModelAdmin):
     search_fields = ["name"]
     search_help_text = "جستجو در نام کمیته"
 
+
+@admin.register(ValueTag)
+class ValueTagAdmin(BaseModelAdmin):
+    list_display = ("name_en", "name_fa", "section", "date_created", "date_updated")
+    fields = ("uuid", "name_en", "name_fa", "section", ("date_created", "date_updated"))
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("section", "name_en")
+    search_fields = ["name_en", "name_fa"]
+    list_filter = ["section"]
+    search_help_text = "Search by English or Persian name"
