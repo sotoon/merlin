@@ -209,6 +209,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
             "actions", "leader_vibe", "member_vibe",
             "tags",         # input/output: flat list of IDs
             "tag_links",    # output: sectioned/grouped per 1:1 instance
+            "mentioned_users", "linked_notes", "extra_notes"
         ]        
         read_only_fields = ("id", "note", "member")
 
