@@ -193,11 +193,17 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         source="oneononetaglink_set", many=True, read_only=True
     )
     note_meta = NoteMetaSerializer(source="note", read_only=True)
-    linked_notes = serializers.PrimaryKeyRelatedField(
-        queryset=Note.objects.all(), many=True, required=False
+    linked_notes = serializers.SlugRelatedField(
+        many=True,
+        required=False,
+        queryset=Note.objects.all(),
+        slug_field="uuid"
     )
-    mentioned_users = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), many=True, required=False
+    mentioned_users = serializers.SlugRelatedField(
+        many=True,
+        required=False,
+        queryset=User.objects.all(),
+        slug_field="email"
     )
     # member_id injects by the ViewSet
 
@@ -218,14 +224,14 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         linked_notes = validated_data.pop("linked_notes", [])
         mentioned_users = validated_data.pop("mentioned_users", [])
         request = self.context["request"]
-        cycle = Cycle.get_current_cycle()
+        cycle = validated_data.pop("cycle", Cycle.get_current_cycle())
         member = self.context["member"]  # injected by ViewSet
 
 
         with transaction.atomic():
             note = Note.objects.create(
                 owner=request.user,
-                title=f"1:1 • {validated_data['member']}",
+                title=f"1:1 • {member}",
                 content="",
                 date=validated_data.get("date", timezone.now().date()),
                 type=NoteType.ONE_ON_ONE,
