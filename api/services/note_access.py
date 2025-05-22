@@ -21,20 +21,28 @@ def grant_oneonone_access(note):
 
     member = note.one_on_one.member
 
+    if member is None or note.owner is None:
+        return
+        
     # leader / owner
     NoteUserAccess.objects.update_or_create(
         user=note.owner,
         note=note,
-        can_view=True,  can_edit=True,
-        can_view_summary=False,  can_write_summary=False,
-        can_view_feedbacks=True, can_write_feedback=True,
+        # Update all the permission fields (not all fields as kwargs)
+        defaults={      
+            "can_view": True,  "can_edit": True,
+            "can_view_summary": False,  "can_write_summary": False,
+            "can_view_feedbacks": True, "can_write_feedback": True,
+        },
     )
 
     # member
     NoteUserAccess.objects.update_or_create(
         user=member,
         note=note,
-        can_view=True,  can_edit=False,
-        can_view_summary=False,  can_write_summary=False,
-        can_view_feedbacks=True, can_write_feedback=True,
+        defaults={
+            "can_view": True,  "can_edit": False,
+            "can_view_summary": False,  "can_write_summary": False,
+            "can_view_feedbacks": True, "can_write_feedback": True,
+        },
     )

@@ -211,3 +211,20 @@ class OneOnOneViewSet(CycleQueryParamMixin,
         if "member_pk" in self.kwargs:
             qs = qs.filter(member=self.member_obj, note__owner=self.request.user)
         return super().filter_queryset(qs)
+    
+    # Allows PATCH from the member, only if they are changing member_vibe
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        is_leader = (user == instance.note.owner)
+        is_member = (user == instance.member)
+
+        patch_fields = set(request.data.keys())
+
+        if is_member:
+            if not patch_fields.issubset({"member_vibe"}):
+                raise PermissionDenied("Members may only edit their own vibe.")
+        elif not is_leader:
+            raise PermissionDenied("Not authorized to edit this 1:1.")
+
+        return super().partial_update(request, *args, **kwargs)
