@@ -184,18 +184,19 @@ class OneOnOneViewSet(CycleQueryParamMixin,
 
     serializer_class = OneOnOneSerializer
     permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess)
+    lookup_field = 'pk'
 
     # Fetches user form the id in the url, with a guard-rail
     def _load_member(self):
         from api.models.user import User
-        self.member_obj = User.objects.get(pk=self.kwargs["member_id"])
+        self.member_obj = User.objects.get(uuid=self.kwargs["member_pk"])
         if self.member_obj.leader_id != self.request.user.id:
             raise PermissionDenied("Not your direct report")
 
     # Loads member_obj once, and stores it on self before any list/create/detail methods
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        if "member_id" in self.kwargs:
+        if "member_pk" in self.kwargs:
             self._load_member()
 
     # Injecting the loaded member into context, so the create() attach the correct FK automatically
@@ -207,6 +208,6 @@ class OneOnOneViewSet(CycleQueryParamMixin,
 
     def get_queryset(self):
         qs = OneOnOne.objects.select_related("member", "cycle", "note")
-        if "member_id" in self.kwargs:
-            qs = qs.filter(member_id=self.kwargs["member_id"], note__owner=self.request.user)
+        if "member_pk" in self.kwargs:
+            qs = qs.filter(member=self.member_obj, note__owner=self.request.user)
         return super().filter_queryset(qs)
