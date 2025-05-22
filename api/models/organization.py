@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from api.models.base import MerlinBaseModel
 from api.models.user import User
 
-__all__ = ['Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag']
+__all__ = ['Organization', 'Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag']
 
 
 class Organization(MerlinBaseModel):

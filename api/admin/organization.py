@@ -1,10 +1,24 @@
 from django.contrib import admin
 
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
-from api.models import Department, Tribe, Chapter, Team, Committee, ValueTag
+from api.models.organization import Organization, Department, Tribe, Chapter, Team, Committee, ValueTag, OrgValueTag
 
 
-__all__ = ['DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin']
+__all__ = ['OrganizationAdmin', 'DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin', 'OrgValueTagAdmin']
+
+
+@admin.register(Organization)
+class OrganizationAdmin(BaseModelAdmin):
+    list_display = ("name", "cto", "vp", "ceo", "function_owner", "cpo")
+    search_fields = ["name"]
+    autocomplete_fields = ["cto", "vp", "ceo", "function_owner", "cpo"]
+    fields = (
+        "uuid", "name", "description",
+        ("cto", "vp", "ceo"),
+        ("function_owner", "cpo"),
+        ("date_created", "date_updated")
+    )
+    readonly_fields = ("uuid", "date_created", "date_updated")
 
 
 @admin.register(Department)
@@ -86,3 +100,19 @@ class ValueTagAdmin(BaseModelAdmin):
     search_fields = ["name_en", "name_fa"]
     list_filter = ["section"]
     search_help_text = "Search by English or Persian name"
+
+
+@admin.register(OrgValueTag)
+class OrgValueTagAdmin(admin.ModelAdmin):
+    list_display = ("organisation", "tag", "is_enabled")
+    list_display_links = ("tag",)
+    list_editable = ("is_enabled",)
+    fields = ("organisation", "tag", "is_enabled")
+    list_filter = ["organisation", "is_enabled", "tag__section"]
+    search_fields = ["tag__name_en", "tag__name_fa", "organisation__name"]
+    autocomplete_fields = ["organisation", "tag"]
+    search_help_text = "Search by tag name or organisation name"
+    list_per_page = 50
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('organisation', 'tag')
