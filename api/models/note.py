@@ -224,6 +224,9 @@ class NoteUserAccess(MerlinBaseModel):
         if note.type == NoteType.Personal:
             return
 
+        # if note.type == NoteType.ONE_ON_ONE:
+        #     return
+        
         # Leaders
         if (
             leader := note.owner.leader
@@ -311,7 +314,7 @@ class OneOnOne(MerlinBaseModel):
 
     # Vibes
     leader_vibe = models.CharField(max_length=2, choices=Vibe.choices)
-    member_vibe = models.CharField(max_length=2, choices=Vibe.choices)
+    member_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True)
 
     # Cycle auto-filled in serializer
     cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)

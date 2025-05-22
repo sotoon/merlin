@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne)
-from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess
+from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
@@ -183,7 +183,7 @@ class OneOnOneViewSet(CycleQueryParamMixin,
     """CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`."""
 
     serializer_class = OneOnOneSerializer
-    permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess)
+    permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess, IsCurrentCycleEditable)
     lookup_field = 'pk'
 
     # Fetches user form the id in the url, with a guard-rail
