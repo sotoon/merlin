@@ -217,7 +217,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
             "tag_links",    # output: sectioned/grouped per 1:1 instance
             "mentioned_users", "linked_notes", "extra_notes"
         ]        
-        read_only_fields = ("id", "note", "member")
+        read_only_fields = ("id", "note", "member", "cycle")
 
     def create(self, validated_data):
         tags = validated_data.pop("tags", [])
