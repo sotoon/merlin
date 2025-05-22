@@ -212,7 +212,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         fields = [
             "id", "note", "note_meta", "member", "cycle",
             "personal_summary", "career_summary", "performance_summary", "communication_summary",
-            "actions", "leader_vibe", "member_vibe",
+            "actions", "leader_vibe", "member_vibe", "linked_notes", "mentioned_users",
             "tags",         # input/output: flat list of IDs
             "tag_links",    # output: sectioned/grouped per 1:1 instance
             "mentioned_users", "linked_notes", "extra_notes"
@@ -224,7 +224,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         linked_notes = validated_data.pop("linked_notes", [])
         mentioned_users = validated_data.pop("mentioned_users", [])
         request = self.context["request"]
-        cycle = validated_data.pop("cycle", Cycle.get_current_cycle())
+        cycle = Cycle.get_current_cycle()
         member = self.context["member"]  # injected by ViewSet
 
 
@@ -238,7 +238,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                 cycle=cycle,
             )
             note.linked_notes.set(linked_notes)
-            note.mentioned_users.set(mentioned_users + [member])  # always mention member
+            note.mentioned_users.set(mentioned_users)
             oneonone = OneOnOne.objects.create(note=note, member=member, cycle=cycle, **validated_data)
             for tag in tags:
                 OneOnOneTagLink.objects.create(one_on_one=oneonone, 
