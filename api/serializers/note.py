@@ -224,9 +224,9 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         linked_notes = validated_data.pop("linked_notes", [])
         mentioned_users = validated_data.pop("mentioned_users", [])
         request = self.context["request"]
+        validated_data.pop("cycle", None)
         cycle = Cycle.get_current_cycle()
         member = self.context["member"]  # injected by ViewSet
-
 
         with transaction.atomic():
             note = Note.objects.create(
