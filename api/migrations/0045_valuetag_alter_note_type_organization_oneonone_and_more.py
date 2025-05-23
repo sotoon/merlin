@@ -319,65 +319,6 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.CreateModel(
-            name="UserTimeline",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "uuid",
-                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
-                ),
-                (
-                    "date_created",
-                    models.DateTimeField(
-                        auto_now_add=True, null=True, verbose_name="تاریخ ساخت"
-                    ),
-                ),
-                (
-                    "date_updated",
-                    models.DateTimeField(
-                        auto_now=True, null=True, verbose_name="تاریخ بروزرسانی"
-                    ),
-                ),
-                (
-                    "event_type",
-                    models.CharField(
-                        choices=[
-                            ("1on1_created", "ایجاد ۱×۱"),
-                            ("1on1_updated", "ویرایش ۱×۱"),
-                        ],
-                        max_length=32,
-                    ),
-                ),
-                ("object_id", models.PositiveBigIntegerField()),
-                ("extra_json", models.JSONField(blank=True, default=dict)),
-                (
-                    "cycle",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT, to="api.cycle"
-                    ),
-                ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-            ],
-            options={
-                "ordering": ("-date_created",),
-                "index_together": {("user", "date_created")},
-            },
-        ),
-        migrations.CreateModel(
             name="OrgValueTag",
             fields=[
                 (
