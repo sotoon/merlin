@@ -383,10 +383,228 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
+  /api/my-one-on-ones/:
+    get:
+      operationId: my_one_on_ones_list
+      tags:
+      - my-one-on-ones
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OneOnOne'
+          description: ''
+  /api/my-one-on-ones/{id}/:
+    get:
+      operationId: my_one_on_ones_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - my-one-on-ones
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOnOne'
+          description: ''
   /api/my-team/:
     get:
+      operationId: my_team_list
+      description: Read-only list of the current user's direct reports with 1:1 metadata,
+        for the current cycle.
+      tags:
+      - my-team
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/my-team/{member_pk}/one-on-ones/:
+    get:
+      operationId: my_team_one_on_ones_list
+      description: CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`.
+      parameters:
+      - in: path
+        name: member_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - my-team
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OneOnOne'
+          description: ''
+    post:
+      operationId: my_team_one_on_ones_create
+      description: CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`.
+      parameters:
+      - in: path
+        name: member_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - my-team
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOnOneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OneOnOneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OneOnOneRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOnOne'
+          description: ''
+  /api/my-team/{member_pk}/one-on-ones/{id}/:
+    get:
+      operationId: my_team_one_on_ones_retrieve
+      description: CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this One-on-One.
+        required: true
+      - in: path
+        name: member_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - my-team
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOnOne'
+          description: ''
+    put:
+      operationId: my_team_one_on_ones_update
+      description: CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this One-on-One.
+        required: true
+      - in: path
+        name: member_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - my-team
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOnOneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OneOnOneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OneOnOneRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOnOne'
+          description: ''
+    patch:
+      operationId: my_team_one_on_ones_partial_update
+      description: CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this One-on-One.
+        required: true
+      - in: path
+        name: member_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - my-team
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOneOnOneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOneOnOneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOneOnOneRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneOnOne'
+          description: ''
+  /api/my-team/{id}/:
+    get:
       operationId: my_team_retrieve
-      description: List users that the current user lead
+      description: Read-only list of the current user's direct reports with 1:1 metadata,
+        for the current cycle.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
       tags:
       - my-team
       security:
@@ -1082,6 +1300,23 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileList'
           description: ''
+  /api/value-tags/:
+    get:
+      operationId: value_tags_list
+      description: Catalog endpoint for value tags + sections.
+      tags:
+      - value-tags
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagRead'
+          description: ''
   /api/verify-token/:
     post:
       operationId: verify_token_create
@@ -1261,6 +1496,26 @@ components:
         * `TL` - Team Leader
         * `MANAGER` - Manager
         * `GENERAL` - General
+    LeaderVibeEnum:
+      enum:
+      - :)
+      - :|
+      - :(
+      type: string
+      description: |-
+        * `:)` - 😊
+        * `:|` - 😐
+        * `:(` - ☹️
+    MemberVibeEnum:
+      enum:
+      - :)
+      - :|
+      - :(
+      type: string
+      description: |-
+        * `:)` - 😊
+        * `:|` - 😐
+        * `:(` - ☹️
     Note:
       type: object
       properties:
@@ -1336,17 +1591,70 @@ components:
           title: وضعیت
           minimum: -2147483648
           maximum: 2147483647
+        one_on_one_member:
+          type: string
+          format: uuid
+          readOnly: true
+        one_on_one_id:
+          type: integer
+          readOnly: true
       required:
       - access_level
       - content
       - date
       - date_created
       - date_updated
+      - one_on_one_id
+      - one_on_one_member
       - owner
       - owner_name
       - read_status
       - title
       - uuid
+    NoteMeta:
+      type: object
+      description: Nested minimal Note info for UI convenience (title, date, mentions,
+        links).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 512
+        date:
+          type: string
+          format: date
+          title: تاریخ
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+      required:
+      - date
+      - id
+      - linked_notes
+      - title
+    NoteMetaRequest:
+      type: object
+      description: Nested minimal Note info for UI convenience (title, date, mentions,
+        links).
+      properties:
+        title:
+          type: string
+          minLength: 1
+          title: عنوان
+          maxLength: 512
+        date:
+          type: string
+          format: date
+          title: تاریخ
+      required:
+      - date
+      - title
     NoteRequest:
       type: object
       properties:
@@ -1409,6 +1717,159 @@ components:
         * `1` - ثبت اولیه
         * `2` - در حال بررسی
         * `3` - ثبت نهایی
+    OneOnOne:
+      type: object
+      description: |-
+        Handles 1:1 CRUD with:
+        - Client sends 'tags': [id, ...]
+        - Server creates Note, OneOnOne, TagLinks in a single transaction
+        - 'tag_links' read-only for analytics/reporting
+        - 'note_meta' nested for UI
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        note:
+          type: integer
+          readOnly: true
+        note_meta:
+          allOf:
+          - $ref: '#/components/schemas/NoteMeta'
+          readOnly: true
+        member:
+          type: integer
+          readOnly: true
+        cycle:
+          type: integer
+          readOnly: true
+        personal_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        career_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        performance_summary:
+          type: string
+          maxLength: 400
+        communication_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        actions:
+          type: string
+        leader_vibe:
+          $ref: '#/components/schemas/LeaderVibeEnum'
+        member_vibe:
+          allOf:
+          - $ref: '#/components/schemas/MemberVibeEnum'
+          nullable: true
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            type: integer
+        tag_links:
+          type: array
+          items:
+            $ref: '#/components/schemas/OneOnOneTagLinkRead'
+          readOnly: true
+        extra_notes:
+          type: string
+          nullable: true
+      required:
+      - actions
+      - cycle
+      - id
+      - leader_vibe
+      - member
+      - note
+      - note_meta
+      - performance_summary
+      - tag_links
+      - tags
+    OneOnOneRequest:
+      type: object
+      description: |-
+        Handles 1:1 CRUD with:
+        - Client sends 'tags': [id, ...]
+        - Server creates Note, OneOnOne, TagLinks in a single transaction
+        - 'tag_links' read-only for analytics/reporting
+        - 'note_meta' nested for UI
+      properties:
+        personal_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        career_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        performance_summary:
+          type: string
+          minLength: 1
+          maxLength: 400
+        communication_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        actions:
+          type: string
+          minLength: 1
+        leader_vibe:
+          $ref: '#/components/schemas/LeaderVibeEnum'
+        member_vibe:
+          allOf:
+          - $ref: '#/components/schemas/MemberVibeEnum'
+          nullable: true
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            type: integer
+        extra_notes:
+          type: string
+          nullable: true
+      required:
+      - actions
+      - leader_vibe
+      - performance_summary
+      - tags
+    OneOnOneTagLinkRead:
+      type: object
+      description: 'Read-only: return tag/section per link on each 1:1'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tag:
+          $ref: '#/components/schemas/TagRead'
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+      required:
+      - id
+      - section
+      - tag
+    OneOnOneTagLinkReadRequest:
+      type: object
+      description: 'Read-only: return tag/section per link on each 1:1'
+      properties:
+        tag:
+          $ref: '#/components/schemas/TagReadRequest'
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+      required:
+      - section
+      - tag
     PatchedFeedbackRequest:
       type: object
       properties:
@@ -1494,6 +1955,52 @@ components:
           title: وضعیت
           minimum: -2147483648
           maximum: 2147483647
+    PatchedOneOnOneRequest:
+      type: object
+      description: |-
+        Handles 1:1 CRUD with:
+        - Client sends 'tags': [id, ...]
+        - Server creates Note, OneOnOne, TagLinks in a single transaction
+        - 'tag_links' read-only for analytics/reporting
+        - 'note_meta' nested for UI
+      properties:
+        personal_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        career_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        performance_summary:
+          type: string
+          minLength: 1
+          maxLength: 400
+        communication_summary:
+          type: string
+          nullable: true
+          maxLength: 400
+        actions:
+          type: string
+          minLength: 1
+        leader_vibe:
+          $ref: '#/components/schemas/LeaderVibeEnum'
+        member_vibe:
+          allOf:
+          - $ref: '#/components/schemas/MemberVibeEnum'
+          nullable: true
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags:
+          type: array
+          items:
+            type: integer
+        extra_notes:
+          type: string
+          nullable: true
     PatchedProfileRequest:
       type: object
       properties:
@@ -1644,6 +2151,18 @@ components:
           nullable: true
           title: موبایل
           maxLength: 256
+    SectionEnum:
+      enum:
+      - personal
+      - career
+      - performance
+      - communication
+      type: string
+      description: |-
+        * `personal` - بعد فردی
+        * `career` - مسیر رشد و انتظارات
+        * `performance` - مدیریت عملکرد
+        * `communication` - تعامل و مشتری‌محوری
     Summary:
       type: object
       properties:
@@ -1739,6 +2258,46 @@ components:
       description: |-
         * `1` - ثبت اولیه
         * `2` - نهایی‌ شده
+    TagRead:
+      type: object
+      description: Read-only serializer for /value-tags/ -- lets the client fetch
+        all tags with their section.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name_en:
+          type: string
+          maxLength: 128
+        name_fa:
+          type: string
+          maxLength: 128
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+      required:
+      - id
+      - name_en
+      - name_fa
+      - section
+    TagReadRequest:
+      type: object
+      description: Read-only serializer for /value-tags/ -- lets the client fetch
+        all tags with their section.
+      properties:
+        name_en:
+          type: string
+          minLength: 1
+          maxLength: 128
+        name_fa:
+          type: string
+          minLength: 1
+          maxLength: 128
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+      required:
+      - name_en
+      - name_fa
+      - section
     TokenRefresh:
       type: object
       properties:
@@ -1773,6 +2332,7 @@ components:
       - Proposal
       - Message
       - Template
+      - OneOnOne
       type: string
       description: |-
         * `Goal` - هدف
@@ -1782,6 +2342,7 @@ components:
         * `Proposal` - پروپوزال
         * `Message` - پیام
         * `Template` - قالب
+        * `OneOnOne` - یک‌به‌یک
     User:
       type: object
       properties:
