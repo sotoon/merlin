@@ -47,6 +47,12 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     read_status = serializers.SerializerMethodField()
     access_level = serializers.SerializerMethodField()
+    one_on_one_member = serializers.SlugRelatedField(
+        source="one_on_one.member",
+        read_only=True,
+        slug_field="uuid"
+    )
+    one_on_one_id = serializers.IntegerField(source="one_on_one.id", read_only=True)
 
     class Meta:
         model = Note
@@ -67,6 +73,8 @@ class NoteSerializer(serializers.ModelSerializer):
             "read_status",
             "access_level",
             "submit_status",
+            "one_on_one_member",
+            "one_on_one_id",
         )
         read_only_fields = [
             "uuid",
@@ -161,6 +169,13 @@ class SummarySerializer(serializers.ModelSerializer):
 
 class NoteMetaSerializer(serializers.ModelSerializer):
     """Nested minimal Note info for UI convenience (title, date, mentions, links)."""
+    mentioned_users = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="email"
+    )
+    linked_notes = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="uuid"
+    )
+
     class Meta:
         model = Note
         fields = ["id", "title", "date", "mentioned_users", "linked_notes"]
