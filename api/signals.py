@@ -12,6 +12,8 @@ from .models import (
     User,
     Form,
     FormAssignment,
+    OneOnOne,
+    ValueTag,
 )
 
 
@@ -93,3 +95,12 @@ def assign_default_forms(sender, instance, created, **kwargs):
         ]
 
         FormAssignment.objects.bulk_create(assignments)
+
+
+# This is for future-proofing DB integrity
+@receiver(m2m_changed, sender=OneOnOne.tags.through)
+def prevent_disabled_tags(sender, instance, action, pk_set, **kwargs):
+    if action == "pre_add":
+        bad_tags = ValueTag.objects.filter(pk__in=pk_set, orgvaluetag__is_enabled=False)
+        if bad_tags.exists():
+            raise Exception("Cannot add disabled tags to OneOnOne.")

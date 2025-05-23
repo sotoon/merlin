@@ -207,6 +207,10 @@ class NoteUserAccess(MerlinBaseModel):
 
     @classmethod
     def ensure_note_predefined_accesses(cls, note):
+        
+        if note.type == NoteType.ONE_ON_ONE:
+            return
+        
         # Owner
         cls.objects.update_or_create(
             user=note.owner,
@@ -223,9 +227,6 @@ class NoteUserAccess(MerlinBaseModel):
 
         if note.type == NoteType.Personal:
             return
-
-        # if note.type == NoteType.ONE_ON_ONE:
-        #     return
         
         # Leaders
         if (

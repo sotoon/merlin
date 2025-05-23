@@ -5,22 +5,29 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from api import views
 
+# ─── Top-level router ────────────────────────────────────────────────────────────
 router = routers.DefaultRouter()
 router.register(r"notes", views.NoteViewSet, basename="note")
-
 router.register(r"my-team", views.MyTeamViewSet, basename="my-team")
+
+router.register(r"my-one-on-ones", views.MyOneOnOneViewSet, basename="my-one-on-ones")
+
+# ─── Nested under my-team for leaders ─────────────────────────────────────────────
 team_router = routers.NestedDefaultRouter(router, r"my-team", lookup="member")
 team_router.register(r"one-on-ones", views.OneOnOneViewSet, basename="member-oneonones")
 
+# ─── Nested feedbacks & summaries ─────────────────────────────────────────────────
 feedbacks_router = routers.NestedDefaultRouter(router, r"notes", lookup="note")
 feedbacks_router.register(r"feedbacks", views.FeedbackViewSet, basename="feedbacks")
 
 summaries_router = routers.NestedDefaultRouter(router, r"notes", lookup="note")
 summaries_router.register(r"summaries", views.SummaryViewSet, basename="summaries")
 
+# ─── Forms router ────────────────────────────────────────────────────────────────
 forms_router = routers.DefaultRouter()
 forms_router.register(r"forms", views.FormViewSet, basename="forms")
 
+# ─── URL PATTERNS ────────────────────────────────────────────────────────────────
 urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
     path("bepa-callback/", views.BepaCallbackView.as_view(), name="bepa-callback"),

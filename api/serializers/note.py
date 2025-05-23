@@ -163,7 +163,7 @@ class NoteMetaSerializer(serializers.ModelSerializer):
     """Nested minimal Note info for UI convenience (title, date, mentions, links)."""
     class Meta:
         model = Note
-        fields = ["id", "title", "date", "mentioned_users", "linked_notes"]
+        fields = ["id", "title", "date", "linked_notes"]
 
 
 # Used for analytics endpoints
@@ -199,12 +199,6 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         queryset=Note.objects.all(),
         slug_field="uuid"
     )
-    mentioned_users = serializers.SlugRelatedField(
-        many=True,
-        required=False,
-        queryset=User.objects.all(),
-        slug_field="email"
-    )
     # member_id injects by the ViewSet
 
     class Meta:
@@ -212,17 +206,16 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         fields = [
             "id", "note", "note_meta", "member", "cycle",
             "personal_summary", "career_summary", "performance_summary", "communication_summary",
-            "actions", "leader_vibe", "member_vibe", "linked_notes", "mentioned_users",
+            "actions", "leader_vibe", "member_vibe", "linked_notes",
             "tags",         # input/output: flat list of IDs
             "tag_links",    # output: sectioned/grouped per 1:1 instance
-            "mentioned_users", "linked_notes", "extra_notes"
+            "linked_notes", "extra_notes"
         ]        
         read_only_fields = ("id", "note", "member", "cycle")
 
     def create(self, validated_data):
         tags = validated_data.pop("tags", [])
         linked_notes = validated_data.pop("linked_notes", [])
-        mentioned_users = validated_data.pop("mentioned_users", [])
         request = self.context["request"]
         validated_data.pop("cycle", None)
         cycle = Cycle.get_current_cycle()
@@ -238,13 +231,12 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                 cycle=cycle,
             )
             note.linked_notes.set(linked_notes)
-            note.mentioned_users.set(mentioned_users)
             oneonone = OneOnOne.objects.create(note=note, member=member, cycle=cycle, **validated_data)
             for tag in tags:
                 OneOnOneTagLink.objects.create(one_on_one=oneonone, 
                                                tag=tag, 
                                                section=tag.section)
-            grant_oneonone_access(note)
+            grant_oneonone_access(oneonone.note)
         return oneonone
 
     def update(self, instance, validated_data):
@@ -254,7 +246,6 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         """
         tags = validated_data.pop("tags", None)
         linked_notes = validated_data.pop("linked_notes", None)
-        mentioned_users = validated_data.pop("mentioned_users", None)
 
         with transaction.atomic():
             oneonone = super().update(instance, validated_data)
@@ -262,9 +253,6 @@ class OneOnOneSerializer(serializers.ModelSerializer):
 
             if linked_notes is not None:
                 note.linked_notes.set(linked_notes)
-
-            if mentioned_users is not None:
-                note.mentioned_users.set(list(set(mentioned_users + [oneonone.member])))
 
             if tags is not None:
                 OneOnOneTagLink.objects.filter(one_on_one=oneonone).delete()
@@ -274,6 +262,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                         tag=tag,
                         section=tag.section
                     )
+        grant_oneonone_access(oneonone.note)
         return oneonone
 
     # Prevent leader and member to access each others vibe marks
