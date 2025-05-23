@@ -15,6 +15,7 @@ from api.serializers import (
     SummarySerializer,
     OneOnOneSerializer,
 )
+from api.services import get_notes_visible_to
 from api.views.mixins import CycleQueryParamMixin
 
 
@@ -36,16 +37,14 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         user_email = self.request.query_params.get("user")
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
-        accessible_note_ids = NoteUserAccess.objects.filter(
-            user=self.request.user, can_view=True
-        ).values_list("note__uuid", flat=True)
-        accessible_notes = Note.objects.filter(uuid__in=accessible_note_ids)
+        accessible_notes = get_notes_visible_to(self.request.user)
         if user_email:
             queryset = accessible_notes.filter(owner__email=user_email)
         elif retrieve_mentions:
             queryset = accessible_notes.filter(~Q(owner=self.request.user))
         else:
             queryset = accessible_notes.filter(owner=self.request.user)
+        
         type = self.request.query_params.get("type")
         if type:
             queryset = queryset.filter(type=type)
