@@ -10,7 +10,6 @@ class IsCurrentCycleEditable(permissions.BasePermission):
     message = "You can only edit One-on-Ones in the current cycle."
 
     def has_object_permission(self, request, view, obj):
-        print(f"PERMISSION: {obj.cycle} vs {Cycle.get_current_cycle()}")
         # Allow all safe (read-only) methods
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -58,6 +57,39 @@ class SummaryPermission(permissions.IsAuthenticated):
         return NoteUserAccess.objects.filter(
             note=view.get_note(), user=request.user, can_write_summary=True
         ).exists()
+
+
+class IsLeaderForMember(permissions.BasePermission):
+    """
+    Allow create (POST) on /my-team/<member_pk>/one-on-ones
+    only if the authenticated user is the member's direct leader.
+    """
+
+    def has_permission(self, request, view):
+        if view.action != "create":
+            return True
+
+        member_pk = view.kwargs.get("member_pk")
+        from api.models import User
+        try:
+            member = User.objects.get(uuid=member_pk)
+        except User.DoesNotExist:
+            print("DEBUG no-member", member_pk)
+            return False
+
+        allowed = (
+            request.user.id != member.id and          # not the member
+            request.user.id == member.leader_id       # is the leader
+        )
+        print(
+            "DEBUG IsLeaderForMember:",
+            "member_pk=", member_pk,
+            "| req.user.id=", request.user.id,
+            "| member.id=", member.id,
+            "| member.leader_id=", member.leader_id,
+            "| allowed=", allowed,
+        )
+        return allowed
 
 
 class HasOneOnOneAccess(permissions.BasePermission):

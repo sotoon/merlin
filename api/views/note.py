@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne)
-from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable
+from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember
 from api.serializers import (
     FeedbackSerializer,
     NoteSerializer,
@@ -19,7 +19,7 @@ from api.services import get_notes_visible_to
 from api.views.mixins import CycleQueryParamMixin
 
 
-__all__ = ['NoteViewSet', 'TemplatesView', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet']
+__all__ = ['NoteViewSet', 'TemplatesView', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet', 'MyOneOnOneViewSet']
 
 
 class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
@@ -182,15 +182,20 @@ class OneOnOneViewSet(CycleQueryParamMixin,
     """CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`."""
 
     serializer_class = OneOnOneSerializer
-    permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess, IsCurrentCycleEditable)
+    permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember)
     lookup_field = 'pk'
 
     # Fetches user form the id in the url, with a guard-rail
     def _load_member(self):
         from api.models.user import User
         self.member_obj = User.objects.get(uuid=self.kwargs["member_pk"])
-        if self.member_obj.leader_id != self.request.user.id:
-            raise PermissionDenied("Not your direct report")
+
+        if self.request.method != "POST":
+            if (
+                self.member_obj.leader_id != self.request.user.id
+                and self.member_obj.id != self.request.user.id
+            ):
+                raise PermissionDenied("Not your direct report")
 
     # Loads member_obj once, and stores it on self before any list/create/detail methods
     def initial(self, request, *args, **kwargs):
@@ -207,8 +212,16 @@ class OneOnOneViewSet(CycleQueryParamMixin,
 
     def get_queryset(self):
         qs = OneOnOne.objects.select_related("member", "cycle", "note")
+
         if "member_pk" in self.kwargs:
-            qs = qs.filter(member=self.member_obj, note__owner=self.request.user)
+            if self.request.user == self.member_obj:
+                # Member: list / detail all their 1-on-1s (no owner filter)
+                qs = qs.filter(member=self.member_obj)
+            else:
+                # Leader: only sessions where they are the owner
+                qs = qs.filter(member=self.member_obj,
+                            note__owner=self.request.user)
+
         return super().filter_queryset(qs)
     
     # Allows PATCH from the member, only if they are changing member_vibe
@@ -227,3 +240,13 @@ class OneOnOneViewSet(CycleQueryParamMixin,
             raise PermissionDenied("Not authorized to edit this 1:1.")
 
         return super().partial_update(request, *args, **kwargs)
+    
+
+class MyOneOnOneViewSet(mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
+                        viewsets.GenericViewSet):
+    serializer_class = OneOnOneSerializer
+    permission_classes = (IsAuthenticated, HasOneOnOneAccess)
+
+    def get_queryset(self):
+        return OneOnOne.objects.select_related("note").filter(member=self.request.user)
