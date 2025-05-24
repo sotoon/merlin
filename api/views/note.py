@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets, permissions, mixins
 from rest_framework.decorators import action
@@ -7,7 +8,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne)
+from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne, UserTimeline)
 from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember
 from api.serializers import (
     FeedbackSerializer,
@@ -210,6 +211,28 @@ class OneOnOneViewSet(CycleQueryParamMixin,
             ctx["member"] = self.member_obj
         return ctx
 
+    # Log in the UserTimeline
+    def create(self, request, *args, **kwargs):
+        with transaction.atomic():
+            response = super().create(request, *args, **kwargs)
+            if response.status_code == 201:
+                one_on_one_id = response.data.get('id')
+                ooo = OneOnOne.objects.get(id=one_on_one_id)
+                
+                # Log to UserTimeline
+                UserTimeline.objects.create(
+                    user=ooo.member,
+                    event_type='1on1_created',
+                    cycle=ooo.cycle,
+                    object_id=ooo.note.id,
+                    extra_json={
+                        "performance_summary": ooo.performance_summary,
+                        "leader_id": str(ooo.note.owner.id),
+                        "member_id": str(ooo.member.id),
+                    },
+                )
+            return response
+
     def get_queryset(self):
         qs = OneOnOne.objects.select_related("member", "cycle", "note")
 
@@ -226,6 +249,13 @@ class OneOnOneViewSet(CycleQueryParamMixin,
     
     # Allows PATCH from the member, only if they are changing member_vibe
     def partial_update(self, request, *args, **kwargs):
+        """
+        Custom PATCH method for OneOnOne.
+        - Only the member can PATCH their own member_vibe (and nothing else).
+        - The leader cannot PATCH member_vibe.
+        - Nobody else can PATCH at all.
+        - Every valid update is logged in UserTimeline for history/auditing.
+        """
         instance = self.get_object()
         user = request.user
         is_leader = (user == instance.note.owner)
@@ -233,14 +263,42 @@ class OneOnOneViewSet(CycleQueryParamMixin,
 
         patch_fields = set(request.data.keys())
 
+        # Permission checks
         if is_member:
+            # Member can ONLY update their own member_vibe
             if not patch_fields.issubset({"member_vibe"}):
                 raise PermissionDenied("Members may only edit their own vibe.")
-        elif not is_leader:
+        elif is_leader:
+            # Leader can update anything EXCEPT member_vibe
+            if "member_vibe" in patch_fields:
+                raise PermissionDenied("Leaders may not edit member vibe.")
+        else:
+            # No other users allowed
             raise PermissionDenied("Not authorized to edit this 1:1.")
-
+        
         return super().partial_update(request, *args, **kwargs)
-    
+
+    # Log in the UserTimeline
+    def update(self, request, *args, **kwargs):
+        with transaction.atomic():
+            response = super().update(request, *args, **kwargs)
+            if response.status_code in (200, 202):
+                one_on_one_id = response.data.get('id')
+
+                ooo = OneOnOne.objects.get(id=one_on_one_id)
+                UserTimeline.objects.create(
+                    user=ooo.member,
+                    event_type='1on1_updated',
+                    cycle=ooo.cycle,
+                    object_id=ooo.note.id,
+                    extra_json={
+                        "performance_summary": ooo.performance_summary,
+                        "leader_id": str(ooo.note.owner.uuid),
+                        "member_id": str(ooo.member.uuid),
+                    },
+                )
+
+            return response
 
 class MyOneOnOneViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,

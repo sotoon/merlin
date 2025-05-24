@@ -197,7 +197,6 @@ def test_leader_can_create_one_on_one(api_client, one_on_one, cycle):
         "tags": [],
     }
     resp = api_client.post(url, data, format="json")
-    print(resp.status_code, resp.data)
     assert resp.status_code == status.HTTP_201_CREATED
 
     note_uuid = resp.data["note_meta"]["id"]
@@ -223,6 +222,7 @@ def test_only_current_cycle_editable(api_client, one_on_one):
     # Should be editable in current cycle
     resp = api_client.patch(url, {"performance_summary": "Edited!"}, format="json")
     assert resp.status_code == status.HTTP_200_OK
+    
     one_on_one.refresh_from_db()
     assert one_on_one.performance_summary == "Edited!"
 
@@ -233,11 +233,19 @@ def test_only_current_cycle_editable(api_client, one_on_one):
 
     # Should be forbidden to edit now
     resp = api_client.patch(url, {"performance_summary": "Still edited?"}, format="json")
-    print (resp)
     assert resp.status_code == status.HTTP_403_FORBIDDEN
     # Make sure value didn't change
     one_on_one.refresh_from_db()
     assert one_on_one.performance_summary == "Edited!"
+
+
+@pytest.mark.django_db
+def test_leader_cannot_patch_member_vibe(api_client, one_on_one):
+    leader = one_on_one.note.owner
+    url = reverse("api:member-oneonones-detail",
+                 kwargs={"member_pk": str(one_on_one.member.uuid), "pk": one_on_one.pk})
+    api_client.force_authenticate(leader)
+    assert api_client.patch(url, {"member_vibe": ":("}, format="json").status_code == 403
 
 
 @pytest.mark.django_db
@@ -276,8 +284,40 @@ def test_member_can_only_patch_member_vibe(api_client, one_on_one):
     assert resp.status_code == status.HTTP_403_FORBIDDEN
 
     # Not allowed: member tries to patch both vibe and other fields
-    resp = api_client.patch(url, {"member_vibe": ":D", "performance_summary": "foo"}, format="json")
+    resp = api_client.patch(url, {"member_vibe": ":)", "performance_summary": "foo"}, format="json")
     assert resp.status_code == status.HTTP_403_FORBIDDEN
+    
+    # Leader attempting to patch member_vibe → 403
+    leader = one_on_one.note.owner
+    api_client.force_authenticate(leader)
+    resp = api_client.patch(url, {"member_vibe": ":("}, format="json")
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_member_vibe_forbidden_in_closed_cycle(api_client, one_on_one):
+    """
+    Members may NOT edit their vibe after the 1-on-1’s cycle is inactive.
+    """
+    # close the cycle
+    one_on_one.cycle.is_active = False
+    one_on_one.cycle.save(update_fields=["is_active"])
+
+    url = reverse(
+        "api:member-oneonones-detail",
+        kwargs={"member_pk": one_on_one.member.uuid, "pk": one_on_one.pk},
+    )
+    api_client.force_authenticate(one_on_one.member)
+    resp = api_client.patch(url, {"member_vibe": ":)"}, format="json")
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_outsider_cannot_list_member_1on1(api_client, one_on_one, outsider):
+    url = reverse("api:member-oneonones-list",
+                 kwargs={"member_pk": str(one_on_one.member.uuid)})
+    api_client.force_authenticate(outsider)
+    assert api_client.get(url).status_code in (403, 404)
 
 
 @pytest.mark.django_db
@@ -406,7 +446,71 @@ def test_my_team_lists_reports(api_client, leader, member, outsider):
     assert str(outsider.uuid) not in ids
 
 
-# 6  Timeline logging
+# 6  Serializers
+
+@pytest.mark.django_db
+def test_note_serializer_exposes_1on1_fields(api_client, one_on_one):
+    # member can GET their own note
+    url = reverse("api:note-detail", kwargs={"uuid": one_on_one.note.uuid})
+    api_client.force_authenticate(one_on_one.member)
+    data = api_client.get(url).data
+
+    assert data["one_on_one_member"] == one_on_one.member.uuid
+    assert data["one_on_one_id"] == one_on_one.id
 
 
-# 8  Analytics endpoint
+# 7  Timeline logging
+
+@pytest.mark.django_db
+def test_timeline_entry_after_create(api_client, user_factory, cycle_factory):
+    leader = user_factory()
+    member = user_factory(leader=leader)
+    cycle  = cycle_factory()
+
+    url = reverse("api:member-oneonones-list", kwargs={"member_pk": str(member.uuid)})
+    
+    api_client.force_authenticate(leader)
+    payload = {
+        "cycle": cycle.pk,
+        "performance_summary": "...",
+        "actions": "Initial actions here",
+        "leader_vibe": ":)",
+        "tags": [],
+    }    
+    resp = api_client.post(url, payload, format="json")
+    assert resp.status_code == status.HTTP_201_CREATED
+
+    note_id = resp.data["note"]
+    note = Note.objects.get(pk=note_id)
+
+    assert UserTimeline.objects.filter(
+        object_id=note.id,
+        event_type="1on1_created"
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_timeline_entry_after_update(api_client, one_on_one):
+    leader = one_on_one.note.owner
+    url = reverse(
+        "api:member-oneonones-detail",
+        kwargs={"member_pk": str(one_on_one.member.uuid), "pk": one_on_one.pk},
+    )
+
+    # Update the performance_summary
+    api_client.force_authenticate(leader)
+    resp = api_client.patch(url, {"performance_summary": "New summary"}, format="json")
+    assert resp.status_code == 200
+
+    # Check UserTimeline for an entry
+    timeline_qs = UserTimeline.objects.filter(
+        object_id=one_on_one.note.id,
+        event_type="1on1_updated",
+        extra_json__performance_summary="New summary",
+        extra_json__member_id=str(one_on_one.member.uuid),
+    )
+
+    assert timeline_qs.exists()
+
+
+# 9  Analytics endpoint

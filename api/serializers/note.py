@@ -15,6 +15,7 @@ from api.models import (
         OneOnOneTagLink,
         ValueTag,
         Cycle,
+        UserTimeline
 )
 
 
@@ -228,6 +229,10 @@ class OneOnOneSerializer(serializers.ModelSerializer):
             "linked_notes", "extra_notes"
         ]        
         read_only_fields = ("id", "note", "member", "cycle")
+        # Make member_vibe non-required
+        extra_kwargs = {
+            "member_vibe": {"required": False, "allow_null": True},
+        }
 
     def create(self, validated_data):
         tags = validated_data.pop("tags", [])
@@ -253,6 +258,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                                                tag=tag, 
                                                section=tag.section)
             grant_oneonone_access(oneonone.note)
+
         return oneonone
 
     def update(self, instance, validated_data):
