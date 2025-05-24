@@ -14,8 +14,12 @@ class IsCurrentCycleEditable(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         current = Cycle.get_current_cycle()
-        # Only allow edits if the cycle matches the current cycle
+        
+        if current is None:
+            self.message = "No active cycle exists; editing is disabled."
+            return False
         return obj.cycle_id == current.id
+
 
                                                     # FUTURE ENHANCEMENT: Since a single NoteUserAccess row per (user, note) is guaranteed, use the logic on HasOneOnOnePermission: fetch once, use attr
 class NotePermission(permissions.IsAuthenticated):
@@ -74,21 +78,13 @@ class IsLeaderForMember(permissions.BasePermission):
         try:
             member = User.objects.get(uuid=member_pk)
         except User.DoesNotExist:
-            print("DEBUG no-member", member_pk)
             return False
 
         allowed = (
             request.user.id != member.id and          # not the member
             request.user.id == member.leader_id       # is the leader
         )
-        print(
-            "DEBUG IsLeaderForMember:",
-            "member_pk=", member_pk,
-            "| req.user.id=", request.user.id,
-            "| member.id=", member.id,
-            "| member.leader_id=", member.leader_id,
-            "| allowed=", allowed,
-        )
+
         return allowed
 
 
@@ -105,6 +101,7 @@ class HasOneOnOneAccess(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         access = self._get_access(request, obj)
+                
         if access is None:
             return False
 
