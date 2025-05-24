@@ -1,9 +1,13 @@
 from django.db import models
 from api.models.base import MerlinBaseModel
 
+__all__ = ['TimelineEventType', 'UserTimeline']
+
+
 class TimelineEventType(models.TextChoices):
     ONE_ON_ONE_CREATED = "1on1_created", "ایجاد ۱×۱"
     ONE_ON_ONE_UPDATED = "1on1_updated", "ویرایش ۱×۱"
+
 
 class UserTimeline(MerlinBaseModel):
     """Lightweight denormalised log for profile timeline & analytics."""
