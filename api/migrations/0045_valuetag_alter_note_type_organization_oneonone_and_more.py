@@ -216,12 +216,16 @@ class Migration(migrations.Migration):
                 (
                     "leader_vibe",
                     models.CharField(
-                        choices=[(":)", "😊"), (":|", "😐"), (":(", "☹️")], max_length=2
+                        blank=True,
+                        choices=[(":)", "😊"), (":|", "😐"), (":(", "☹️")],
+                        max_length=2,
+                        null=True,
                     ),
                 ),
                 (
                     "member_vibe",
                     models.CharField(
+                        blank=True,
                         choices=[(":)", "😊"), (":|", "😐"), (":(", "☹️")],
                         max_length=2,
                         null=True,
