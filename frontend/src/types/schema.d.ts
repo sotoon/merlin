@@ -183,6 +183,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/my-one-on-ones/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['my_one_on_ones_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/my-one-on-ones/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['my_one_on_ones_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/my-team/': {
     parameters: {
       query?: never;
@@ -190,7 +222,61 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description List users that the current user lead */
+    /** @description Read-only list of the current user's direct reports with 1:1 metadata, for the current cycle. */
+    get: operations['my_team_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/my-team/{member_pk}/one-on-ones/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`. */
+    get: operations['my_team_one_on_ones_list'];
+    put?: never;
+    /** @description CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`. */
+    post: operations['my_team_one_on_ones_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/my-team/{member_pk}/one-on-ones/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`. */
+    get: operations['my_team_one_on_ones_retrieve'];
+    /** @description CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`. */
+    put: operations['my_team_one_on_ones_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** @description CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`. */
+    patch: operations['my_team_one_on_ones_partial_update'];
+    trace?: never;
+  };
+  '/api/my-team/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Read-only list of the current user's direct reports with 1:1 metadata, for the current cycle. */
     get: operations['my_team_retrieve'];
     put?: never;
     post?: never;
@@ -400,6 +486,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/value-tags/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Catalog endpoint for value tags + sections. */
+    get: operations['value_tags_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/verify-token/': {
     parameters: {
       query?: never;
@@ -488,6 +591,20 @@ export interface components {
      * @enum {string}
      */
     FormTypeEnum: 'PM' | 'TL' | 'MANAGER' | 'GENERAL';
+    /**
+     * @description * `:)` - 😊
+     *     * `:|` - 😐
+     *     * `:(` - ☹️
+     * @enum {string}
+     */
+    LeaderVibeEnum: ':)' | ':|' | ':(';
+    /**
+     * @description * `:)` - 😊
+     *     * `:|` - 😐
+     *     * `:(` - ☹️
+     * @enum {string}
+     */
+    MemberVibeEnum: ':)' | ':|' | ':(';
     Note: {
       /** Format: uuid */
       readonly uuid: string;
@@ -528,6 +645,31 @@ export interface components {
       readonly access_level: string;
       /** وضعیت */
       submit_status?: components['schemas']['NoteSubmitStatusEnum'];
+      /** Format: uuid */
+      readonly one_on_one_member: string;
+      readonly one_on_one_id: number;
+    };
+    /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
+    NoteMeta: {
+      readonly id: number;
+      /** عنوان */
+      title: string;
+      /**
+       * تاریخ
+       * Format: date
+       */
+      date: string;
+      readonly linked_notes: string[];
+    };
+    /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
+    NoteMetaRequest: {
+      /** عنوان */
+      title: string;
+      /**
+       * تاریخ
+       * Format: date
+       */
+      date: string;
     };
     NoteRequest: {
       /** عنوان */
@@ -557,6 +699,57 @@ export interface components {
      * @enum {integer}
      */
     NoteSubmitStatusEnum: 1 | 2 | 3;
+    /** @description Handles 1:1 CRUD with:
+     *     - Client sends 'tags': [id, ...]
+     *     - Server creates Note, OneOnOne, TagLinks in a single transaction
+     *     - 'tag_links' read-only for analytics/reporting
+     *     - 'note_meta' nested for UI */
+    OneOnOne: {
+      readonly id: number;
+      readonly note: number;
+      readonly note_meta: components['schemas']['NoteMeta'];
+      readonly member: number;
+      readonly cycle: number;
+      personal_summary?: string | null;
+      career_summary?: string | null;
+      performance_summary: string;
+      communication_summary?: string | null;
+      actions: string;
+      leader_vibe: components['schemas']['LeaderVibeEnum'];
+      member_vibe?: components['schemas']['MemberVibeEnum'] | null;
+      linked_notes?: string[];
+      tags: number[];
+      readonly tag_links: components['schemas']['OneOnOneTagLinkRead'][];
+      extra_notes?: string | null;
+    };
+    /** @description Handles 1:1 CRUD with:
+     *     - Client sends 'tags': [id, ...]
+     *     - Server creates Note, OneOnOne, TagLinks in a single transaction
+     *     - 'tag_links' read-only for analytics/reporting
+     *     - 'note_meta' nested for UI */
+    OneOnOneRequest: {
+      personal_summary?: string | null;
+      career_summary?: string | null;
+      performance_summary: string;
+      communication_summary?: string | null;
+      actions: string;
+      leader_vibe: components['schemas']['LeaderVibeEnum'];
+      member_vibe?: components['schemas']['MemberVibeEnum'] | null;
+      linked_notes?: string[];
+      tags: number[];
+      extra_notes?: string | null;
+    };
+    /** @description Read-only: return tag/section per link on each 1:1 */
+    OneOnOneTagLinkRead: {
+      readonly id: number;
+      tag: components['schemas']['TagRead'];
+      section: components['schemas']['SectionEnum'];
+    };
+    /** @description Read-only: return tag/section per link on each 1:1 */
+    OneOnOneTagLinkReadRequest: {
+      tag: components['schemas']['TagReadRequest'];
+      section: components['schemas']['SectionEnum'];
+    };
     PatchedFeedbackRequest: {
       /**
        * ایمیل سازمانی
@@ -599,6 +792,23 @@ export interface components {
       linked_notes?: string[];
       /** وضعیت */
       submit_status?: components['schemas']['NoteSubmitStatusEnum'];
+    };
+    /** @description Handles 1:1 CRUD with:
+     *     - Client sends 'tags': [id, ...]
+     *     - Server creates Note, OneOnOne, TagLinks in a single transaction
+     *     - 'tag_links' read-only for analytics/reporting
+     *     - 'note_meta' nested for UI */
+    PatchedOneOnOneRequest: {
+      personal_summary?: string | null;
+      career_summary?: string | null;
+      performance_summary?: string;
+      communication_summary?: string | null;
+      actions?: string;
+      leader_vibe?: components['schemas']['LeaderVibeEnum'];
+      member_vibe?: components['schemas']['MemberVibeEnum'] | null;
+      linked_notes?: string[];
+      tags?: number[];
+      extra_notes?: string | null;
     };
     PatchedProfileRequest: {
       /** نام */
@@ -674,6 +884,14 @@ export interface components {
       /** موبایل */
       phone?: string | null;
     };
+    /**
+     * @description * `personal` - بعد فردی
+     *     * `career` - مسیر رشد و انتظارات
+     *     * `performance` - مدیریت عملکرد
+     *     * `communication` - تعامل و مشتری‌محوری
+     * @enum {string}
+     */
+    SectionEnum: 'personal' | 'career' | 'performance' | 'communication';
     Summary: {
       /** Format: uuid */
       readonly uuid: string;
@@ -728,6 +946,19 @@ export interface components {
      * @enum {integer}
      */
     SummarySubmitStatusEnum: 1 | 2;
+    /** @description Read-only serializer for /value-tags/ -- lets the client fetch all tags with their section. */
+    TagRead: {
+      readonly id: number;
+      name_en: string;
+      name_fa: string;
+      section: components['schemas']['SectionEnum'];
+    };
+    /** @description Read-only serializer for /value-tags/ -- lets the client fetch all tags with their section. */
+    TagReadRequest: {
+      name_en: string;
+      name_fa: string;
+      section: components['schemas']['SectionEnum'];
+    };
     TokenRefresh: {
       readonly access: string;
     };
@@ -745,6 +976,7 @@ export interface components {
      *     * `Proposal` - پروپوزال
      *     * `Message` - پیام
      *     * `Template` - قالب
+     *     * `OneOnOne` - یک‌به‌یک
      * @enum {string}
      */
     TypeEnum:
@@ -754,7 +986,8 @@ export interface components {
       | 'Task'
       | 'Proposal'
       | 'Message'
-      | 'Template';
+      | 'Template'
+      | 'OneOnOne';
     User: {
       /** Format: uuid */
       readonly uuid: string;
@@ -1121,11 +1354,201 @@ export interface operations {
       };
     };
   };
-  my_team_retrieve: {
+  my_one_on_ones_list: {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'][];
+        };
+      };
+    };
+  };
+  my_one_on_ones_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'];
+        };
+      };
+    };
+  };
+  my_team_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Profile'][];
+        };
+      };
+    };
+  };
+  my_team_one_on_ones_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        member_pk: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'][];
+        };
+      };
+    };
+  };
+  my_team_one_on_ones_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        member_pk: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OneOnOneRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['OneOnOneRequest'];
+        'multipart/form-data': components['schemas']['OneOnOneRequest'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'];
+        };
+      };
+    };
+  };
+  my_team_one_on_ones_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this One-on-One. */
+        id: number;
+        member_pk: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'];
+        };
+      };
+    };
+  };
+  my_team_one_on_ones_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this One-on-One. */
+        id: number;
+        member_pk: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OneOnOneRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['OneOnOneRequest'];
+        'multipart/form-data': components['schemas']['OneOnOneRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'];
+        };
+      };
+    };
+  };
+  my_team_one_on_ones_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this One-on-One. */
+        id: number;
+        member_pk: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedOneOnOneRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedOneOnOneRequest'];
+        'multipart/form-data': components['schemas']['PatchedOneOnOneRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OneOnOne'];
+        };
+      };
+    };
+  };
+  my_team_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
       cookie?: never;
     };
     requestBody?: never;
@@ -1767,6 +2190,25 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ProfileList'][];
+        };
+      };
+    };
+  };
+  value_tags_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TagRead'][];
         };
       };
     };

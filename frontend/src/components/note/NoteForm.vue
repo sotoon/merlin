@@ -41,7 +41,7 @@
       </VeeField>
     </div>
 
-    <div v-if="noteType !== NOTE_TYPE.personal">
+    <div>
       <VeeField v-slot="{ componentField }" name="mentioned_users">
         <UserSelect
           v-bind="componentField"

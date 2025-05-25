@@ -14,13 +14,8 @@
               <li v-for="link in notesLinks" :key="link.label">
                 <SidebarLink v-bind="link" />
               </li>
-            </SidebarLinkGroup>
-          </li>
 
-          <li>
-            <SidebarLinkGroup :title="t('common.forms')">
               <li>
-                <!-- // TODO: set badge count for incomplete forms -->
                 <SidebarLink
                   icon="i-mdi-form"
                   :label="t('common.forms')"
@@ -28,12 +23,30 @@
                 />
               </li>
 
-              <li>
+              <li
+                class="relative pr-8 before:absolute before:bottom-0 before:right-5 before:top-0 before:my-1 before:w-px before:bg-gray-30"
+              >
                 <SidebarLink
                   icon="i-mdi-chart-bar"
                   :label="t('common.results')"
                   :to="{ name: 'my-forms' }"
                 />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
+            <SidebarLinkGroup :title="t('common.promotion')">
+              <li v-for="link in promotionsLinks" :key="link.label">
+                <SidebarLink v-bind="link" />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
+            <SidebarLinkGroup :title="t('common.feedback')">
+              <li v-for="link in feedbacksLinks" :key="link.label">
+                <SidebarLink v-bind="link" />
               </li>
             </SidebarLinkGroup>
           </li>
@@ -48,7 +61,23 @@
                   :to="{ name: 'messages' }"
                 />
               </li>
-
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.meeting]"
+                  :label="t('common.meetings')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting] },
+                  }"
+                />
+              </li>
+              <li>
+                <SidebarLink
+                  icon="i-mdi-account-supervisor"
+                  :label="t('common.oneOnOne')"
+                  :to="{ name: 'one-on-one' }"
+                />
+              </li>
               <li>
                 <SidebarLink
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.template]"
@@ -56,7 +85,6 @@
                   :to="{ name: 'templates' }"
                 />
               </li>
-
               <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
@@ -86,7 +114,11 @@
 <script lang="ts" setup>
 import { PScrollbar, PText } from '@pey/core';
 
-import { getNotesLinks } from '~/components/sidebar/SidebarLinks';
+import {
+  getNotesLinks,
+  getPromotionLinks,
+  getFeedbackLinks,
+} from '~/components/sidebar/SidebarLinks';
 
 const { t } = useI18n();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
@@ -97,6 +129,8 @@ const messagesWithoutTemplates = computed(
   () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
 );
 const notesLinks = computed(() => getNotesLinks(t));
+const promotionsLinks = computed(() => getPromotionLinks(t));
+const feedbacksLinks = computed(() => getFeedbackLinks(t));
 const newMessagesCount = computed(
   () =>
     messagesWithoutTemplates.value?.filter((message) => !message.read_status)

@@ -264,13 +264,21 @@ const linkedNotes = computed(() => [
               name: 'template',
               params: { id: note.uuid },
             }
-          : {
-              name: 'note',
-              params: {
-                type: NOTE_TYPE_ROUTE_PARAM[note.type],
-                id: note.uuid,
+          : note.type === NOTE_TYPE.oneOnOne
+            ? {
+                name: 'one-on-one-id',
+                params: {
+                  userId: note.one_on_one_member,
+                  id: note.one_on_one_id,
+                },
+              }
+            : {
+                name: 'note',
+                params: {
+                  type: NOTE_TYPE_ROUTE_PARAM[note.type],
+                  id: note.uuid,
+                },
               },
-            },
     })) || []),
   ...(mentionedNotes.value
     ?.filter(({ uuid }) => props.note.linked_notes.includes(uuid))
