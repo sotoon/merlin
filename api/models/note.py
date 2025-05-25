@@ -311,11 +311,11 @@ class OneOnOne(MerlinBaseModel):
     performance_summary = models.CharField(max_length=400)
 
     # Actions text
-    actions = models.TextField()
+    actions = models.TextField(null=True, blank=True)
 
     # Vibes
     leader_vibe = models.CharField(max_length=2, choices=Vibe.choices)
-    member_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True)
+    member_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True, blank=True)
 
     # Cycle auto-filled in serializer
     cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)
