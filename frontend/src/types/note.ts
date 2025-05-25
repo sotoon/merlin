@@ -32,6 +32,8 @@ export interface Note {
   type: NoteType;
   uuid: string;
   year: number;
+  one_on_one_member: string | null;
+  one_on_one_id: number | null;
 }
 
 export interface NoteFormValues

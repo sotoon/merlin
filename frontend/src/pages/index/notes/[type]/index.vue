@@ -95,10 +95,10 @@ const isUser = computed(() => Boolean(props.userEmail));
 const noteTitles = computed(() => ({
   [NOTE_TYPE.goal]: t('common.goals'),
   [NOTE_TYPE.meeting]: t('common.meetings'),
+  [NOTE_TYPE.oneOnOne]: t('common.oneOnOne'),
   [NOTE_TYPE.message]: t('common.messageToOthers'),
-  [NOTE_TYPE.personal]: t('common.personalNotes'),
   [NOTE_TYPE.proposal]: t('common.proposal'),
-  [NOTE_TYPE.task]: t('common.tasks'),
+  [NOTE_TYPE.forms]: t('common.forms'),
 }));
 const noteTitle = computed(() =>
   props.noteType
