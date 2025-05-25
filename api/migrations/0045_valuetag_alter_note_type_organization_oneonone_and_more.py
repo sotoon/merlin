@@ -227,7 +227,7 @@ class Migration(migrations.Migration):
                         null=True,
                     ),
                 ),
-                ("extra_notes", models.TextField(blank=True, null=True)),
+                ("other_notes", models.TextField(blank=True, null=True)),
                 (
                     "cycle",
                     models.ForeignKey(
