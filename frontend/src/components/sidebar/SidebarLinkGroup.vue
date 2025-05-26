@@ -5,7 +5,7 @@ import { ref, onMounted, onUpdated } from 'vue';
 defineProps<{ title: string }>();
 
 const isCollapsed = ref(true);
-const contentRef = ref<HTMLElement | null>(null);
+const contentRef = ref<HTMLElement>();
 const contentHeight = ref(0);
 
 const updateContentHeight = () => {
