@@ -227,8 +227,8 @@ class OneOnOneViewSet(CycleQueryParamMixin,
                     object_id=ooo.note.id,
                     extra_json={
                         "performance_summary": ooo.performance_summary,
-                        "leader_id": str(ooo.note.owner.id),
-                        "member_id": str(ooo.member.id),
+                        "leader_id": str(ooo.note.owner.uuid),
+                        "member_id": str(ooo.member.uuid),
                     },
                 )
             return response
@@ -299,6 +299,7 @@ class OneOnOneViewSet(CycleQueryParamMixin,
                 )
 
             return response
+
 
 class MyOneOnOneViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
