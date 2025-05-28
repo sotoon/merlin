@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex h-full w-60 flex-col overflow-hidden py-4">
+  <nav class="flex h-full w-64 flex-col overflow-hidden py-4">
     <NuxtLink class="pb-4 pt-2 shadow" to="/">
       <PText as="p" class="text-center" weight="bold" variant="h4">
         {{ t('common.appName') }}
@@ -24,7 +24,7 @@
               </li>
 
               <li
-                class="relative pr-8 before:absolute before:bottom-0 before:right-5 before:top-0 before:my-1 before:w-px before:bg-gray-30"
+                class="relative pr-8 before:absolute before:bottom-0 before:right-5 before:top-0 before:my-1 before:w-px before:bg-gray-20"
               >
                 <SidebarLink
                   icon="i-mdi-chart-bar"
@@ -71,13 +71,7 @@
                   }"
                 />
               </li>
-              <li>
-                <SidebarLink
-                  icon="i-mdi-account-supervisor"
-                  :label="t('common.oneOnOne')"
-                  :to="{ name: 'one-on-one' }"
-                />
-              </li>
+
               <li>
                 <SidebarLink
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.template]"
@@ -85,11 +79,23 @@
                   :to="{ name: 'templates' }"
                 />
               </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
+            <SidebarLinkGroup :title="t('common.myTeam')">
               <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
                   :label="t('common.myTeam')"
                   :to="{ name: 'my-team' }"
+                />
+              </li>
+              <li>
+                <SidebarLink
+                  icon="i-mdi-account-supervisor"
+                  :label="t('common.oneOnOne')"
+                  :to="{ name: 'one-on-one' }"
                 />
               </li>
             </SidebarLinkGroup>

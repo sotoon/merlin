@@ -290,7 +290,6 @@ const onSubmit = handleSubmit((values, ctx) => {
       <label id="actions">
         <PText class="block cursor-default" variant="caption1" weight="bold">
           {{ t('oneOnOne.whatActionsWeDefined') }}
-          <span class="text-danger">*</span>
         </PText>
       </label>
 
