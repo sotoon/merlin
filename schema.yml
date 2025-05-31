@@ -1,0 +1,1838 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/bepa-callback/:
+    get:
+      operationId: bepa_callback_retrieve
+      description: Gets the code from the BEPA and exchanges it for an access token.
+      parameters:
+      - in: query
+        name: code
+        schema:
+          type: string
+        description: Code from BEPA
+      tags:
+      - bepa-callback
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the user
+                  email:
+                    type: string
+                    description: Email of the user
+                  tokens:
+                    type: object
+                    properties:
+                      refresh:
+                        type: string
+                        description: Refresh token
+                      access:
+                        type: string
+                        description: Access token
+          description: Successfully Logged In!
+  /api/forms/:
+    get:
+      operationId: forms_list
+      description: |-
+        Override the default list to include default and assigned forms.
+        - Default forms available to everyone. (based on active cycle)
+        - Forms assigned specifically to the user. (with custom deadlines)
+
+        Return a list of active and expired forms assigned to the user.
+      tags:
+      - forms
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Form'
+          description: ''
+    post:
+      operationId: forms_create
+      description: A ViewSet to handle CRUD operations on forms, and form assignment.
+      tags:
+      - forms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+  /api/forms/{id}/:
+    get:
+      operationId: forms_retrieve
+      description: Retrieve a specific form and its questions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم.
+        required: true
+      tags:
+      - forms
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+    put:
+      operationId: forms_update
+      description: A ViewSet to handle CRUD operations on forms, and form assignment.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم.
+        required: true
+      tags:
+      - forms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+    patch:
+      operationId: forms_partial_update
+      description: A ViewSet to handle CRUD operations on forms, and form assignment.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم.
+        required: true
+      tags:
+      - forms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFormRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFormRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFormRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+    delete:
+      operationId: forms_destroy
+      description: A ViewSet to handle CRUD operations on forms, and form assignment.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم.
+        required: true
+      tags:
+      - forms
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/forms/{id}/results/:
+    get:
+      operationId: forms_results_retrieve
+      description: |-
+        Fetch aggregated results for a form.
+        Returns a structured JSON with:
+          - "my_results": aggregated results for the current user (if they are the assessed user)
+          - "team_results": a list of aggregated results for each subordinate (if any)
+        Availability conditions:
+          - Default forms: results are shown only if the cycle has ended.
+          - Manual forms: results are shown only if the assignment deadline(s) have passed.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم.
+        required: true
+      tags:
+      - forms
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+  /api/forms/{id}/submit/:
+    post:
+      operationId: forms_submit_create
+      description: |-
+        Handle form submission. Saves responses for each question and marks the assignment as completed.
+
+        For default forms:
+        - Set `assigned_by` to the leader for TL forms.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم.
+        required: true
+      tags:
+      - forms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+  /api/forms/assign/:
+    post:
+      operationId: forms_assign_create
+      description: |-
+        Assign a form to a specific user with an optional message.
+        - Ensure that the form is visible to the assignee.
+        - Prevents duplicate assignments.
+
+        For default forms, this is managed automatically through signals.
+      tags:
+      - forms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FormRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+  /api/forms/assigned-by/:
+    get:
+      operationId: forms_assigned_by_retrieve
+      description: |-
+        Returns a structured JSON object with two keys:
+        - "my_forms": forms where the current user is directly the assessed user (assigned_by == request.user)
+        - "team_forms": forms where the current user is the leader of an assessed user (assigned_by__leader == request.user)
+        Optionally filters by cycle (using cycle_id). If omitted, uses the latest cycle.
+        Each form is serialized using FormSerializer.
+      tags:
+      - forms
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+          description: ''
+  /api/login/:
+    post:
+      operationId: login_create
+      description: API endpoint for logging in a user.
+      tags:
+      - login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the user
+                  email:
+                    type: string
+                    description: Email of the user
+                  tokens:
+                    type: object
+                    properties:
+                      refresh:
+                        type: string
+                        description: Refresh token
+                      access:
+                        type: string
+                        description: Access token
+          description: Successfully Logged In!
+  /api/login/refresh/:
+    post:
+      operationId: login_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/my-team/:
+    get:
+      operationId: my_team_retrieve
+      description: List users that the current user lead
+      tags:
+      - my-team
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/notes/:
+    get:
+      operationId: notes_list
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+          description: ''
+    post:
+      operationId: notes_create
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+          description: ''
+  /api/notes/{note_uuid}/feedbacks/:
+    get:
+      operationId: notes_feedbacks_list
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+          description: ''
+    post:
+      operationId: notes_feedbacks_create
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+  /api/notes/{note_uuid}/feedbacks/{uuid}/:
+    get:
+      operationId: notes_feedbacks_retrieve
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    put:
+      operationId: notes_feedbacks_update
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    patch:
+      operationId: notes_feedbacks_partial_update
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    delete:
+      operationId: notes_feedbacks_destroy
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notes/{note_uuid}/summaries/:
+    get:
+      operationId: notes_summaries_list
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Summary'
+          description: ''
+    post:
+      operationId: notes_summaries_create
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummaryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SummaryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SummaryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+          description: ''
+  /api/notes/{note_uuid}/summaries/{uuid}/:
+    get:
+      operationId: notes_summaries_retrieve
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+          description: ''
+    put:
+      operationId: notes_summaries_update
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummaryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SummaryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SummaryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+          description: ''
+    patch:
+      operationId: notes_summaries_partial_update
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSummaryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSummaryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSummaryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+          description: ''
+    delete:
+      operationId: notes_summaries_destroy
+      parameters:
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notes/{uuid}/:
+    get:
+      operationId: notes_retrieve
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+          description: ''
+    put:
+      operationId: notes_update
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+          description: ''
+    patch:
+      operationId: notes_partial_update
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNoteRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+          description: ''
+    delete:
+      operationId: notes_destroy
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notes/{uuid}/read/:
+    post:
+      operationId: notes_read_create
+      description: Mark note as read(Does not need any input params)
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+          description: ''
+  /api/notes/{uuid}/unread/:
+    post:
+      operationId: notes_unread_create
+      description: Mark note as unread(Does not need any input params)
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - notes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+          description: ''
+  /api/profile/:
+    get:
+      operationId: profile_retrieve
+      description: Update or read Profile data
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    put:
+      operationId: profile_update
+      description: Update or read Profile data
+      tags:
+      - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    patch:
+      operationId: profile_partial_update
+      description: Update or read Profile data
+      tags:
+      - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/signup/:
+    post:
+      operationId: signup_create
+      description: API endpoint for creating a new user.
+      tags:
+      - signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the user
+                  email:
+                    type: string
+                    description: Email of the user
+                  tokens:
+                    type: object
+                    properties:
+                      refresh:
+                        type: string
+                        description: Refresh token
+                      access:
+                        type: string
+                        description: Access token
+          description: Successfully Signed Up!
+  /api/templates/:
+    get:
+      operationId: templates_list
+      description: List available templates
+      tags:
+      - templates
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+          description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      description: List all app users
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileList'
+          description: ''
+  /api/verify-token/:
+    post:
+      operationId: verify_token_create
+      description: Gets a token and validates it and returns user data
+      parameters:
+      - in: query
+        name: token
+        schema:
+          type: string
+        description: Token
+      tags:
+      - verify-token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: Verified Successfully
+components:
+  schemas:
+    Feedback:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        owner:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+        owner_name:
+          type: string
+          readOnly: true
+        note:
+          type: string
+          format: uuid
+          readOnly: true
+        content:
+          type: string
+          title: محتوا
+      required:
+      - content
+      - note
+      - owner_name
+      - uuid
+    FeedbackRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+          format: email
+          minLength: 1
+          title: ایمیل سازمانی
+        content:
+          type: string
+          minLength: 1
+          title: محتوا
+      required:
+      - content
+    Form:
+      type: object
+      description: |-
+        Serializer for listing forms, along with its cycle metadata,
+        and assignment completion status.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: نام
+          maxLength: 256
+        description:
+          type: string
+          nullable: true
+          title: توضیحات
+        is_default:
+          type: boolean
+          title: فرم پیش‌فرض
+        form_type:
+          allOf:
+          - $ref: '#/components/schemas/FormTypeEnum'
+          nullable: true
+          title: نوع فرم
+        cycle:
+          type: integer
+        cycle_name:
+          type: string
+          readOnly: true
+        cycle_start_date:
+          type: string
+          format: date-time
+          readOnly: true
+        cycle_end_date:
+          type: string
+          format: date-time
+          readOnly: true
+        is_expired:
+          type: string
+          readOnly: true
+        is_filled:
+          type: string
+          readOnly: true
+        assigned_by_name:
+          type: string
+          readOnly: true
+        assigned_by:
+          type: string
+          readOnly: true
+      required:
+      - assigned_by
+      - assigned_by_name
+      - cycle
+      - cycle_end_date
+      - cycle_name
+      - cycle_start_date
+      - id
+      - is_default
+      - is_expired
+      - is_filled
+      - name
+    FormRequest:
+      type: object
+      description: |-
+        Serializer for listing forms, along with its cycle metadata,
+        and assignment completion status.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: نام
+          maxLength: 256
+        description:
+          type: string
+          nullable: true
+          title: توضیحات
+        is_default:
+          type: boolean
+          title: فرم پیش‌فرض
+        form_type:
+          allOf:
+          - $ref: '#/components/schemas/FormTypeEnum'
+          nullable: true
+          title: نوع فرم
+        cycle:
+          type: integer
+      required:
+      - cycle
+      - is_default
+      - name
+    FormTypeEnum:
+      enum:
+      - PM
+      - TL
+      - MANAGER
+      - GENERAL
+      type: string
+      description: |-
+        * `PM` - Product Manager
+        * `TL` - Team Leader
+        * `MANAGER` - Manager
+        * `GENERAL` - General
+    Note:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ ساخت
+        date_updated:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ بروزرسانی
+        owner:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          readOnly: true
+        owner_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 512
+        content:
+          type: string
+          title: محتوا
+        date:
+          type: string
+          format: date
+          title: تاریخ
+        period:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: دوره
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: سال
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: نوع
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            title: ایمیل سازمانی
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+        read_status:
+          type: string
+          readOnly: true
+        access_level:
+          type: string
+          readOnly: true
+        submit_status:
+          allOf:
+          - $ref: '#/components/schemas/NoteSubmitStatusEnum'
+          title: وضعیت
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - access_level
+      - content
+      - date
+      - date_created
+      - date_updated
+      - owner
+      - owner_name
+      - read_status
+      - title
+      - uuid
+    NoteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          title: عنوان
+          maxLength: 512
+        content:
+          type: string
+          minLength: 1
+          title: محتوا
+        date:
+          type: string
+          format: date
+          title: تاریخ
+        period:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: دوره
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: سال
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: نوع
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+        submit_status:
+          allOf:
+          - $ref: '#/components/schemas/NoteSubmitStatusEnum'
+          title: وضعیت
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - content
+      - date
+      - title
+    NoteSubmitStatusEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      type: integer
+      description: |-
+        * `1` - ثبت اولیه
+        * `2` - در حال بررسی
+        * `3` - ثبت نهایی
+    PatchedFeedbackRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+          format: email
+          minLength: 1
+          title: ایمیل سازمانی
+        content:
+          type: string
+          minLength: 1
+          title: محتوا
+    PatchedFormRequest:
+      type: object
+      description: |-
+        Serializer for listing forms, along with its cycle metadata,
+        and assignment completion status.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: نام
+          maxLength: 256
+        description:
+          type: string
+          nullable: true
+          title: توضیحات
+        is_default:
+          type: boolean
+          title: فرم پیش‌فرض
+        form_type:
+          allOf:
+          - $ref: '#/components/schemas/FormTypeEnum'
+          nullable: true
+          title: نوع فرم
+        cycle:
+          type: integer
+    PatchedNoteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          title: عنوان
+          maxLength: 512
+        content:
+          type: string
+          minLength: 1
+          title: محتوا
+        date:
+          type: string
+          format: date
+          title: تاریخ
+        period:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: دوره
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: سال
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: نوع
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
+        linked_notes:
+          type: array
+          items:
+            type: string
+            format: uuid
+        submit_status:
+          allOf:
+          - $ref: '#/components/schemas/NoteSubmitStatusEnum'
+          title: وضعیت
+          minimum: -2147483648
+          maximum: 2147483647
+    PatchedProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        gmail:
+          type: string
+          nullable: true
+          title: جیمیل
+          maxLength: 256
+        phone:
+          type: string
+          nullable: true
+          title: موبایل
+          maxLength: 256
+    PatchedSummaryRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          title: محتوا
+        performance_label:
+          type: string
+          nullable: true
+          title: لیبل عملکردی
+          maxLength: 256
+        ladder_change:
+          type: string
+          nullable: true
+          title: تغییر در سطح لدر
+          maxLength: 256
+        bonus:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: پاداش عملکردی
+        salary_change:
+          type: number
+          format: double
+          title: تغییر پله‌ی حقوقی
+        committee_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاریخ برگزاری جلسه‌ی کمیته
+        submit_status:
+          allOf:
+          - $ref: '#/components/schemas/SummarySubmitStatusEnum'
+          title: وضعیت
+          minimum: -2147483648
+          maximum: 2147483647
+    Profile:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: ایمیل سازمانی
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        gmail:
+          type: string
+          nullable: true
+          title: جیمیل
+          maxLength: 256
+        phone:
+          type: string
+          nullable: true
+          title: موبایل
+          maxLength: 256
+        department:
+          type: string
+          title: نام
+          readOnly: true
+        chapter:
+          type: string
+          title: نام
+          readOnly: true
+        team:
+          type: string
+          title: نام
+          readOnly: true
+        leader:
+          type: string
+          nullable: true
+          title: نام
+          readOnly: true
+        level:
+          type: string
+          readOnly: true
+          nullable: true
+          title: سطح
+      required:
+      - chapter
+      - department
+      - email
+      - leader
+      - level
+      - team
+      - uuid
+    ProfileList:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          maxLength: 254
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+      required:
+      - email
+      - uuid
+    ProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        gmail:
+          type: string
+          nullable: true
+          title: جیمیل
+          maxLength: 256
+        phone:
+          type: string
+          nullable: true
+          title: موبایل
+          maxLength: 256
+    Summary:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        note:
+          type: string
+          format: uuid
+          readOnly: true
+        content:
+          type: string
+          title: محتوا
+        performance_label:
+          type: string
+          nullable: true
+          title: لیبل عملکردی
+          maxLength: 256
+        ladder_change:
+          type: string
+          nullable: true
+          title: تغییر در سطح لدر
+          maxLength: 256
+        bonus:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: پاداش عملکردی
+        salary_change:
+          type: number
+          format: double
+          title: تغییر پله‌ی حقوقی
+        committee_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاریخ برگزاری جلسه‌ی کمیته
+        submit_status:
+          allOf:
+          - $ref: '#/components/schemas/SummarySubmitStatusEnum'
+          title: وضعیت
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - content
+      - note
+      - uuid
+    SummaryRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          title: محتوا
+        performance_label:
+          type: string
+          nullable: true
+          title: لیبل عملکردی
+          maxLength: 256
+        ladder_change:
+          type: string
+          nullable: true
+          title: تغییر در سطح لدر
+          maxLength: 256
+        bonus:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: پاداش عملکردی
+        salary_change:
+          type: number
+          format: double
+          title: تغییر پله‌ی حقوقی
+        committee_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاریخ برگزاری جلسه‌ی کمیته
+        submit_status:
+          allOf:
+          - $ref: '#/components/schemas/SummarySubmitStatusEnum'
+          title: وضعیت
+          minimum: -2147483648
+          maximum: 2147483647
+      required:
+      - content
+    SummarySubmitStatusEnum:
+      enum:
+      - 1
+      - 2
+      type: integer
+      description: |-
+        * `1` - ثبت اولیه
+        * `2` - نهایی‌ شده
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    TokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+      required:
+      - token
+    TypeEnum:
+      enum:
+      - Goal
+      - Meeting
+      - Personal
+      - Task
+      - Proposal
+      - Message
+      - Template
+      type: string
+      description: |-
+        * `Goal` - هدف
+        * `Meeting` - جلسه
+        * `Personal` - شخصی
+        * `Task` - فعالیت
+        * `Proposal` - پروپوزال
+        * `Message` - پیام
+        * `Template` - قالب
+    User:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          maxLength: 254
+        password:
+          type: string
+          title: گذرواژه
+          maxLength: 128
+      required:
+      - email
+      - password
+      - uuid
+    UserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: ایمیل سازمانی
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          title: گذرواژه
+          maxLength: 128
+      required:
+      - email
+      - password
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+- url: /api

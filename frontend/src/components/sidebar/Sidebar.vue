@@ -18,6 +18,27 @@
           </li>
 
           <li>
+            <SidebarLinkGroup :title="t('common.forms')">
+              <li>
+                <!-- // TODO: set badge count for incomplete forms -->
+                <SidebarLink
+                  icon="i-mdi-form"
+                  :label="t('common.forms')"
+                  :to="{ name: 'forms' }"
+                />
+              </li>
+
+              <li>
+                <SidebarLink
+                  icon="i-mdi-chart-bar"
+                  :label="t('common.results')"
+                  :to="{ name: 'my-forms' }"
+                />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
             <SidebarLinkGroup :title="t('common.personal')">
               <li>
                 <SidebarLink

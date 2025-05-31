@@ -45,7 +45,8 @@
           </template>
 
           <template #filter>
-            <NotePeriodFilter :notes />
+            <NoteCycleFilter />
+            <!-- <NotePeriodFilter :notes /> -->
           </template>
         </NoteListControls>
       </template>

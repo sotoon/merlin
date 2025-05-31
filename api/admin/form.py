@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
+from api.utils import calculate_form_results
 from api.models import(
     Question,
     Form,
@@ -35,7 +36,7 @@ class FormAdmin(admin.ModelAdmin):
     list_filter = ('form_type', 'is_default')
     search_fields = ('name', 'description')
     inlines = [QuestionInline, FormAssignmentInline]
-    actions = ['export_skipped_users_csv']
+    actions = ['export_skipped_users_csv', 'export_form_results']
 
     def save_related(self, request, form, formsets, change):
         """
@@ -181,6 +182,83 @@ class FormAdmin(admin.ModelAdmin):
         return response
 
     export_skipped_users_csv.short_description = "Export Skipped Users to CSV"
+
+    def export_form_results(self, request, queryset):
+        """
+        Export each assessed user's category and question averages
+        for the selected forms, in long format.
+        """
+        if not queryset:
+            self.message_user(request, "No forms selected.", level="warning")
+            return
+
+        # Prepare CSV response
+        response = HttpResponse(
+            content_type="text/csv",
+            headers={'Content-Disposition': 'attachment; filename="form_results.csv"'},
+        )
+        writer = csv.writer(response)
+
+        # Header row
+        writer.writerow([
+            "Form Name",
+            "Assessed User",
+            "Type",
+            "Item",
+            "Average"
+        ])
+
+        for form in queryset:
+            # find all distinct assessed_by IDs for this form
+            assignments = FormAssignment.objects.filter(form=form)
+            assessed_ids = assignments.values_list("assigned_by", flat=True).distinct()
+
+            for assessed_id in assessed_ids:
+                # lookup the assessed user
+                try:
+                    assessed_user = User.objects.get(id=assessed_id)
+                except User.DoesNotExist:
+                    continue
+
+                # gather all responses for that assessed user in this form
+                to_users = assignments.filter(assigned_by=assessed_id)\
+                                      .values_list("assigned_to", flat=True)
+                responses = FormResponse.objects.filter(
+                    question__form=form,
+                    user__in=to_users
+                )
+
+                # calculate aggregated results
+                results = calculate_form_results(responses, form)
+
+                # write category averages
+                for category, avg in results["categories"].items():
+                    writer.writerow([
+                        form.name,
+                        assessed_user.name,
+                        "Category",
+                        category,
+                        f"{avg:.2f}" if avg is not None else ""
+                    ])
+
+                # write per‑question averages
+                for q in results["questions"]:
+                    writer.writerow([
+                        form.name,
+                        assessed_user.name,
+                        "Question",
+                        q["text"],
+                        f"{q['average']:.2f}" if q["average"] is not None else ""
+                    ])
+
+        self.message_user(
+            request,
+            f"Exported results for {queryset.count()} form(s).",
+            level="success"
+        )
+        return response
+
+    export_form_results.short_description = "Export aggregated form results"
 
 
 @admin.register(Question)
