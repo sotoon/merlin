@@ -13,12 +13,13 @@ from api.serializers import (
     NoteSerializer,
     SummarySerializer,
 )
+from api.views.mixins import CycleQueryParamMixin
 
 
 __all__ = ['NoteViewSet', 'TemplatesView', 'FeedbackViewSet', 'SummaryViewSet']
 
 
-class NoteViewSet(viewsets.ModelViewSet):
+class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = NoteSerializer
     permission_classes = (IsAuthenticated, NotePermission)
@@ -103,7 +104,7 @@ class TemplatesView(ListAPIView):
         return (user_templates | public_templates).distinct()
 
 
-class FeedbackViewSet(viewsets.ModelViewSet):
+class FeedbackViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = FeedbackSerializer
     permission_classes = [IsAuthenticated, FeedbackPermission]
@@ -139,7 +140,7 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         return all_note_feedbacks.filter(owner=self.request.user)
 
 
-class SummaryViewSet(viewsets.ModelViewSet):
+class SummaryViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = SummarySerializer
     permission_classes = [IsAuthenticated, SummaryPermission]

@@ -2,7 +2,6 @@ from rest_framework import permissions
 
 from api.models import NoteUserAccess
 
-
 class NotePermission(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj):
         if request.method == "POST":
