@@ -11,8 +11,15 @@
         <ul class="space-y-6">
           <li>
             <SidebarLinkGroup :title="t('common.notes')">
-              <li v-for="link in notesLinks" :key="link.label">
-                <SidebarLink v-bind="link" />
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.goal]"
+                  :label="t('common.goals')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.goal] },
+                  }"
+                />
               </li>
 
               <li>
@@ -37,30 +44,36 @@
 
           <li>
             <SidebarLinkGroup :title="t('common.promotion')">
-              <li v-for="link in promotionsLinks" :key="link.label">
-                <SidebarLink v-bind="link" />
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.proposal]"
+                  :label="t('common.proposal')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+                  }"
+                />
               </li>
             </SidebarLinkGroup>
           </li>
 
           <li>
             <SidebarLinkGroup :title="t('common.feedback')">
-              <li v-for="link in feedbacksLinks" :key="link.label">
-                <SidebarLink v-bind="link" />
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.message]"
+                  :label="t('common.messageToOthers')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
+                  }"
+                />
               </li>
             </SidebarLinkGroup>
           </li>
 
           <li>
             <SidebarLinkGroup :title="t('common.personal')">
-              <li>
-                <SidebarLink
-                  :badge-count="newMessagesCount"
-                  icon="i-mdi-message-text"
-                  :label="t('common.messages')"
-                  :to="{ name: 'messages' }"
-                />
-              </li>
               <li>
                 <SidebarLink
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.meeting]"
@@ -105,6 +118,13 @@
 
       <div class="flex flex-col space-y-2 border-t border-gray-10 pt-2">
         <SidebarLink
+          :badge-count="newMessagesCount"
+          icon="i-mdi-message-text"
+          :label="t('common.messages')"
+          :to="{ name: 'messages' }"
+        />
+
+        <SidebarLink
           external
           icon="i-mdi-help-circle"
           :label="t('common.performanceManagementGuide')"
@@ -120,12 +140,6 @@
 <script lang="ts" setup>
 import { PScrollbar, PText } from '@pey/core';
 
-import {
-  getNotesLinks,
-  getPromotionLinks,
-  getFeedbackLinks,
-} from '~/components/sidebar/SidebarLinks';
-
 const { t } = useI18n();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 const isTeamLeader = useIsTeamLeader();
@@ -134,9 +148,6 @@ const isTeamLeader = useIsTeamLeader();
 const messagesWithoutTemplates = computed(
   () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
 );
-const notesLinks = computed(() => getNotesLinks(t));
-const promotionsLinks = computed(() => getPromotionLinks(t));
-const feedbacksLinks = computed(() => getFeedbackLinks(t));
 const newMessagesCount = computed(
   () =>
     messagesWithoutTemplates.value?.filter((message) => !message.read_status)

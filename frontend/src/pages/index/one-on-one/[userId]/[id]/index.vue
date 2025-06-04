@@ -123,7 +123,7 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
               ? 'danger'
               : 'warning'
         "
-        :label="`مدیر: ${getVibeEmoji(oneOnOne.leader_vibe)}`"
+        :label="getVibeEmoji(oneOnOne.leader_vibe)"
       />
       <PChip
         v-if="!isTeamLeader"
@@ -134,7 +134,8 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
               ? 'danger'
               : 'warning'
         "
-        :label="`${user.name}: ${getVibeEmoji(oneOnOne.member_vibe) || 'ثبت نشده'}`"
+        size="large"
+        :label="`${getVibeEmoji(oneOnOne.member_vibe) || 'بازخوردی ثبت نشده است'}`"
       />
 
       <PButton
@@ -246,7 +247,7 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         </div>
       </div>
 
-      <div class="space-y-2 pt-4">
+      <div v-if="oneOnOne.actions" class="space-y-2 pt-4">
         <PHeading :lvl="4" responsive>
           {{ t('oneOnOne.whatActionsWeDefined') }}
         </PHeading>
