@@ -42,9 +42,13 @@
 
 <script lang="ts" setup>
 import { PText } from '@pey/core';
+import type { RouteLocationRaw } from 'vue-router';
 
-import type { SidebarLink } from '~/components/sidebar/SidebarLinks';
-
+export interface SidebarLink {
+  icon: string;
+  label: string;
+  to: RouteLocationRaw;
+}
 interface SidebarLinkProps extends SidebarLink {
   badgeCount?: number;
   external?: boolean;

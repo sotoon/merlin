@@ -48,7 +48,7 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
                 ? 'danger'
                 : 'warning'
           "
-          :label="`مدیر: ${getVibeEmoji(oneOnOne.leader_vibe)}`"
+          :label="getVibeEmoji(oneOnOne.leader_vibe)"
         />
         <PChip
           v-if="!isTeamLeader"
@@ -59,7 +59,7 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
                 ? 'danger'
                 : 'warning'
           "
-          :label="`${username}: ${getVibeEmoji(oneOnOne.member_vibe) || 'ثبت نشده'}`"
+          :label="`${getVibeEmoji(oneOnOne.member_vibe) || 'بازخوردی ثبت نشده است'}`"
         />
       </div>
     </template>
