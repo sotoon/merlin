@@ -11,8 +11,6 @@ interface CreateNotePayload
     | 'content'
     | 'type'
     | 'mentioned_users'
-    | 'year'
-    | 'period'
     | 'linked_notes'
     | 'submit_status'
   > {

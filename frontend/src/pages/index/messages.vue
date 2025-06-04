@@ -39,7 +39,6 @@
 
           <template #filter>
             <NoteWriterFilter :notes />
-            <NotePeriodFilter :notes />
             <NoteTeamFilter v-if="isTeamLeader" />
             <NoteReadStatusFilter />
           </template>

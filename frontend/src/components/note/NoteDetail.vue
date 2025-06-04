@@ -149,14 +149,6 @@
           {{ new Date(note.date).toLocaleDateString('fa-IR') }}
         </PText>
       </PText>
-
-      <PText as="p" class="text-gray-50" variant="caption1">
-        {{ t('note.period') }}:
-        <PText class="text-gray-70" variant="caption1">
-          {{ EVALUATION_PERIODS[note.period] || '' }}
-          {{ note.year.toLocaleString('fa-IR', { useGrouping: false }) }}
-        </PText>
-      </PText>
     </div>
 
     <article class="mt-4 py-4">

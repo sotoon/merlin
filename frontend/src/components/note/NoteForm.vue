@@ -51,55 +51,21 @@
       </VeeField>
     </div>
 
-    <div class="flex flex-wrap gap-4">
-      <VeeField v-slot="{ componentField }" name="date">
-        <PDatePickerInput
-          v-bind="componentField"
-          :label="
-            noteType === NOTE_TYPE.meeting
-              ? t('note.meetingDate')
-              : t('common.date')
-          "
-          type="jalali"
-        />
-      </VeeField>
-
-      <div class="flex flex-wrap gap-2">
-        <div class="w-24">
-          <VeeField v-slot="{ componentField }" name="year">
-            <PListbox
-              v-bind="componentField"
-              hide-details
-              :label="t('note.year')"
-            >
-              <PListboxOption
-                v-for="year in YEARS"
-                :key="year"
-                :label="year.toLocaleString('fa-IR', { useGrouping: false })"
-                :value="year"
-              />
-            </PListbox>
-          </VeeField>
-        </div>
-
-        <div class="w-24">
-          <VeeField v-slot="{ componentField }" name="period">
-            <PListbox
-              v-bind="componentField"
-              hide-details
-              :label="t('note.period')"
-            >
-              <PListboxOption
-                v-for="(period, index) in EVALUATION_PERIODS"
-                :key="index"
-                :label="period"
-                :value="index"
-              />
-            </PListbox>
-          </VeeField>
-        </div>
-      </div>
-    </div>
+    <VeeField
+      v-if="!dateFieldsNotRequired"
+      v-slot="{ componentField }"
+      name="date"
+    >
+      <PDatePickerInput
+        v-bind="componentField"
+        :label="
+          noteType === NOTE_TYPE.meeting
+            ? t('note.meetingDate')
+            : t('common.date')
+        "
+        type="jalali"
+      />
+    </VeeField>
 
     <div>
       <VeeField v-slot="{ componentField }" name="linked_notes">
@@ -156,8 +122,6 @@ import {
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
-const YEARS = [1402, 1403, 1404, 1405, 1406];
-
 const props = defineProps<{
   note?: Note;
   noteType?: NoteType;
@@ -169,6 +133,10 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const dateFieldsNotRequired = computed(
+  () =>
+    props.noteType === NOTE_TYPE.goal || props.noteType === NOTE_TYPE.proposal,
+);
 const {
   meta,
   values: formValues,
@@ -180,9 +148,11 @@ const {
     title: props.note?.title || '',
     content: props.note?.content || '',
     mentioned_users: props.note?.mentioned_users || [],
-    date: props.note?.date ? new Date(props.note.date) : undefined,
-    year: props.note?.year || YEARS[1],
-    period: props.note?.period || 0,
+    date: dateFieldsNotRequired.value
+      ? undefined
+      : props.note?.date
+        ? new Date(props.note.date)
+        : new Date(),
     linked_notes: props.note?.linked_notes || [],
   },
 });
