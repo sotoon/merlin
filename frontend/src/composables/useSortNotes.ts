@@ -10,8 +10,6 @@ const SORT_FUNCTIONS: Record<
     new Date(b.date_created).getTime() - new Date(a.date_created).getTime(),
   [NOTE_SORT_OPTION.oldest]: (a, b) =>
     new Date(a.date_created).getTime() - new Date(b.date_created).getTime(),
-  [NOTE_SORT_OPTION.period]: (a, b) =>
-    (b.year - a.year) * 10 + (b.period - a.period),
   [NOTE_SORT_OPTION.date]: (a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime(),
   [NOTE_SORT_OPTION.title]: (a, b) => a.title.localeCompare(b.title),

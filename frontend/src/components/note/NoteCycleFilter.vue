@@ -1,16 +1,18 @@
 <template>
-  <div class="flex flex-wrap items-center gap-2">
+  <PBox class="px-3 py-2">
     <PSwitch
       :model-value="isCurrentCycle"
-      label="دوره فعلی؟"
+      :label="t('note.currentPeriod')"
+      size="small"
       @update:model-value="updateCurrentCycle"
     />
-  </div>
+  </PBox>
 </template>
 
 <script lang="ts" setup>
-import { PSwitch } from '@pey/core';
+import { PSwitch, PBox } from '@pey/core';
 
+const { t } = useI18n();
 const isCurrentCycle = useState<boolean>('isCurrentCycle');
 
 function updateCurrentCycle(newValue: boolean) {

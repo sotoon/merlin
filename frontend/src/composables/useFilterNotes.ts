@@ -13,12 +13,6 @@ export const useFilterNotes = (notes: Ref<Note[]> | (() => Note[])) => {
   const queryFilter = useRouteQuery<string>('q');
   const typeFilter = useRouteQuery<string>('type');
   const writerFilter = useRouteQuery<string>('writer');
-  const yearFilter = useRouteQuery('year', undefined, {
-    transform: (value) => (value ? Number(value) : undefined),
-  });
-  const periodFilter = useRouteQuery('period', undefined, {
-    transform: (value) => (value ? Number(value) : undefined),
-  });
   const teamFilter = useRouteQuery('my-team');
   const unreadFilter = useRouteQuery('unread');
 
@@ -31,8 +25,6 @@ export const useFilterNotes = (notes: Ref<Note[]> | (() => Note[])) => {
           )) &&
         note.type === (typeFilter.value ?? note.type) &&
         note.owner === (writerFilter.value ?? note.owner) &&
-        note.year === (yearFilter.value ?? note.year) &&
-        note.period === (periodFilter.value ?? note.period) &&
         (!teamFilter.value ||
           myTeam.value?.find((user) => user.email === note.owner)) &&
         (!unreadFilter.value || !note.read_status),

@@ -92,13 +92,13 @@
           </PText>
         </div>
 
-        <div v-if="note.type !== NOTE_TYPE.template">
+        <div
+          v-if="
+            note.type !== NOTE_TYPE.template && note.type === NOTE_TYPE.meeting
+          "
+        >
           <PText class="text-nowrap text-gray-50" dir="ltr" variant="caption2">
-            {{
-              note.type === NOTE_TYPE.meeting
-                ? new Date(note.date).toLocaleDateString('fa-IR')
-                : `${note.year.toLocaleString('fa-IR', { useGrouping: false })} - ${(note.period + 1).toLocaleString('fa-IR')}`
-            }}
+            {{ new Date(note.date).toLocaleDateString('fa-IR') }}
           </PText>
         </div>
       </div>
