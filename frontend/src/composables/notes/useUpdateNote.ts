@@ -11,8 +11,6 @@ interface UpdateNotePayload
     | 'content'
     | 'mentioned_users'
     | 'date'
-    | 'year'
-    | 'period'
     | 'linked_notes'
     | 'submit_status'
   > {}
