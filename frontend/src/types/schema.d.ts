@@ -265,7 +265,11 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    /** @description CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`. */
+    /** @description Custom PATCH method for OneOnOne.
+     *     - Only the member can PATCH their own member_vibe (and nothing else).
+     *     - The leader cannot PATCH member_vibe.
+     *     - Nobody else can PATCH at all.
+     *     - Every valid update is logged in UserTimeline for history/auditing. */
     patch: operations['my_team_one_on_ones_partial_update'];
     trace?: never;
   };
@@ -654,22 +658,12 @@ export interface components {
       readonly id: number;
       /** عنوان */
       title: string;
-      /**
-       * تاریخ
-       * Format: date
-       */
-      date: string;
       readonly linked_notes: string[];
     };
     /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
     NoteMetaRequest: {
       /** عنوان */
       title: string;
-      /**
-       * تاریخ
-       * Format: date
-       */
-      date: string;
     };
     NoteRequest: {
       /** عنوان */
@@ -714,13 +708,25 @@ export interface components {
       career_summary?: string | null;
       performance_summary: string;
       communication_summary?: string | null;
-      actions: string;
+      actions?: string | null;
       leader_vibe: components['schemas']['LeaderVibeEnum'];
       member_vibe?: components['schemas']['MemberVibeEnum'] | null;
       linked_notes?: string[];
       tags: number[];
       readonly tag_links: components['schemas']['OneOnOneTagLinkRead'][];
       extra_notes?: string | null;
+      /**
+       * تاریخ ساخت
+       * Format: date-time
+       */
+      readonly date_created: string | null;
+      /**
+       * تاریخ بروزرسانی
+       * Format: date-time
+       */
+      readonly date_updated: string | null;
+      /** Format: uuid */
+      readonly uuid: string;
     };
     /** @description Handles 1:1 CRUD with:
      *     - Client sends 'tags': [id, ...]
@@ -732,7 +738,7 @@ export interface components {
       career_summary?: string | null;
       performance_summary: string;
       communication_summary?: string | null;
-      actions: string;
+      actions?: string | null;
       leader_vibe: components['schemas']['LeaderVibeEnum'];
       member_vibe?: components['schemas']['MemberVibeEnum'] | null;
       linked_notes?: string[];
@@ -803,7 +809,7 @@ export interface components {
       career_summary?: string | null;
       performance_summary?: string;
       communication_summary?: string | null;
-      actions?: string;
+      actions?: string | null;
       leader_vibe?: components['schemas']['LeaderVibeEnum'];
       member_vibe?: components['schemas']['MemberVibeEnum'] | null;
       linked_notes?: string[];

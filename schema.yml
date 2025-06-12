@@ -559,7 +559,12 @@ paths:
           description: ''
     patch:
       operationId: my_team_one_on_ones_partial_update
-      description: CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`.
+      description: |-
+        Custom PATCH method for OneOnOne.
+        - Only the member can PATCH their own member_vibe (and nothing else).
+        - The leader cannot PATCH member_vibe.
+        - Nobody else can PATCH at all.
+        - Every valid update is logged in UserTimeline for history/auditing.
       parameters:
       - in: path
         name: id
@@ -1623,10 +1628,6 @@ components:
           type: string
           title: عنوان
           maxLength: 512
-        date:
-          type: string
-          format: date
-          title: تاریخ
         linked_notes:
           type: array
           items:
@@ -1634,7 +1635,6 @@ components:
             format: uuid
           readOnly: true
       required:
-      - date
       - id
       - linked_notes
       - title
@@ -1648,12 +1648,7 @@ components:
           minLength: 1
           title: عنوان
           maxLength: 512
-        date:
-          type: string
-          format: date
-          title: تاریخ
       required:
-      - date
       - title
     NoteRequest:
       type: object
@@ -1759,6 +1754,7 @@ components:
           maxLength: 400
         actions:
           type: string
+          nullable: true
         leader_vibe:
           $ref: '#/components/schemas/LeaderVibeEnum'
         member_vibe:
@@ -1782,9 +1778,26 @@ components:
         extra_notes:
           type: string
           nullable: true
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ ساخت
+        date_updated:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ بروزرسانی
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
       required:
-      - actions
       - cycle
+      - date_created
+      - date_updated
       - id
       - leader_vibe
       - member
@@ -1793,6 +1806,7 @@ components:
       - performance_summary
       - tag_links
       - tags
+      - uuid
     OneOnOneRequest:
       type: object
       description: |-
@@ -1820,7 +1834,7 @@ components:
           maxLength: 400
         actions:
           type: string
-          minLength: 1
+          nullable: true
         leader_vibe:
           $ref: '#/components/schemas/LeaderVibeEnum'
         member_vibe:
@@ -1840,7 +1854,6 @@ components:
           type: string
           nullable: true
       required:
-      - actions
       - leader_vibe
       - performance_summary
       - tags
@@ -1982,7 +1995,7 @@ components:
           maxLength: 400
         actions:
           type: string
-          minLength: 1
+          nullable: true
         leader_vibe:
           $ref: '#/components/schemas/LeaderVibeEnum'
         member_vibe:

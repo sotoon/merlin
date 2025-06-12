@@ -152,12 +152,14 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         {{ t('note.lastEdit') }}:
         <PTooltip>
           <PText class="text-gray-70" variant="caption1">
-            {{ formatTimeAgo(new Date(oneOnOne.note_meta.date), 'fa-IR') }}
+            {{ formatTimeAgo(new Date(oneOnOne.date_updated || ''), 'fa-IR') }}
           </PText>
 
           <template #content>
             <PText dir="ltr" variant="caption1">
-              {{ new Date(oneOnOne.note_meta.date).toLocaleString('fa-IR') }}
+              {{
+                new Date(oneOnOne.date_updated || '').toLocaleString('fa-IR')
+              }}
             </PText>
           </template>
         </PTooltip>
