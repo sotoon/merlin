@@ -15,7 +15,7 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
   <PCard
     class="transition-shadow duration-300 hover:shadow-lg"
     header-border
-    :title="oneOnOne.actions"
+    :title="oneOnOne.actions || ''"
   >
     <div class="space-y-4">
       <div class="space-y-2">
@@ -69,7 +69,7 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
         class="mt-2 flex grow items-end justify-between gap-2 overflow-hidden"
       >
         <PText class="text-nowrap" variant="caption2">
-          {{ formatTimeAgo(new Date(oneOnOne.note_meta.date), 'fa-IR') }}
+          {{ formatTimeAgo(new Date(oneOnOne.date_updated || ''), 'fa-IR') }}
         </PText>
       </div>
     </template>
