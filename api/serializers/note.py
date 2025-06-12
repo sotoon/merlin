@@ -201,6 +201,11 @@ class OneOnOneSerializer(serializers.ModelSerializer):
     - Server creates Note, OneOnOne, TagLinks in a single transaction
     - 'tag_links' read-only for analytics/reporting
     - 'note_meta' nested for UI
+
+    Privacy logic:
+    The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+    we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+    if the current user is the member. This ensures privacy and prevents bias or retaliation.
     """
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -291,8 +296,11 @@ class OneOnOneSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         user = self.context["request"].user
+        # Privacy logic: Only show the user's own vibe, not the other party's
         if instance.note.owner_id == user.id:
+            # Leader should not see member's vibe
             data.pop("member_vibe", None)
         elif instance.member_id == user.id:
+            # Member should not see leader's vibe
             data.pop("leader_vibe", None)
         return data
