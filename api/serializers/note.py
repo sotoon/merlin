@@ -180,7 +180,7 @@ class NoteMetaSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = Note
-        fields = ["id", "title", "date", "linked_notes"]
+        fields = ["id", "title", "linked_notes"]
 
 
 # Used for analytics endpoints
@@ -226,9 +226,9 @@ class OneOnOneSerializer(serializers.ModelSerializer):
             "actions", "leader_vibe", "member_vibe", "linked_notes",
             "tags",         # input/output: flat list of IDs
             "tag_links",    # output: sectioned/grouped per 1:1 instance
-            "linked_notes", "extra_notes"
+            "extra_notes", "date_created", "date_updated", "uuid"
         ]        
-        read_only_fields = ("id", "note", "member", "cycle")
+        read_only_fields = ("id", "note", "member", "cycle", "date_created", "date_updated", "uuid")
         # Make member_vibe non-required
         extra_kwargs = {
             "member_vibe": {"required": False, "allow_null": True},
