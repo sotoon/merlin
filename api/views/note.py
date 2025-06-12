@@ -7,6 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.utils.translation import gettext_lazy as _
 
 from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne, UserTimeline)
 from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember
@@ -196,7 +197,7 @@ class OneOnOneViewSet(CycleQueryParamMixin,
                 self.member_obj.leader_id != self.request.user.id
                 and self.member_obj.id != self.request.user.id
             ):
-                raise PermissionDenied("Not your direct report")
+                raise PermissionDenied(_("You do not have access to this direct report's one-on-ones."))
 
     # Loads member_obj once, and stores it on self before any list/create/detail methods
     def initial(self, request, *args, **kwargs):
@@ -234,17 +235,12 @@ class OneOnOneViewSet(CycleQueryParamMixin,
             return response
 
     def get_queryset(self):
-        qs = OneOnOne.objects.select_related("member", "cycle", "note")
-
+        qs = OneOnOne.objects.select_related("member", "cycle", "note").prefetch_related("tags", "note__linked_notes")
         if "member_pk" in self.kwargs:
             if self.request.user == self.member_obj:
-                # Member: list / detail all their 1-on-1s (no owner filter)
                 qs = qs.filter(member=self.member_obj)
             else:
-                # Leader: only sessions where they are the owner
-                qs = qs.filter(member=self.member_obj,
-                            note__owner=self.request.user)
-
+                qs = qs.filter(member=self.member_obj, note__owner=self.request.user)
         return super().filter_queryset(qs)
     
     # Allows PATCH from the member, only if they are changing member_vibe
@@ -267,14 +263,14 @@ class OneOnOneViewSet(CycleQueryParamMixin,
         if is_member:
             # Member can ONLY update their own member_vibe
             if not patch_fields.issubset({"member_vibe"}):
-                raise PermissionDenied("Members may only edit their own vibe.")
+                raise PermissionDenied(_("Members may only edit their own vibe (member_vibe)."))
         elif is_leader:
             # Leader can update anything EXCEPT member_vibe
             if "member_vibe" in patch_fields:
-                raise PermissionDenied("Leaders may not edit member vibe.")
+                raise PermissionDenied(_("Leaders may not edit the member's vibe (member_vibe)."))
         else:
             # No other users allowed
-            raise PermissionDenied("Not authorized to edit this 1:1.")
+            raise PermissionDenied(_("You are not authorized to edit this one-on-one."))
         
         return super().partial_update(request, *args, **kwargs)
 
@@ -308,4 +304,4 @@ class MyOneOnOneViewSet(mixins.ListModelMixin,
     permission_classes = (IsAuthenticated, HasOneOnOneAccess)
 
     def get_queryset(self):
-        return OneOnOne.objects.select_related("note").filter(member=self.request.user)
+        return OneOnOne.objects.select_related("note").prefetch_related("tags", "note__linked_notes").filter(member=self.request.user)
