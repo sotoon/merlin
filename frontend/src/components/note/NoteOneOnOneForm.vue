@@ -35,13 +35,22 @@ const { meta, handleSubmit, setValues } = useForm<Schema<'OneOnOneRequest'>>({
     actions: props.oneOnOne?.actions || '',
     leader_vibe: props.oneOnOne?.leader_vibe,
     extra_notes: props.oneOnOne?.extra_notes || '',
-    linked_notes: props.oneOnOne?.note_meta?.linked_notes || [],
+    linked_notes: props.oneOnOne?.note?.linked_notes || [],
+  },
+  validationSchema: {
+    personal_summary: 'max:400',
+    career_summary: 'max:400',
+    communication_summary: 'max:400',
+    performance_summary: 'required|max:400',
+    actions: 'max:400',
+    extra_notes: 'max:400',
   },
 });
 
 const selectedTags = ref<number[]>([]);
 
 const VIBES = [':)', ':|', ':('] as Schema<'LeaderVibeEnum'>[];
+const EXCLUDES_TOOLBARS = ['table'];
 
 watch(selectedTags, (newValue) => {
   setValues({ tags: newValue });
@@ -100,12 +109,19 @@ const onSubmit = handleSubmit((values, ctx) => {
             </PText>
           </label>
 
-          <VeeField v-slot="{ value, handleChange }" name="personal_summary">
+          <VeeField
+            v-slot="{ value, handleChange, errorMessage }"
+            name="personal_summary"
+          >
             <Editor
               :model-value="value"
+              :extends-toolbars="EXCLUDES_TOOLBARS"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
+            <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+              {{ t('messages.max', { length: 400 }) }}
+            </div>
           </VeeField>
 
           <div class="space-y-4">
@@ -147,12 +163,19 @@ const onSubmit = handleSubmit((values, ctx) => {
             </PText>
           </label>
 
-          <VeeField v-slot="{ value, handleChange }" name="career_summary">
+          <VeeField
+            v-slot="{ value, handleChange, errorMessage }"
+            name="career_summary"
+          >
             <Editor
               :model-value="value"
+              :extends-toolbars="EXCLUDES_TOOLBARS"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
+            <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+              {{ t('messages.max', { length: 400 }) }}
+            </div>
           </VeeField>
 
           <div class="space-y-4">
@@ -195,14 +218,18 @@ const onSubmit = handleSubmit((values, ctx) => {
           </label>
 
           <VeeField
-            v-slot="{ value, handleChange }"
+            v-slot="{ value, handleChange, errorMessage }"
             name="communication_summary"
           >
             <Editor
               :model-value="value"
+              :extends-toolbars="EXCLUDES_TOOLBARS"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
+            <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+              {{ t('messages.max', { length: 400 }) }}
+            </div>
           </VeeField>
 
           <div class="space-y-4">
@@ -246,15 +273,19 @@ const onSubmit = handleSubmit((values, ctx) => {
           </label>
 
           <VeeField
-            v-slot="{ value, handleChange }"
+            v-slot="{ value, handleChange, errorMessage }"
             name="performance_summary"
             rules="required"
           >
             <Editor
               :model-value="value"
+              :extends-toolbars="EXCLUDES_TOOLBARS"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
+            <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+              {{ t('messages.max', { length: 400 }) }}
+            </div>
           </VeeField>
 
           <div class="space-y-4">
@@ -293,12 +324,16 @@ const onSubmit = handleSubmit((values, ctx) => {
         </PText>
       </label>
 
-      <VeeField v-slot="{ value, handleChange }" name="actions">
+      <VeeField v-slot="{ value, handleChange, errorMessage }" name="actions">
         <Editor
           :model-value="value"
+          :extends-toolbars="EXCLUDES_TOOLBARS"
           aria-labelledby="actions"
           @update:model-value="handleChange"
         />
+        <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+          {{ t('messages.max', { length: 400 }) }}
+        </div>
       </VeeField>
     </div>
 
@@ -309,12 +344,19 @@ const onSubmit = handleSubmit((values, ctx) => {
         </PText>
       </label>
 
-      <VeeField v-slot="{ value, handleChange }" name="extra_notes">
+      <VeeField
+        v-slot="{ value, handleChange, errorMessage }"
+        name="extra_notes"
+      >
         <Editor
           :model-value="value"
+          :extends-toolbars="EXCLUDES_TOOLBARS"
           aria-labelledby="extra_notes"
           @update:model-value="handleChange"
         />
+        <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+          {{ t('messages.max', { length: 400 }) }}
+        </div>
       </VeeField>
     </div>
 
