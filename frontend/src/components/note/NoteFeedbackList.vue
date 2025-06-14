@@ -13,7 +13,7 @@
             variant="ghost"
             @click="
               navigateTo({
-                name: 'note-feedback',
+                name: isOneOnOne ? 'one-on-one-feedback' : 'note-feedback',
                 query: { owner: feedback.owner },
               })
             "
@@ -28,7 +28,7 @@
 import { PCard, PIconButton } from '@pey/core';
 import { PeyEditIcon } from '@pey/icons';
 
-defineProps<{ feedbacks: NoteFeedback[] }>();
+defineProps<{ feedbacks: NoteFeedback[]; isOneOnOne?: boolean }>();
 
 const { data: profile } = useGetProfile();
 </script>
