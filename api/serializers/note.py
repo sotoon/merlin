@@ -5,22 +5,28 @@ from django.db import transaction
 from api.services import grant_oneonone_access
 from api.serializers.organization import TagReadSerializer
 from api.models import (
-        Feedback,
-        Note,
-        NoteType,
-        NoteUserAccess,
-        Summary,
-        User,
-        OneOnOne,
-        OneOnOneTagLink,
-        ValueTag,
-        Cycle,
-        UserTimeline
+    Feedback,
+    Note,
+    NoteType,
+    NoteUserAccess,
+    Summary,
+    User,
+    OneOnOne,
+    OneOnOneTagLink,
+    ValueTag,
+    Cycle,
+    UserTimeline,
 )
 
 
-__all__ = ['NoteUserAccessSerializer', 'NoteSerializer', 'FeedbackSerializer', 'SummarySerializer',
-           'OneOnOneSerializer', 'OneOnOneTagLinkReadSerializer']
+__all__ = [
+    "NoteUserAccessSerializer",
+    "NoteSerializer",
+    "FeedbackSerializer",
+    "SummarySerializer",
+    "OneOnOneSerializer",
+    "OneOnOneTagLinkReadSerializer",
+]
 
 
 class NoteUserAccessSerializer(serializers.ModelSerializer):
@@ -47,16 +53,11 @@ class NoteSerializer(serializers.ModelSerializer):
         many=True, required=False, queryset=Note.objects.all(), slug_field="uuid"
     )
     read_status = serializers.SerializerMethodField()
-    access_level = serializers.SerializerMethodField()
+    access_level = NoteUserAccessSerializer(read_only=True, allow_null=True)
     one_on_one_member = serializers.SlugRelatedField(
-        source="one_on_one.member",
-        read_only=True,
-        slug_field="uuid"
+        source="one_on_one.member", read_only=True, slug_field="uuid"
     )
-    one_on_one_id = serializers.IntegerField(
-        source="one_on_one.id",
-        read_only=True
-    )
+    one_on_one_id = serializers.IntegerField(source="one_on_one.id", read_only=True)
 
     class Meta:
         model = Note
@@ -100,12 +101,13 @@ class NoteSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         return obj.read_by.filter(uuid=user.uuid).exists()
 
-    def get_access_level(self, obj):
+    def to_representation(self, instance):
         user = self.context["request"].user
-        access_level = NoteUserAccess.objects.filter(user=user, note=obj).first()
-        if access_level:
-            return NoteUserAccessSerializer(access_level).data
-        return None
+        access_level_obj = NoteUserAccess.objects.filter(
+            user=user, note=instance
+        ).first()
+        instance.access_level = access_level_obj
+        return super().to_representation(instance)
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
@@ -159,7 +161,9 @@ class SummarySerializer(serializers.ModelSerializer):
             "committee_date",
             "submit_status",
         )
-        read_only_fields = ["uuid", ]
+        read_only_fields = [
+            "uuid",
+        ]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
@@ -173,22 +177,14 @@ class SummarySerializer(serializers.ModelSerializer):
         return instance
 
 
-class NoteMetaSerializer(serializers.ModelSerializer):
-    """Nested minimal Note info for UI convenience (title, date, mentions, links)."""
-    linked_notes = serializers.SlugRelatedField(
-    many=True, read_only=True, slug_field="uuid"
-    )
-    class Meta:
-        model = Note
-        fields = ["id", "title", "linked_notes"]
-
-
 # Used for analytics endpoints
 class OneOnOneTagLinkReadSerializer(serializers.ModelSerializer):
     """
     Read-only: return tag/section per link on each 1:1
     """
+
     tag = TagReadSerializer()
+
     class Meta:
         model = OneOnOneTagLink
         fields = ["id", "tag", "section"]
@@ -207,33 +203,49 @@ class OneOnOneSerializer(serializers.ModelSerializer):
     we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
     if the current user is the member. This ensures privacy and prevents bias or retaliation.
     """
+
+    note = NoteSerializer(read_only=True)
     tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=ValueTag.objects.filter(orgvaluetag__is_enabled=True)
+        many=True, queryset=ValueTag.objects.filter(orgvaluetag__is_enabled=True)
     )
     tag_links = OneOnOneTagLinkReadSerializer(
         source="oneononetaglink_set", many=True, read_only=True
     )
-    note_meta = NoteMetaSerializer(source="note", read_only=True)
     linked_notes = serializers.SlugRelatedField(
-        many=True,
-        required=False,
-        queryset=Note.objects.all(),
-        slug_field="uuid"
+        many=True, required=False, queryset=Note.objects.all(), slug_field="uuid"
     )
     # member_id injects by the ViewSet
 
     class Meta:
         model = OneOnOne
         fields = [
-            "id", "note", "note_meta", "member", "cycle",
-            "personal_summary", "career_summary", "performance_summary", "communication_summary",
-            "actions", "leader_vibe", "member_vibe", "linked_notes",
-            "tags",         # input/output: flat list of IDs
-            "tag_links",    # output: sectioned/grouped per 1:1 instance
-            "extra_notes", "date_created", "date_updated", "uuid"
-        ]        
-        read_only_fields = ("id", "note", "member", "cycle", "date_created", "date_updated", "uuid")
+            "id",
+            "note",
+            "member",
+            "cycle",
+            "personal_summary",
+            "career_summary",
+            "performance_summary",
+            "communication_summary",
+            "actions",
+            "leader_vibe",
+            "member_vibe",
+            "linked_notes",
+            "tags",  # input/output: flat list of IDs
+            "tag_links",  # output: sectioned/grouped per 1:1 instance
+            "extra_notes",
+            "date_created",
+            "date_updated",
+            "uuid",
+        ]
+        read_only_fields = (
+            "id",
+            "member",
+            "cycle",
+            "date_created",
+            "date_updated",
+            "uuid",
+        )
         # Make member_vibe non-required
         extra_kwargs = {
             "member_vibe": {"required": False, "allow_null": True},
@@ -257,11 +269,13 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                 cycle=cycle,
             )
             note.linked_notes.set(linked_notes)
-            oneonone = OneOnOne.objects.create(note=note, member=member, cycle=cycle, **validated_data)
+            oneonone = OneOnOne.objects.create(
+                note=note, member=member, cycle=cycle, **validated_data
+            )
             for tag in tags:
-                OneOnOneTagLink.objects.create(one_on_one=oneonone, 
-                                               tag=tag, 
-                                               section=tag.section)
+                OneOnOneTagLink.objects.create(
+                    one_on_one=oneonone, tag=tag, section=tag.section
+                )
             grant_oneonone_access(oneonone.note)
 
         return oneonone
@@ -285,9 +299,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                 OneOnOneTagLink.objects.filter(one_on_one=oneonone).delete()
                 for tag in tags:
                     OneOnOneTagLink.objects.create(
-                        one_on_one=oneonone,
-                        tag=tag,
-                        section=tag.section
+                        one_on_one=oneonone, tag=tag, section=tag.section
                     )
         grant_oneonone_access(oneonone.note)
         return oneonone
