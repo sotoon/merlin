@@ -29,7 +29,9 @@ const newMessagesCounts = computed(
     props.notes
       .filter(
         (message) =>
-          message.type !== NOTE_TYPE.template && !message.read_status,
+          message.type !== NOTE_TYPE.template &&
+          message.type !== NOTE_TYPE.oneOnOne &&
+          !message.read_status,
       )
       .reduce<Partial<Record<NoteType | 'all', number>>>((acc, message) => {
         acc.all = (acc.all || 0) + 1;

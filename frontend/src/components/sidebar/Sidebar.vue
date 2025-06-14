@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex h-full w-64 flex-col overflow-hidden py-4">
+  <nav class="flex h-full w-64 flex-col overflow-hidden pb-4">
     <NuxtLink class="pb-4 pt-2 shadow" to="/">
       <PText as="p" class="text-center" weight="bold" variant="h4">
         {{ t('common.appName') }}
@@ -96,7 +96,10 @@
           </li>
 
           <li>
-            <SidebarLinkGroup :title="t('common.myTeam')">
+            <SidebarLinkGroup
+              :has-badge="!!newOneOnOneCount"
+              :title="t('common.myTeam')"
+            >
               <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
@@ -106,6 +109,7 @@
               </li>
               <li>
                 <SidebarLink
+                  :badge-count="newOneOnOneCount"
                   icon="i-mdi-account-supervisor"
                   :label="t('common.oneOnOne')"
                   :to="{ name: 'one-on-one' }"
@@ -145,12 +149,21 @@ const { data: messages } = useGetNotes({ retrieveMentions: true });
 const isTeamLeader = useIsTeamLeader();
 
 // TODO: filter out templates in the backend
-const messagesWithoutTemplates = computed(
-  () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
+const messagesWithoutTemplates = computed(() =>
+  (messages.value || []).filter(
+    ({ type }) => type !== NOTE_TYPE.template && type !== NOTE_TYPE.oneOnOne,
+  ),
 );
+const newOneOnOneCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) => message.type === NOTE_TYPE.oneOnOne && !message.read_status,
+    ).length,
+);
+
 const newMessagesCount = computed(
   () =>
-    messagesWithoutTemplates.value?.filter((message) => !message.read_status)
+    messagesWithoutTemplates.value.filter((message) => !message.read_status)
       .length,
 );
 </script>
