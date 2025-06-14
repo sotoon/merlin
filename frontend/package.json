@@ -17,6 +17,7 @@
     "@pey/core": "^1.17.0",
     "@pey/icons": "^1.10.2",
     "@pey/tailwind-preset": "^1.0.4",
+    "@tanstack/vue-query": "^5.80.7",
     "@vee-validate/i18n": "^4.12.5",
     "@vee-validate/nuxt": "^4.12.5",
     "@vee-validate/rules": "^4.12.5",
