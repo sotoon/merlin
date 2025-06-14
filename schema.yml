@@ -1588,8 +1588,10 @@ components:
           type: string
           readOnly: true
         access_level:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/NoteUserAccess'
           readOnly: true
+          nullable: true
         submit_status:
           allOf:
           - $ref: '#/components/schemas/NoteSubmitStatusEnum'
@@ -1616,40 +1618,6 @@ components:
       - read_status
       - title
       - uuid
-    NoteMeta:
-      type: object
-      description: Nested minimal Note info for UI convenience (title, date, mentions,
-        links).
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        title:
-          type: string
-          title: عنوان
-          maxLength: 512
-        linked_notes:
-          type: array
-          items:
-            type: string
-            format: uuid
-          readOnly: true
-      required:
-      - id
-      - linked_notes
-      - title
-    NoteMetaRequest:
-      type: object
-      description: Nested minimal Note info for UI convenience (title, date, mentions,
-        links).
-      properties:
-        title:
-          type: string
-          minLength: 1
-          title: عنوان
-          maxLength: 512
-      required:
-      - title
     NoteRequest:
       type: object
       properties:
@@ -1712,6 +1680,42 @@ components:
         * `1` - ثبت اولیه
         * `2` - در حال بررسی
         * `3` - ثبت نهایی
+    NoteUserAccess:
+      type: object
+      properties:
+        can_view:
+          type: boolean
+          title: مشاهده
+        can_edit:
+          type: boolean
+          title: ویرایش
+        can_view_summary:
+          type: boolean
+          title: مشاهده جمع‌بندی
+        can_write_summary:
+          type: boolean
+          title: نوشتن جمع‌بندی
+        can_write_feedback:
+          type: boolean
+          title: نوشتن فیدبک
+    NoteUserAccessRequest:
+      type: object
+      properties:
+        can_view:
+          type: boolean
+          title: مشاهده
+        can_edit:
+          type: boolean
+          title: ویرایش
+        can_view_summary:
+          type: boolean
+          title: مشاهده جمع‌بندی
+        can_write_summary:
+          type: boolean
+          title: نوشتن جمع‌بندی
+        can_write_feedback:
+          type: boolean
+          title: نوشتن فیدبک
     OneOnOne:
       type: object
       description: |-
@@ -1720,16 +1724,18 @@ components:
         - Server creates Note, OneOnOne, TagLinks in a single transaction
         - 'tag_links' read-only for analytics/reporting
         - 'note_meta' nested for UI
+
+        Privacy logic:
+        The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+        we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+        if the current user is the member. This ensures privacy and prevents bias or retaliation.
       properties:
         id:
           type: integer
           readOnly: true
         note:
-          type: integer
-          readOnly: true
-        note_meta:
           allOf:
-          - $ref: '#/components/schemas/NoteMeta'
+          - $ref: '#/components/schemas/Note'
           readOnly: true
         member:
           type: integer
@@ -1802,7 +1808,6 @@ components:
       - leader_vibe
       - member
       - note
-      - note_meta
       - performance_summary
       - tag_links
       - tags
@@ -1815,6 +1820,11 @@ components:
         - Server creates Note, OneOnOne, TagLinks in a single transaction
         - 'tag_links' read-only for analytics/reporting
         - 'note_meta' nested for UI
+
+        Privacy logic:
+        The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+        we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+        if the current user is the member. This ensures privacy and prevents bias or retaliation.
       properties:
         personal_summary:
           type: string
@@ -1976,6 +1986,11 @@ components:
         - Server creates Note, OneOnOne, TagLinks in a single transaction
         - 'tag_links' read-only for analytics/reporting
         - 'note_meta' nested for UI
+
+        Privacy logic:
+        The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+        we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+        if the current user is the member. This ensures privacy and prevents bias or retaliation.
       properties:
         personal_summary:
           type: string
