@@ -173,5 +173,8 @@
     "memberNotFound": "کاربر یافت نشد.",
     "withManager": "با مدیرم",
     "submitVibe": "ثبت بازخورد"
+  },
+  "messages": {
+    "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
   }
 }
