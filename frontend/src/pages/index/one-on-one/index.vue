@@ -6,7 +6,7 @@ defineProps<{ users: User[]; pendingUsers: boolean }>();
 
 const { t } = useI18n();
 
-const { data: profile, pending } = useGetProfile();
+const { data: profile, isLoading } = useGetProfile();
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const { data: profile, pending } = useGetProfile();
         </ul>
       </PTab>
       <PTab :title="t('oneOnOne.withManager')">
-        <div v-if="pending" class="flex items-center justify-center py-8">
+        <div v-if="isLoading" class="flex items-center justify-center py-8">
           <PLoading class="text-primary" :size="20" />
         </div>
         <NoteOneOnOneList
@@ -41,7 +41,7 @@ const { data: profile, pending } = useGetProfile();
     </PTabs>
 
     <div v-else>
-      <div v-if="pending" class="flex items-center justify-center py-8">
+      <div v-if="isLoading" class="flex items-center justify-center py-8">
         <PLoading class="text-primary" :size="20" />
       </div>
       <NoteOneOnOneList
