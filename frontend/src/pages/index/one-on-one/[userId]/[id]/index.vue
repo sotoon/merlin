@@ -19,7 +19,9 @@ const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
 const linkedNotes = computed(() => [
   ...(myNotes.value
-    ?.filter(({ uuid }) => props.oneOnOne.note_meta.linked_notes.includes(uuid))
+    ?.filter(({ uuid }) =>
+      (props.oneOnOne.note.linked_notes || []).includes(uuid),
+    )
     .map((note) => ({
       ...note,
       to:
@@ -45,7 +47,9 @@ const linkedNotes = computed(() => [
               },
     })) || []),
   ...(mentionedNotes.value
-    ?.filter(({ uuid }) => props.oneOnOne.note_meta.linked_notes.includes(uuid))
+    ?.filter(({ uuid }) =>
+      (props.oneOnOne.note.linked_notes || []).includes(uuid),
+    )
     .map((note) => ({
       ...note,
       to: {
@@ -93,7 +97,7 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         />
 
         <PText responsive variant="h1" weight="bold">
-          {{ oneOnOne.note_meta.title }}
+          {{ oneOnOne.note.title }}
         </PText>
       </div>
 
@@ -333,5 +337,9 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         </div>
       </template>
     </PDialog>
+
+    <div class="mt-8">
+      <NoteFeedbacks is-one-on-one :note="oneOnOne.note" />
+    </div>
   </div>
 </template>

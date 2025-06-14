@@ -40,7 +40,7 @@ const handleCancel = () => {
       <i class="i-mdi-calendar text-h1 text-primary" />
 
       <PHeading level="h1" responsive>
-        {{ t('oneOnOne.createOneOnOne') }} {{ user.name }}
+        {{ t('oneOnOne.createOneOnOne') }} {{ user ? `با ${user.name}` : '' }}
       </PHeading>
     </div>
 
