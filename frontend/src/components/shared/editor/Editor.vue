@@ -3,7 +3,7 @@
     class="rounded border border-gray-10 transition focus-within:border-primary-50 focus-within:ring-4 focus-within:ring-primary-10 hover:border-gray-20 hover:focus-within:border-primary-50"
   >
     <div class="sticky top-0 z-[1] rounded-t bg-gray-00">
-      <EditorToolbar :editor />
+      <EditorToolbar :editor :extends-toolbars="extendsToolbars" />
 
       <Transition
         class="transition-all"
@@ -46,7 +46,11 @@ import { TrailingNode } from './TrailingNode';
 
 const SCROLL_MARGIN = 120;
 
-const props = defineProps<{ modelValue: string; placeholder?: string }>();
+const props = defineProps<{
+  modelValue: string;
+  placeholder?: string;
+  extendsToolbars?: string[];
+}>();
 const emit = defineEmits<{ 'update:model-value': [value: string] }>();
 
 const scrollIntoView = (editor: Editor) => {
