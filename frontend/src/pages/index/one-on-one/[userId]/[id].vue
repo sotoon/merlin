@@ -16,6 +16,19 @@ const {
   userId: String(route.params.userId),
   oneOnOneId: String(route.params.id),
 });
+
+watch(
+  () => oneOnOne.value?.note,
+  (newVal) => {
+    const isTeamLeader = oneOnOne.value?.leader_vibe;
+
+    if (newVal && !isTeamLeader && !newVal.read_status) {
+      const { execute } = useUpdateNoteReadStatus({ id: newVal.uuid });
+      execute(true);
+    }
+  },
+  { once: true },
+);
 </script>
 
 <template>
