@@ -9,10 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils.translation import gettext_lazy as _
 
-from api.models import (Feedback, Note, NoteType, NoteUserAccess, Summary, OneOnOne, UserTimeline)
-from api.permissions import FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember
+from api.models import (Comment, Note, NoteType, NoteUserAccess, Summary, OneOnOne, UserTimeline)
+from api.permissions import CommentPermission as FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember
 from api.serializers import (
-    FeedbackSerializer,
+    CommentSerializer,
     NoteSerializer,
     SummarySerializer,
     OneOnOneSerializer,
@@ -21,7 +21,7 @@ from api.services import get_notes_visible_to
 from api.views.mixins import CycleQueryParamMixin
 
 
-__all__ = ['NoteViewSet', 'TemplatesView', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet', 'MyOneOnOneViewSet']
+__all__ = ['NoteViewSet', 'TemplatesView', 'CommentViewSet', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet', 'MyOneOnOneViewSet']
 
 
 class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
@@ -107,9 +107,9 @@ class TemplatesView(ListAPIView):
         return (user_templates | public_templates).distinct()
 
 
-class FeedbackViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
+class CommentViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     lookup_field = "uuid"
-    serializer_class = FeedbackSerializer
+    serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, FeedbackPermission]
     search_fields = ["owner"]
 
@@ -126,13 +126,13 @@ class FeedbackViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
 
     def get_object(self):
         uuid = self.kwargs["uuid"]
-        obj = get_object_or_404(Feedback, uuid=uuid)
+        obj = get_object_or_404(Comment, uuid=uuid)
         self.check_object_permissions(self.request, obj)
         return obj
 
     def get_queryset(self):
         current_note = self.get_note()
-        all_note_feedbacks = Feedback.objects.filter(note=current_note).distinct()
+        all_note_feedbacks = Comment.objects.filter(note=current_note).distinct()
         owner_email = self.request.query_params.get("owner")
         if owner_email:
             all_note_feedbacks = all_note_feedbacks.filter(owner__email=owner_email)
@@ -305,3 +305,6 @@ class MyOneOnOneViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         return OneOnOne.objects.select_related("note").prefetch_related("tags", "note__linked_notes").filter(member=self.request.user)
+
+# Backward compatibility route alias
+FeedbackViewSet = CommentViewSet

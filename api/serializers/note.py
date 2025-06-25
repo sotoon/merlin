@@ -5,7 +5,7 @@ from django.db import transaction
 from api.services import grant_oneonone_access
 from api.serializers.organization import TagReadSerializer
 from api.models import (
-        Feedback,
+        Comment,
         Note,
         NoteType,
         NoteUserAccess,
@@ -19,7 +19,7 @@ from api.models import (
 )
 
 
-__all__ = ['NoteUserAccessSerializer', 'NoteSerializer', 'FeedbackSerializer', 'SummarySerializer',
+__all__ = ['NoteUserAccessSerializer', 'NoteSerializer', 'CommentSerializer', 'SummarySerializer',
            'OneOnOneSerializer', 'OneOnOneTagLinkReadSerializer']
 
 
@@ -31,6 +31,7 @@ class NoteUserAccessSerializer(serializers.ModelSerializer):
             "can_edit",
             "can_view_summary",
             "can_write_summary",
+            "can_view_feedbacks",
             "can_write_feedback",
         ]
 
@@ -108,7 +109,7 @@ class NoteSerializer(serializers.ModelSerializer):
         return None
 
 
-class FeedbackSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         queryset=User.objects.all(),
@@ -118,7 +119,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
     class Meta:
-        model = Feedback
+        model = Comment
         fields = (
             "uuid",
             "owner",
@@ -137,7 +138,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         user = validated_data["owner"]
         note = validated_data["note"]
         content = validated_data["content"]
-        feedback, created = Feedback.objects.update_or_create(
+        feedback, created = Comment.objects.update_or_create(
             owner=user, note=note, defaults={"content": content}
         )
         return feedback
