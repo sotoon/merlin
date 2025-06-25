@@ -4,12 +4,12 @@ from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
 from api.models import (
     Note,
     Summary,
-    Feedback,
+    Comment,
     NoteUserAccess
 )
 
 
-__all__ = ['NoteAdmin', 'FeedbackAdmin', 'SummaryAdmin', 'NoteUserAccessAdmin']
+__all__ = ['NoteAdmin', 'CommentAdmin', 'SummaryAdmin', 'NoteUserAccessAdmin']
 
 
 @admin.register(Note)
@@ -33,14 +33,15 @@ class NoteAdmin(BaseModelAdmin):
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده، دوره عملکردی"
 
 
-@admin.register(Feedback)
-class FeedbackAdmin(BaseModelAdmin):
+@admin.register(Comment)
+class CommentAdmin(BaseModelAdmin):
     list_display = ("uuid", "owner", "note", "date_created", "date_updated")
     fields = ("uuid", ("owner", "note"), "content", "cycle", ("date_created", "date_updated"))
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "uuid")
     search_fields = ["owner__name", "owner__email", "note__title", "cycle", ]
     search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت، دوره عملکردی"
+
 
 @admin.register(Summary)
 class SummaryAdmin(BaseModelAdmin):

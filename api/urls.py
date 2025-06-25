@@ -10,6 +10,11 @@ router = routers.DefaultRouter()
 router.register(r"notes", views.NoteViewSet, basename="note")
 router.register(r"my-team", views.MyTeamViewSet, basename="my-team")
 
+# Feedback related
+router.register(r"feedback-forms", views.FeedbackFormViewSet, basename="feedback-forms")
+router.register(r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests")
+router.register(r"feedback-entries", views.FeedbackEntryViewSet, basename="feedback-entries")
+
 router.register(r"my-one-on-ones", views.MyOneOnOneViewSet, basename="my-one-on-ones")
 
 # ─── Nested under my-team for leaders ─────────────────────────────────────────────

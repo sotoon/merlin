@@ -41,7 +41,8 @@ class NotePermission(permissions.IsAuthenticated):
         return obj.owner == request.user
 
 
-class FeedbackPermission(permissions.IsAuthenticated):
+class CommentPermission(permissions.IsAuthenticated):
+    """Permission for legacy *comments* on Notes (renamed from Feedback)."""
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return NoteUserAccess.objects.filter(
@@ -50,6 +51,10 @@ class FeedbackPermission(permissions.IsAuthenticated):
         return NoteUserAccess.objects.filter(
             note=view.get_note(), user=request.user, can_write_feedback=True
         ).exists()
+
+
+# Backward alias until all call sites are migrated
+FeedbackPermission = CommentPermission
 
 
 class SummaryPermission(permissions.IsAuthenticated):
@@ -117,3 +122,42 @@ class HasOneOnOneAccess(permissions.BasePermission):
             return access.can_edit
 
         return access.can_edit
+
+
+class FeedbackEntryPermission(permissions.IsAuthenticated):
+    """Sender can create/update/delete their feedback; sender or receiver may read."""
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+
+        # Read-only access rules
+        if request.method in permissions.SAFE_METHODS:
+            # Always allow sender & receiver
+            if user.id in (obj.sender_id, obj.receiver_id):
+                return True
+
+            # Ad-hoc feedbacks (no related request) also allow mentioned users
+            # Note: We intentionally restrict this to ad-hoc feedback to keep request-answer
+            # privacy intact. Mentioned users are stored on obj.note.mentioned_users.
+            if obj.request_note_id is None and obj.note.mentioned_users.filter(id=user.id).exists():
+                return True
+
+            return False
+
+        # Write / delete permissions – only the original sender may mutate the entry.
+        return user.id == obj.sender_id
+
+
+class FeedbackRequestPermission(permissions.IsAuthenticated):
+    """Owner of request or invited users may read; only owner may modify/delete."""
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if request.method in permissions.SAFE_METHODS:
+            if obj.note.owner_id == user.id:
+                return True
+            return obj.requestees.filter(user_id=user.id).exists()
+        # modifications only by owner
+        return obj.note.owner_id == user.id
+
+
+__all__ = [name for name in globals().keys() if name.endswith("Permission")]
