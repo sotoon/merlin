@@ -10,8 +10,10 @@ import {
   PCheckbox,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
+import { ONE_ON_ONE_PLACEHOLDERS } from '~/constants/placeholders';
 
 const props = defineProps<{
+  user: User;
   oneOnOne?: Schema<'OneOnOne'>;
   isSubmitting?: boolean;
 }>();
@@ -38,12 +40,13 @@ const { meta, handleSubmit, setValues } = useForm<Schema<'OneOnOneRequest'>>({
     linked_notes: props.oneOnOne?.note?.linked_notes || [],
   },
   validationSchema: {
-    personal_summary: 'max:400',
-    career_summary: 'max:400',
-    communication_summary: 'max:400',
-    performance_summary: 'required|max:400',
-    actions: 'max:400',
-    extra_notes: 'max:400',
+    personal_summary: 'max:700',
+    career_summary: 'max:700',
+    communication_summary: 'max:700',
+    performance_summary: 'required|max:700',
+    actions: 'max:700',
+    extra_notes: 'max:700',
+    leader_vibe: 'required',
   },
 });
 
@@ -116,11 +119,12 @@ const onSubmit = handleSubmit((values, ctx) => {
             <Editor
               :model-value="value"
               :extends-toolbars="EXCLUDES_TOOLBARS"
+              :placeholder="ONE_ON_ONE_PLACEHOLDERS.personal_summary"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
             <div v-if="errorMessage" class="mt-1 text-sm text-danger">
-              {{ t('messages.max', { length: 400 }) }}
+              {{ t('messages.max', { length: 700 }) }}
             </div>
           </VeeField>
 
@@ -170,11 +174,12 @@ const onSubmit = handleSubmit((values, ctx) => {
             <Editor
               :model-value="value"
               :extends-toolbars="EXCLUDES_TOOLBARS"
+              :placeholder="ONE_ON_ONE_PLACEHOLDERS.career_summary"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
             <div v-if="errorMessage" class="mt-1 text-sm text-danger">
-              {{ t('messages.max', { length: 400 }) }}
+              {{ t('messages.max', { length: 700 }) }}
             </div>
           </VeeField>
 
@@ -224,11 +229,12 @@ const onSubmit = handleSubmit((values, ctx) => {
             <Editor
               :model-value="value"
               :extends-toolbars="EXCLUDES_TOOLBARS"
+              :placeholder="ONE_ON_ONE_PLACEHOLDERS.communication_summary"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
             <div v-if="errorMessage" class="mt-1 text-sm text-danger">
-              {{ t('messages.max', { length: 400 }) }}
+              {{ t('messages.max', { length: 700 }) }}
             </div>
           </VeeField>
 
@@ -280,11 +286,12 @@ const onSubmit = handleSubmit((values, ctx) => {
             <Editor
               :model-value="value"
               :extends-toolbars="EXCLUDES_TOOLBARS"
+              :placeholder="ONE_ON_ONE_PLACEHOLDERS.performance_summary"
               aria-labelledby="content-label"
               @update:model-value="handleChange"
             />
             <div v-if="errorMessage" class="mt-1 text-sm text-danger">
-              {{ t('messages.max', { length: 400 }) }}
+              {{ t('messages.max', { length: 700 }) }}
             </div>
           </VeeField>
 
@@ -328,11 +335,12 @@ const onSubmit = handleSubmit((values, ctx) => {
         <Editor
           :model-value="value"
           :extends-toolbars="EXCLUDES_TOOLBARS"
+          :placeholder="ONE_ON_ONE_PLACEHOLDERS.actions"
           aria-labelledby="actions"
           @update:model-value="handleChange"
         />
         <div v-if="errorMessage" class="mt-1 text-sm text-danger">
-          {{ t('messages.max', { length: 400 }) }}
+          {{ t('messages.max', { length: 700 }) }}
         </div>
       </VeeField>
     </div>
@@ -351,11 +359,12 @@ const onSubmit = handleSubmit((values, ctx) => {
         <Editor
           :model-value="value"
           :extends-toolbars="EXCLUDES_TOOLBARS"
+          :placeholder="ONE_ON_ONE_PLACEHOLDERS.extra_notes"
           aria-labelledby="extra_notes"
           @update:model-value="handleChange"
         />
         <div v-if="errorMessage" class="mt-1 text-sm text-danger">
-          {{ t('messages.max', { length: 400 }) }}
+          {{ t('messages.max', { length: 700 }) }}
         </div>
       </VeeField>
     </div>
@@ -390,7 +399,7 @@ const onSubmit = handleSubmit((values, ctx) => {
             variant="caption1"
             weight="bold"
           >
-            {{ t('oneOnOne.howWasTheMeeting') }}
+            {{ t('oneOnOne.howWasTheMeetingVibeLeader', { name: user.name }) }}
           </PText>
         </label>
 
@@ -436,3 +445,5 @@ const onSubmit = handleSubmit((values, ctx) => {
     </div>
   </form>
 </template>
+
+<!-- NoteOneOnOneForm component with externalized and prettified placeholders. -->
