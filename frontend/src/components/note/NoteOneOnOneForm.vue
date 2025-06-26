@@ -445,5 +445,3 @@ const onSubmit = handleSubmit((values, ctx) => {
     </div>
   </form>
 </template>
-
-<!-- NoteOneOnOneForm component with externalized and prettified placeholders. -->
