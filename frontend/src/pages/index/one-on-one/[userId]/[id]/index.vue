@@ -294,7 +294,7 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
     >
       <template #default>
         <PText>
-          {{ t('oneOnOne.howWasTheMeeting') }}
+          {{ t('oneOnOne.howWasTheMeetingVibeMember') }}
         </PText>
 
         <div class="mt-6 flex flex-wrap items-center justify-center gap-4">

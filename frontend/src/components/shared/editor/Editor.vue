@@ -19,7 +19,7 @@
     </div>
 
     <div
-      class="text-initial prose flex min-h-72 max-w-none cursor-text flex-col rounded-b bg-white text-gray-100 transition [&_*]:outline-none"
+      class="text-initial prose flex min-h-72 max-w-none cursor-text flex-col overflow-auto rounded-b bg-white text-gray-100 transition [&_*]:outline-none"
     >
       <div class="h-4" @click.self="focusTop" />
 
@@ -106,3 +106,20 @@ watch(
   },
 );
 </script>
+
+<style scoped>
+:deep(.ProseMirror p.is-editor-empty:first-child::before) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #9ca3af;
+  font-style: italic;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+:deep(.ProseMirror p.is-editor-empty:first-child) {
+  min-height: 1.5rem;
+}
+</style>

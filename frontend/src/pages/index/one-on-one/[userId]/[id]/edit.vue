@@ -46,6 +46,7 @@ const handleCancel = () => {
 
     <NoteOneOnOneForm
       :one-on-one="oneOnOne"
+      :user="user"
       :is-submitting="pending"
       @submit="handleSubmit"
       @cancel="handleCancel"
