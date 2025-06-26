@@ -304,11 +304,11 @@ class OneOnOne(MerlinBaseModel):
     member = models.ForeignKey(
         "api.User", on_delete=models.CASCADE, related_name="one_on_ones"
     )
-    # --- 400-char summaries ---
-    personal_summary = models.CharField(max_length=400, null=True, blank=True)
-    career_summary = models.CharField(max_length=400, null=True, blank=True)
-    communication_summary = models.CharField(max_length=400, null=True, blank=True)    
-    performance_summary = models.CharField(max_length=400)
+    # --- 700-char summaries ---
+    personal_summary = models.CharField(max_length=700, null=True, blank=True)
+    career_summary = models.CharField(max_length=700, null=True, blank=True)
+    communication_summary = models.CharField(max_length=700, null=True, blank=True)    
+    performance_summary = models.CharField(max_length=700)
 
     # Actions text
     actions = models.TextField(null=True, blank=True)
