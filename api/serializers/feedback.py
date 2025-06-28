@@ -126,7 +126,10 @@ class FeedbackSerializer(serializers.Serializer):
             )
             form = None
             if form_uuid:
-                form = FeedbackForm.objects.get(uuid=form_uuid, is_active=True)
+                    try:
+                        form = FeedbackForm.objects.get(uuid=form_uuid, is_active=True)
+                    except FeedbackForm.DoesNotExist:
+                        raise serializers.ValidationError("Invalid or inactive feedback form")
             feedback_request = None
             if feedback_request_uuid:
                 feedback_request = FeedbackRequest.objects.select_related("note").get(
@@ -164,9 +167,39 @@ class FeedbackSerializer(serializers.Serializer):
             )
         return feedback
 
+    def update(self, instance, validated_data):
+        """
+        Allow the sender to edit mutable fields (content, evidence, form).
+        Immutable fields — sender, receiver, feedback_request, etc. — are ignored.
+        """
+        if "content" in validated_data:
+            instance.content = validated_data["content"]
+            # keep the note’s body in sync
+            instance.note.content = validated_data["content"]
+            instance.note.save(update_fields=["content"])
+
+        if "evidence" in validated_data:
+            instance.evidence = validated_data["evidence"]
+
+        if "form_uuid" in validated_data:
+            form_uuid = validated_data["form_uuid"]
+            try:
+                instance.form = FeedbackForm.objects.get(uuid=form_uuid, is_active=True)
+            except FeedbackForm.DoesNotExist:
+                raise serializers.ValidationError("Invalid or inactive feedback form")
+
+        instance.save(update_fields=["content", "evidence", "form"])
+        return instance
+
+
     def validate(self, attrs):
+        """
+        Block self-feedback; skip the check when receiver_id is not supplied
+        (e.g. partial update that only edits content).
+        """
         sender = self.context["request"].user
-        if sender.uuid == attrs["receiver_id"]:
+        receiver_id = attrs.get("receiver_id")
+        if receiver_id and sender.uuid == receiver_id:
             raise serializers.ValidationError("You cannot send feedback to yourself")
         return attrs
 
