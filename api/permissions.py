@@ -125,7 +125,11 @@ class HasOneOnOneAccess(permissions.BasePermission):
 
 
 class FeedbackEntryPermission(permissions.IsAuthenticated):
-    """Sender can create/update/delete their feedback; sender or receiver may read."""
+    """
+    Sender can create/update/delete their feedback;
+    sender, receiver, or request owner may read;
+    ad-hoc mentioned users may read.
+    """
     def has_object_permission(self, request, view, obj):
         user = request.user
 
@@ -135,11 +139,11 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
             if user.id in (obj.sender_id, obj.receiver_id):
                 return True
 
-            # Ad-hoc feedbacks (no related request) also allow mentioned users
-            # Note: We intentionally restrict this to ad-hoc feedback to keep request-answer
-            # privacy intact. Mentioned users are stored on obj.note.mentioned_users.
+            # Allow the original request owner to read answers
             if obj.feedback_request and obj.feedback_request.note.owner_id == user.id:                
                 return True
+            
+            # Ad-hoc feedbacks (no related request) also allow mentioned users
             if (
                 obj.feedback_request is None
                 and obj.note.mentioned_users.filter(id=user.id).exists()
