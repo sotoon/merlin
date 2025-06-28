@@ -2,7 +2,7 @@ from rest_framework import serializers
 from api.models.note import FeedbackForm, FeedbackRequest, Feedback, NoteType, Note, FeedbackRequestUserLink
 from django.db import transaction
 from django.utils import timezone
-from api.models.cycle import Cycle
+from api.models import Cycle, User
 
 
 class FeedbackFormSerializer(serializers.ModelSerializer):
@@ -63,9 +63,6 @@ class FeedbackRequestSerializer(serializers.Serializer):
                 note=note, deadline=deadline, form=fform
             )
 
-            # Link requestees
-            from api.models import User
-            users = User.objects.filter(uuid__in=requestee_ids)
             # remove requester from invitees
             users = [u for u in users if u != owner]
             bulk_links = [
@@ -112,7 +109,7 @@ class FeedbackSerializer(serializers.Serializer):
         receiver_id = validated_data.pop("receiver_id")
         feedback_request_uuid = validated_data.pop("feedback_request_uuid", None)        
         form_uuid = validated_data.pop("form_uuid", None)
-        from api.models import User
+
         receiver = User.objects.get(uuid=receiver_id)
         with transaction.atomic():
             current_cycle = Cycle.get_current_cycle()
@@ -135,8 +132,11 @@ class FeedbackSerializer(serializers.Serializer):
                 feedback_request = FeedbackRequest.objects.select_related("note").get(
                     uuid=feedback_request_uuid
                 )
-                if not feedback_request.requestees.filter(user__uuid=receiver_id).exists():
-                    raise serializers.ValidationError("Receiver is not among requestees")
+                if receiver.id != feedback_request.note.owner_id:
+                    raise serializers.ValidationError("Receiver must be the feedback-request owner")
+
+                if feedback_request and not feedback_request.requestees.filter(user=sender).exists():
+                    raise serializers.ValidationError("You were not invited to answer this request")
 
             # create feedback
             feedback = Feedback.objects.create(
@@ -156,7 +156,6 @@ class FeedbackSerializer(serializers.Serializer):
                     request=feedback_request, user=sender
                 ).update(answered=True)
                 
-            # TODO: grant access to receiver & sender (by default owner has)
             from api.models.note import NoteUserAccess
             NoteUserAccess.objects.update_or_create(
                 user=receiver,
