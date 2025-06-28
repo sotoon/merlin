@@ -5,7 +5,7 @@ from api.serializers.feedback import (
     FeedbackSerializer,
 )
 from api.models.note import FeedbackForm, FeedbackRequest, Feedback
-from django.db import models
+from django.db.models import Q
 from api.permissions import FeedbackEntryPermission, FeedbackRequestPermission
 
 
@@ -28,7 +28,7 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return self.queryset.filter(
-            models.Q(note__owner=user) | models.Q(requestees__user=user)
+            Q(note__owner=user) | Q(requestees__user=user)
         ).distinct()
 
 
@@ -42,14 +42,21 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return self.queryset.filter(
-            models.Q(sender=user) |
-            models.Q(receiver=user) |
-            (
-                models.Q(request_note__isnull=True) &   # ad-hoc feedbacks only
-                models.Q(note__mentioned_users=user)
+        return (
+            self.queryset
+            .select_related("note")
+            .prefetch_related("note__mentioned_users")
+            .filter(
+                Q(sender=user)
+                | Q(receiver=user)
+                | Q(feedback_request__note__owner=user)     # requester sees answers
+                | (
+                    Q(feedback_request__isnull=True)
+                    & Q(note__mentioned_users=user)
+                )
             )
-        ).distinct()
+            .distinct()
+        )
 
 # ─────────────────────────────────────
 
