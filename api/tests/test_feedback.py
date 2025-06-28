@@ -1,4 +1,5 @@
 import pytest
+import uuid
 import factory
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
@@ -6,7 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from django.utils import timezone
 
-from api.models import User, FeedbackForm, NoteType, Note, Feedback, FeedbackRequest, FeedbackRequestUserLink, Cycle
+from api.models import User, FeedbackForm, Feedback, FeedbackRequest, FeedbackRequestUserLink, Cycle
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -140,6 +141,9 @@ def test_sender_can_send_feedback(api_client, user, receiver):
     api_client.force_authenticate(receiver)
     assert api_client.get(detail_url).status_code == 200
 
+    api_client.force_authenticate(user) # owner/requester
+    assert api_client.get(detail_url).status_code == 200
+
 
 @pytest.mark.django_db
 def test_outsider_cannot_access_feedback(api_client, user, receiver, outsider):
@@ -238,13 +242,12 @@ def test_mentioned_user_cannot_view_request_answer(api_client, user, receiver, m
         "content": "Please give me feedback",
         "requestee_ids": [str(receiver.uuid)],
     }, format="json").data["uuid"]
-    request_note_uuid = FeedbackRequest.objects.get(uuid=fr_uuid).note.uuid
 
     # Step 2: receiver answers the request (creates feedback entry)
     api_client.force_authenticate(receiver)
     fb_uuid = api_client.post(reverse("api:feedback-entries-list"), {
         "receiver_id": str(user.uuid),
-        "request_note_uuid": str(request_note_uuid),
+        "feedback_request_uuid": str(fr_uuid),
         "content": "Here's my feedback @%s" % mentioned_user.email,
     }, format="json").data["uuid"]
 
@@ -256,3 +259,268 @@ def test_mentioned_user_cannot_view_request_answer(api_client, user, receiver, m
     api_client.force_authenticate(mentioned_user)
     resp = api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid}))
     assert resp.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND) 
+
+
+# ──────────────────────────────────────────────────
+# Additional edge-case & regression tests
+# ──────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_past_deadline_rejected(api_client, user, receiver):
+    """Creating a feedback request with a past deadline must return 400."""
+    api_client.force_authenticate(user)
+    payload = {
+        "title": "Past deadline",
+        "content": "x",
+        "requestee_ids": [str(receiver.uuid)],
+        "deadline": str((timezone.now() - timezone.timedelta(days=1)).date()),
+    }
+    resp = api_client.post(reverse("api:feedback-requests-list"), payload, format="json")
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_self_invite_filtered(api_client, user):
+    """Owner listed in requestee_ids should not receive a FeedbackRequestUserLink."""
+    api_client.force_authenticate(user)
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {"title": "Need feedback", "content": "x", "requestee_ids": [str(user.uuid)]},
+        format="json",
+    ).data["uuid"]
+
+    fr = FeedbackRequest.objects.get(uuid=fr_uuid)
+    assert not fr.requestees.filter(user=user).exists()
+
+
+@pytest.mark.django_db
+def test_invalid_form_uuid(api_client, user, receiver):
+    """Submitting an unknown form_uuid should raise validation error 400."""
+    api_client.force_authenticate(user)
+    payload = {
+        "title": "invalid form",
+        "content": "x",
+        "requestee_ids": [str(receiver.uuid)],
+        "form_uuid": str(uuid.uuid4()),
+    }
+    resp = api_client.post(reverse("api:feedback-requests-list"), payload, format="json")
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_uninvited_cannot_answer(api_client, user, receiver, outsider):
+    """A user not invited to a request must not be able to answer it."""
+    # Owner creates request
+    api_client.force_authenticate(user)
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {"title": "Need fb", "content": "x", "requestee_ids": [str(receiver.uuid)]},
+        format="json",
+    ).data["uuid"]
+
+    # Outsider attempts to answer
+    api_client.force_authenticate(outsider)
+    resp = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(user.uuid),
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "I'm not invited",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_receiver_must_be_owner(api_client, user, receiver, outsider):
+    """Answer payload must set receiver to request owner only."""
+    api_client.force_authenticate(user)
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {"title": "Need fb", "content": "x", "requestee_ids": [str(receiver.uuid)]},
+        format="json",
+    ).data["uuid"]
+
+    api_client.force_authenticate(receiver)
+    resp = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(outsider.uuid),  # wrong receiver
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "bad receiver",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_self_feedback_blocked(api_client, user):
+    """Sending ad-hoc feedback to oneself must be rejected."""
+    api_client.force_authenticate(user)
+    resp = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {"receiver_id": str(user.uuid), "content": "to myself"},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_answered_flag_set(api_client, user, receiver):
+    """After an invitee answers, FeedbackRequestUserLink.answered should be True."""
+    # Owner invites receiver
+    api_client.force_authenticate(user)
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {"title": "Need fb", "content": "x", "requestee_ids": [str(receiver.uuid)]},
+        format="json",
+    ).data["uuid"]
+
+    # Receiver answers
+    api_client.force_authenticate(receiver)
+    api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(user.uuid),
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "here",
+        },
+        format="json",
+    )
+
+    link = FeedbackRequestUserLink.objects.get(request__uuid=fr_uuid, user=receiver)
+    assert link.answered is True
+
+
+@pytest.mark.django_db
+def test_request_owner_sees_all_answers(api_client, user, receiver, outsider):
+    """Request owner should be able to read every answer submitted."""
+    # Owner creates request with two invitees
+    api_client.force_authenticate(user)
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "Need fb",
+            "content": "x",
+            "requestee_ids": [str(receiver.uuid), str(outsider.uuid)],
+        },
+        format="json",
+    ).data["uuid"]
+
+    # Both invitees submit answers
+    api_client.force_authenticate(receiver)
+    fb1_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(user.uuid),
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "r1",
+        },
+        format="json",
+    ).data["uuid"]
+
+    api_client.force_authenticate(outsider)
+    fb2_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(user.uuid),
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "r2",
+        },
+        format="json",
+    ).data["uuid"]
+
+    # Owner can read both answers
+    api_client.force_authenticate(user)
+    for fb_uuid in (fb1_uuid, fb2_uuid):
+        detail = reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+        assert api_client.get(detail).status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_mention_does_not_unlock_request_answer(api_client, user, receiver, outsider):
+    """Being mentioned in an answer should not override privacy for other invitees."""
+    api_client.force_authenticate(user)
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "Need fb",
+            "content": "x",
+            "requestee_ids": [str(receiver.uuid), str(outsider.uuid)],
+        },
+        format="json",
+    ).data["uuid"]
+
+    api_client.force_authenticate(receiver)
+    fb_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(user.uuid),
+            "feedback_request_uuid": str(fr_uuid),
+            "content": f"ping @{outsider.email}",
+        },
+        format="json",
+    ).data["uuid"]
+    fb = Feedback.objects.get(uuid=fb_uuid)
+    fb.note.mentioned_users.add(outsider)
+
+    # Outsider still cannot read receiver's answer
+    api_client.force_authenticate(outsider)
+    resp = api_client.get(
+        reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+    )
+    assert resp.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND)
+
+
+@pytest.mark.django_db
+def test_permissions_update_delete(api_client, user, receiver, outsider):
+    """Only sender may PATCH or DELETE their feedback; others receive 403/404."""
+    # Sender creates entry
+    api_client.force_authenticate(user)
+    fb_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {"receiver_id": str(receiver.uuid), "content": "hi"},
+        format="json",
+    ).data["uuid"]
+    detail_url = reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+
+    # Sender can PATCH and DELETE
+    assert api_client.patch(detail_url, {"content": "edit"}, format="json").status_code == 200
+    assert api_client.delete(detail_url).status_code == 204
+
+    # Recreate for negative checks
+    fb_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {"receiver_id": str(receiver.uuid), "content": "hi2"},
+        format="json",
+    ).data["uuid"]
+    detail_url = reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+
+    api_client.force_authenticate(receiver)
+    assert api_client.delete(detail_url).status_code in (403, 404)
+
+    api_client.force_authenticate(outsider)
+    assert api_client.patch(detail_url, {"content": "x"}, format="json").status_code in (
+        403,
+        404,
+    )
+
+
+@pytest.mark.django_db
+def test_inactive_form_rejected(api_client, user, receiver, feedback_form_factory):
+    """Using an inactive FeedbackForm must be rejected with 400."""
+    inactive_form: FeedbackForm = feedback_form_factory(is_active=False)
+    api_client.force_authenticate(user)
+    resp = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(receiver.uuid),
+            "form_uuid": str(inactive_form.uuid),
+            "content": "x",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
