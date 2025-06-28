@@ -138,7 +138,12 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
             # Ad-hoc feedbacks (no related request) also allow mentioned users
             # Note: We intentionally restrict this to ad-hoc feedback to keep request-answer
             # privacy intact. Mentioned users are stored on obj.note.mentioned_users.
-            if obj.request_note_id is None and obj.note.mentioned_users.filter(id=user.id).exists():
+            if obj.feedback_request and obj.feedback_request.note.owner_id == user.id:                
+                return True
+            if (
+                obj.feedback_request is None
+                and obj.note.mentioned_users.filter(id=user.id).exists()
+            ):
                 return True
 
             return False
