@@ -87,7 +87,7 @@ class FeedbackSerializer(serializers.Serializer):
     """Serializer for giving feedback (either ad-hoc or in response to request)."""
 
     receiver_id = serializers.UUIDField()
-    request_note_uuid = serializers.UUIDField(required=False, allow_null=True)
+    feedback_request_uuid = serializers.UUIDField(required=False, allow_null=True)    
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
     content = serializers.CharField()
     evidence = serializers.CharField(required=False, allow_blank=True)
@@ -97,7 +97,7 @@ class FeedbackSerializer(serializers.Serializer):
     def create(self, validated_data):
         sender = self.context["request"].user
         receiver_id = validated_data.pop("receiver_id")
-        request_note_uuid = validated_data.pop("request_note_uuid", None)
+        feedback_request_uuid = validated_data.pop("feedback_request_uuid", None)        
         form_uuid = validated_data.pop("form_uuid", None)
         from api.models import User
         receiver = User.objects.get(uuid=receiver_id)
@@ -117,19 +117,32 @@ class FeedbackSerializer(serializers.Serializer):
             form = None
             if form_uuid:
                 form = FeedbackForm.objects.get(uuid=form_uuid, is_active=True)
-            request_note = None
-            if request_note_uuid:
-                request_note = Note.objects.get(uuid=request_note_uuid)
+            feedback_request = None
+            if feedback_request_uuid:
+                feedback_request = FeedbackRequest.objects.select_related("note").get(
+                    uuid=feedback_request_uuid
+                )
+                if not feedback_request.requestees.filter(user__uuid=receiver_id).exists():
+                    raise serializers.ValidationError("Receiver is not among requestees")
+
+            # create feedback
             feedback = Feedback.objects.create(
                 note=note,
                 sender=sender,
                 receiver=receiver,
-                request_note=request_note,
+                feedback_request=feedback_request,
                 form=form,
                 content=validated_data["content"],
                 evidence=validated_data.get("evidence", ""),
                 cycle=current_cycle,
             )
+
+            # mark answered flag
+            if feedback_request:
+                FeedbackRequestUserLink.objects.filter(
+                    request=feedback_request, user=sender
+                ).update(answered=True)
+                
             # TODO: grant access to receiver & sender (by default owner has)
             from api.models.note import NoteUserAccess
             NoteUserAccess.objects.update_or_create(
@@ -138,6 +151,12 @@ class FeedbackSerializer(serializers.Serializer):
                 defaults={"can_view": True, "can_view_feedbacks": True},
             )
         return feedback
+
+    def validate(self, attrs):
+        sender = self.context["request"].user
+        if sender.uuid == attrs["receiver_id"]:
+            raise serializers.ValidationError("You cannot send feedback to yourself")
+        return attrs
 
     def to_representation(self, instance):
         return {

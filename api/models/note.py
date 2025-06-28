@@ -415,7 +415,7 @@ class Feedback(MerlinBaseModel):
     note = models.OneToOneField("Note", on_delete=models.CASCADE, related_name="feedback")
     sender = models.ForeignKey("api.User", on_delete=models.CASCADE, related_name="sent_feedbacks")
     receiver = models.ForeignKey("api.User", on_delete=models.CASCADE, related_name="received_feedbacks")
-    request_note = models.ForeignKey("Note", null=True, blank=True, on_delete=models.SET_NULL, related_name="feedback_answers")
+    feedback_request = models.ForeignKey("FeedbackRequest", null=True, blank=True, on_delete=models.SET_NULL, related_name="feedback_answers")
     form = models.ForeignKey(FeedbackForm, null=True, blank=True, on_delete=models.SET_NULL)
     content = models.TextField()
     evidence = models.TextField(blank=True)
