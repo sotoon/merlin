@@ -28,8 +28,18 @@ class FeedbackRequestSerializer(serializers.Serializer):
     def create(self, validated_data):
         owner = self.context["request"].user
         requestee_ids = validated_data.pop("requestee_ids")
+
         deadline = validated_data.pop("deadline", None)
+        if deadline and deadline < timezone.now().date():
+            raise serializers.ValidationError("Deadline cannot be in the past")
+
         form_uuid = validated_data.pop("form_uuid", None)
+
+        users = list(User.objects.filter(uuid__in=requestee_ids))
+        missing = set(requestee_ids) - {u.uuid for u in users}
+        if missing:
+            raise serializers.ValidationError("Some users not found")
+
         with transaction.atomic():
             current_cycle = Cycle.get_current_cycle()
             if current_cycle is None:
@@ -52,9 +62,12 @@ class FeedbackRequestSerializer(serializers.Serializer):
             frequest = FeedbackRequest.objects.create(
                 note=note, deadline=deadline, form=fform
             )
+
             # Link requestees
             from api.models import User
             users = User.objects.filter(uuid__in=requestee_ids)
+            # remove requester from invitees
+            users = [u for u in users if u != owner]
             bulk_links = [
                 FeedbackRequestUserLink(request=frequest, user=u) for u in users
             ]
