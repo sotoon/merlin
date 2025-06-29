@@ -1,7 +1,14 @@
 <template>
   <div>
     <PHeading class="mb-4 border-b border-gray-10 pb-4" level="h1" responsive>
-      {{ t('note.writeCommentFor', { title: note.title }) }}
+      {{
+        t(
+          note.type === NOTE_TYPE.proposal
+            ? 'note.writeFeedbackFor'
+            : 'note.writeCommentFor',
+          { title: note.title },
+        )
+      }}
     </PHeading>
 
     <PLoading
