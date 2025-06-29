@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "vue-tsc --noEmit",
-    "schema": "openapi-typescript ../schema.yml -o src/types/schema.d.ts"
+    "schema": "openapi-typescript ../schema.yml -o src/types/schema.d.ts && prettier -w src/types/schema.d.ts"
   },
   "dependencies": {
     "@pey/core": "^1.17.0",

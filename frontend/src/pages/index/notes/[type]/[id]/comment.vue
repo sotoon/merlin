@@ -1,18 +1,18 @@
 <template>
   <div>
     <PHeading class="mb-4 border-b border-gray-10 pb-4" level="h1" responsive>
-      {{ t('note.writeFeedbackFor', { title: note.title }) }}
+      {{ t('note.writeCommentFor', { title: note.title }) }}
     </PHeading>
 
     <PLoading
-      v-if="isEditMode && getFeedbacksPending"
+      v-if="isEditMode && getCommentsPending"
       class="text-primary"
       :size="20"
     />
 
-    <NoteFeedbackForm
+    <NoteCommentForm
       v-else
-      :feedback="isEditMode ? userFeedbacks?.[0] : undefined"
+      :comment="isEditMode ? userComments?.[0] : undefined"
       :is-submitting="isSubmitting"
       @submit="handleSubmit"
       @cancel="handleCancel"
@@ -24,7 +24,7 @@
 import { PHeading, PLoading } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
-definePageMeta({ name: 'note-feedback' });
+definePageMeta({ name: 'note-comment' });
 const props = defineProps<{ note: Note }>();
 
 const { t } = useI18n();
@@ -34,20 +34,19 @@ const {
 
 const isEditMode = computed(() => Boolean(owner && typeof owner === 'string'));
 
-const { data: userFeedbacks, pending: getFeedbacksPending } =
-  useGetNoteFeedbacks({
-    noteId: props.note.uuid,
-    owner: isEditMode.value ? (owner as string) : '',
-    enabled: isEditMode.value,
-  });
-const { execute: createNoteFeedback, pending: isSubmitting } =
-  useCreateNoteFeedback({ noteId: props.note.uuid });
+const { data: userComments, pending: getCommentsPending } = useGetNoteComments({
+  noteId: props.note.uuid,
+  owner: isEditMode.value ? (owner as string) : '',
+  enabled: isEditMode.value,
+});
+const { execute: createNoteComment, pending: isSubmitting } =
+  useCreateNoteComment(props.note.uuid);
 
 const handleSubmit = (
-  values: NoteFeedbackFormValues,
-  ctx: SubmissionContext<NoteFeedbackFormValues>,
+  values: Schema<'CommentRequest'>,
+  ctx: SubmissionContext<Schema<'CommentRequest'>>,
 ) => {
-  createNoteFeedback({
+  createNoteComment({
     body: values,
     onSuccess: () => {
       ctx.resetForm();
