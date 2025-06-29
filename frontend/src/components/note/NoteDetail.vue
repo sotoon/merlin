@@ -211,7 +211,7 @@
     </div>
 
     <div class="mt-8">
-      <NoteFeedbacks :note="note" />
+      <NoteComments :note="note" />
     </div>
   </div>
 </template>
