@@ -16,7 +16,13 @@
       class="flex items-center justify-between gap-4 border-b border-gray-10 pb-4"
     >
       <PHeading :lvl="3" responsive>
-        {{ t('note.comments') }}
+        {{
+          t(
+            note.type === NOTE_TYPE.proposal
+              ? 'note.feedbacks'
+              : 'note.comments',
+          )
+        }}
       </PHeading>
 
       <PIconButton
@@ -46,7 +52,13 @@
     variant="ghost"
     @click="navigateTo({ name: 'note-comment' })"
   >
-    {{ t('note.writeComment') }}
+    {{
+      t(
+        note.type === NOTE_TYPE.proposal
+          ? 'note.writeFeedback'
+          : 'note.writeComment',
+      )
+    }}
   </PButton>
 </template>
 
