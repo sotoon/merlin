@@ -662,9 +662,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Note'
           description: ''
-  /api/notes/{note_uuid}/feedbacks/:
+  /api/notes/{note_uuid}/comments/:
     get:
-      operationId: notes_feedbacks_list
+      operationId: notes_comments_list
       parameters:
       - in: path
         name: note_uuid
@@ -682,10 +682,10 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Feedback'
+                  $ref: '#/components/schemas/Comment'
           description: ''
     post:
-      operationId: notes_feedbacks_create
+      operationId: notes_comments_create
       parameters:
       - in: path
         name: note_uuid
@@ -698,13 +698,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FeedbackRequest'
+              $ref: '#/components/schemas/CommentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FeedbackRequest'
+              $ref: '#/components/schemas/CommentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FeedbackRequest'
+              $ref: '#/components/schemas/CommentRequest'
         required: true
       security:
       - jwtAuth: []
@@ -713,11 +713,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Feedback'
+                $ref: '#/components/schemas/Comment'
           description: ''
-  /api/notes/{note_uuid}/feedbacks/{uuid}/:
+  /api/notes/{note_uuid}/comments/{uuid}/:
     get:
-      operationId: notes_feedbacks_retrieve
+      operationId: notes_comments_retrieve
       parameters:
       - in: path
         name: note_uuid
@@ -738,10 +738,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Feedback'
+                $ref: '#/components/schemas/Comment'
           description: ''
     put:
-      operationId: notes_feedbacks_update
+      operationId: notes_comments_update
       parameters:
       - in: path
         name: note_uuid
@@ -759,13 +759,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FeedbackRequest'
+              $ref: '#/components/schemas/CommentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FeedbackRequest'
+              $ref: '#/components/schemas/CommentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FeedbackRequest'
+              $ref: '#/components/schemas/CommentRequest'
         required: true
       security:
       - jwtAuth: []
@@ -774,10 +774,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Feedback'
+                $ref: '#/components/schemas/Comment'
           description: ''
     patch:
-      operationId: notes_feedbacks_partial_update
+      operationId: notes_comments_partial_update
       parameters:
       - in: path
         name: note_uuid
@@ -795,13 +795,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedFeedbackRequest'
+              $ref: '#/components/schemas/PatchedCommentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedFeedbackRequest'
+              $ref: '#/components/schemas/PatchedCommentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedFeedbackRequest'
+              $ref: '#/components/schemas/PatchedCommentRequest'
       security:
       - jwtAuth: []
       responses:
@@ -809,10 +809,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Feedback'
+                $ref: '#/components/schemas/Comment'
           description: ''
     delete:
-      operationId: notes_feedbacks_destroy
+      operationId: notes_comments_destroy
       parameters:
       - in: path
         name: note_uuid
@@ -1358,7 +1358,7 @@ paths:
           description: Verified Successfully
 components:
   schemas:
-    Feedback:
+    Comment:
       type: object
       properties:
         uuid:
@@ -1384,7 +1384,7 @@ components:
       - note
       - owner_name
       - uuid
-    FeedbackRequest:
+    CommentRequest:
       type: object
       properties:
         owner:
@@ -1720,6 +1720,11 @@ components:
         - Server creates Note, OneOnOne, TagLinks in a single transaction
         - 'tag_links' read-only for analytics/reporting
         - 'note_meta' nested for UI
+
+        Privacy logic:
+        The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+        we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+        if the current user is the member. This ensures privacy and prevents bias or retaliation.
       properties:
         id:
           type: integer
@@ -1815,6 +1820,11 @@ components:
         - Server creates Note, OneOnOne, TagLinks in a single transaction
         - 'tag_links' read-only for analytics/reporting
         - 'note_meta' nested for UI
+
+        Privacy logic:
+        The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+        we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+        if the current user is the member. This ensures privacy and prevents bias or retaliation.
       properties:
         personal_summary:
           type: string
@@ -1883,7 +1893,7 @@ components:
       required:
       - section
       - tag
-    PatchedFeedbackRequest:
+    PatchedCommentRequest:
       type: object
       properties:
         owner:
@@ -1976,6 +1986,11 @@ components:
         - Server creates Note, OneOnOne, TagLinks in a single transaction
         - 'tag_links' read-only for analytics/reporting
         - 'note_meta' nested for UI
+
+        Privacy logic:
+        The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+        we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+        if the current user is the member. This ensures privacy and prevents bias or retaliation.
       properties:
         personal_summary:
           type: string

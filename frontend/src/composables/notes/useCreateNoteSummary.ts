@@ -2,7 +2,7 @@ interface UsedCreateNoteSummaryOptions {
   noteId: string;
 }
 
-interface CreateNoteSummaryResponse extends NoteFeedback {}
+interface CreateNoteSummaryResponse extends Schema<'Comment'> {}
 
 interface CreateNoteSummaryError {
   detail?: string;
