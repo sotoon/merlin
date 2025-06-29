@@ -70,17 +70,5 @@ export interface NoteSummaryFormValues
   committee_date: Date;
 }
 
-export interface NoteFeedback {
-  content: string;
-  note: string;
-  owner: string;
-  owner_name: string;
-  uuid: string;
-}
-
-export interface NoteFeedbackFormValues {
-  content: string;
-}
-
 export interface NoteTemplateFormValues
   extends Pick<Note, 'title' | 'content' | 'mentioned_users'> {}

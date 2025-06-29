@@ -306,36 +306,36 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/notes/{note_uuid}/feedbacks/': {
+  '/api/notes/{note_uuid}/comments/': {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations['notes_feedbacks_list'];
+    get: operations['notes_comments_list'];
     put?: never;
-    post: operations['notes_feedbacks_create'];
+    post: operations['notes_comments_create'];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  '/api/notes/{note_uuid}/feedbacks/{uuid}/': {
+  '/api/notes/{note_uuid}/comments/{uuid}/': {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations['notes_feedbacks_retrieve'];
-    put: operations['notes_feedbacks_update'];
+    get: operations['notes_comments_retrieve'];
+    put: operations['notes_comments_update'];
     post?: never;
-    delete: operations['notes_feedbacks_destroy'];
+    delete: operations['notes_comments_destroy'];
     options?: never;
     head?: never;
-    patch: operations['notes_feedbacks_partial_update'];
+    patch: operations['notes_comments_partial_update'];
     trace?: never;
   };
   '/api/notes/{note_uuid}/summaries/': {
@@ -528,7 +528,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    Feedback: {
+    Comment: {
       /** Format: uuid */
       readonly uuid: string;
       /**
@@ -542,7 +542,7 @@ export interface components {
       /** محتوا */
       content: string;
     };
-    FeedbackRequest: {
+    CommentRequest: {
       /**
        * ایمیل سازمانی
        * Format: email
@@ -697,7 +697,12 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI */
+     *     - 'note_meta' nested for UI
+     *
+     *     Privacy logic:
+     *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+     *     we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+     *     if the current user is the member. This ensures privacy and prevents bias or retaliation. */
     OneOnOne: {
       readonly id: number;
       readonly note: number;
@@ -732,7 +737,12 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI */
+     *     - 'note_meta' nested for UI
+     *
+     *     Privacy logic:
+     *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+     *     we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+     *     if the current user is the member. This ensures privacy and prevents bias or retaliation. */
     OneOnOneRequest: {
       personal_summary?: string | null;
       career_summary?: string | null;
@@ -756,7 +766,7 @@ export interface components {
       tag: components['schemas']['TagReadRequest'];
       section: components['schemas']['SectionEnum'];
     };
-    PatchedFeedbackRequest: {
+    PatchedCommentRequest: {
       /**
        * ایمیل سازمانی
        * Format: email
@@ -803,7 +813,12 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI */
+     *     - 'note_meta' nested for UI
+     *
+     *     Privacy logic:
+     *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
+     *     we remove 'member_vibe' from the output if the current user is the leader, and remove 'leader_vibe'
+     *     if the current user is the member. This ensures privacy and prevents bias or retaliation. */
     PatchedOneOnOneRequest: {
       personal_summary?: string | null;
       career_summary?: string | null;
@@ -1613,7 +1628,7 @@ export interface operations {
       };
     };
   };
-  notes_feedbacks_list: {
+  notes_comments_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -1629,12 +1644,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'][];
+          'application/json': components['schemas']['Comment'][];
         };
       };
     };
   };
-  notes_feedbacks_create: {
+  notes_comments_create: {
     parameters: {
       query?: never;
       header?: never;
@@ -1645,9 +1660,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['FeedbackRequest'];
-        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequest'];
-        'multipart/form-data': components['schemas']['FeedbackRequest'];
+        'application/json': components['schemas']['CommentRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['CommentRequest'];
+        'multipart/form-data': components['schemas']['CommentRequest'];
       };
     };
     responses: {
@@ -1656,12 +1671,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
   };
-  notes_feedbacks_retrieve: {
+  notes_comments_retrieve: {
     parameters: {
       query?: never;
       header?: never;
@@ -1678,12 +1693,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
   };
-  notes_feedbacks_update: {
+  notes_comments_update: {
     parameters: {
       query?: never;
       header?: never;
@@ -1695,9 +1710,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['FeedbackRequest'];
-        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequest'];
-        'multipart/form-data': components['schemas']['FeedbackRequest'];
+        'application/json': components['schemas']['CommentRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['CommentRequest'];
+        'multipart/form-data': components['schemas']['CommentRequest'];
       };
     };
     responses: {
@@ -1706,12 +1721,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
   };
-  notes_feedbacks_destroy: {
+  notes_comments_destroy: {
     parameters: {
       query?: never;
       header?: never;
@@ -1732,7 +1747,7 @@ export interface operations {
       };
     };
   };
-  notes_feedbacks_partial_update: {
+  notes_comments_partial_update: {
     parameters: {
       query?: never;
       header?: never;
@@ -1744,9 +1759,9 @@ export interface operations {
     };
     requestBody?: {
       content: {
-        'application/json': components['schemas']['PatchedFeedbackRequest'];
-        'application/x-www-form-urlencoded': components['schemas']['PatchedFeedbackRequest'];
-        'multipart/form-data': components['schemas']['PatchedFeedbackRequest'];
+        'application/json': components['schemas']['PatchedCommentRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedCommentRequest'];
+        'multipart/form-data': components['schemas']['PatchedCommentRequest'];
       };
     };
     responses: {
@@ -1755,7 +1770,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
