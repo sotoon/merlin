@@ -14,6 +14,9 @@ from drf_spectacular.utils import extend_schema_field
 
 
 class FeedbackFormSerializer(serializers.ModelSerializer):
+    """
+    ModelSerializer for FeedbackForm: lists uuid, title, description, and schema.
+    """
     class Meta:
         model = FeedbackForm
         fields = ["uuid", "title", "description", "schema"]
@@ -21,11 +24,18 @@ class FeedbackFormSerializer(serializers.ModelSerializer):
 
 
 class FeedbackUserSerializer(serializers.Serializer):
+    """
+    Simple serializer for user info in feedback: exposes uuid and name.
+    """
     uuid = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
 
 
 class FeedbackRequestUserLinkSerializer(serializers.ModelSerializer):
+    """
+    Serializer for FeedbackRequestUserLink: shows linked user's uuid, name, 
+    email, and answered flag.
+    """
     uuid = serializers.UUIDField(source="user.uuid", read_only=True)
     name = serializers.CharField(source="user.name", read_only=True)
     email = serializers.EmailField(source="user.email", read_only=True)
@@ -36,6 +46,10 @@ class FeedbackRequestUserLinkSerializer(serializers.ModelSerializer):
 
 
 class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
+    """
+    Read-only serializer for FeedbackRequest: exposes note details, owner info,
+    update timestamp, form uuid, and requestees.
+    """
     title = serializers.CharField(source="note.title", read_only=True)
     content = serializers.CharField(source="note.content", read_only=True)
     owner_name = serializers.CharField(source="note.owner.name", read_only=True)
@@ -62,6 +76,10 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
 
     @extend_schema_field(FeedbackRequestUserLinkSerializer(many=True))
     def get_requestees(self, instance):
+        """
+        Return the list of invitees: full list for the request owner, 
+        or a single entry for the current user if they are invitee.
+        """
         request_user = self.context["request"].user
         if request_user == instance.note.owner:
             return [
@@ -89,8 +107,10 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
 
 
 class FeedbackRequestWriteSerializer(serializers.Serializer):
-    """Creates a feedback-request note and related objects in one shot."""
-
+    """
+    Write-only serializer for creating and updating FeedbackRequest: handles title,
+    content, invitee emails, deadline, and optional form.
+    """
     title = serializers.CharField(max_length=512)
     content = serializers.CharField()
     requestee_emails = serializers.SlugRelatedField(
@@ -104,8 +124,12 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
 
     def create(self, validated_data):
+        """
+        Create a FeedbackRequest with its underlying Note and 
+        FeedbackRequestUserLink entries, enforcing invitee ACL and deadlines.
+        """
         owner = self.context["request"].user
-        users = validated_data.pop("requestee_ids")
+        users = validated_data.pop("requestee_emails")
 
         deadline = validated_data.pop("deadline", None)
         if deadline and deadline < timezone.now().date():
@@ -155,6 +179,10 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         return frequest
 
     def update(self, instance, validated_data):
+        """
+        Update an existing FeedbackRequest before any answers are received:
+        allows changing title, content, deadline, form, and invitees.
+        """
         if instance.requestees.filter(answered=True).exists():
             raise serializers.ValidationError(
                 "Cannot edit a feedback request that has already received feedback."
@@ -184,8 +212,8 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
             instance.save()
 
-            if "requestee_ids" in validated_data:
-                new_requestees = validated_data.get("requestee_ids")
+            if "requestee_emails" in validated_data:
+                new_requestees = validated_data.get("requestee_emails")
                 instance.requestees.all().delete()
                 from api.models.note import NoteUserAccess
 
@@ -213,8 +241,10 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
 
 class FeedbackSerializer(serializers.Serializer):
-    """Serializer for giving feedback (either ad-hoc or in response to request)."""
-
+    """
+    Serializer for feedback entries: supports ad-hoc feedback and answers to
+    requests, with full creation, update, and validation logic.
+    """
     receiver_id = serializers.UUIDField()
     feedback_request_uuid = serializers.UUIDField(required=False, allow_null=True)
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
@@ -227,6 +257,10 @@ class FeedbackSerializer(serializers.Serializer):
     date_created = serializers.DateTimeField(read_only=True)
 
     def create(self, validated_data):
+        """
+        Create a Feedback entry and its Note, optionally link to a FeedbackRequest, 
+        enforce invitee and receiver rules, and mark answered.
+        """
         sender = self.context["request"].user
         receiver_id = validated_data.pop("receiver_id")
         feedback_request_uuid = validated_data.pop("feedback_request_uuid", None)
@@ -335,6 +369,10 @@ class FeedbackSerializer(serializers.Serializer):
         return attrs
 
     def to_representation(self, instance):
+        """
+        Convert a Feedback instance into the API response format with uuid, 
+        content, evidence, sender, receiver, and date_created.
+        """
         return {
             "uuid": instance.uuid,
             "content": instance.content,

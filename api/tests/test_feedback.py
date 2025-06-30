@@ -69,7 +69,7 @@ def test_requester_can_create_feedback_request(api_client, user, receiver, feedb
     payload = {
         "title": "Need feedback",
         "content": "Please give me feedback on project X",
-        "requestee_ids": [str(receiver.uuid)],
+        "requestee_emails": [receiver.email],        
         "form_uuid": str(form.uuid),
     }
     url = reverse("api:feedback-requests-list")
@@ -88,7 +88,7 @@ def test_only_owner_sees_own_requests(api_client, user, receiver):
     payload = {
         "title": "Need feedback",
         "content": "content",
-        "requestee_ids": [str(receiver.uuid)],
+        "requestee_emails": [receiver.email],
     }
     url = reverse("api:feedback-requests-list")
     fr_resp = api_client.post(url, payload, format="json")
@@ -109,7 +109,7 @@ def test_outsider_cannot_view_request(api_client, user, receiver, outsider):
     api_client.force_authenticate(user)
     url = reverse("api:feedback-requests-list")
     fr_uuid = api_client.post(url, {
-        "title": "Need feedback","content":"x","requestee_ids":[str(receiver.uuid)]}, format="json").data["uuid"]
+        "title": "Need feedback","content":"x","requestee_emails": [receiver.email]}, format="json").data["uuid"]
 
     detail_url = reverse("api:feedback-requests-detail", kwargs={"uuid": fr_uuid})
     api_client.force_authenticate(outsider)
@@ -240,7 +240,7 @@ def test_mentioned_user_cannot_view_request_answer(api_client, user, receiver, m
     fr_uuid = api_client.post(reverse("api:feedback-requests-list"), {
         "title": "Need feedback",
         "content": "Please give me feedback",
-        "requestee_ids": [str(receiver.uuid)],
+        "requestee_emails": [receiver.email],
     }, format="json").data["uuid"]
 
     # Step 2: receiver answers the request (creates feedback entry)
@@ -273,7 +273,7 @@ def test_past_deadline_rejected(api_client, user, receiver):
     payload = {
         "title": "Past deadline",
         "content": "x",
-        "requestee_ids": [str(receiver.uuid)],
+        "requestee_emails": [receiver.email],
         "deadline": str((timezone.now() - timezone.timedelta(days=1)).date()),
     }
     resp = api_client.post(reverse("api:feedback-requests-list"), payload, format="json")
@@ -282,11 +282,11 @@ def test_past_deadline_rejected(api_client, user, receiver):
 
 @pytest.mark.django_db
 def test_self_invite_filtered(api_client, user):
-    """Owner listed in requestee_ids should not receive a FeedbackRequestUserLink."""
+    """Owner listed in requestee_emails should not receive a FeedbackRequestUserLink."""
     api_client.force_authenticate(user)
     fr_uuid = api_client.post(
         reverse("api:feedback-requests-list"),
-        {"title": "Need feedback", "content": "x", "requestee_ids": [str(user.uuid)]},
+        {"title": "Need feedback", "content": "x", "requestee_emails": [user.email]},
         format="json",
     ).data["uuid"]
 
@@ -301,7 +301,7 @@ def test_invalid_form_uuid(api_client, user, receiver):
     payload = {
         "title": "invalid form",
         "content": "x",
-        "requestee_ids": [str(receiver.uuid)],
+        "requestee_emails": [receiver.email],
         "form_uuid": str(uuid.uuid4()),
     }
     resp = api_client.post(reverse("api:feedback-requests-list"), payload, format="json")
@@ -315,7 +315,7 @@ def test_uninvited_cannot_answer(api_client, user, receiver, outsider):
     api_client.force_authenticate(user)
     fr_uuid = api_client.post(
         reverse("api:feedback-requests-list"),
-        {"title": "Need fb", "content": "x", "requestee_ids": [str(receiver.uuid)]},
+        {"title": "Need fb", "content": "x", "requestee_emails": [receiver.email]},
         format="json",
     ).data["uuid"]
 
@@ -339,7 +339,7 @@ def test_receiver_must_be_owner(api_client, user, receiver, outsider):
     api_client.force_authenticate(user)
     fr_uuid = api_client.post(
         reverse("api:feedback-requests-list"),
-        {"title": "Need fb", "content": "x", "requestee_ids": [str(receiver.uuid)]},
+        {"title": "Need fb", "content": "x", "requestee_emails": [receiver.email]},
         format="json",
     ).data["uuid"]
 
@@ -375,7 +375,7 @@ def test_answered_flag_set(api_client, user, receiver):
     api_client.force_authenticate(user)
     fr_uuid = api_client.post(
         reverse("api:feedback-requests-list"),
-        {"title": "Need fb", "content": "x", "requestee_ids": [str(receiver.uuid)]},
+        {"title": "Need fb", "content": "x", "requestee_emails": [receiver.email]},
         format="json",
     ).data["uuid"]
 
@@ -405,7 +405,7 @@ def test_request_owner_sees_all_answers(api_client, user, receiver, outsider):
         {
             "title": "Need fb",
             "content": "x",
-            "requestee_ids": [str(receiver.uuid), str(outsider.uuid)],
+            "requestee_emails": [receiver.email, outsider.email],
         },
         format="json",
     ).data["uuid"]
@@ -449,7 +449,7 @@ def test_mention_does_not_unlock_request_answer(api_client, user, receiver, outs
         {
             "title": "Need fb",
             "content": "x",
-            "requestee_ids": [str(receiver.uuid), str(outsider.uuid)],
+            "requestee_emails": [receiver.email, outsider.email],
         },
         format="json",
     ).data["uuid"]
