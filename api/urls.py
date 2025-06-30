@@ -33,14 +33,6 @@ router.register(r"feedback-forms",    views.FeedbackFormViewSet,    basename="fe
 router.register(r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests")
 router.register(r"feedback-entries",  views.FeedbackEntryViewSet,   basename="feedback-entries")
 
-request_entries_router = routers.NestedDefaultRouter(
-    router, r"feedback-requests", lookup="feedback_request"
-)
-request_entries_router.register(
-    r"entries", views.FeedbackEntryViewSet, basename="feedback-request-entries"
-)
-
-
 # ─── URL PATTERNS ────────────────────────────────────────────────────────────────
 urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
@@ -56,7 +48,6 @@ urlpatterns = [
     path("", include(summaries_router.urls)),
     path("", include(forms_router.urls)),
     path("", include(team_router.urls)),
-    path("", include(request_entries_router.urls)),
 ]
 
 if settings.SIGNUP_DISABLED != "true":
