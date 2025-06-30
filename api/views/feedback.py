@@ -21,26 +21,57 @@ class FeedbackFormViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FeedbackRequestViewSet(viewsets.ModelViewSet):
-    """CRUD for feedback requests."""
+    """
+    Feedback-request CRUD.
 
+    List endpoints are split:
+
+        • /feedback-requests/owned/    requests user created
+        • /feedback-requests/invited/  requests user should answer
+    """
     queryset = FeedbackRequest.objects.all()
     permission_classes = [FeedbackRequestPermission]
     lookup_field = "uuid"
 
     def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
+        if self.action in ["list_owned", "list_invited", "retrieve"]:
             return FeedbackRequestReadOnlySerializer
         return FeedbackRequestWriteSerializer
 
-    def get_queryset(self):
+    # private helpers
+    def _owned_qs(self):
         user = self.request.user
         return (
-            self.queryset.filter(Q(note__owner=user) | Q(requestees__user=user))
+            self.queryset
+            .filter(note__owner=user)
             .select_related("note", "note__owner")
             .prefetch_related("requestees__user")
-            .distinct()
         )
 
+    def _invited_qs(self):
+        user = self.request.user
+        return (
+            self.queryset
+            .filter(requestees__user=user)
+            .exclude(note__owner=user)
+            .select_related("note", "note__owner")
+            .prefetch_related("requestees__user")
+        )
+
+    # list endpoints
+    @action(detail=False, methods=["get"], url_path="owned",   url_name="owned")
+    def list_owned(self, request):
+        """Return only the feedback-requests created by the current user."""
+        serializer = self.get_serializer(self._owned_qs(), many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="invited", url_name="invited")
+    def list_invited(self, request):
+        """Return feedback-requests where the user was invited to give feedback."""
+        serializer = self.get_serializer(self._invited_qs(), many=True)
+        return Response(serializer.data)
+
+    # list answers for one request
     @action(detail=True, methods=["get"], url_path="entries")
     def list_entries(self, request, uuid=None):
         feedback_request = self.get_object()
