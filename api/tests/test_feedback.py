@@ -524,3 +524,85 @@ def test_inactive_form_rejected(api_client, user, receiver, feedback_form_factor
         format="json",
     )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+# ──────────────────────────────────────────────────
+# List endpoints: /feedback-requests/owned/ & invited/
+# ──────────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_owned_and_invited_endpoints_separate(api_client, user_factory):
+    """
+    The “owned” endpoint must return only requests created by the caller,
+    while the “invited” endpoint must return only requests where the caller
+    is an invitee (and not the owner).
+    """
+    owner   = user_factory()        # will own R1
+    invitee = user_factory()        # will be invited to R2
+    other   = user_factory()        # creates R2
+
+    api_client.force_authenticate(owner)
+
+    # R1: created by owner
+    api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "R1",
+            "content": "x",
+            "requestee_emails": [invitee.email],
+        },
+        format="json",
+    )
+
+    # R2: created by 'other', owner is invited
+    api_client.force_authenticate(other)
+    api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "R2",
+            "content": "y",
+            "requestee_emails": [owner.email],
+        },
+        format="json",
+    )
+
+    # Assertions
+    api_client.force_authenticate(owner)
+
+    owned_resp   = api_client.get(reverse("api:feedback-requests-owned"))
+    invited_resp = api_client.get(reverse("api:feedback-requests-invited"))
+
+    assert owned_resp.status_code == 200
+    assert invited_resp.status_code == 200
+
+    owned_titles   = {r["title"] for r in owned_resp.data}
+    invited_titles = {r["title"] for r in invited_resp.data}
+
+    assert owned_titles == {"R1"}
+    assert invited_titles == {"R2"}
+    assert owned_titles.isdisjoint(invited_titles)
+
+
+@pytest.mark.django_db
+def test_unrelated_user_gets_empty_lists(api_client, user_factory):
+    """
+    A user who is neither owner nor invitee of any request should see
+    empty results from both endpoints.
+    """
+    someone = user_factory()
+    other   = user_factory()
+
+    # 'other' creates a request unrelated to 'someone'
+    api_client.force_authenticate(other)
+    api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "Unrelated",
+            "content": "x",
+            "requestee_emails": [],
+        },
+        format="json",
+    )
+
+    api_client.force_authenticate(someone)
+    assert api_client.get(reverse("api:feedback-requests-owned")).data == []
+    assert api_client.get(reverse("api:feedback-requests-invited")).data == []
