@@ -93,7 +93,7 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
     title = serializers.CharField(max_length=512)
     content = serializers.CharField()
-    requestee_ids = serializers.SlugRelatedField(
+    requestee_emails = serializers.SlugRelatedField(
         many=True,
         slug_field="email",
         queryset=User.objects.all(),
