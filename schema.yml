@@ -41,6 +41,540 @@ paths:
                         type: string
                         description: Access token
           description: Successfully Logged In!
+  /api/feedback-entries/:
+    get:
+      operationId: feedback_entries_list
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      tags:
+      - feedback-entries
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+          description: ''
+    post:
+      operationId: feedback_entries_create
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      tags:
+      - feedback-entries
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+  /api/feedback-entries/{uuid}/:
+    get:
+      operationId: feedback_entries_retrieve
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-entries
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    put:
+      operationId: feedback_entries_update
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-entries
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    patch:
+      operationId: feedback_entries_partial_update
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-entries
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    delete:
+      operationId: feedback_entries_destroy
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-entries
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/feedback-forms/:
+    get:
+      operationId: feedback_forms_list
+      description: Publicly list active feedback forms.
+      tags:
+      - feedback-forms
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedbackForm'
+          description: ''
+  /api/feedback-forms/{id}/:
+    get:
+      operationId: feedback_forms_retrieve
+      description: Publicly list active feedback forms.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this فرم بازخورد.
+        required: true
+      tags:
+      - feedback-forms
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackForm'
+          description: ''
+  /api/feedback-requests/:
+    get:
+      operationId: feedback_requests_list
+      description: CRUD for feedback requests.
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedbackRequestReadOnly'
+          description: ''
+    post:
+      operationId: feedback_requests_create
+      description: CRUD for feedback requests.
+      tags:
+      - feedback-requests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequestWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequestWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequestWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackRequestWrite'
+          description: ''
+  /api/feedback-requests/{feedback_request_uuid}/entries/:
+    get:
+      operationId: feedback_requests_entries_list
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: feedback_request_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+          description: ''
+    post:
+      operationId: feedback_requests_entries_create
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: feedback_request_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - feedback-requests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+  /api/feedback-requests/{feedback_request_uuid}/entries/{uuid}/:
+    get:
+      operationId: feedback_requests_entries_retrieve
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: feedback_request_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    put:
+      operationId: feedback_requests_entries_update
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: feedback_request_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    patch:
+      operationId: feedback_requests_entries_partial_update
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: feedback_request_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+          description: ''
+    delete:
+      operationId: feedback_requests_entries_destroy
+      description: Endpoint for sending feedback (ad-hoc or answer).
+      parameters:
+      - in: path
+        name: feedback_request_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/feedback-requests/{uuid}/:
+    get:
+      operationId: feedback_requests_retrieve
+      description: CRUD for feedback requests.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackRequestReadOnly'
+          description: ''
+    put:
+      operationId: feedback_requests_update
+      description: CRUD for feedback requests.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequestWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequestWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequestWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackRequestWrite'
+          description: ''
+    patch:
+      operationId: feedback_requests_partial_update
+      description: CRUD for feedback requests.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequestWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequestWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFeedbackRequestWriteRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackRequestWrite'
+          description: ''
+    delete:
+      operationId: feedback_requests_destroy
+      description: CRUD for feedback requests.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/feedback-requests/{uuid}/entries/:
+    get:
+      operationId: feedback_requests_entries_retrieve_2
+      description: CRUD for feedback requests.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - feedback-requests
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackRequestWrite'
+          description: ''
   /api/forms/:
     get:
       operationId: forms_list
@@ -1398,6 +1932,221 @@ components:
           title: محتوا
       required:
       - content
+    Feedback:
+      type: object
+      description: Serializer for giving feedback (either ad-hoc or in response to
+        request).
+      properties:
+        receiver_id:
+          type: string
+          format: uuid
+        feedback_request_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        form_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        content:
+          type: string
+        evidence:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        sender:
+          allOf:
+          - $ref: '#/components/schemas/FeedbackUser'
+          readOnly: true
+        receiver:
+          allOf:
+          - $ref: '#/components/schemas/FeedbackUser'
+          readOnly: true
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - date_created
+      - receiver
+      - receiver_id
+      - sender
+      - uuid
+    FeedbackForm:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 256
+        description:
+          type: string
+        schema: {}
+      required:
+      - title
+      - uuid
+    FeedbackRequest:
+      type: object
+      description: Serializer for giving feedback (either ad-hoc or in response to
+        request).
+      properties:
+        receiver_id:
+          type: string
+          format: uuid
+        feedback_request_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        form_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        content:
+          type: string
+          minLength: 1
+        evidence:
+          type: string
+      required:
+      - content
+      - receiver_id
+    FeedbackRequestReadOnly:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        content:
+          type: string
+          readOnly: true
+        deadline:
+          type: string
+          format: date
+          nullable: true
+        owner_name:
+          type: string
+          readOnly: true
+        owner_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        date_updated:
+          type: string
+          format: date-time
+          readOnly: true
+        requestees:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedbackRequestUserLink'
+          readOnly: true
+        form_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+      required:
+      - content
+      - date_updated
+      - form_uuid
+      - owner_name
+      - owner_uuid
+      - requestees
+      - title
+      - uuid
+    FeedbackRequestUserLink:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        answered:
+          type: boolean
+      required:
+      - email
+      - name
+      - uuid
+    FeedbackRequestWrite:
+      type: object
+      description: Creates a feedback-request note and related objects in one shot.
+      properties:
+        title:
+          type: string
+          maxLength: 512
+        content:
+          type: string
+        deadline:
+          type: string
+          format: date
+          nullable: true
+        form_uuid:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - content
+      - title
+    FeedbackRequestWriteRequest:
+      type: object
+      description: Creates a feedback-request note and related objects in one shot.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 512
+        content:
+          type: string
+          minLength: 1
+        requestee_ids:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
+            writeOnly: true
+          writeOnly: true
+        deadline:
+          type: string
+          format: date
+          nullable: true
+        form_uuid:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - content
+      - requestee_ids
+      - title
+    FeedbackUser:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - name
+      - uuid
     Form:
       type: object
       description: |-
@@ -1905,6 +2654,55 @@ components:
           type: string
           minLength: 1
           title: محتوا
+    PatchedFeedbackRequest:
+      type: object
+      description: Serializer for giving feedback (either ad-hoc or in response to
+        request).
+      properties:
+        receiver_id:
+          type: string
+          format: uuid
+        feedback_request_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        form_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        content:
+          type: string
+          minLength: 1
+        evidence:
+          type: string
+    PatchedFeedbackRequestWriteRequest:
+      type: object
+      description: Creates a feedback-request note and related objects in one shot.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 512
+        content:
+          type: string
+          minLength: 1
+        requestee_ids:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
+            writeOnly: true
+          writeOnly: true
+        deadline:
+          type: string
+          format: date
+          nullable: true
+        form_uuid:
+          type: string
+          format: uuid
+          nullable: true
     PatchedFormRequest:
       type: object
       description: |-
@@ -2361,6 +3159,8 @@ components:
       - Message
       - Template
       - OneOnOne
+      - FeedbackRequest
+      - Feedback
       type: string
       description: |-
         * `Goal` - هدف
@@ -2371,6 +3171,8 @@ components:
         * `Message` - پیام
         * `Template` - قالب
         * `OneOnOne` - یک‌به‌یک
+        * `FeedbackRequest` - درخواست بازخورد
+        * `Feedback` - بازخورد
     User:
       type: object
       properties:
