@@ -244,8 +244,6 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         tags = validated_data.pop("tags", [])
         linked_notes = validated_data.pop("linked_notes", [])
         request = self.context["request"]
-        validated_data.pop("cycle", None)
-        cycle = Cycle.get_current_cycle()
         member = self.context["member"]  # injected by ViewSet
 
         with transaction.atomic():
@@ -255,10 +253,9 @@ class OneOnOneSerializer(serializers.ModelSerializer):
                 content="",
                 date=validated_data.get("date", timezone.now().date()),
                 type=NoteType.ONE_ON_ONE,
-                cycle=cycle,
             )
             note.linked_notes.set(linked_notes)
-            oneonone = OneOnOne.objects.create(note=note, member=member, cycle=cycle, **validated_data)
+            oneonone = OneOnOne.objects.create(note=note, member=member, **validated_data)
             for tag in tags:
                 OneOnOneTagLink.objects.create(one_on_one=oneonone, 
                                                tag=tag, 

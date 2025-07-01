@@ -25,8 +25,9 @@ class Form(MerlinBaseModel):
         null=True,
         blank=True
     )
-    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT, verbose_name="دوره")     # FUTURE ENHANCEMENT: In order to decouple the forms from cycles, cycle should be moved to FormResponse model.
-
+    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True, )
+    
     class Meta:
         verbose_name = "فرم"
         verbose_name_plural = "فرم‌ها"
