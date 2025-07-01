@@ -92,7 +92,8 @@ class Note(MerlinBaseModel):
         verbose_name="وضعیت",
     )
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
-                              blank=True, null=True, )
+                              blank=True, null=True,
+                              )
 
     def is_sent_to_committee(self):
         return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
@@ -118,7 +119,8 @@ class Comment(MerlinBaseModel):
     content = models.TextField(verbose_name="محتوا")
     note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
-                              blank=True, null=True)
+                              blank=True, null=True,
+                              )
 
     class Meta:
         unique_together = (
@@ -156,7 +158,8 @@ class Summary(MerlinBaseModel):
         verbose_name="وضعیت",
     )
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
-                              blank=True, null=True)
+                              blank=True, null=True,
+                              )
 
     class Meta:
         verbose_name = "جمع‌بندی"
@@ -320,8 +323,8 @@ class OneOnOne(MerlinBaseModel):
     member_vibe = models.CharField(max_length=2, choices=Vibe.choices, null=True, blank=True)
 
     # Cycle auto-filled in serializer
-    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)
-
+    cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True, )
     tags = models.ManyToManyField(
         ValueTag, through="OneOnOneTagLink", related_name="one_on_one_tags"
     )
@@ -373,7 +376,9 @@ class FeedbackRequest(MerlinBaseModel):
     note = models.OneToOneField("Note", on_delete=models.CASCADE, related_name="feedback_request")
     deadline = models.DateField(null=True, blank=True)
     form = models.ForeignKey(FeedbackForm, null=True, blank=True, on_delete=models.SET_NULL)
-
+    cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True, )
+    
     class Meta:
         verbose_name = "درخواست بازخورد"
         verbose_name_plural = "درخواست‌های بازخورد"
@@ -419,7 +424,8 @@ class Feedback(MerlinBaseModel):
     form = models.ForeignKey(FeedbackForm, null=True, blank=True, on_delete=models.SET_NULL)
     content = models.TextField()
     evidence = models.TextField(blank=True)
-    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)
+    cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
+                              blank=True, null=True, )
     tags = models.ManyToManyField(ValueTag, through=FeedbackTagLink, related_name="feedback_tags")
 
     class Meta:

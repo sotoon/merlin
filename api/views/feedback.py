@@ -1,4 +1,7 @@
 from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from api.serializers.feedback import (
     FeedbackFormSerializer,
     FeedbackRequestReadOnlySerializer,
@@ -8,9 +11,7 @@ from api.serializers.feedback import (
 from api.models.note import FeedbackForm, FeedbackRequest, Feedback
 from django.db.models import Q
 from api.permissions import FeedbackEntryPermission, FeedbackRequestPermission
-from rest_framework.decorators import action
-from rest_framework.response import Response
-
+from api.views.mixins import CycleQueryParamMixin
 
 class FeedbackFormViewSet(viewsets.ReadOnlyModelViewSet):
     """Publicly list active feedback forms."""
@@ -20,7 +21,7 @@ class FeedbackFormViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class FeedbackRequestViewSet(viewsets.ModelViewSet):
+class FeedbackRequestViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     """
     Feedback-request CRUD.
 
@@ -82,7 +83,7 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class FeedbackEntryViewSet(viewsets.ModelViewSet):
+class FeedbackEntryViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     """Endpoint for sending feedback (ad-hoc or answer)."""
 
     lookup_field = "uuid"
