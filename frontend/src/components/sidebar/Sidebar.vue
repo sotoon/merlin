@@ -61,12 +61,9 @@
             <SidebarLinkGroup :title="t('common.feedback')">
               <li>
                 <SidebarLink
-                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.message]"
-                  :label="t('common.messageToOthers')"
-                  :to="{
-                    name: 'notes',
-                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
-                  }"
+                  icon="i-mdi-comment-check"
+                  :label="t('common.feedbackRequest')"
+                  :to="{ name: 'feedback-request' }"
                 />
               </li>
             </SidebarLinkGroup>
