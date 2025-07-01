@@ -31,7 +31,8 @@
     "sort": "مرتب سازی",
     "templates": "قالب‌ها",
     "oneOnOne": "یک به یک",
-    "results": "نتایج فرم‌ها"
+    "results": "نتایج فرم‌ها",
+    "feedbackRequest": "درخواست فیدبک"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -177,5 +178,42 @@
     "memberNotFound": "کاربر یافت نشد.",
     "withManager": "با مدیرم",
     "submitVibe": "ثبت بازخورد"
+  },
+  "feedback": {
+    "title": "عنوان",
+    "description": "توضیحات",
+    "new": "درخواست بازخورد جدید",
+    "requestees": "درخواست از",
+    "deadline": "مهلت",
+    "form": "فرم",
+    "getError": "دریافت لیست درخواست‌های بازخورد با خطا مواجه شد.",
+    "noRequests": "درخواست بازخوردی یافت نشد",
+    "entries": "بازخوردهای ثبت شده",
+    "noEntries": "هنوز بازخوردی ثبت نشده است",
+    "createTitle": "ایجاد درخواست بازخورد جدید",
+    "editTitle": "ویرایش درخواست بازخورد",
+    "confirmDelete": "آیا از حذف این درخواست بازخورد اطمینان دارید؟",
+    "requestContent": "متن درخواست",
+    "receivers": "گیرندگان",
+    "requestSaved": "درخواست بازخورد با موفقیت ذخیره شد.",
+    "answered": "پاسخ داده شده",
+    "notAnswered": "پاسخ داده نشده",
+    "provideFeedback": "ثبت بازخورد",
+    "writeFeedback": "نوشتن بازخورد",
+    "writeFeedbackContent": "متن بازخورد را بنویسید.",
+    "evidence": "شواهد",
+    "writeEvidenceContent": "شواهد خود را وارد کنید.",
+    "noOwnedRequests": "درخواستی برای نمایش وجود ندارد.",
+    "noInvitedRequests": "درخواستی برای نمایش وجود ندارد.",
+    "invitedRequests": "درخواست‌های دریافتی",
+    "ownedRequests": "درخواست‌های من",
+    "submitted": "پاسخ داده شده",
+    "structuredFeedback": "بازخورد ساختاریافته",
+    "selectForm": "انتخاب فرم",
+    "formPreview": "پیش‌نمایش فرم",
+    "noFormSchema": "فرم انتخاب نشده یا طرح فرم موجود نیست",
+    "textResponse": "پاسخ متنی",
+    "selectOption": "انتخاب گزینه",
+    "allSubmitted": "همه پاسخ داده‌اند"
   }
 }
