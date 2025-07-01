@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/vue-query';
+
 interface CreateNoteResponse extends Note {}
 
 interface CreateNoteError {
@@ -11,8 +13,6 @@ interface CreateNotePayload
     | 'content'
     | 'type'
     | 'mentioned_users'
-    | 'year'
-    | 'period'
     | 'linked_notes'
     | 'submit_status'
   > {
@@ -21,13 +21,18 @@ interface CreateNotePayload
   title: string;
 }
 
-export const useCreateNote = () =>
-  useApiMutation<CreateNoteResponse, CreateNoteError, CreateNotePayload>(
+export const useCreateNote = () => {
+  const queryClient = useQueryClient();
+  return useApiMutation<CreateNoteResponse, CreateNoteError, CreateNotePayload>(
     '/notes/',
     {
       method: 'POST',
       onSuccess: (note) => {
-        invalidateNuxtData(['notes', note.type]);
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey[0] === 'notes' && query.queryKey[1] === note.type,
+        });
       },
     },
   );
+};

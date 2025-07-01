@@ -1,21 +1,38 @@
+import { useQuery } from '@tanstack/vue-query';
+
 type GetNotesResponse = Note[];
 
 interface UseGetNotesOptions {
   type?: NoteType;
   user?: string;
   retrieveMentions?: boolean;
+  isCurrentCycle?: Ref<boolean>;
 }
 
 export const useGetNotes = ({
   type,
   user,
   retrieveMentions,
-}: UseGetNotesOptions = {}) =>
-  useApiFetch<GetNotesResponse>('/notes/', {
-    key: createNuxtDataKey(['notes', type, user, retrieveMentions]),
-    query: {
+  isCurrentCycle,
+}: UseGetNotesOptions = {}) => {
+  const { $api } = useNuxtApp();
+
+  return useQuery<GetNotesResponse>({
+    queryKey: computed(() => [
+      'notes',
       type,
       user,
-      retrieve_mentions: retrieveMentions,
-    },
+      retrieveMentions,
+      isCurrentCycle?.value,
+    ]),
+    queryFn: () =>
+      $api.fetch('/notes/', {
+        query: {
+          type,
+          user,
+          retrieve_mentions: retrieveMentions,
+          cycle: isCurrentCycle?.value,
+        },
+      }),
   });
+};

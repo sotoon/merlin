@@ -71,7 +71,7 @@
     "createNewX": "ایجاد {0} جدید",
     "editTemplate": "ویرایش قالب",
     "editX": "ویرایش {0}",
-    "evaluationPeriod": "دوره ارزیابی",
+    "currentPeriod": "دوره فعلی",
     "comments": "نظرات",
     "feedbacks": "فیدبک‌ها",
     "finalSubmit": "ثبت نهایی",
@@ -97,7 +97,6 @@
     "oldest": "قدیمی‌ترین",
     "performanceBonus": "پاداش عملکردی",
     "performanceLabel": "لیبل عملکردی",
-    "period": "دوره",
     "relatedNotes": "یادداشت‌های مرتبط",
     "replace": "جایگزین",
     "salaryChange": "تغییر پله‌ی حقوقی",
@@ -127,7 +126,6 @@
     "writeSummaryContent": "متن جمع‌بندی را بنویسید...",
     "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\"",
     "writeTemplateContent": "متن قالب را بنویسید...",
-    "year": "سال",
     "currentCycle": "دوره فعلی"
   },
   "noteType": {

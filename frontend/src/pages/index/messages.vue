@@ -12,16 +12,19 @@
       </div>
     </div>
 
-    <div v-if="!notes && pending" class="flex items-center justify-center py-8">
+    <div
+      v-if="!notes && isPending"
+      class="flex items-center justify-center py-8"
+    >
       <PLoading class="text-primary" :size="20" />
     </div>
 
-    <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
+    <div v-else-if="isError" class="flex flex-col items-center gap-4 py-8">
       <PText as="p" class="text-center text-danger" responsive>
         {{ t('note.getMessagesError') }}
       </PText>
 
-      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
         {{ t('common.retry') }}
       </PButton>
     </div>
@@ -39,7 +42,6 @@
 
           <template #filter>
             <NoteWriterFilter :notes />
-            <NotePeriodFilter :notes />
             <NoteTeamFilter v-if="isTeamLeader" />
             <NoteReadStatusFilter />
           </template>
@@ -72,9 +74,9 @@ const { t } = useI18n();
 useHead({ title: t('common.messages') });
 const {
   data: notes,
-  pending,
-  error,
-  refresh,
+  isPending,
+  isError,
+  refetch,
 } = useGetNotes({
   retrieveMentions: true,
 });

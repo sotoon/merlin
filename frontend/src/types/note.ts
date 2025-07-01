@@ -25,13 +25,11 @@ export interface Note {
   mentioned_users: string[];
   owner: string;
   owner_name: string;
-  period: number;
   read_status: boolean;
   submit_status: NoteSubmitStatus;
   title: string;
   type: NoteType;
   uuid: string;
-  year: number;
   one_on_one_member: string | null;
   one_on_one_id: number | null;
 }
@@ -39,7 +37,7 @@ export interface Note {
 export interface NoteFormValues
   extends Pick<
     Partial<Note>,
-    'title' | 'content' | 'mentioned_users' | 'year' | 'period' | 'linked_notes'
+    'title' | 'content' | 'mentioned_users' | 'linked_notes'
   > {
   content: string;
   date?: Date;

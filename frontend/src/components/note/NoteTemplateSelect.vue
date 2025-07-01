@@ -65,7 +65,7 @@ const showConfirm = ref(false);
 const { t } = useI18n();
 const { data: templates, pending: isTemplatesLoading } = useGetTemplates();
 // TODO: integrate shared templates in the templates api
-const { data: sharedTemplates, pending: isSharedTemplatesLoading } =
+const { data: sharedTemplates, isPending: isSharedTemplatesLoading } =
   useGetNotes({
     type: NOTE_TYPE.template,
     retrieveMentions: true,

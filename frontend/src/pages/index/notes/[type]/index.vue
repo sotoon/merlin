@@ -19,16 +19,16 @@
       </NuxtLink>
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div v-if="isPending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 
-    <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
+    <div v-else-if="isError" class="flex flex-col items-center gap-4 py-8">
       <PText as="p" class="text-center text-danger" responsive>
         {{ t('note.getNotesError') }}
       </PText>
 
-      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
         {{ t('common.retry') }}
       </PButton>
     </div>
@@ -45,7 +45,7 @@
           </template>
 
           <template #filter>
-            <NotePeriodFilter :notes />
+            <NoteCycleFilter v-model="isCurrentCycle" />
           </template>
         </NoteListControls>
       </template>
@@ -75,16 +75,20 @@ const props = defineProps<{
   user?: User | null;
 }>();
 
+const isCurrentCycle = ref<boolean>(false);
+
 const { t } = useI18n();
 const {
   data: notes,
-  pending,
-  error,
-  refresh,
+  isPending,
+  isError,
+  refetch,
 } = useGetNotes({
   type: props.noteType,
   user: props.userEmail,
+  isCurrentCycle,
 });
+
 // TODO: filter out templates in the backend
 const filteredNotes = useFilterNotes(
   () => notes.value?.filter((note) => note.type !== NOTE_TYPE.template) || [],
