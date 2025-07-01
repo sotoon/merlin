@@ -8,7 +8,7 @@
 
     <div class="flex grow flex-col overflow-hidden px-2">
       <PScrollbar class="-mx-2 grow px-2 py-4">
-        <ul class="space-y-6">
+        <ul class="space-y-2">
           <li>
             <SidebarLinkGroup :title="t('common.notes')">
               <li>
