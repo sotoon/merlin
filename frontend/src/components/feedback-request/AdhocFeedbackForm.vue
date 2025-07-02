@@ -43,7 +43,7 @@ const { handleSubmit, meta, setFieldValue, values } = useForm<{
 const formSchema = computed(() => {
   if (!values.form_uuid || !forms.value) return undefined;
   const form = forms.value.find((f) => f.uuid === values.form_uuid);
-  return form?.schema as SchemaQuestion[];
+  return form?.schema as FeedbackFormSchema;
 });
 
 const onSubmit = handleSubmit((values) => {
@@ -56,6 +56,7 @@ const onSubmit = handleSubmit((values) => {
     content,
     evidence: isStructured.value ? '' : values.evidence,
     receiver_id: values.receiver_id,
+    form_uuid: isStructured.value ? values.form_uuid : undefined,
   }).then(() => {
     emit('success');
   });
@@ -70,11 +71,28 @@ const isFormValid = computed(() => {
   // Check if all required fields in structured form are filled
   if (!formSchema.value) return false;
 
-  return formSchema.value.every((question) => {
-    return (
-      structuredFormData.value[question.title] &&
-      structuredFormData.value[question.title].trim() !== ''
-    );
+  return formSchema.value.sections.every((section) => {
+    return section.items.every((question) => {
+      if (!question.required) return true;
+
+      const value = structuredFormData.value[question.key];
+
+      // Handle different question types
+      switch (question.type) {
+        case 'text':
+          return value && typeof value === 'string' && value.trim() !== '';
+        case 'likert':
+          return value !== undefined && value !== null && value !== '';
+        case 'multiple_choice':
+          return Array.isArray(value) && value.length > 0;
+        case 'sort':
+          return Array.isArray(value) && value.length > 0;
+        case 'tag':
+          return Array.isArray(value) && value.length > 0;
+        default:
+          return value !== undefined && value !== null && value !== '';
+      }
+    });
   });
 });
 

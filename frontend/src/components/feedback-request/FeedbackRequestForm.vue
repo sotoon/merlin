@@ -67,7 +67,7 @@ watch(isStructured, (newValue) => {
 const formSchema = computed(() => {
   if (!values.form_uuid || !forms.value) return undefined;
   const form = forms.value.find((f) => f.uuid === values.form_uuid);
-  return form?.schema as SchemaQuestion[];
+  return form?.schema as FeedbackFormSchema;
 });
 </script>
 

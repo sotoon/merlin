@@ -25,7 +25,8 @@
     "nuxt": "^3.10.3",
     "sass": "^1.75.0",
     "vue": "^3.4.19",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@egoist/tailwindcss-icons": "^1.8.0",
