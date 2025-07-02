@@ -32,7 +32,7 @@ const refreshAll = () => {
 };
 
 useHead({
-  title: () => (request.value as any)?.title || t('common.feedbackRequest'),
+  title: () => request.value?.title || t('common.feedbackRequest'),
 });
 </script>
 <template>

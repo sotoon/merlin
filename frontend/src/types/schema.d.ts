@@ -102,18 +102,18 @@ export interface paths {
     };
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     get: operations['feedback_requests_list'];
     put?: never;
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     post: operations['feedback_requests_create'];
     delete?: never;
     options?: never;
@@ -130,34 +130,34 @@ export interface paths {
     };
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     get: operations['feedback_requests_retrieve'];
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     put: operations['feedback_requests_update'];
     post?: never;
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     delete: operations['feedback_requests_destroy'];
     options?: never;
     head?: never;
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     patch: operations['feedback_requests_partial_update'];
     trace?: never;
   };
@@ -170,45 +170,11 @@ export interface paths {
     };
     /** @description Feedback-request CRUD.
      *
-     *     List endpoints are split:
-     *
-     *         • /feedback-requests/owned/    requests user created
-     *         • /feedback-requests/invited/  requests user should answer */
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
     get: operations['feedback_requests_entries_retrieve'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/feedback-requests/invited/': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** @description Return feedback-requests where the user was invited to give feedback. */
-    get: operations['feedback_requests_invited_retrieve'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/feedback-requests/owned/': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** @description Return only the feedback-requests created by the current user. */
-    get: operations['feedback_requests_owned_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1586,7 +1552,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['FeedbackRequestWrite'][];
+          'application/json': components['schemas']['FeedbackRequestReadOnly'][];
         };
       };
     };
@@ -1728,44 +1694,6 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['FeedbackRequestWrite'];
-        };
-      };
-    };
-  };
-  feedback_requests_invited_retrieve: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['FeedbackRequestReadOnly'];
-        };
-      };
-    };
-  };
-  feedback_requests_owned_retrieve: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['FeedbackRequestReadOnly'];
         };
       };
     };

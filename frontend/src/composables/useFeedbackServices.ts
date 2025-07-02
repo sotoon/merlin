@@ -8,25 +8,25 @@ export const useGetFeedbackForms = () => {
   });
 };
 
-export const useGetFeedbackRequestsOwned = () => {
+export const useGetFeedbackRequests = (type?: 'owned' | 'invited' | 'all') => {
   const { $api } = useNuxtApp();
   return useQuery({
-    queryKey: ['feedback-requests-owned'],
+    queryKey: ['feedback-requests', type],
     queryFn: () =>
-      $api.fetch<Schema<'FeedbackRequestReadOnly'>[]>(
-        '/feedback-requests/owned/',
-      ),
+      $api.fetch<Schema<'FeedbackRequestReadOnly'>[]>('/feedback-requests/', {
+        params: type && type !== 'all' ? { type } : undefined,
+      }),
   });
 };
 
-export const useGetFeedbackRequestsInvited = () => {
+export const useGetAdhocFeedbackEntries = () => {
   const { $api } = useNuxtApp();
   return useQuery({
-    queryKey: ['feedback-requests-invited'],
+    queryKey: ['adhoc-feedback-entries'],
     queryFn: () =>
-      $api.fetch<Schema<'FeedbackRequestReadOnly'>[]>(
-        '/feedback-requests/invited/',
-      ),
+      $api.fetch<Schema<'Feedback'>[]>('/feedback-entries/', {
+        params: { adhoc: 'true' },
+      }),
   });
 };
 
@@ -45,21 +45,12 @@ export const useCreateFeedbackRequest = () => {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests-owned'] });
       queryClient.invalidateQueries({
-        queryKey: ['feedback-requests-invited'],
+        predicate: (query) => {
+          return query.queryKey[0] === 'feedback-requests';
+        },
       });
     },
-  });
-};
-
-export const useGetFeedbackRequests = () => {
-  const { $api } = useNuxtApp();
-  return useQuery({
-    queryKey: ['feedback-requests'],
-    queryFn: () =>
-      $api.fetch<Schema<'FeedbackRequestReadOnly'>[]>('/feedback-requests/'),
   });
 };
 
@@ -99,10 +90,10 @@ export const useUpdateFeedbackRequest = (id: string) => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedback-request', id] });
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests-owned'] });
       queryClient.invalidateQueries({
-        queryKey: ['feedback-requests-invited'],
+        predicate: (query) => {
+          return query.queryKey[0] === 'feedback-requests';
+        },
       });
     },
   });
@@ -118,10 +109,10 @@ export const useDeleteFeedbackRequest = (id: string) => {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feedback-request'] });
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests-owned'] });
       queryClient.invalidateQueries({
-        queryKey: ['feedback-requests-invited'],
+        predicate: (query) => {
+          return query.queryKey[0] === 'feedback-requests';
+        },
       });
     },
   });
@@ -145,13 +136,46 @@ export const useCreateFeedbackEntry = (requestId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['feedback-request', requestId],
       });
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['feedback-requests-owned'] });
       queryClient.invalidateQueries({
-        queryKey: ['feedback-requests-invited'],
+        predicate: (query) => {
+          return query.queryKey[0] === 'feedback-requests';
+        },
       });
       queryClient.invalidateQueries({
         queryKey: ['feedback-request-entries', requestId],
+      });
+    },
+  });
+};
+
+export const useGetAdhocFeedbackEntry = (id: string) => {
+  const { $api } = useNuxtApp();
+  return useQuery({
+    queryKey: ['adhoc-feedback-entry', id],
+    queryFn: () => $api.fetch<Schema<'Feedback'>>(`/feedback-entries/${id}/`),
+  });
+};
+
+export const useCreateAdhocFeedbackEntry = () => {
+  const queryClient = useQueryClient();
+  const { $api } = useNuxtApp();
+
+  return useMutation<
+    Schema<'Feedback'>,
+    { detail?: string },
+    Schema<'FeedbackRequest'>
+  >({
+    mutationFn: (data) =>
+      $api.fetch('/feedback-entries/', {
+        method: 'POST',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adhoc-feedback-entries'] });
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey[0] === 'feedback-requests';
+        },
       });
     },
   });

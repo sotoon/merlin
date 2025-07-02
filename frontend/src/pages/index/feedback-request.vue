@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PHeading, PIconButton } from '@pey/core';
 import { PeyPlusIcon } from '@pey/icons';
+import { useRouteQuery } from '@vueuse/router';
 
 useHead({ title: 'درخواست فیدبک' });
 
@@ -8,6 +9,8 @@ const { t } = useI18n();
 const route = useRoute();
 
 const showHeader = computed(() => route.name === 'feedback-request');
+
+const currentTab = useRouteQuery<'owned' | 'invited' | 'adhoc'>('tab', 'owned');
 </script>
 
 <template>
@@ -26,9 +29,18 @@ const showHeader = computed(() => route.name === 'feedback-request');
         </PHeading>
       </div>
 
-      <NuxtLink :to="{ name: 'feedback-request-new' }">
-        <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
-      </NuxtLink>
+      <div v-if="currentTab !== 'invited'" class="flex items-center gap-2">
+        <NuxtLink
+          :to="{
+            name:
+              currentTab === 'adhoc'
+                ? 'feedback-request-adhoc-new'
+                : 'feedback-request-new',
+          }"
+        >
+          <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
+        </NuxtLink>
+      </div>
     </div>
 
     <NuxtPage />
