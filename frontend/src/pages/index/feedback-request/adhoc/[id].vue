@@ -25,22 +25,19 @@ const isStructuredResponse = computed(() => {
 });
 
 // Get the form schema if this is a structured response
-const resolvedFormSchema = computed((): SchemaQuestion[] | undefined => {
+const resolvedFormSchema = computed((): FeedbackFormSchema | undefined => {
   if (!isStructuredResponse.value || !forms.value || !entry.value)
     return undefined;
 
-  // Try to find the form by checking if any form's schema matches the response structure
-  for (const form of forms.value) {
-    if (form.schema && Array.isArray(form.schema)) {
-      const schemaQuestions = (form.schema as SchemaQuestion[]).map(
-        (q) => q.title,
-      );
-      const responseKeys = Object.keys(JSON.parse(entry.value.content));
-
-      // Check if all response keys match schema questions
-      if (responseKeys.every((key) => schemaQuestions.includes(key))) {
-        return form.schema as SchemaQuestion[];
-      }
+  // Use form_uuid to get the correct schema
+  if (entry.value.form_uuid) {
+    const form = forms.value.find((f) => f.uuid === entry.value.form_uuid);
+    if (
+      form?.schema &&
+      typeof form.schema === 'object' &&
+      'sections' in form.schema
+    ) {
+      return form.schema as FeedbackFormSchema;
     }
   }
 

@@ -49,7 +49,7 @@ const canSubmitFeedback = computed(() => {
 const formSchema = computed(() => {
   if (!props.request.form_uuid || !forms.value) return undefined;
   const form = forms.value.find((f) => f.uuid === props.request.form_uuid);
-  return form?.schema as SchemaQuestion[];
+  return form?.schema as FeedbackFormSchema;
 });
 </script>
 

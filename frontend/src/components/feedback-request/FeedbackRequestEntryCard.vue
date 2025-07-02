@@ -3,7 +3,7 @@ import { PText, PTooltip } from '@pey/core';
 
 const props = defineProps<{
   entry: Schema<'Feedback'>;
-  formSchema?: SchemaQuestion[];
+  formSchema?: FeedbackFormSchema;
 }>();
 
 const { t } = useI18n();
@@ -19,7 +19,7 @@ const isStructuredResponse = computed(() => {
 });
 
 // Get the form schema if this is a structured response
-const resolvedFormSchema = computed((): SchemaQuestion[] | undefined => {
+const resolvedFormSchema = computed((): FeedbackFormSchema | undefined => {
   // If form schema is provided as prop, use it
   if (props.formSchema) return props.formSchema;
 
@@ -29,14 +29,14 @@ const resolvedFormSchema = computed((): SchemaQuestion[] | undefined => {
   // Try to find the form by checking if any form's schema matches the response structure
   for (const form of forms.value) {
     if (form.schema && Array.isArray(form.schema)) {
-      const schemaQuestions = (form.schema as SchemaQuestion[]).map(
-        (q) => q.title,
-      );
+      const schemaQuestions = (
+        form.schema as unknown as FeedbackFormSchema
+      ).sections.map((q) => q.items.map((item) => item.key).flat());
       const responseKeys = Object.keys(JSON.parse(props.entry.content));
 
       // Check if all response keys match schema questions
-      if (responseKeys.every((key) => schemaQuestions.includes(key))) {
-        return form.schema as SchemaQuestion[];
+      if (responseKeys.every((key) => schemaQuestions.flat().includes(key))) {
+        return form.schema as unknown as FeedbackFormSchema;
       }
     }
   }

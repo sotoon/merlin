@@ -3,7 +3,7 @@ import { PText, PHeading } from '@pey/core';
 
 defineProps<{
   entries: Schema<'Feedback'>[];
-  formSchema?: SchemaQuestion[];
+  formSchema?: FeedbackFormSchema;
 }>();
 
 const { t } = useI18n();

@@ -17,6 +17,7 @@ class FeedbackFormSerializer(serializers.ModelSerializer):
     """
     ModelSerializer for FeedbackForm: lists uuid, title, description, and schema.
     """
+
     class Meta:
         model = FeedbackForm
         fields = ["uuid", "title", "description", "schema"]
@@ -27,15 +28,17 @@ class FeedbackUserSerializer(serializers.Serializer):
     """
     Simple serializer for user info in feedback: exposes uuid and name.
     """
+
     uuid = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
 
 
 class FeedbackRequestUserLinkSerializer(serializers.ModelSerializer):
     """
-    Serializer for FeedbackRequestUserLink: shows linked user's uuid, name, 
+    Serializer for FeedbackRequestUserLink: shows linked user's uuid, name,
     email, and answered flag.
     """
+
     uuid = serializers.UUIDField(source="user.uuid", read_only=True)
     name = serializers.CharField(source="user.name", read_only=True)
     email = serializers.EmailField(source="user.email", read_only=True)
@@ -50,6 +53,7 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
     Read-only serializer for FeedbackRequest: exposes note details, owner info,
     update timestamp, form uuid, and requestees.
     """
+
     title = serializers.CharField(source="note.title", read_only=True)
     content = serializers.CharField(source="note.content", read_only=True)
     owner_name = serializers.CharField(source="note.owner.name", read_only=True)
@@ -77,7 +81,7 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
     @extend_schema_field(FeedbackRequestUserLinkSerializer(many=True))
     def get_requestees(self, instance):
         """
-        Return the list of invitees: full list for the request owner, 
+        Return the list of invitees: full list for the request owner,
         or a single entry for the current user if they are invitee.
         """
         request_user = self.context["request"].user
@@ -111,6 +115,7 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
     Write-only serializer for creating and updating FeedbackRequest: handles title,
     content, invitee emails, deadline, and optional form.
     """
+
     title = serializers.CharField(max_length=512)
     content = serializers.CharField()
     requestee_emails = serializers.SlugRelatedField(
@@ -125,7 +130,7 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """
-        Create a FeedbackRequest with its underlying Note and 
+        Create a FeedbackRequest with its underlying Note and
         FeedbackRequestUserLink entries, enforcing invitee ACL and deadlines.
         """
         owner = self.context["request"].user
@@ -245,6 +250,7 @@ class FeedbackSerializer(serializers.Serializer):
     Serializer for feedback entries: supports ad-hoc feedback and answers to
     requests, with full creation, update, and validation logic.
     """
+
     receiver_id = serializers.UUIDField()
     feedback_request_uuid = serializers.UUIDField(required=False, allow_null=True)
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
@@ -258,7 +264,7 @@ class FeedbackSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """
-        Create a Feedback entry and its Note, optionally link to a FeedbackRequest, 
+        Create a Feedback entry and its Note, optionally link to a FeedbackRequest,
         enforce invitee and receiver rules, and mark answered.
         """
         sender = self.context["request"].user
@@ -370,8 +376,8 @@ class FeedbackSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         """
-        Convert a Feedback instance into the API response format with uuid, 
-        content, evidence, sender, receiver, and date_created.
+        Convert a Feedback instance into the API response format with uuid,
+        content, evidence, sender, receiver, date_created, and form_uuid.
         """
         return {
             "uuid": instance.uuid,
@@ -383,6 +389,7 @@ class FeedbackSerializer(serializers.Serializer):
                 "name": instance.receiver.name,
             },
             "date_created": instance.date_created,
+            "form_uuid": str(instance.form.uuid) if instance.form else None,
         }
 
 
