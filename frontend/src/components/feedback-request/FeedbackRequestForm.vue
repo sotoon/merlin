@@ -9,9 +9,6 @@ import {
   PSwitch,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
-import FeedbackRenderForm, {
-  type FormQuestion,
-} from './FeedbackRenderForm.vue';
 
 const props = defineProps<{
   isSubmitting?: boolean;
@@ -67,8 +64,10 @@ watch(isStructured, (newValue) => {
 });
 
 // Get selected form schema
-const selectedForm = computed(() => {
-  return forms.value?.find((form) => form.uuid === values.form_uuid);
+const formSchema = computed(() => {
+  if (!values.form_uuid || !forms.value) return undefined;
+  const form = forms.value.find((f) => f.uuid === values.form_uuid);
+  return form?.schema as SchemaQuestion[];
 });
 </script>
 
@@ -118,11 +117,11 @@ const selectedForm = computed(() => {
     </VeeField>
 
     <!-- Structured Form Preview -->
-    <div v-if="isStructured && selectedForm">
+    <div v-if="isStructured && formSchema">
       <PText class="mb-2 block" variant="caption1" weight="bold">
         {{ t('feedback.formPreview') }}
       </PText>
-      <FeedbackRenderForm :schema="selectedForm.schema as FormQuestion[]" />
+      <FeedbackRequestRenderForm :schema="formSchema" is-preview />
     </div>
 
     <VeeField v-slot="{ componentField }" name="requestee_emails">

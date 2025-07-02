@@ -233,10 +233,10 @@ paths:
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       tags:
       - feedback-requests
       security:
@@ -248,17 +248,17 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/FeedbackRequestWrite'
+                  $ref: '#/components/schemas/FeedbackRequestReadOnly'
           description: ''
     post:
       operationId: feedback_requests_create
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       tags:
       - feedback-requests
       requestBody:
@@ -288,10 +288,10 @@ paths:
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       parameters:
       - in: path
         name: uuid
@@ -315,10 +315,10 @@ paths:
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       parameters:
       - in: path
         name: uuid
@@ -354,10 +354,10 @@ paths:
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       parameters:
       - in: path
         name: uuid
@@ -392,10 +392,10 @@ paths:
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       parameters:
       - in: path
         name: uuid
@@ -416,10 +416,10 @@ paths:
       description: |-
         Feedback-request CRUD.
 
-        List endpoints are split:
-
-            • /feedback-requests/owned/    requests user created
-            • /feedback-requests/invited/  requests user should answer
+        List endpoint supports filters:
+            • ?type=owned    requests user created
+            • ?type=invited  requests user should answer
+            • ?type=all      all requests (default)
       parameters:
       - in: path
         name: uuid
@@ -437,36 +437,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeedbackRequestWrite'
-          description: ''
-  /api/feedback-requests/invited/:
-    get:
-      operationId: feedback_requests_invited_retrieve
-      description: Return feedback-requests where the user was invited to give feedback.
-      tags:
-      - feedback-requests
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FeedbackRequestReadOnly'
-          description: ''
-  /api/feedback-requests/owned/:
-    get:
-      operationId: feedback_requests_owned_retrieve
-      description: Return only the feedback-requests created by the current user.
-      tags:
-      - feedback-requests
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FeedbackRequestReadOnly'
           description: ''
   /api/forms/:
     get:

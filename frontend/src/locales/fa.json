@@ -32,7 +32,9 @@
     "templates": "قالب‌ها",
     "oneOnOne": "یک به یک",
     "results": "نتایج فرم‌ها",
-    "feedbackRequest": "درخواست فیدبک"
+    "feedbackRequest": "درخواست فیدبک",
+    "viewDetails": "مشاهده جزئیات",
+    "back": "بازگشت"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -214,6 +216,16 @@
     "noFormSchema": "فرم انتخاب نشده یا طرح فرم موجود نیست",
     "textResponse": "پاسخ متنی",
     "selectOption": "انتخاب گزینه",
-    "allSubmitted": "همه پاسخ داده‌اند"
+    "writeResponse": "پاسخ خود را بنویسید",
+    "noResponse": "پاسخی ثبت نشده",
+    "adhocFeedback": "بازخورد مستقیم",
+    "createAdhocFeedback": "ایجاد بازخورد مستقیم",
+    "noAdhocFeedback": "بازخورد مستقیمی برای نمایش وجود ندارد",
+    "selectReceiver": "انتخاب گیرنده",
+    "to": "به",
+    "feedbackNotFound": "بازخورد یافت نشد",
+    "receivedFeedbackFrom": "بازخوردی از {name} دریافت کردید",
+    "sentFeedbackTo": "بازخوردی به {name} ارسال کردید",
+    "from": "از"
   }
 }

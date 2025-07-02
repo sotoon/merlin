@@ -28,8 +28,6 @@ const handleSubmit = async (
   if (!error.value) {
     ctx.resetForm();
     router.push({ name: 'feedback-request' });
-  } else if (error.value.detail) {
-    ctx.setErrors(error.value.detail as any);
   }
 };
 

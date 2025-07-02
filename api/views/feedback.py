@@ -24,52 +24,41 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
     """
     Feedback-request CRUD.
 
-    List endpoints are split:
-
-        • /feedback-requests/owned/    requests user created
-        • /feedback-requests/invited/  requests user should answer
+    List endpoint supports filters:
+        • ?type=owned    requests user created
+        • ?type=invited  requests user should answer
+        • ?type=all      all requests (default)
     """
+
     queryset = FeedbackRequest.objects.all()
     permission_classes = [FeedbackRequestPermission]
     lookup_field = "uuid"
 
     def get_serializer_class(self):
-        if self.action in ["list_owned", "list_invited", "retrieve"]:
+        if self.action in ["list", "retrieve"]:
             return FeedbackRequestReadOnlySerializer
         return FeedbackRequestWriteSerializer
 
-    # private helpers
-    def _owned_qs(self):
+    def get_queryset(self):
         user = self.request.user
-        return (
-            self.queryset
-            .filter(note__owner=user)
-            .select_related("note", "note__owner")
-            .prefetch_related("requestees__user")
+        queryset = self.queryset.select_related("note", "note__owner").prefetch_related(
+            "requestees__user"
         )
 
-    def _invited_qs(self):
-        user = self.request.user
-        return (
-            self.queryset
-            .filter(requestees__user=user)
-            .exclude(note__owner=user)
-            .select_related("note", "note__owner")
-            .prefetch_related("requestees__user")
-        )
+        # Handle type filter
+        request_type = self.request.query_params.get("type", "all")
 
-    # list endpoints
-    @action(detail=False, methods=["get"], url_path="owned",   url_name="owned")
-    def list_owned(self, request):
-        """Return only the feedback-requests created by the current user."""
-        serializer = self.get_serializer(self._owned_qs(), many=True)
-        return Response(serializer.data)
+        if request_type == "owned":
+            queryset = queryset.filter(note__owner=user)
+        elif request_type == "invited":
+            queryset = queryset.filter(requestees__user=user).exclude(note__owner=user)
+        # For "all" or any other value, return all requests the user has access to
+        else:
+            queryset = queryset.filter(
+                Q(note__owner=user) | Q(requestees__user=user)
+            ).distinct()
 
-    @action(detail=False, methods=["get"], url_path="invited", url_name="invited")
-    def list_invited(self, request):
-        """Return feedback-requests where the user was invited to give feedback."""
-        serializer = self.get_serializer(self._invited_qs(), many=True)
-        return Response(serializer.data)
+        return queryset
 
     # list answers for one request
     @action(detail=True, methods=["get"], url_path="entries")
@@ -92,7 +81,7 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return (
+        queryset = (
             self.queryset.select_related("note")
             .prefetch_related("note__mentioned_users")
             .filter(
@@ -103,6 +92,13 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
             )
             .distinct()
         )
+
+        # Handle ad-hoc filter
+        is_adhoc = self.request.query_params.get("adhoc", "").lower() == "true"
+        if is_adhoc:
+            queryset = queryset.filter(feedback_request__isnull=True)
+
+        return queryset
 
 
 # ─────────────────────────────────────
