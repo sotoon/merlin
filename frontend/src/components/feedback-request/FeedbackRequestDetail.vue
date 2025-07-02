@@ -20,6 +20,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { data: profile } = useGetProfile();
+const { data: forms } = useGetFeedbackForms();
 const { mutateAsync: deleteRequest, isPending: isDeleting } =
   useDeleteFeedbackRequest(props.request.uuid);
 
@@ -43,6 +44,12 @@ const canSubmitFeedback = computed(() => {
   return (
     currentUserRequesteeLink.value && !currentUserRequesteeLink.value.answered
   );
+});
+
+const formSchema = computed(() => {
+  if (!props.request.form_uuid || !forms.value) return undefined;
+  const form = forms.value.find((f) => f.uuid === props.request.form_uuid);
+  return form?.schema as SchemaQuestion[];
 });
 </script>
 
@@ -142,6 +149,9 @@ const canSubmitFeedback = computed(() => {
     </div>
 
     <article class="mt-4 py-4">
+      <PText class="mb-2 text-gray-50" variant="caption1" weight="bold">
+        {{ t('feedback.description') }}
+      </PText>
       <EditorContent :content="request.content" />
     </article>
 
@@ -150,6 +160,10 @@ const canSubmitFeedback = computed(() => {
       :request="request"
       @success="refreshNuxtData('feedback-request-entries')"
     />
-    <FeedbackRequestEntries v-else :entries="entries" />
+    <FeedbackRequestEntries
+      v-else
+      :entries="entries"
+      :form-schema="formSchema"
+    />
   </div>
 </template>

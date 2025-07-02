@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { PText, PHeading } from '@pey/core';
-import FeedbackEntryCard from '~/components/feedback-request/FeedbackEntryCard.vue';
 
 defineProps<{
   entries: Schema<'Feedback'>[];
+  formSchema?: SchemaQuestion[];
 }>();
 
 const { t } = useI18n();
@@ -16,10 +16,11 @@ const { t } = useI18n();
     </PHeading>
 
     <div v-if="entries.length" class="mt-4 space-y-4">
-      <FeedbackEntryCard
+      <FeedbackRequestEntryCard
         v-for="entry in entries"
         :key="entry.uuid"
         :entry="entry"
+        :form-schema="formSchema"
       />
     </div>
     <PText v-else as="p" class="mt-4 text-center text-gray-80" responsive>

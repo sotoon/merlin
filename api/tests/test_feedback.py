@@ -7,7 +7,14 @@ from django.urls import reverse
 from rest_framework import status
 from django.utils import timezone
 
-from api.models import User, FeedbackForm, Feedback, FeedbackRequest, FeedbackRequestUserLink, Cycle
+from api.models import (
+    User,
+    FeedbackForm,
+    Feedback,
+    FeedbackRequest,
+    FeedbackRequestUserLink,
+    Cycle,
+)
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -61,15 +68,18 @@ def _current_cycle():
 # Feedback Request flow
 # ──────────────────────────────────────────────────
 
+
 @pytest.mark.django_db
-def test_requester_can_create_feedback_request(api_client, user, receiver, feedback_form_factory):
+def test_requester_can_create_feedback_request(
+    api_client, user, receiver, feedback_form_factory
+):
     """Requester creates a feedback request; link rows & ACL for invitee created."""
     form = feedback_form_factory()
     api_client.force_authenticate(user)
     payload = {
         "title": "Need feedback",
         "content": "Please give me feedback on project X",
-        "requestee_emails": [receiver.email],        
+        "requestee_emails": [receiver.email],
         "form_uuid": str(form.uuid),
     }
     url = reverse("api:feedback-requests-list")
@@ -108,8 +118,15 @@ def test_outsider_cannot_view_request(api_client, user, receiver, outsider):
     """Unrelated outsider gets 403/404 on request detail."""
     api_client.force_authenticate(user)
     url = reverse("api:feedback-requests-list")
-    fr_uuid = api_client.post(url, {
-        "title": "Need feedback","content":"x","requestee_emails": [receiver.email]}, format="json").data["uuid"]
+    fr_uuid = api_client.post(
+        url,
+        {
+            "title": "Need feedback",
+            "content": "x",
+            "requestee_emails": [receiver.email],
+        },
+        format="json",
+    ).data["uuid"]
 
     detail_url = reverse("api:feedback-requests-detail", kwargs={"uuid": fr_uuid})
     api_client.force_authenticate(outsider)
@@ -119,6 +136,7 @@ def test_outsider_cannot_view_request(api_client, user, receiver, outsider):
 # ──────────────────────────────────────────────────
 # Feedback Entry flow
 # ──────────────────────────────────────────────────
+
 
 @pytest.mark.django_db
 def test_sender_can_send_feedback(api_client, user, receiver):
@@ -141,7 +159,7 @@ def test_sender_can_send_feedback(api_client, user, receiver):
     api_client.force_authenticate(receiver)
     assert api_client.get(detail_url).status_code == 200
 
-    api_client.force_authenticate(user) # owner/requester
+    api_client.force_authenticate(user)  # owner/requester
     assert api_client.get(detail_url).status_code == 200
 
 
@@ -149,10 +167,14 @@ def test_sender_can_send_feedback(api_client, user, receiver):
 def test_outsider_cannot_access_feedback(api_client, user, receiver, outsider):
     """Outsider must not view someone else's feedback entry."""
     api_client.force_authenticate(user)
-    uuid = api_client.post(reverse("api:feedback-entries-list"), {
-        "receiver_id": str(receiver.uuid),
-        "content": "Hi",
-    }, format="json").data["uuid"]
+    uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(receiver.uuid),
+            "content": "Hi",
+        },
+        format="json",
+    ).data["uuid"]
 
     detail_url = reverse("api:feedback-entries-detail", kwargs={"uuid": uuid})
     api_client.force_authenticate(outsider)
@@ -173,32 +195,54 @@ def test_second_sender_cannot_see_others_feedback(api_client, user_factory):
 
     # sender1 → receiver
     api_client.force_authenticate(sender1)
-    fb1_uuid = api_client.post(reverse("api:feedback-entries-list"), {
-        "receiver_id": str(receiver.uuid),
-        "content": "fb1",
-    }, format="json").data["uuid"]
+    fb1_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(receiver.uuid),
+            "content": "fb1",
+        },
+        format="json",
+    ).data["uuid"]
 
     # sender2 → receiver
     api_client.force_authenticate(sender2)
-    fb2_uuid = api_client.post(reverse("api:feedback-entries-list"), {
-        "receiver_id": str(receiver.uuid),
-        "content": "fb2",
-    }, format="json").data["uuid"]
+    fb2_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(receiver.uuid),
+            "content": "fb2",
+        },
+        format="json",
+    ).data["uuid"]
 
     # sender1 should NOT see fb2
     api_client.force_authenticate(sender1)
-    resp = api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb2_uuid}))
+    resp = api_client.get(
+        reverse("api:feedback-entries-detail", kwargs={"uuid": fb2_uuid})
+    )
     assert resp.status_code in (403, 404)
 
     # sender2 should NOT see fb1
     api_client.force_authenticate(sender2)
-    resp = api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb1_uuid}))
+    resp = api_client.get(
+        reverse("api:feedback-entries-detail", kwargs={"uuid": fb1_uuid})
+    )
     assert resp.status_code in (403, 404)
-    
+
     # receiver can see both
     api_client.force_authenticate(receiver)
-    assert api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb1_uuid})).status_code == 200
-    assert api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb2_uuid})).status_code == 200
+    assert (
+        api_client.get(
+            reverse("api:feedback-entries-detail", kwargs={"uuid": fb1_uuid})
+        ).status_code
+        == 200
+    )
+    assert (
+        api_client.get(
+            reverse("api:feedback-entries-detail", kwargs={"uuid": fb2_uuid})
+        ).status_code
+        == 200
+    )
 
 
 # ──────────────────────────────────────────────────
@@ -213,14 +257,20 @@ def mentioned_user(user_factory):
 
 
 @pytest.mark.django_db
-def test_mentioned_user_can_view_ad_hoc_feedback(api_client, user, receiver, mentioned_user):
+def test_mentioned_user_can_view_ad_hoc_feedback(
+    api_client, user, receiver, mentioned_user
+):
     """Mentioned users should gain view access to ad-hoc feedback entries (no request linkage)."""
     # Sender (user) creates ad-hoc feedback for receiver
     api_client.force_authenticate(user)
-    fb_uuid = api_client.post(reverse("api:feedback-entries-list"), {
-        "receiver_id": str(receiver.uuid),
-        "content": "Great collaboration @%s" % mentioned_user.email,
-    }, format="json").data["uuid"]
+    fb_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(receiver.uuid),
+            "content": "Great collaboration @%s" % mentioned_user.email,
+        },
+        format="json",
+    ).data["uuid"]
 
     # Server-side simulation: add mention link (UI would do this)
     fb = Feedback.objects.get(uuid=fb_uuid)
@@ -228,28 +278,40 @@ def test_mentioned_user_can_view_ad_hoc_feedback(api_client, user, receiver, men
 
     # Mentioned user should be able to read feedback
     api_client.force_authenticate(mentioned_user)
-    resp = api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid}))
+    resp = api_client.get(
+        reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+    )
     assert resp.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
-def test_mentioned_user_cannot_view_request_answer(api_client, user, receiver, mentioned_user):
+def test_mentioned_user_cannot_view_request_answer(
+    api_client, user, receiver, mentioned_user
+):
     """Mentioned users must NOT see feedback answers tied to a request (privacy)."""
     # Step 1: user sends request to receiver
     api_client.force_authenticate(user)
-    fr_uuid = api_client.post(reverse("api:feedback-requests-list"), {
-        "title": "Need feedback",
-        "content": "Please give me feedback",
-        "requestee_emails": [receiver.email],
-    }, format="json").data["uuid"]
+    fr_uuid = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "Need feedback",
+            "content": "Please give me feedback",
+            "requestee_emails": [receiver.email],
+        },
+        format="json",
+    ).data["uuid"]
 
     # Step 2: receiver answers the request (creates feedback entry)
     api_client.force_authenticate(receiver)
-    fb_uuid = api_client.post(reverse("api:feedback-entries-list"), {
-        "receiver_id": str(user.uuid),
-        "feedback_request_uuid": str(fr_uuid),
-        "content": "Here's my feedback @%s" % mentioned_user.email,
-    }, format="json").data["uuid"]
+    fb_uuid = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_id": str(user.uuid),
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "Here's my feedback @%s" % mentioned_user.email,
+        },
+        format="json",
+    ).data["uuid"]
 
     # Add mention
     fb = Feedback.objects.get(uuid=fb_uuid)
@@ -257,8 +319,10 @@ def test_mentioned_user_cannot_view_request_answer(api_client, user, receiver, m
 
     # Mentioned user should be denied access
     api_client.force_authenticate(mentioned_user)
-    resp = api_client.get(reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid}))
-    assert resp.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND) 
+    resp = api_client.get(
+        reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+    )
+    assert resp.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND)
 
 
 # ──────────────────────────────────────────────────
@@ -276,7 +340,9 @@ def test_past_deadline_rejected(api_client, user, receiver):
         "requestee_emails": [receiver.email],
         "deadline": str((timezone.now() - timezone.timedelta(days=1)).date()),
     }
-    resp = api_client.post(reverse("api:feedback-requests-list"), payload, format="json")
+    resp = api_client.post(
+        reverse("api:feedback-requests-list"), payload, format="json"
+    )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -304,7 +370,9 @@ def test_invalid_form_uuid(api_client, user, receiver):
         "requestee_emails": [receiver.email],
         "form_uuid": str(uuid.uuid4()),
     }
-    resp = api_client.post(reverse("api:feedback-requests-list"), payload, format="json")
+    resp = api_client.post(
+        reverse("api:feedback-requests-list"), payload, format="json"
+    )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -488,7 +556,10 @@ def test_permissions_update_delete(api_client, user, receiver, outsider):
     detail_url = reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
 
     # Sender can PATCH and DELETE
-    assert api_client.patch(detail_url, {"content": "edit"}, format="json").status_code == 200
+    assert (
+        api_client.patch(detail_url, {"content": "edit"}, format="json").status_code
+        == 200
+    )
     assert api_client.delete(detail_url).status_code == 204
 
     # Recreate for negative checks
@@ -503,7 +574,9 @@ def test_permissions_update_delete(api_client, user, receiver, outsider):
     assert api_client.delete(detail_url).status_code in (403, 404)
 
     api_client.force_authenticate(outsider)
-    assert api_client.patch(detail_url, {"content": "x"}, format="json").status_code in (
+    assert api_client.patch(
+        detail_url, {"content": "x"}, format="json"
+    ).status_code in (
         403,
         404,
     )
@@ -525,20 +598,22 @@ def test_inactive_form_rejected(api_client, user, receiver, feedback_form_factor
     )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
+
 # ──────────────────────────────────────────────────
-# List endpoints: /feedback-requests/owned/ & invited/
+# List endpoints: /feedback-requests/ with type filter
 # ──────────────────────────────────────────────────
 
+
 @pytest.mark.django_db
-def test_owned_and_invited_endpoints_separate(api_client, user_factory):
+def test_owned_and_invited_filters_separate(api_client, user_factory):
     """
-    The “owned” endpoint must return only requests created by the caller,
-    while the “invited” endpoint must return only requests where the caller
+    The "type=owned" filter must return only requests created by the caller,
+    while the "type=invited" filter must return only requests where the caller
     is an invitee (and not the owner).
     """
-    owner   = user_factory()        # will own R1
-    invitee = user_factory()        # will be invited to R2
-    other   = user_factory()        # creates R2
+    owner = user_factory()  # will own R1
+    invitee = user_factory()  # will be invited to R2
+    other = user_factory()  # creates R2
 
     api_client.force_authenticate(owner)
 
@@ -568,13 +643,17 @@ def test_owned_and_invited_endpoints_separate(api_client, user_factory):
     # Assertions
     api_client.force_authenticate(owner)
 
-    owned_resp   = api_client.get(reverse("api:feedback-requests-owned"))
-    invited_resp = api_client.get(reverse("api:feedback-requests-invited"))
+    owned_resp = api_client.get(
+        reverse("api:feedback-requests-list"), {"type": "owned"}
+    )
+    invited_resp = api_client.get(
+        reverse("api:feedback-requests-list"), {"type": "invited"}
+    )
 
     assert owned_resp.status_code == 200
     assert invited_resp.status_code == 200
 
-    owned_titles   = {r["title"] for r in owned_resp.data}
+    owned_titles = {r["title"] for r in owned_resp.data}
     invited_titles = {r["title"] for r in invited_resp.data}
 
     assert owned_titles == {"R1"}
@@ -586,10 +665,10 @@ def test_owned_and_invited_endpoints_separate(api_client, user_factory):
 def test_unrelated_user_gets_empty_lists(api_client, user_factory):
     """
     A user who is neither owner nor invitee of any request should see
-    empty results from both endpoints.
+    empty results from both filters.
     """
     someone = user_factory()
-    other   = user_factory()
+    other = user_factory()
 
     # 'other' creates a request unrelated to 'someone'
     api_client.force_authenticate(other)
@@ -604,5 +683,61 @@ def test_unrelated_user_gets_empty_lists(api_client, user_factory):
     )
 
     api_client.force_authenticate(someone)
-    assert api_client.get(reverse("api:feedback-requests-owned")).data == []
-    assert api_client.get(reverse("api:feedback-requests-invited")).data == []
+    assert (
+        api_client.get(reverse("api:feedback-requests-list"), {"type": "owned"}).data
+        == []
+    )
+    assert (
+        api_client.get(reverse("api:feedback-requests-list"), {"type": "invited"}).data
+        == []
+    )
+
+
+@pytest.mark.django_db
+def test_all_filter_returns_both_owned_and_invited(api_client, user_factory):
+    """
+    The "type=all" filter (or no filter) must return both owned and invited requests.
+    """
+    owner = user_factory()  # will own R1
+    invitee = user_factory()  # will be invited to R2
+    other = user_factory()  # creates R2
+
+    api_client.force_authenticate(owner)
+
+    # R1: created by owner
+    api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "R1",
+            "content": "x",
+            "requestee_emails": [invitee.email],
+        },
+        format="json",
+    )
+
+    # R2: created by 'other', owner is invited
+    api_client.force_authenticate(other)
+    api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "R2",
+            "content": "y",
+            "requestee_emails": [owner.email],
+        },
+        format="json",
+    )
+
+    # Assertions
+    api_client.force_authenticate(owner)
+
+    all_resp = api_client.get(reverse("api:feedback-requests-list"), {"type": "all"})
+    default_resp = api_client.get(reverse("api:feedback-requests-list"))
+
+    assert all_resp.status_code == 200
+    assert default_resp.status_code == 200
+
+    all_titles = {r["title"] for r in all_resp.data}
+    default_titles = {r["title"] for r in default_resp.data}
+
+    assert all_titles == {"R1", "R2"}
+    assert default_titles == {"R1", "R2"}
