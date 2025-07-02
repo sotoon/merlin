@@ -26,7 +26,7 @@ const feedbackMessage = computed(() => {
 <template>
   <NuxtLink
     :to="{
-      name: 'feedback-request-adhoc-detail',
+      name: 'feedback-adhoc-detail',
       params: { id: entry.uuid },
     }"
   >

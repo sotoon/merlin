@@ -2,7 +2,7 @@
 import { PText } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
-definePageMeta({ name: 'feedback-request-edit' });
+definePageMeta({ name: 'feedback-edit' });
 
 const props = defineProps<{
   request: Schema<'FeedbackRequestReadOnly'>;
@@ -19,7 +19,7 @@ const handleSubmit = (
 ) => {
   updateRequest(values).then(() => {
     navigateTo({
-      name: 'feedback-request-detail',
+      name: 'feedback-detail',
       params: { requestId: props.request.uuid },
     });
     ctx.resetForm();
@@ -34,13 +34,13 @@ const handleSubmit = (
         {{ t('feedback.editTitle') }}
       </PText>
     </div>
-    <FeedbackRequestForm
+    <FeedbackForm
       :request="request"
       :is-submitting="isSubmitting"
       @submit="handleSubmit"
       @cancel="
         navigateTo({
-          name: 'feedback-request-detail',
+          name: 'feedback-detail',
           params: { requestId: request.uuid },
         })
       "
