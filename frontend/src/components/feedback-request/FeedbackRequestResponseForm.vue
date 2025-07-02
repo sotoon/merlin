@@ -29,7 +29,7 @@ const formSchema = computed(() => {
   const form = forms.value.find(
     (form) => form.uuid === props.request.form_uuid,
   );
-  return form?.schema as SchemaQuestion[];
+  return form?.schema as FeedbackFormSchema;
 });
 
 // Form data for structured form
@@ -67,11 +67,10 @@ const isFormValid = computed(() => {
   // Check if all required fields in structured form are filled
   if (!formSchema.value) return false;
 
-  return formSchema.value.every((question) => {
-    return (
-      structuredFormData.value[question.title] &&
-      structuredFormData.value[question.title].trim() !== ''
-    );
+  return formSchema.value.sections.every((section) => {
+    return section.items.every((question) => {
+      return structuredFormData.value[question.key] !== undefined;
+    });
   });
 });
 
