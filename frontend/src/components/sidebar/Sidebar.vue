@@ -63,7 +63,7 @@
                 <SidebarLink
                   icon="i-mdi-comment-check"
                   :label="t('common.feedbackRequest')"
-                  :to="{ name: 'feedback-request' }"
+                  :to="{ name: 'feedback' }"
                 />
               </li>
             </SidebarLinkGroup>

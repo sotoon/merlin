@@ -7,10 +7,6 @@ const props = defineProps<{
   request: Schema<'FeedbackRequestReadOnly'>;
 }>();
 
-const emit = defineEmits<{
-  (e: 'success'): void;
-}>();
-
 const { t } = useI18n();
 const { mutateAsync: createEntry, isPending } = useCreateFeedbackEntry(
   props.request.uuid,
@@ -53,8 +49,6 @@ const onSubmit = handleSubmit((values) => {
     evidence: hasStructuredForm.value ? '' : values.evidence,
     feedback_request_uuid: props.request.uuid,
     receiver_id: props.request.owner_uuid,
-  }).then(() => {
-    emit('success');
   });
 });
 

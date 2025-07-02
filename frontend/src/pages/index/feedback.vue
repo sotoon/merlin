@@ -8,7 +8,7 @@ useHead({ title: 'درخواست فیدبک' });
 const { t } = useI18n();
 const route = useRoute();
 
-const showHeader = computed(() => route.name === 'feedback-request');
+const showHeader = computed(() => route.name === 'feedback');
 
 const currentTab = useRouteQuery<'owned' | 'invited' | 'adhoc'>('tab', 'owned');
 </script>
@@ -33,9 +33,7 @@ const currentTab = useRouteQuery<'owned' | 'invited' | 'adhoc'>('tab', 'owned');
         <NuxtLink
           :to="{
             name:
-              currentTab === 'adhoc'
-                ? 'feedback-request-adhoc-new'
-                : 'feedback-request-new',
+              currentTab === 'adhoc' ? 'feedback-adhoc-new' : 'feedback-new',
           }"
         >
           <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />

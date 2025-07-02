@@ -70,7 +70,7 @@ const resolvedFormSchema = computed((): FeedbackFormSchema | undefined => {
       <PText class="mb-2 text-gray-50" variant="caption1" weight="bold">
         {{ t('common.feedback') }}
       </PText>
-      <FeedbackRequestRenderForm
+      <FeedbackRenderForm
         v-if="isStructuredResponse"
         :schema="resolvedFormSchema"
         :responses="

@@ -2,9 +2,8 @@
 import { PButton, PLoading, PText, PTabs, PTab } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 import { useRouteQuery } from '@vueuse/router';
-import AdhocFeedbackCard from '~/components/feedback-request/AdhocFeedbackCard.vue';
 
-definePageMeta({ name: 'feedback-request' });
+definePageMeta({ name: 'feedback' });
 
 const { t } = useI18n();
 
@@ -65,7 +64,7 @@ const {
           v-else-if="ownedRequests?.length"
           class="mt-4 grid grid-cols-1 gap-2 py-4 xl:grid-cols-2 xl:gap-3"
         >
-          <FeedbackRequestCard
+          <FeedbackCard
             v-for="request in ownedRequests"
             :key="request.uuid"
             :request="request"
@@ -102,7 +101,7 @@ const {
           v-else-if="invitedRequests?.length"
           class="mt-4 grid grid-cols-1 gap-2 py-4 xl:grid-cols-2 xl:gap-3"
         >
-          <FeedbackRequestCard
+          <FeedbackCard
             v-for="request in invitedRequests"
             :key="request.uuid"
             :request="request"
@@ -136,7 +135,7 @@ const {
           v-else-if="adhocEntries?.length"
           class="mt-4 grid grid-cols-1 gap-2 py-4 xl:grid-cols-2 xl:gap-3"
         >
-          <AdhocFeedbackCard
+          <FeedbackAdhocCard
             v-for="entry in adhocEntries"
             :key="entry.uuid"
             :entry="entry"

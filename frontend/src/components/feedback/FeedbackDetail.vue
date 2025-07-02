@@ -26,7 +26,7 @@ const { mutateAsync: deleteRequest, isPending: isDeleting } =
 
 function handleDelete() {
   deleteRequest(null).then(() => {
-    navigateTo({ name: 'feedback-request' });
+    navigateTo({ name: 'feedback' });
   });
 }
 
@@ -72,7 +72,7 @@ const formSchema = computed(() => {
           type="button"
           @click="
             navigateTo({
-              name: 'feedback-request-edit',
+              name: 'feedback-edit',
               params: { requestId: request.uuid },
             })
           "
@@ -155,15 +155,7 @@ const formSchema = computed(() => {
       <EditorContent :content="request.content" />
     </article>
 
-    <FeedbackRequestResponseForm
-      v-if="canSubmitFeedback"
-      :request="request"
-      @success="refreshNuxtData('feedback-request-entries')"
-    />
-    <FeedbackRequestEntries
-      v-else
-      :entries="entries"
-      :form-schema="formSchema"
-    />
+    <FeedbackResponseForm v-if="canSubmitFeedback" :request="request" />
+    <FeedbackEntries v-else :entries="entries" :form-schema="formSchema" />
   </div>
 </template>
