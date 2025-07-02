@@ -31,7 +31,7 @@ const chipConfig = computed(() => {
 <template>
   <NuxtLink
     :to="{
-      name: 'feedback-request-detail',
+      name: 'feedback-detail',
       params: { requestId: request.uuid },
     }"
   >

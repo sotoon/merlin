@@ -16,7 +16,7 @@ const { t } = useI18n();
     </PHeading>
 
     <div v-if="entries.length" class="mt-4 space-y-4">
-      <FeedbackRequestEntryCard
+      <FeedbackEntryCard
         v-for="entry in entries"
         :key="entry.uuid"
         :entry="entry"

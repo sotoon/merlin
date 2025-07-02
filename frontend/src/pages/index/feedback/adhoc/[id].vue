@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PTooltip, PText, PLoading } from '@pey/core';
 
-definePageMeta({ name: 'feedback-request-adhoc-detail' });
+definePageMeta({ name: 'feedback-adhoc-detail' });
 
 const route = useRoute();
 const { t } = useI18n();
@@ -103,7 +103,7 @@ const resolvedFormSchema = computed((): FeedbackFormSchema | undefined => {
 
       <!-- Content -->
       <article class="mt-4 py-4">
-        <FeedbackRequestRenderForm
+        <FeedbackRenderForm
           v-if="isStructuredResponse"
           class="border-none !p-0"
           :schema="resolvedFormSchema"

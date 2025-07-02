@@ -4,9 +4,9 @@ defineProps<{
   entries: Schema<'Feedback'>[];
 }>();
 
-definePageMeta({ name: 'feedback-request-detail' });
+definePageMeta({ name: 'feedback-detail' });
 </script>
 
 <template>
-  <FeedbackRequestDetail :request="request" :entries="entries" />
+  <FeedbackDetail :request="request" :entries="entries" />
 </template>

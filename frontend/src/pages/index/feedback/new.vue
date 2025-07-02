@@ -3,7 +3,7 @@ import { PBox, PText } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 import { useCreateFeedbackRequest } from '~/composables/useFeedbackServices';
 
-definePageMeta({ name: 'feedback-request-new' });
+definePageMeta({ name: 'feedback-new' });
 
 const { t } = useI18n();
 const router = useRouter();
@@ -27,7 +27,7 @@ const handleSubmit = async (
 
   if (!error.value) {
     ctx.resetForm();
-    router.push({ name: 'feedback-request' });
+    router.push({ name: 'feedback' });
   }
 };
 
@@ -44,7 +44,7 @@ const handleCancel = () => {
         {{ t('feedback.createTitle') }}
       </PText>
     </div>
-    <FeedbackRequestForm
+    <FeedbackForm
       :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"

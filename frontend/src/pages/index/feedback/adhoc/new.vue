@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { PText } from '@pey/core';
 import { useRouter } from 'vue-router';
-import AdhocFeedbackForm from '~/components/feedback-request/AdhocFeedbackForm.vue';
 
-definePageMeta({ name: 'feedback-request-adhoc-new' });
+definePageMeta({ name: 'feedback-adhoc-new' });
 
 const { t } = useI18n();
 const router = useRouter();
 
 const handleSuccess = () => {
-  router.push({ name: 'feedback-request' });
+  router.push({ name: 'feedback' });
 };
 
 const handleCancel = () => {
@@ -25,6 +24,6 @@ const handleCancel = () => {
         {{ t('feedback.createAdhocFeedback') }}
       </PText>
     </div>
-    <AdhocFeedbackForm @success="handleSuccess" @cancel="handleCancel" />
+    <FeedbackAdhocForm @success="handleSuccess" @cancel="handleCancel" />
   </div>
 </template>

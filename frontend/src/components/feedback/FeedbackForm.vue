@@ -121,7 +121,7 @@ const formSchema = computed(() => {
       <PText class="mb-2 block" variant="caption1" weight="bold">
         {{ t('feedback.formPreview') }}
       </PText>
-      <FeedbackRequestRenderForm :schema="formSchema" is-preview />
+      <FeedbackRenderForm :schema="formSchema" is-preview />
     </div>
 
     <VeeField v-slot="{ componentField }" name="requestee_emails">
