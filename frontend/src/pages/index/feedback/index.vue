@@ -30,6 +30,15 @@ const {
   isError: invitedError,
   refetch: invitedRefresh,
 } = useGetFeedbackRequests('invited');
+
+const { data: messages } = useGetNotes({ retrieveMentions: true });
+const newFeedbackCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) =>
+        message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
+    ).length,
+);
 </script>
 
 <template>
@@ -70,6 +79,10 @@ const {
       </PTab>
 
       <PTab :title="t('feedback.invitedRequests')">
+        <template #prepend>
+          <Badge :count="newFeedbackCount" :max="999" />
+        </template>
+
         <div
           v-if="invitedPending"
           class="flex items-center justify-center py-8"
