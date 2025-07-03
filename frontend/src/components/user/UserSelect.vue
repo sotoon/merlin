@@ -9,7 +9,7 @@
       searchable
     >
       <PListboxOption
-        v-for="user in users"
+        v-for="user in filteredUsers"
         :key="user.uuid"
         :label="user.name || user.email"
         :value="user.email"
@@ -37,6 +37,13 @@ defineProps<{ label?: string; multiple?: boolean }>();
 const model = defineModel<string[] | null>();
 
 const { data: users, pending } = useGetUsers();
+const { data: currentUser } = useGetProfile();
+
+// Filter out the current user from the list
+const filteredUsers = computed(() => {
+  if (!users.value || !currentUser.value) return users.value || [];
+  return users.value.filter((user) => user.uuid !== currentUser.value?.uuid);
+});
 
 const getUserLabel = (userEmail: string) =>
   users.value?.find((user) => user.email === userEmail)?.name || userEmail;

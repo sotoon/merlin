@@ -8,7 +8,13 @@ import {
   PDialog,
   PButton,
 } from '@pey/core';
-import { PeyEditIcon, PeyLinkIcon } from '@pey/icons';
+import {
+  PeyEditIcon,
+  PeyLinkIcon,
+  PeyChevronLeftIcon,
+  PeyChevronRightIcon,
+} from '@pey/icons';
+import dayjs from '~/utils/dayjs';
 
 definePageMeta({ name: 'one-on-one-id' });
 
@@ -17,6 +23,34 @@ const { t } = useI18n();
 
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
+
+// Get all one-on-ones for navigation (sorted by creation date on backend)
+const { data: allOneOnOnes } = useGetOneOnOneList({
+  userId: props.user.uuid,
+  sort: ref('newest'),
+});
+
+// Find current index and get previous/next one-on-ones
+const currentIndex = computed(
+  () =>
+    allOneOnOnes.value?.findIndex((item) => item.id === props.oneOnOne.id) ??
+    -1,
+);
+
+const previousOneOnOne = computed(() => {
+  const index = currentIndex.value;
+  return index > 0 ? allOneOnOnes.value?.[index - 1] ?? null : null;
+});
+
+const nextOneOnOne = computed(() => {
+  const index = currentIndex.value;
+  return index >= 0 &&
+    allOneOnOnes.value &&
+    index < allOneOnOnes.value.length - 1
+    ? allOneOnOnes.value[index + 1]
+    : null;
+});
+
 const linkedNotes = computed(() => [
   ...(myNotes.value
     ?.filter(({ uuid }) =>
@@ -67,7 +101,7 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
 const isVibeModalOpen = ref(false);
 const selectedVibe = ref<Schema<'MemberVibeEnum'>>();
 
-const { execute: updateOneOnOne, pending } = useUpdateOneOnOne({
+const { mutate: updateOneOnOne, isPending } = useUpdateOneOnOne({
   userId: props.user.uuid,
   oneOnOneId: props.oneOnOne.id,
 });
@@ -75,12 +109,14 @@ const { execute: updateOneOnOne, pending } = useUpdateOneOnOne({
 const handleVibeSubmit = () => {
   if (!selectedVibe.value) return;
 
-  updateOneOnOne({
-    body: { member_vibe: selectedVibe.value },
-    onSuccess: () => {
-      isVibeModalOpen.value = false;
+  updateOneOnOne(
+    { member_vibe: selectedVibe.value },
+    {
+      onSuccess: () => {
+        isVibeModalOpen.value = false;
+      },
     },
-  });
+  );
 };
 
 function getRelatedTags(section: Schema<'SectionEnum'>) {
@@ -101,7 +137,49 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         </PText>
       </div>
 
-      <div class="mt-2 flex flex-col items-end gap-4">
+      <div class="mt-2 flex items-end gap-4">
+        <PButton
+          v-if="previousOneOnOne"
+          variant="light"
+          size="small"
+          @click="
+            navigateTo({
+              name: 'one-on-one-id',
+              params: { userId: user.uuid, id: previousOneOnOne.id },
+            })
+          "
+        >
+          <PeyChevronRightIcon />
+          جلسه
+          {{
+            dayjs(previousOneOnOne.date_created)
+              .calendar('jalali')
+              .locale('fa')
+              .format('D MMMM')
+          }}
+        </PButton>
+
+        <PButton
+          v-if="nextOneOnOne"
+          variant="light"
+          size="small"
+          @click="
+            navigateTo({
+              name: 'one-on-one-id',
+              params: { userId: user.uuid, id: nextOneOnOne.id },
+            })
+          "
+        >
+          جلسه
+          {{
+            dayjs(nextOneOnOne.date_created)
+              .calendar('jalali')
+              .locale('fa')
+              .format('D MMMM')
+          }}
+          <PeyChevronLeftIcon />
+        </PButton>
+
         <PIconButton
           v-if="isTeamLeader"
           class="shrink-0"
@@ -290,7 +368,7 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
     <PDialog
       v-model="isVibeModalOpen"
       :title="t('oneOnOne.submitVibe')"
-      :loading="pending"
+      :loading="isPending"
     >
       <template #default>
         <PText>
@@ -307,9 +385,9 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
               selectedVibe === vibe
                 ? 'border-primary bg-primary/10'
                 : 'border-gray-300 hover:border-gray-400',
-              pending ? 'cursor-not-allowed opacity-50' : '',
+              isPending ? 'cursor-not-allowed opacity-50' : '',
             ]"
-            :disabled="pending"
+            :disabled="isPending"
             @click="selectedVibe = vibe"
           >
             {{ getVibeEmoji(vibe) }}
@@ -321,15 +399,15 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         <div class="flex justify-end gap-4">
           <PButton
             variant="light"
-            :disabled="pending"
+            :disabled="isPending"
             @click="isVibeModalOpen = false"
           >
             {{ t('common.cancel') }}
           </PButton>
           <PButton
             variant="fill"
-            :disabled="!selectedVibe || pending"
-            :loading="pending"
+            :disabled="!selectedVibe || isPending"
+            :loading="isPending"
             @click="handleVibeSubmit"
           >
             {{ t('common.submit') }}
