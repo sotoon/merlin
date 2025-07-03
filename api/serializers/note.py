@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 
 from api.services import grant_oneonone_access
 from api.serializers.organization import TagReadSerializer
@@ -96,6 +97,18 @@ class NoteSerializer(serializers.ModelSerializer):
             owner = self.context["request"].user
             data["owner"] = owner
         return super().validate(data)
+
+    def validate_mentioned_users(self, value):
+        """
+        Disallow mentioning yourself.
+        `value` is a QuerySet/list of User instances the client sent.
+        """
+        request_user = self.context["request"].user
+        if request_user in value:
+            raise serializers.ValidationError(
+                _("You cannot mention yourself in a note.")
+            )
+        return value
 
     def get_read_status(self, obj):
         user = self.context["request"].user
