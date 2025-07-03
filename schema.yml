@@ -1832,9 +1832,14 @@ components:
           type: string
           format: date-time
           readOnly: true
+        note:
+          allOf:
+          - $ref: '#/components/schemas/Note'
+          readOnly: true
       required:
       - content
       - date_created
+      - note
       - receiver
       - receiver_id
       - sender
@@ -1923,10 +1928,15 @@ components:
           format: uuid
           readOnly: true
           nullable: true
+        note:
+          allOf:
+          - $ref: '#/components/schemas/Note'
+          readOnly: true
       required:
       - content
       - date_updated
       - form_uuid
+      - note
       - owner_name
       - owner_uuid
       - requestees

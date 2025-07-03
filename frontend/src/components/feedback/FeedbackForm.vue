@@ -81,9 +81,14 @@ const formSchema = computed(() => {
       <label id="content-label">
         <PText class="block cursor-default" variant="caption1" weight="bold">
           {{ t('feedback.description') }}
+          <span class="text-danger">*</span>
         </PText>
       </label>
-      <VeeField v-slot="{ value, handleChange }" name="content">
+      <VeeField
+        v-slot="{ value, handleChange }"
+        name="content"
+        rules="required"
+      >
         <Editor
           :model-value="value"
           aria-labelledby="content-label"

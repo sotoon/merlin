@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 from api.models import Cycle, User
 from drf_spectacular.utils import extend_schema_field
+from api.serializers.note import NoteSerializer
 
 
 class FeedbackFormSerializer(serializers.ModelSerializer):
@@ -63,6 +64,7 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
     form_uuid = serializers.UUIDField(
         source="form.uuid", read_only=True, allow_null=True
     )
+    note = NoteSerializer(read_only=True)
 
     class Meta:
         model = FeedbackRequest
@@ -76,6 +78,7 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
             "date_updated",
             "requestees",
             "form_uuid",
+            "note",
         )
 
     @extend_schema_field(FeedbackRequestUserLinkSerializer(many=True))
@@ -261,6 +264,7 @@ class FeedbackSerializer(serializers.Serializer):
     sender = FeedbackUserSerializer(read_only=True)
     receiver = FeedbackUserSerializer(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
+    note = NoteSerializer(read_only=True)
 
     def create(self, validated_data):
         """
@@ -377,7 +381,7 @@ class FeedbackSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """
         Convert a Feedback instance into the API response format with uuid,
-        content, evidence, sender, receiver, date_created, and form_uuid.
+        content, evidence, sender, receiver, date_created, form_uuid, and note.
         """
         return {
             "uuid": instance.uuid,
@@ -390,6 +394,7 @@ class FeedbackSerializer(serializers.Serializer):
             },
             "date_created": instance.date_created,
             "form_uuid": str(instance.form.uuid) if instance.form else None,
+            "note": NoteSerializer(instance.note, context=self.context).data,
         }
 
 

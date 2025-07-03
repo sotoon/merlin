@@ -58,9 +58,13 @@
           </li>
 
           <li>
-            <SidebarLinkGroup :title="t('common.feedback')">
+            <SidebarLinkGroup
+              :has-badge="!!newFeedbackCount || !!newAdhocFeedbackCount"
+              :title="t('common.feedback')"
+            >
               <li>
                 <SidebarLink
+                  :badge-count="newFeedbackCount"
                   icon="i-mdi-comment-check"
                   :label="t('common.feedbackRequest')"
                   :to="{ name: 'feedback' }"
@@ -68,6 +72,7 @@
               </li>
               <li>
                 <SidebarLink
+                  :badge-count="newAdhocFeedbackCount"
                   icon="i-mdi-comment-quote-outline"
                   :label="t('feedback.adhocFeedback')"
                   :to="{ name: 'adhoc-feedback' }"
@@ -150,7 +155,26 @@ const isTeamLeader = useIsTeamLeader();
 
 // TODO: filter out templates in the backend
 const messagesWithoutTemplates = computed(
-  () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
+  () =>
+    messages.value?.filter(
+      ({ type }) =>
+        type !== NOTE_TYPE.template &&
+        type !== NOTE_TYPE.feedbackRequest &&
+        type !== NOTE_TYPE.feedback,
+    ) || [],
+);
+const newFeedbackCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) =>
+        message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
+    ).length,
+);
+const newAdhocFeedbackCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) => message.type === NOTE_TYPE.feedback && !message.read_status,
+    ).length,
 );
 const newMessagesCount = computed(
   () =>
