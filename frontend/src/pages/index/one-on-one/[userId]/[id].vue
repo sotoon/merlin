@@ -9,9 +9,9 @@ const route = useRoute();
 
 const {
   data: oneOnOne,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetOneOnOne({
   userId: String(route.params.userId),
   oneOnOneId: String(route.params.id),
@@ -29,26 +29,28 @@ watch(
   },
   { once: true },
 );
+
+const errorCode = computed(() => (error.value as any)?.response?.status);
 </script>
 
 <template>
   <PBox class="mx-auto max-w-3xl bg-white px-2 py-8 sm:px-4 lg:px-8 lg:pt-10">
-    <PLoading v-if="pending" class="mx-auto text-primary" :size="20" />
+    <PLoading v-if="isPending" class="mx-auto text-primary" :size="20" />
 
     <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
       <PText as="p" class="text-center text-danger" responsive>
         {{
-          error.statusCode === 404
+          errorCode === 404
             ? t('note.oneOnOneNotFound')
             : t('note.getOneOnOneError')
         }}
       </PText>
 
       <PButton
-        v-if="error.statusCode !== 404"
+        v-if="errorCode !== 404"
         color="gray"
         :icon-start="PeyRetryIcon"
-        @click="refresh"
+        @click="refetch"
       >
         {{ t('common.retry') }}
       </PButton>
