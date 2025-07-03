@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { PBox, PTooltip, PText, PLoading } from '@pey/core';
+import { useQueryClient } from '@tanstack/vue-query';
 
 definePageMeta({ name: 'adhoc-feedback-detail' });
 
 const route = useRoute();
 const { t } = useI18n();
+const queryClient = useQueryClient();
 
 const {
   data: entry,
@@ -43,6 +45,18 @@ const resolvedFormSchema = computed((): FeedbackFormSchema | undefined => {
 
   return undefined;
 });
+
+watch(
+  () => entry.value?.note,
+  (newVal) => {
+    if (newVal && !newVal.read_status) {
+      const { execute } = useUpdateNoteReadStatus({ id: newVal.uuid });
+      execute(true);
+      queryClient.invalidateQueries({ queryKey: ['adhoc-feedback-entries'] });
+    }
+  },
+  { once: true },
+);
 </script>
 
 <template>

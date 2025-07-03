@@ -37,6 +37,14 @@ const feedbackMessage = computed(() => {
         entry.sender.name + ' ' + t('feedback.to') + ' ' + entry.receiver.name
       "
     >
+      <template v-if="isReceiver" #toolbar>
+        <i
+          v-if="entry.note.read_status"
+          class="i-mdi-email-open block text-h3 text-gray-30"
+        />
+        <i v-else class="i-mdi-email block text-h3 text-primary" />
+      </template>
+
       <PText class="text-gray-80" variant="body">
         {{ feedbackMessage }}
       </PText>

@@ -1,10 +1,6 @@
 <script lang="ts" setup>
 import { PBox, PLoading, PButton, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
-import {
-  useGetFeedbackRequest,
-  useGetFeedbackRequestEntries,
-} from '~/composables/useFeedbackServices';
 
 const route = useRoute();
 const { t } = useI18n();

@@ -99,6 +99,8 @@ const noteTitles = computed(() => ({
   [NOTE_TYPE.message]: t('common.messageToOthers'),
   [NOTE_TYPE.proposal]: t('common.proposal'),
   [NOTE_TYPE.forms]: t('common.forms'),
+  [NOTE_TYPE.feedbackRequest]: t('common.feedbackRequest'),
+  [NOTE_TYPE.feedback]: t('common.feedback'),
 }));
 const noteTitle = computed(() =>
   props.noteType

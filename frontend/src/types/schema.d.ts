@@ -730,6 +730,7 @@ export interface components {
       readonly receiver: components['schemas']['FeedbackUser'];
       /** Format: date-time */
       readonly date_created: string;
+      readonly note: components['schemas']['Note'];
     };
     /** @description ModelSerializer for FeedbackForm: lists uuid, title, description, and schema. */
     FeedbackForm: {
@@ -768,6 +769,7 @@ export interface components {
       readonly requestees: components['schemas']['FeedbackRequestUserLink'][];
       /** Format: uuid */
       readonly form_uuid: string | null;
+      readonly note: components['schemas']['Note'];
     };
     /** @description Serializer for FeedbackRequestUserLink: shows linked user's uuid, name,
      *     email, and answered flag. */
