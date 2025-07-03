@@ -9,7 +9,7 @@ const props = defineProps<{ user: User }>();
 const { t } = useI18n();
 const router = useRouter();
 
-const { execute: createOneOnOne, pending } = useCreateOneOnOne({
+const { mutate: createOneOnOne, isPending } = useCreateOneOnOne({
   userId: props.user.uuid,
 });
 
@@ -17,8 +17,7 @@ const handleSubmit = (
   values: Schema<'OneOnOneRequest'>,
   ctx: SubmissionContext<Schema<'OneOnOneRequest'>>,
 ) => {
-  createOneOnOne({
-    body: { ...values },
+  createOneOnOne(values, {
     onSuccess: () => {
       navigateTo({
         name: 'one-on-one-userId',
@@ -46,7 +45,7 @@ const handleCancel = () => {
 
     <NoteOneOnOneForm
       :user="user"
-      :is-submitting="pending"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
