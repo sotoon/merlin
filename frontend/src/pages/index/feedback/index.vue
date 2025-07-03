@@ -7,8 +7,8 @@ definePageMeta({ name: 'feedback' });
 
 const { t } = useI18n();
 
-const tabOptions = ['owned', 'invited', 'adhoc'] as const;
-const tabFilter = useRouteQuery<'owned' | 'invited' | 'adhoc'>('tab', 'owned');
+const tabOptions = ['owned', 'invited'] as const;
+const tabFilter = useRouteQuery<'owned' | 'invited'>('tab', 'owned');
 
 const currentTabIndex = computed(() => {
   return tabOptions.indexOf(tabFilter.value as any) || 0;
@@ -30,12 +30,6 @@ const {
   isError: invitedError,
   refetch: invitedRefresh,
 } = useGetFeedbackRequests('invited');
-const {
-  data: adhocEntries,
-  isPending: adhocPending,
-  isError: adhocError,
-  refetch: adhocRefresh,
-} = useGetAdhocFeedbackEntries();
 </script>
 
 <template>
@@ -109,40 +103,6 @@ const {
         </div>
         <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
           {{ t('feedback.noInvitedRequests') }}
-        </PText>
-      </PTab>
-
-      <PTab :title="t('feedback.adhocFeedback')">
-        <div v-if="adhocPending" class="flex items-center justify-center py-8">
-          <PLoading class="text-primary" :size="20" />
-        </div>
-        <div
-          v-else-if="adhocError"
-          class="flex flex-col items-center gap-4 py-8"
-        >
-          <PText as="p" class="text-center text-danger" responsive>
-            {{ t('feedback.getError') }}
-          </PText>
-          <PButton
-            color="gray"
-            :icon-start="PeyRetryIcon"
-            @click="adhocRefresh"
-          >
-            {{ t('common.retry') }}
-          </PButton>
-        </div>
-        <div
-          v-else-if="adhocEntries?.length"
-          class="mt-4 grid grid-cols-1 gap-2 py-4 xl:grid-cols-2 xl:gap-3"
-        >
-          <FeedbackAdhocCard
-            v-for="entry in adhocEntries"
-            :key="entry.uuid"
-            :entry="entry"
-          />
-        </div>
-        <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
-          {{ t('feedback.noAdhocFeedback') }}
         </PText>
       </PTab>
     </PTabs>

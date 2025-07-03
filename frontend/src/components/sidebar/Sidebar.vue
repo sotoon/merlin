@@ -66,6 +66,13 @@
                   :to="{ name: 'feedback' }"
                 />
               </li>
+              <li>
+                <SidebarLink
+                  icon="i-mdi-comment-quote-outline"
+                  :label="t('feedback.adhocFeedback')"
+                  :to="{ name: 'adhoc-feedback' }"
+                />
+              </li>
             </SidebarLinkGroup>
           </li>
 
