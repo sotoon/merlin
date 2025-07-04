@@ -1746,18 +1746,18 @@ components:
         personal_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         career_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         performance_summary:
           type: string
-          maxLength: 400
+          maxLength: 700
         communication_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         actions:
           type: string
           nullable: true
@@ -1829,19 +1829,19 @@ components:
         personal_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         career_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         performance_summary:
           type: string
           minLength: 1
-          maxLength: 400
+          maxLength: 700
         communication_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         actions:
           type: string
           nullable: true
@@ -1995,19 +1995,19 @@ components:
         personal_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         career_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         performance_summary:
           type: string
           minLength: 1
-          maxLength: 400
+          maxLength: 700
         communication_summary:
           type: string
           nullable: true
-          maxLength: 400
+          maxLength: 700
         actions:
           type: string
           nullable: true
