@@ -137,49 +137,7 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         </PText>
       </div>
 
-      <div class="mt-2 flex items-end gap-4">
-        <PButton
-          v-if="previousOneOnOne"
-          variant="light"
-          size="small"
-          @click="
-            navigateTo({
-              name: 'one-on-one-id',
-              params: { userId: user.uuid, id: previousOneOnOne.id },
-            })
-          "
-        >
-          <PeyChevronRightIcon />
-          جلسه
-          {{
-            dayjs(previousOneOnOne.date_created)
-              .calendar('jalali')
-              .locale('fa')
-              .format('D MMMM')
-          }}
-        </PButton>
-
-        <PButton
-          v-if="nextOneOnOne"
-          variant="light"
-          size="small"
-          @click="
-            navigateTo({
-              name: 'one-on-one-id',
-              params: { userId: user.uuid, id: nextOneOnOne.id },
-            })
-          "
-        >
-          جلسه
-          {{
-            dayjs(nextOneOnOne.date_created)
-              .calendar('jalali')
-              .locale('fa')
-              .format('D MMMM')
-          }}
-          <PeyChevronLeftIcon />
-        </PButton>
-
+      <div class="mt-2 flex items-end">
         <PIconButton
           v-if="isTeamLeader"
           class="shrink-0"
@@ -415,6 +373,56 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         </div>
       </template>
     </PDialog>
+
+    <div class="mt-8 flex justify-between">
+      <PButton
+        :class="!previousOneOnOne ? 'invisible' : ''"
+        variant="light"
+        size="small"
+        @click="
+          previousOneOnOne &&
+            navigateTo({
+              name: 'one-on-one-id',
+              params: { userId: user.uuid, id: previousOneOnOne.id },
+            })
+        "
+      >
+        <PeyChevronRightIcon />
+        جلسه
+        {{
+          previousOneOnOne
+            ? dayjs(previousOneOnOne.date_created)
+                .calendar('jalali')
+                .locale('fa')
+                .format('D MMMM')
+            : ''
+        }}
+      </PButton>
+
+      <PButton
+        :class="!nextOneOnOne ? 'invisible' : ''"
+        variant="light"
+        size="small"
+        @click="
+          nextOneOnOne &&
+            navigateTo({
+              name: 'one-on-one-id',
+              params: { userId: user.uuid, id: nextOneOnOne.id },
+            })
+        "
+      >
+        جلسه
+        {{
+          nextOneOnOne
+            ? dayjs(nextOneOnOne.date_created)
+                .calendar('jalali')
+                .locale('fa')
+                .format('D MMMM')
+            : ''
+        }}
+        <PeyChevronLeftIcon />
+      </PButton>
+    </div>
 
     <div class="mt-8">
       <NoteFeedbacks is-one-on-one :note="oneOnOne.note" />
