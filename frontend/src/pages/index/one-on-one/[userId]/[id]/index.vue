@@ -13,7 +13,6 @@ import {
   PeyLinkIcon,
   PeyChevronLeftIcon,
   PeyChevronRightIcon,
-  PeyInfoIcon,
   PeyInfoFilledIcon,
 } from '@pey/icons';
 import dayjs from '~/utils/dayjs';
