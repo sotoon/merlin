@@ -13,6 +13,8 @@ import {
   PeyLinkIcon,
   PeyChevronLeftIcon,
   PeyChevronRightIcon,
+  PeyInfoIcon,
+  PeyInfoFilledIcon,
 } from '@pey/icons';
 import dayjs from '~/utils/dayjs';
 
@@ -101,6 +103,10 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
 const isVibeModalOpen = ref(false);
 const selectedVibe = ref<Schema<'MemberVibeEnum'>>();
 
+// Tooltip visibility state
+let infoTooltipTimeout: NodeJS.Timeout | null = null;
+const infoTooltipVisibility = ref(false);
+
 const { mutate: updateOneOnOne, isPending } = useUpdateOneOnOne({
   userId: props.user.uuid,
   oneOnOneId: props.oneOnOne.id,
@@ -122,12 +128,42 @@ const handleVibeSubmit = () => {
 function getRelatedTags(section: Schema<'SectionEnum'>) {
   return props.oneOnOne.tag_links.filter((tag) => tag.section === section);
 }
+
+function hasUserDismissedInfoTooltip() {
+  if (process.client) {
+    return localStorage.getItem('one-on-one-info-tooltip-dismissed') === 'true';
+  }
+  return false;
+}
+
+function dismissInfoTooltip() {
+  if (process.client) {
+    localStorage.setItem('one-on-one-info-tooltip-dismissed', 'true');
+  }
+  infoTooltipVisibility.value = false;
+}
+
+onMounted(() => {
+  if (!hasUserDismissedInfoTooltip()) {
+    infoTooltipTimeout = setTimeout(() => {
+      infoTooltipVisibility.value = true;
+
+      infoTooltipTimeout = setTimeout(() => {
+        infoTooltipVisibility.value = false;
+      }, 5000);
+    }, 1000);
+  }
+});
+
+onBeforeUnmount(() => {
+  infoTooltipTimeout && clearTimeout(infoTooltipTimeout);
+});
 </script>
 
 <template>
   <div class="px-2 sm:px-4">
     <div class="flex items-start justify-between gap-8">
-      <div>
+      <div class="flex items-center">
         <i
           class="i-mdi-account-supervisor mb-3 me-4 inline-block align-middle text-h1 text-primary"
         />
@@ -135,6 +171,61 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         <PText responsive variant="h1" weight="bold">
           {{ oneOnOne.note.title }}
         </PText>
+
+        <PTooltip
+          :model-value="infoTooltipVisibility"
+          placement="bottom"
+          @update:model-value="
+            (value) => {
+              if (!value) {
+                dismissInfoTooltip();
+              }
+            }
+          "
+        >
+          <PeyInfoFilledIcon class="mr-2 text-gray-50" />
+
+          <template #content>
+            <PText variant="caption1">
+              اکثر اطلاعات موجود در یک‌به‌یک‌، فقط برای لیدر و عضو تیم قابل
+              دسترسی هستن.
+            </PText>
+            <br />
+            <PText variant="caption1">
+              تنها سه بخش زیر توسط اچ‌آر برای بررسی و تحلیل استفاده می‌شن:
+            </PText>
+            <ul>
+              <li>
+                <PText variant="caption1">
+                  ۱- متن موجود در بخش «مدیریت عملکرد»
+                </PText>
+              </li>
+              <li>
+                <PText variant="caption1">
+                  ۲- تمامی تگ‌های انتخاب شده در بخش‌های مختلف (بدون جزئیات متون)
+                </PText>
+              </li>
+              <li>
+                <PText variant="caption1">
+                  ۳- وایب‌ ایموجی‌هایی که لیدر و عضو تیم وارد می‌کنن
+                </PText>
+              </li>
+            </ul>
+            <br />
+            <PText variant="caption1">
+              به جز این سه دسته، اچ‌آر به باقی اطلاعاتی که در یک‌به‌یک وارد
+              می‌کنید، دسترسی نداره.
+            </PText>
+            <br />
+            <br />
+            <PText variant="caption1">
+              نکته: وایب وارد شده توسط هر فرد فقط برای خودش و اچ‌آر قابل
+              مشاهده‌ست، <br />
+              به عنوان مثال؛ لیدر دسترسی مشاهده‌ی ایموجی عضو تیم رو نداره، و
+              بلعکس.
+            </PText>
+          </template>
+        </PTooltip>
       </div>
 
       <div class="mt-2 flex items-end">
