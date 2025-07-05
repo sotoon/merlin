@@ -6,29 +6,33 @@
     "confirm": "تایید",
     "content": "متن",
     "date": "تاریخ",
+    "dateRange": "محدوده تاریخ",
+    "selectDateRange": "انتخاب محدوده تاریخ",
     "delete": "حذف",
     "expired": "منقضی",
-    "forms": "فرم‌ها",
-    "goals": "اهداف",
+    "forms": "فرم‌های ارزیابی",
+    "feedback": "فیدبک",
+    "goals": "اهداف و انتظارات",
     "logout": "خروج",
     "meetings": "جلسه‌ها",
-    "messages": "پیام‌ها",
+    "messages": "اعلان‌ها",
     "messageToOthers": "پیام به دیگری",
     "myForms": "فرم‌های من",
     "myTeam": "تیم من",
-    "notes": "یادداشت‌ها",
+    "notes": "مدیریت عملکرد",
+    "promotion": "درخواست بررسی ارتقا",
     "performanceManagementGuide": "راهنمای مدیریت عملکرد",
-    "personal": "شخصی",
     "personalNotes": "یادداشت‌های شخصی",
-    "proposal": "پروپوزال",
-    "results": "نتایج",
+    "personal": "میز کار",
+    "proposal": "پروپوزال ارتقا",
     "retry": "تلاش مجدد",
     "save": "ذخیره",
     "search": "جستجو",
     "submit": "ثبت",
     "sort": "مرتب سازی",
-    "tasks": "فعالیت‌ها",
-    "templates": "قالب‌ها"
+    "templates": "قالب‌ها",
+    "oneOnOne": "یک به یک",
+    "results": "نتایج فرم‌ها"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -121,16 +125,17 @@
     "writeSummaryContent": "متن جمع‌بندی را بنویسید...",
     "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\"",
     "writeTemplateContent": "متن قالب را بنویسید...",
-    "year": "سال"
+    "year": "سال",
+    "currentCycle": "دوره فعلی"
   },
   "noteType": {
     "goal": "هدف",
+    "oneOnOne": "یک به یک",
     "meeting": "جلسه",
     "message": "پیام",
-    "personal": "یادداشت شخصی",
-    "proposal": "پروپوزال",
-    "task": "فعالیت",
-    "template": "قالب"
+    "proposal": "پروپوزال ارتقا",
+    "template": "قالب",
+    "forms": "فرم‌ها"
   },
   "profile": {
     "chapter": "چپتر",
@@ -152,5 +157,27 @@
     "noUser": "کاربری برای نمایش وجود ندارد.",
     "teamName": "تیم {name}",
     "userNotes": "یادداشت‌های {name}"
+  },
+  "oneOnOne": {
+    "individualDimension": "بعد فردی",
+    "growthPath": "مسیر رشد و انتظارات",
+    "interactionAndCustomerOrientation": "تعامل و مشتری محوری",
+    "performanceManagement": "مدیریت عملکرد",
+    "whatWeTalkedAbout": "در مورد چی صحبت کردیم؟",
+    "whatWeTalkedAboutOptions": "صحبت‌هامون به کدوم یکی از پارامترهای زیر وصل میشه؟",
+    "whatActionsWeDefined": "چه اکشن‌هایی تعریف کردیم و پیگیری اکشن‌ها با چه کسی هست؟",
+    "additionalNotes": "توضیحات و یادداشت‌های اضافی",
+    "howWasTheMeetingVibeLeader": "حس‌ات نسبت به عملکرد {name} در این بازه چطور بوده؟",
+    "howWasTheMeetingVibeMember": "حس‌ات نسبت به عملکرد خودت در این بازه چطور بوده؟",
+    "editOneOnOne": "ویرایش یک به یک",
+    "createOneOnOne": "ایجاد یک به یک جدید",
+    "oneOnOneNotFound": "یک به یک یافت نشد.",
+    "getOneOnOneError": "خطا در دریافت یک به یک.",
+    "memberNotFound": "کاربر یافت نشد.",
+    "withManager": "با مدیرم",
+    "submitVibe": "ثبت بازخورد"
+  },
+  "messages": {
+    "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
   }
 }

@@ -100,6 +100,7 @@
       </EditorToggleButton>
 
       <EditorToggleButton
+        v-if="!extendsToolbars?.includes('table')"
         :active="editor.isActive('table')"
         @toggle="
           editor?.isActive('table')
@@ -135,5 +136,8 @@
 <script lang="ts" setup>
 import { PeyLinkIcon } from '@pey/icons';
 
-defineProps<{ editor?: InstanceType<typeof TiptapEditor> }>();
+defineProps<{
+  editor?: InstanceType<typeof TiptapEditor>;
+  extendsToolbars?: string[];
+}>();
 </script>

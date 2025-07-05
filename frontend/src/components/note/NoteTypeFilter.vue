@@ -29,7 +29,9 @@ const newMessagesCounts = computed(
     props.notes
       .filter(
         (message) =>
-          message.type !== NOTE_TYPE.template && !message.read_status,
+          message.type !== NOTE_TYPE.template &&
+          message.type !== NOTE_TYPE.oneOnOne &&
+          !message.read_status,
       )
       .reduce<Partial<Record<NoteType | 'all', number>>>((acc, message) => {
         acc.all = (acc.all || 0) + 1;
@@ -41,7 +43,6 @@ const newMessagesCounts = computed(
 const typeOptions = computed(() => [
   { label: t('common.all') },
   { label: t('noteType.goal'), value: NOTE_TYPE.goal },
-  { label: t('noteType.task'), value: NOTE_TYPE.task },
   { label: t('noteType.meeting'), value: NOTE_TYPE.meeting },
   { label: t('noteType.proposal'), value: NOTE_TYPE.proposal },
   { label: t('noteType.message'), value: NOTE_TYPE.message },

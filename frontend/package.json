@@ -17,13 +17,17 @@
     "@pey/core": "^1.17.0",
     "@pey/icons": "^1.10.2",
     "@pey/tailwind-preset": "^1.0.4",
+    "@tanstack/vue-query": "^5.80.7",
     "@vee-validate/i18n": "^4.12.5",
     "@vee-validate/nuxt": "^4.12.5",
     "@vee-validate/rules": "^4.12.5",
     "@vueuse/router": "^10.9.0",
+    "dayjs": "^1.11.13",
+    "jalaliday": "^3.1.0",
     "nuxt": "^3.10.3",
     "sass": "^1.75.0",
     "vue": "^3.4.19",
+    "vue-debounce": "^5.0.1",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
