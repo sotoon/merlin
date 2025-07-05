@@ -1,10 +1,63 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import MerlinBaseModel
-from .user import User
+from api.models.base import MerlinBaseModel
+from api.models.user import User
 
-__all__ = ['Department', 'Chapter', 'Tribe', 'Team', 'Committee']
+__all__ = ['Organization', 'Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag']
+
+
+class Organization(MerlinBaseModel):
+    name = models.CharField(max_length=256, verbose_name="نام")
+    cto = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cto",
+        verbose_name="سی تی او",
+    )
+    vp = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_vp",
+        verbose_name="وی پی",
+    )
+    ceo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_ceo",
+        verbose_name="سی ای او",
+    )
+    function_owner = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_function_owner",
+        verbose_name="فانکشن اونر",
+    )
+    cpo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cpo",
+        verbose_name="سی پی او",
+    )
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "سازمان"
+        verbose_name_plural = "سازمان‌ها"
+
+    def __str__(self):
+        return self.name
+
 
 class Department(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
@@ -106,3 +159,41 @@ class Committee(MerlinBaseModel):
 
     def __str__(self):
         return self.name
+    
+# Values models
+class ValueSection(models.TextChoices):
+    PERSONAL = "personal", "بعد فردی"
+    CAREER = "career", "مسیر رشد و انتظارات"
+    PERFORMANCE = "performance", "مدیریت عملکرد"
+    COMMUNICATION = "communication", "تعامل و مشتری‌محوری"
+
+class ValueTag(MerlinBaseModel):
+    """Canonical, organisation-agnostic behaviour/value tag."""
+
+    name_en = models.CharField(max_length=128, unique=True)
+    name_fa = models.CharField(max_length=128)
+    section = models.CharField(max_length=32, choices=ValueSection.choices)
+
+    class Meta:
+        verbose_name = "Behaviour Tag"  # TODO: Persian verbose
+        verbose_name_plural = "Behaviour Tags"
+
+    def __str__(self):
+        return self.name_en
+
+class OrgValueTag(models.Model):
+    """Enable/disable a BehaviourTag per organisation."""
+
+    organisation = models.ForeignKey(
+        "api.Organization", on_delete=models.PROTECT, null=True, blank=True
+    )
+    tag = models.ForeignKey(ValueTag, on_delete=models.CASCADE)
+    is_enabled = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ("organisation", "tag")
+        verbose_name = "Organisation Behaviour Tag"  # TODO: Persian
+        verbose_name_plural = "Organisation Behaviour Tags"
+
+    def __str__(self):
+        return f"{self.organisation or 'GLOBAL'} – {self.tag}"

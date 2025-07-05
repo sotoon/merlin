@@ -20,13 +20,13 @@
       </PHeading>
 
       <PIconButton
-        v-if="note.access_level.can_write_feedback"
+        v-if="note.access_level?.can_write_feedback"
         class="shrink-0"
         :icon="userHasWrittenFeedback ? PeyEditIcon : PeyPlusIcon"
         type="button"
         @click="
           navigateTo({
-            name: 'note-feedback',
+            name: isOneOnOne ? 'one-on-one-feedback' : 'note-feedback',
             query: {
               owner: userHasWrittenFeedback ? profile?.email : undefined,
             },
@@ -36,15 +36,17 @@
     </div>
 
     <div class="p-4">
-      <NoteFeedbackList :feedbacks="feedbacks" />
+      <NoteFeedbackList :feedbacks="feedbacks" :is-one-on-one="isOneOnOne" />
     </div>
   </template>
 
   <PButton
-    v-else-if="note.access_level.can_write_feedback"
+    v-else-if="note.access_level?.can_write_feedback"
     :icon-start="PeyPlusIcon"
     variant="ghost"
-    @click="navigateTo({ name: 'note-feedback' })"
+    @click="
+      navigateTo({ name: isOneOnOne ? 'one-on-one-feedback' : 'note-feedback' })
+    "
   >
     {{ t('note.writeFeedback') }}
   </PButton>
@@ -54,7 +56,10 @@
 import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyEditIcon, PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
-const props = defineProps<{ note: Note }>();
+const props = defineProps<{
+  note: Schema<'Note'> | Note;
+  isOneOnOne?: boolean;
+}>();
 
 const { t } = useI18n();
 const {

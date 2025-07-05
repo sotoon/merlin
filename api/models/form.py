@@ -2,9 +2,9 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .base import MerlinBaseModel
-from .user import User
-from .cycle import Cycle
+from api.models.base import MerlinBaseModel
+from api.models.user import User
+from api.models.cycle import Cycle
 
 __all__ = ['Form', 'Question', 'FormResponse', 'FormAssignment']
 

@@ -1,8 +1,12 @@
+import { useQuery } from '@tanstack/vue-query';
+
 interface GetProfileResponse extends User {}
 
 export const useGetProfile = () => {
-  return useApiFetch<GetProfileResponse>('/profile/', {
-    key: 'profile',
-    dedupe: 'defer',
+  const { $api } = useNuxtApp();
+
+  return useQuery<GetProfileResponse>({
+    queryKey: ['profile'],
+    queryFn: () => $api.fetch('/profile/'),
   });
 };

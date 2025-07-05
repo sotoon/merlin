@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex h-full w-60 flex-col overflow-hidden py-4">
+  <nav class="flex h-full w-64 flex-col overflow-hidden pb-4">
     <NuxtLink class="pb-4 pt-2 shadow" to="/">
       <PText as="p" class="text-center" weight="bold" variant="h4">
         {{ t('common.appName') }}
@@ -8,19 +8,21 @@
 
     <div class="flex grow flex-col overflow-hidden px-2">
       <PScrollbar class="-mx-2 grow px-2 py-4">
-        <ul class="space-y-6">
+        <ul class="space-y-2">
           <li>
             <SidebarLinkGroup :title="t('common.notes')">
-              <li v-for="link in notesLinks" :key="link.label">
-                <SidebarLink v-bind="link" />
-              </li>
-            </SidebarLinkGroup>
-          </li>
-
-          <li>
-            <SidebarLinkGroup :title="t('common.forms')">
               <li>
-                <!-- // TODO: set badge count for incomplete forms -->
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.goal]"
+                  :label="t('common.goals')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.goal] },
+                  }"
+                />
+              </li>
+
+              <li>
                 <SidebarLink
                   icon="i-mdi-form"
                   :label="t('common.forms')"
@@ -28,7 +30,9 @@
                 />
               </li>
 
-              <li>
+              <li
+                class="relative pr-8 before:absolute before:bottom-0 before:right-5 before:top-0 before:my-1 before:w-px before:bg-gray-20"
+              >
                 <SidebarLink
                   icon="i-mdi-chart-bar"
                   :label="t('common.results')"
@@ -39,13 +43,45 @@
           </li>
 
           <li>
+            <SidebarLinkGroup :title="t('common.promotion')">
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.proposal]"
+                  :label="t('common.proposal')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+                  }"
+                />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
+            <SidebarLinkGroup :title="t('common.feedback')">
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.message]"
+                  :label="t('common.messageToOthers')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
+                  }"
+                />
+              </li>
+            </SidebarLinkGroup>
+          </li>
+
+          <li>
             <SidebarLinkGroup :title="t('common.personal')">
               <li>
                 <SidebarLink
-                  :badge-count="newMessagesCount"
-                  icon="i-mdi-message-text"
-                  :label="t('common.messages')"
-                  :to="{ name: 'messages' }"
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.meeting]"
+                  :label="t('common.meetings')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting] },
+                  }"
                 />
               </li>
 
@@ -56,12 +92,27 @@
                   :to="{ name: 'templates' }"
                 />
               </li>
+            </SidebarLinkGroup>
+          </li>
 
+          <li>
+            <SidebarLinkGroup
+              :has-badge="!!newOneOnOneCount"
+              :title="t('common.myTeam')"
+            >
               <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
                   :label="t('common.myTeam')"
                   :to="{ name: 'my-team' }"
+                />
+              </li>
+              <li>
+                <SidebarLink
+                  :badge-count="newOneOnOneCount"
+                  icon="i-mdi-account-supervisor"
+                  :label="t('common.oneOnOne')"
+                  :to="{ name: 'one-on-one' }"
                 />
               </li>
             </SidebarLinkGroup>
@@ -70,6 +121,13 @@
       </PScrollbar>
 
       <div class="flex flex-col space-y-2 border-t border-gray-10 pt-2">
+        <SidebarLink
+          :badge-count="newMessagesCount"
+          icon="i-mdi-message-text"
+          :label="t('common.messages')"
+          :to="{ name: 'messages' }"
+        />
+
         <SidebarLink
           external
           icon="i-mdi-help-circle"
@@ -86,20 +144,26 @@
 <script lang="ts" setup>
 import { PScrollbar, PText } from '@pey/core';
 
-import { getNotesLinks } from '~/components/sidebar/SidebarLinks';
-
 const { t } = useI18n();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 const isTeamLeader = useIsTeamLeader();
 
 // TODO: filter out templates in the backend
-const messagesWithoutTemplates = computed(
-  () => messages.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
+const messagesWithoutTemplates = computed(() =>
+  (messages.value || []).filter(
+    ({ type }) => type !== NOTE_TYPE.template && type !== NOTE_TYPE.oneOnOne,
+  ),
 );
-const notesLinks = computed(() => getNotesLinks(t));
+const newOneOnOneCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) => message.type === NOTE_TYPE.oneOnOne && !message.read_status,
+    ).length,
+);
+
 const newMessagesCount = computed(
   () =>
-    messagesWithoutTemplates.value?.filter((message) => !message.read_status)
+    messagesWithoutTemplates.value.filter((message) => !message.read_status)
       .length,
 );
 </script>
