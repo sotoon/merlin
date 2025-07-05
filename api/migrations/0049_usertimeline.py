@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0045_valuetag_alter_note_type_organization_oneonone_and_more"),
+        ("api", "0048_valuetag_alter_note_type_organization_oneonone_and_more"),
     ]
 
     operations = [

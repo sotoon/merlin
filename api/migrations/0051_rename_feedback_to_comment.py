@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0047_rename_other_notes_oneonone_extra_notes_and_more"),
+        ("api", "0050_rename_other_notes_oneonone_extra_notes_and_more"),
     ]
 
     operations = [
