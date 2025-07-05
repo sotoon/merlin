@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0043_merge_20250220_2313"),
+        ("api", "0046_remove_tribe_director_organization_cfo_and_more"),
     ]
 
     operations = [

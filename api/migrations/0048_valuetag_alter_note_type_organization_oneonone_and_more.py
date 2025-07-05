@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0044_feedback_cycle_note_cycle_summary_cycle"),
+        ("api", "0047_feedback_cycle_note_cycle_summary_cycle"),
     ]
 
     operations = [

@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0048b_comment_table"),
+        ("api", "0052_comment_table"),
     ]
 
     operations = [
