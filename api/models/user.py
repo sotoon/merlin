@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from api.models.base import MerlinBaseModel
 from api.models.note import Note, NoteUserAccess, leader_permissions
 from api.models.role import RoleScope
+from api.services import ensure_leader_note_accesses
 
 __all__ = ['User']
 
@@ -112,11 +113,15 @@ class User(MerlinBaseModel, AbstractUser):
 
     def save(self, *args, **kwargs):
         self.username = self.email
+
+        original_leader = None
         if self.pk is not None: # Check if the object is being updated (not created)
-            original = User.objects.get(pk=self.pk)
-            if self.leader != original.leader:
-                self.ensure_new_leader_note_accesses(self.leader)
+            original_leader = User.objects.get(pk=self.pk).leader
+        
         super().save(*args, **kwargs)
+        
+        if original_leader != self.leader:
+            ensure_leader_note_accesses(self, self.leader)
 
     class Meta:
         verbose_name = "کاربر"

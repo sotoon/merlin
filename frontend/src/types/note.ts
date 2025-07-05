@@ -32,6 +32,8 @@ export interface Note {
   type: NoteType;
   uuid: string;
   year: number;
+  one_on_one_member: string | null;
+  one_on_one_id: number | null;
 }
 
 export interface NoteFormValues
@@ -66,18 +68,6 @@ export interface NoteSummaryFormValues
     | 'salary_change'
   > {
   committee_date: Date;
-}
-
-export interface NoteFeedback {
-  content: string;
-  note: string;
-  owner: string;
-  owner_name: string;
-  uuid: string;
-}
-
-export interface NoteFeedbackFormValues {
-  content: string;
 }
 
 export interface NoteTemplateFormValues

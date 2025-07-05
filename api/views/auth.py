@@ -1,7 +1,6 @@
 import requests
 from django.conf import settings
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
@@ -10,38 +9,24 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from api.models import User
-from api.serializers import (
-    TokenSerializer,
-    UserSerializer,
-)
-
+from api.serializers import TokenSerializer, UserSerializer
 
 __all__ = ['SignupView', 'LoginView', 'BepaCallbackView', 'VerifyTokenView']
 
-
-AUTH_RESPONSE_SCHEMA = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        "name": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Name of the user"
-        ),
-        "email": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Email of the user"
-        ),
-        "tokens": openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "refresh": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="Refresh token",
-                ),
-                "access": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Access token"
-                ),
+AUTH_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "description": "Name of the user"},
+        "email": {"type": "string", "description": "Email of the user"},
+        "tokens": {
+            "type": "object",
+            "properties": {
+                "refresh": {"type": "string", "description": "Refresh token"},
+                "access": {"type": "string", "description": "Access token"},
             },
-        ),
+        },
     },
-)
+}
 
 
 class SignupView(APIView):
@@ -51,12 +36,12 @@ class SignupView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        request_body=UserSerializer,
+    @extend_schema(
+        request=UserSerializer,
         responses={
-            201: openapi.Response(
-                "Successfully Signed Up!",
-                schema=AUTH_RESPONSE_SCHEMA,
+            201: OpenApiResponse(
+                description="Successfully Signed Up!",
+                response=AUTH_RESPONSE_SCHEMA,
             ),
         },
     )
@@ -86,12 +71,12 @@ class LoginView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        request_body=UserSerializer,
+    @extend_schema(
+        request=UserSerializer,
         responses={
-            200: openapi.Response(
-                "Successfully Logged In!",
-                schema=AUTH_RESPONSE_SCHEMA,
+            200: OpenApiResponse(
+                description="Successfully Logged In!",
+                response=AUTH_RESPONSE_SCHEMA,
             )
         },
     )
@@ -124,19 +109,19 @@ class BepaCallbackView(APIView):
     Gets the code from the BEPA and exchanges it for an access token.
     """
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                "code",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="code",
+                type=str,
+                location=OpenApiParameter.QUERY,
                 description="Code from BEPA",
             )
         ],
         responses={
-            200: openapi.Response(
-                "Successfully Logged In!",
-                schema=AUTH_RESPONSE_SCHEMA,
+            200: OpenApiResponse(
+                description="Successfully Logged In!",
+                response=AUTH_RESPONSE_SCHEMA,
             )
         },
     )
@@ -202,18 +187,18 @@ class VerifyTokenView(GenericAPIView):
 
     serializer_class = TokenSerializer
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                "token",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="token",
+                type=str,
+                location=OpenApiParameter.QUERY,
                 description="Token",
             )
         ],
         responses={
-            200: openapi.Response(
-                description="Verified Successfully", schema=UserSerializer
+            200: OpenApiResponse(
+                description="Verified Successfully", response=UserSerializer
             )
         },
     )

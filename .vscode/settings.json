@@ -1,0 +1,4 @@
+{
+  "i18n-ally.localesPaths": ["frontend/src/locales"],
+  "i18n-ally.enabledFrameworks": ["vue"]
+}

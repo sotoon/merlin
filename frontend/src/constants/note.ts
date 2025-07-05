@@ -1,40 +1,48 @@
 export const NOTE_TYPE = {
   goal: 'Goal',
+  oneOnOne: 'OneOnOne',
   meeting: 'Meeting',
   message: 'Message',
-  personal: 'Personal',
   proposal: 'Proposal',
-  task: 'Task',
   template: 'Template',
+  forms: 'forms',
+  feedbackRequest: 'FeedbackRequest',
+  feedback: 'Feedback',
 } as const;
 
 export const NOTE_TYPE_ROUTE_PARAM = {
   [NOTE_TYPE.goal]: 'goal',
+  [NOTE_TYPE.oneOnOne]: 'oneOnOne',
   [NOTE_TYPE.meeting]: 'meeting',
   [NOTE_TYPE.message]: 'message',
-  [NOTE_TYPE.personal]: 'personal',
   [NOTE_TYPE.proposal]: 'proposal',
-  [NOTE_TYPE.task]: 'task',
+  [NOTE_TYPE.forms]: 'forms',
+  [NOTE_TYPE.feedbackRequest]: 'feedbackRequest',
+  [NOTE_TYPE.feedback]: 'feedback',
 } as const;
 
 export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.goal]: 'i-mdi-target-arrow',
+  [NOTE_TYPE.oneOnOne]: 'i-mdi-calendar',
   [NOTE_TYPE.meeting]: 'i-mdi-calendar',
   [NOTE_TYPE.message]: 'i-mdi-email-fast',
-  [NOTE_TYPE.personal]: 'i-mdi-folder-lock',
   [NOTE_TYPE.proposal]: 'i-mdi-chart-line',
-  [NOTE_TYPE.task]: 'i-mdi-check-circle',
   [NOTE_TYPE.template]: 'i-mdi-clipboard-text',
+  [NOTE_TYPE.forms]: 'i-mdi-form',
+  [NOTE_TYPE.feedbackRequest]: 'i-mdi-feedback',
+  [NOTE_TYPE.feedback]: 'i-mdi-feedback',
 };
 
 export const getNoteTypeLabels = (t: (key: string) => string) => ({
   [NOTE_TYPE.goal]: t('noteType.goal'),
+  [NOTE_TYPE.oneOnOne]: t('noteType.oneOnOne'),
   [NOTE_TYPE.meeting]: t('noteType.meeting'),
   [NOTE_TYPE.message]: t('noteType.message'),
-  [NOTE_TYPE.personal]: t('noteType.personal'),
   [NOTE_TYPE.proposal]: t('noteType.proposal'),
-  [NOTE_TYPE.task]: t('noteType.task'),
   [NOTE_TYPE.template]: t('noteType.template'),
+  [NOTE_TYPE.forms]: t('noteType.forms'),
+  [NOTE_TYPE.feedbackRequest]: t('noteType.feedbackRequest'),
+  [NOTE_TYPE.feedback]: t('noteType.feedback'),
 });
 
 export const NOTES_WITH_SUMMARY: NoteType[] = [
