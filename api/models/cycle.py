@@ -13,7 +13,10 @@ class Cycle(MerlinBaseModel):
 
     @classmethod
     def get_current_cycle(cls):
-        return cls.objects.filter(is_active=True).order_by('-start_date').first()
+        cycle = cls.objects.filter(is_active=True).order_by('-start_date').first()
+        if not cycle:
+            raise ValueError("No active cycle found. Please create and activate a cycle first.")
+        return cycle
         
     def __str__(self):
         return f"{self.name} ({self.start_date} - {self.end_date})"
