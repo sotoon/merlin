@@ -244,6 +244,17 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                     )
         return instance
 
+    def validate(self, attrs):
+        owner = self.context["request"].user
+        # During create: list is under "requestee_emails"
+        emails = attrs.get("requestee_emails") or []
+        if any(u.email == owner.email if isinstance(u, User) else u == owner.email
+                for u in emails):
+            raise serializers.ValidationError(
+                "You cannot invite yourself to your own feedback request."
+            )
+        return attrs
+
     def to_representation(self, instance):
         return FeedbackRequestReadOnlySerializer(instance, context=self.context).data
 
