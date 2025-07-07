@@ -167,13 +167,19 @@ const newFeedbackCount = computed(
   () =>
     (messages.value || []).filter(
       (message) =>
-        message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
+        (message.type === NOTE_TYPE.feedbackRequest ||
+          (message.type === NOTE_TYPE.feedback &&
+            message.feedback_request_uuid)) &&
+        !message.read_status,
     ).length,
 );
 const newAdhocFeedbackCount = computed(
   () =>
     (messages.value || []).filter(
-      (message) => message.type === NOTE_TYPE.feedback && !message.read_status,
+      (message) =>
+        message.type === NOTE_TYPE.feedback &&
+        !message.feedback_request_uuid &&
+        !message.read_status,
     ).length,
 );
 const newMessagesCount = computed(

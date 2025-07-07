@@ -60,6 +60,20 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        """Create a feedback request and mark the note as read for the creator."""
+        response = super().create(request, *args, **kwargs)
+
+        # Mark the note as read for the user who created the feedback request
+        feedback_request = FeedbackRequest.objects.get(uuid=response.data["uuid"])
+        note = feedback_request.note
+        user = request.user
+
+        if user not in note.read_by.all():
+            note.read_by.add(user)
+
+        return response
+
     # list answers for one request
     @action(detail=True, methods=["get"], url_path="entries")
     def list_entries(self, request, uuid=None):
@@ -85,8 +99,7 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
             self.queryset.select_related("note")
             .prefetch_related("note__mentioned_users")
             .filter(
-                Q(sender=user)
-                | Q(receiver=user)
+                Q(receiver=user)
                 | Q(feedback_request__note__owner=user)  # requester sees answers
                 | (Q(feedback_request__isnull=True) & Q(note__mentioned_users=user))
             )
