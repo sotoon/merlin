@@ -82,7 +82,13 @@ const isTeamLeader = useIsTeamLeader();
 
 // TODO: filter out templates in the backend
 const notesWithoutTemplates = computed(
-  () => notes.value?.filter(({ type }) => type !== NOTE_TYPE.template) || [],
+  () =>
+    notes.value?.filter(
+      ({ type }) =>
+        type !== NOTE_TYPE.template &&
+        type !== NOTE_TYPE.feedbackRequest &&
+        type !== NOTE_TYPE.feedback,
+    ) || [],
 );
 const filteredNotes = useFilterNotes(notesWithoutTemplates);
 const sortedNotes = useSortNotes(filteredNotes);

@@ -49,6 +49,11 @@ const chipConfig = computed(() => {
             :label="chipConfig.label"
             size="small"
           />
+          <i
+            v-if="request.note.read_status"
+            class="i-mdi-email-open block text-h3 text-gray-30"
+          />
+          <i v-else class="i-mdi-email block text-h3 text-primary" />
         </div>
       </template>
 

@@ -39,12 +39,25 @@ const newFeedbackCount = computed(
         message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
     ).length,
 );
+const receivedFeedbackCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) =>
+        message.type === NOTE_TYPE.feedback &&
+        message.feedback_request_uuid &&
+        !message.read_status,
+    ).length,
+);
 </script>
 
 <template>
   <div>
     <PTabs :model-value="currentTabIndex" @update:model-value="handleTabChange">
       <PTab :title="t('feedback.ownedRequests')">
+        <template #prepend>
+          <Badge :count="receivedFeedbackCount" :max="999" />
+        </template>
+
         <div v-if="ownedPending" class="flex items-center justify-center py-8">
           <PLoading class="text-primary" :size="20" />
         </div>
