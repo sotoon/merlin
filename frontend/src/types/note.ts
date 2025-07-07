@@ -34,6 +34,7 @@ export interface Note {
   year: number;
   one_on_one_member: string | null;
   one_on_one_id: number | null;
+  feedback_request_uuid: string | null;
 }
 
 export interface NoteFormValues

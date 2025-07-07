@@ -2241,12 +2241,17 @@ components:
         one_on_one_id:
           type: integer
           readOnly: true
+        feedback_request_uuid:
+          type: string
+          format: uuid
+          readOnly: true
       required:
       - access_level
       - content
       - date
       - date_created
       - date_updated
+      - feedback_request_uuid
       - one_on_one_id
       - one_on_one_member
       - owner

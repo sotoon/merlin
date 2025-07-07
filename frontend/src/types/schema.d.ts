@@ -909,6 +909,8 @@ export interface components {
       /** Format: uuid */
       readonly one_on_one_member: string;
       readonly one_on_one_id: number;
+      /** Format: uuid */
+      readonly feedback_request_uuid: string;
     };
     /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
     NoteMeta: {
