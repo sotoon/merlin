@@ -21,6 +21,7 @@ const handleSubmit = async (
     title: values.title,
     content: values.content,
     requestee_emails: values.requestee_emails,
+    mentioned_users: values.mentioned_users,
     deadline: values.deadline,
     form_uuid: values.form_uuid,
   });

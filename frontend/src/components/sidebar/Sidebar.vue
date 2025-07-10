@@ -157,12 +157,18 @@ const isTeamLeader = useIsTeamLeader();
 const messagesWithoutTemplates = computed(
   () =>
     messages.value?.filter(
-      ({ type }) =>
-        type !== NOTE_TYPE.template &&
-        type !== NOTE_TYPE.feedbackRequest &&
-        type !== NOTE_TYPE.feedback,
+      (message) =>
+        message.type !== NOTE_TYPE.template &&
+        message.type !== NOTE_TYPE.feedbackRequest &&
+        message.type !== NOTE_TYPE.feedback,
     ) || [],
 );
+const newMessagesCount = computed(
+  () =>
+    messagesWithoutTemplates.value?.filter((message) => !message.read_status)
+      .length,
+);
+
 const newFeedbackCount = computed(
   () =>
     (messages.value || []).filter(
@@ -181,10 +187,5 @@ const newAdhocFeedbackCount = computed(
         !message.feedback_request_uuid &&
         !message.read_status,
     ).length,
-);
-const newMessagesCount = computed(
-  () =>
-    messagesWithoutTemplates.value?.filter((message) => !message.read_status)
-      .length,
 );
 </script>

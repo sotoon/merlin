@@ -19,6 +19,13 @@ const { t } = useI18n();
 const { mutateAsync: createEntry, isPending } = useCreateAdhocFeedbackEntry();
 const { data: forms, isPending: isFormsLoading } = useGetFeedbackForms();
 const { data: users, pending: isUsersLoading } = useGetUsers();
+const { data: profile } = useGetProfile();
+
+const filteredUsers = computed(() => {
+  if (!users.value) return [];
+  if (!profile.value) return users.value;
+  return users.value.filter((user) => user.email !== profile.value?.email);
+});
 
 const isStructured = ref(false);
 
@@ -120,7 +127,7 @@ watch(isStructured, (newValue) => {
         searchable
       >
         <PListboxOption
-          v-for="user in users"
+          v-for="user in filteredUsers"
           :key="user.uuid"
           :label="user.name || user.email"
           :value="user.uuid"

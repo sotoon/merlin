@@ -31,6 +31,7 @@ const { meta, handleSubmit, setFieldValue, values } = useForm<
     title: props.request?.title || '',
     content: props.request?.content || '',
     requestee_emails: props.request?.requestees?.map((r) => r.email) || [],
+    mentioned_users: props.request?.note?.mentioned_users || [],
     deadline: props.request?.deadline
       ? (new Date(props.request.deadline) as unknown as string)
       : null,
@@ -133,6 +134,14 @@ const formSchema = computed(() => {
       <UserSelect
         v-bind="componentField"
         :label="t('feedback.requestees')"
+        multiple
+      />
+    </VeeField>
+
+    <VeeField v-slot="{ componentField }" name="mentioned_users">
+      <UserSelect
+        v-bind="componentField"
+        :label="t('note.mentionedUsers')"
         multiple
       />
     </VeeField>

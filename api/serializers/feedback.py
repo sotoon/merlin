@@ -128,6 +128,13 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         write_only=True,
         allow_empty=False,
     )
+    mentioned_users = serializers.SlugRelatedField(
+        many=True,
+        slug_field="email",
+        queryset=User.objects.all(),
+        required=False,
+        allow_empty=True,
+    )
     deadline = serializers.DateField(required=False, allow_null=True)
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
 
@@ -138,6 +145,7 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         """
         owner = self.context["request"].user
         users = validated_data.pop("requestee_emails")
+        mentioned_users = validated_data.pop("mentioned_users", [])
 
         deadline = validated_data.pop("deadline", None)
         if deadline and deadline < timezone.now().date():
@@ -158,6 +166,11 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                 type=NoteType.FEEDBACK_REQUEST,
                 cycle=current_cycle,
             )
+
+            # Add mentioned users to the note
+            if mentioned_users:
+                note.mentioned_users.set(mentioned_users)
+
             fform = None
             if form_uuid:
                 try:
@@ -200,6 +213,12 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
             note = instance.note
             note.title = validated_data.get("title", note.title)
             note.content = validated_data.get("content", note.content)
+
+            # Update mentioned users
+            if "mentioned_users" in validated_data:
+                mentioned_users = validated_data.get("mentioned_users", [])
+                note.mentioned_users.set(mentioned_users)
+
             note.save()
 
             instance.deadline = validated_data.get("deadline", instance.deadline)
@@ -248,8 +267,10 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         owner = self.context["request"].user
         # During create: list is under "requestee_emails"
         emails = attrs.get("requestee_emails") or []
-        if any(u.email == owner.email if isinstance(u, User) else u == owner.email
-                for u in emails):
+        if any(
+            u.email == owner.email if isinstance(u, User) else u == owner.email
+            for u in emails
+        ):
             raise serializers.ValidationError(
                 "You cannot invite yourself to your own feedback request."
             )

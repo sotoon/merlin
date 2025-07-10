@@ -252,13 +252,7 @@ paths:
           description: ''
     post:
       operationId: feedback_requests_create
-      description: |-
-        Feedback-request CRUD.
-
-        List endpoint supports filters:
-            • ?type=owned    requests user created
-            • ?type=invited  requests user should answer
-            • ?type=all      all requests (default)
+      description: Create a feedback request and mark the note as read for the creator.
       tags:
       - feedback-requests
       requestBody:
@@ -1976,6 +1970,12 @@ components:
           maxLength: 512
         content:
           type: string
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            title: ایمیل سازمانی
         deadline:
           type: string
           format: date
@@ -2009,6 +2009,13 @@ components:
             title: ایمیل سازمانی
             writeOnly: true
           writeOnly: true
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
         deadline:
           type: string
           format: date
@@ -2592,6 +2599,13 @@ components:
             title: ایمیل سازمانی
             writeOnly: true
           writeOnly: true
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
         deadline:
           type: string
           format: date
