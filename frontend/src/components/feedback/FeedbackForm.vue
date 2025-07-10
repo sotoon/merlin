@@ -24,9 +24,15 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit, setFieldValue, values } = useForm<
-  Schema<'FeedbackRequestWriteRequest'>
->({
+const { data: forms, isPending: isFormsLoading } = useGetFeedbackForms();
+
+const {
+  meta,
+  values: formValues,
+  handleSubmit,
+  setFieldValue,
+  setValues,
+} = useForm<Schema<'FeedbackRequestWriteRequest'>>({
   initialValues: {
     title: props.request?.title || '',
     content: props.request?.content || '',
@@ -39,7 +45,25 @@ const { meta, handleSubmit, setFieldValue, values } = useForm<
   },
 });
 
-const { data: forms, isPending: isFormsLoading } = useGetFeedbackForms();
+const isEditing = computed(() => Boolean(props.request));
+
+useUnsavedChangesGuard({
+  disabled: () => !isEditing.value || !meta.value.dirty,
+});
+useStoreDraft({
+  disabled: isEditing,
+  storageKey: () => 'note:draft:feedbackRequest',
+  values: computed(() => ({
+    title: formValues.title,
+    content: formValues.content,
+  })),
+  setValues: (values) =>
+    setValues({
+      ...formValues,
+      title: values.title,
+      content: values.content,
+    }),
+});
 
 const onSubmit = handleSubmit((values, ctx) => {
   const deadline = values.deadline
@@ -49,12 +73,12 @@ const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', { ...values, deadline }, ctx);
 });
 
-const isStructured = ref(!!props.request?.form_uuid);
+const isStructured = ref(!!formValues?.form_uuid);
 
 watch(
   () => props.request,
-  () => {
-    isStructured.value = !!props.request?.form_uuid;
+  (newValue) => {
+    isStructured.value = !!newValue?.form_uuid;
   },
 );
 
@@ -66,8 +90,8 @@ watch(isStructured, (newValue) => {
 
 // Get selected form schema
 const formSchema = computed(() => {
-  if (!values.form_uuid || !forms.value) return undefined;
-  const form = forms.value.find((f) => f.uuid === values.form_uuid);
+  if (!formValues.form_uuid || !forms.value) return undefined;
+  const form = forms.value.find((f) => f.uuid === formValues.form_uuid);
   return form?.schema as FeedbackFormSchema;
 });
 </script>
@@ -130,11 +154,16 @@ const formSchema = computed(() => {
       <FeedbackRenderForm :schema="formSchema" is-preview />
     </div>
 
-    <VeeField v-slot="{ componentField }" name="requestee_emails">
+    <VeeField
+      v-slot="{ componentField }"
+      name="requestee_emails"
+      rules="required"
+    >
       <UserSelect
         v-bind="componentField"
         :label="t('feedback.requestees')"
         multiple
+        required
       />
     </VeeField>
 

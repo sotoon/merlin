@@ -5,6 +5,7 @@ import draggable from 'vuedraggable';
 
 const props = defineProps<{
   schema: FeedbackFormSchema;
+  draftAnswers?: string;
 }>();
 
 const emit = defineEmits<{
@@ -53,6 +54,19 @@ watch(
   formFields,
   (newFormFields) => {
     setValues(newFormFields);
+  },
+  { immediate: true },
+);
+watch(
+  () => props.draftAnswers,
+  (newAnswers) => {
+    if (!newAnswers) return;
+    try {
+      const parsedAnswer = JSON.parse(newAnswers);
+      setValues(parsedAnswer);
+    } catch {
+      /* empty */
+    }
   },
   { immediate: true },
 );

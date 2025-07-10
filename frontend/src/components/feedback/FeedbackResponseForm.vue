@@ -31,10 +31,29 @@ const formSchema = computed(() => {
 // Form data for structured form
 const structuredFormData = ref<Record<string, any>>({});
 
-const { handleSubmit, meta } = useForm<{ content: string; evidence: string }>({
+const {
+  meta,
+  values: formValues,
+  handleSubmit,
+  setValues,
+} = useForm<{ content: string; evidence: string }>({
   initialValues: {
     content: '',
     evidence: '',
+  },
+});
+
+useStoreDraft({
+  storageKey: () => 'note:draft:feedbackEntry',
+  values: computed(() => ({
+    content: formValues.content,
+    evidence: formValues.evidence,
+  })),
+  setValues: (values) => {
+    setValues({
+      content: values.content,
+      evidence: values.evidence,
+    });
   },
 });
 

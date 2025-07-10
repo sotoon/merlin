@@ -181,7 +181,8 @@
     "getOneOnOneError": "خطا در دریافت یک به یک.",
     "memberNotFound": "کاربر یافت نشد.",
     "withManager": "با مدیرم",
-    "submitVibe": "ثبت بازخورد"
+    "submitVibe": "ثبت بازخورد",
+    "updateVibe": "ویرایش بازخورد"
   },
   "feedback": {
     "title": "عنوان",
