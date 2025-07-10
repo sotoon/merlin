@@ -4,6 +4,7 @@ import { PeyCircleTickOutlineIcon, PeyClockIcon } from '@pey/icons';
 
 const props = defineProps<{
   request: Schema<'FeedbackRequestReadOnly'>;
+  hasNewEntries?: boolean;
 }>();
 const { t } = useI18n();
 
@@ -49,11 +50,11 @@ const chipConfig = computed(() => {
             :label="chipConfig.label"
             size="small"
           />
-          <i
-            v-if="request.note.read_status"
-            class="i-mdi-email-open block text-h3 text-gray-30"
+          <div
+            v-if="hasNewEntries || !request.note.read_status"
+            class="i-mdi-email block text-h3 text-primary"
           />
-          <i v-else class="i-mdi-email block text-h3 text-primary" />
+          <i v-else class="i-mdi-email-open block text-h3 text-gray-30" />
         </div>
       </template>
 

@@ -32,21 +32,19 @@ const {
 } = useGetFeedbackRequests('invited');
 
 const { data: messages } = useGetNotes({ retrieveMentions: true });
-const newFeedbackCount = computed(
-  () =>
-    (messages.value || []).filter(
-      (message) =>
-        message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
-    ).length,
+const newFeedback = computed(() =>
+  (messages.value || []).filter(
+    (message) =>
+      message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
+  ),
 );
-const receivedFeedbackCount = computed(
-  () =>
-    (messages.value || []).filter(
-      (message) =>
-        message.type === NOTE_TYPE.feedback &&
-        message.feedback_request_uuid &&
-        !message.read_status,
-    ).length,
+const receivedFeedback = computed(() =>
+  (messages.value || []).filter(
+    (message) =>
+      message.type === NOTE_TYPE.feedback &&
+      message.feedback_request_uuid &&
+      !message.read_status,
+  ),
 );
 </script>
 
@@ -55,7 +53,7 @@ const receivedFeedbackCount = computed(
     <PTabs :model-value="currentTabIndex" @update:model-value="handleTabChange">
       <PTab :title="t('feedback.ownedRequests')">
         <template #prepend>
-          <Badge :count="receivedFeedbackCount" :max="999" />
+          <Badge :count="receivedFeedback.length" :max="999" />
         </template>
 
         <div v-if="ownedPending" class="flex items-center justify-center py-8">
@@ -84,6 +82,11 @@ const receivedFeedbackCount = computed(
             v-for="request in ownedRequests"
             :key="request.uuid"
             :request="request"
+            :has-new-entries="
+              receivedFeedback.some(
+                (f) => f.feedback_request_uuid === request.uuid,
+              )
+            "
           />
         </div>
         <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
@@ -93,7 +96,7 @@ const receivedFeedbackCount = computed(
 
       <PTab :title="t('feedback.invitedRequests')">
         <template #prepend>
-          <Badge :count="newFeedbackCount" :max="999" />
+          <Badge :count="newFeedback.length" :max="999" />
         </template>
 
         <div
@@ -125,6 +128,9 @@ const receivedFeedbackCount = computed(
             v-for="request in invitedRequests"
             :key="request.uuid"
             :request="request"
+            :has-new-entries="
+              newFeedback.some((f) => f.feedback_request_uuid === request.uuid)
+            "
           />
         </div>
         <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>
