@@ -37,12 +37,14 @@ const { handleSubmit, meta, setFieldValue, values } = useForm<{
   content: string;
   evidence: string;
   form_uuid?: string;
+  mentioned_users?: string[];
 }>({
   initialValues: {
     receiver_id: '',
     content: '',
     evidence: '',
     form_uuid: '',
+    mentioned_users: [],
   },
 });
 
@@ -61,6 +63,7 @@ const onSubmit = handleSubmit((values) => {
 
   createEntry({
     content,
+    mentioned_users: values.mentioned_users,
     evidence: isStructured.value ? '' : values.evidence,
     receiver_id: values.receiver_id,
     form_uuid: isStructured.value ? values.form_uuid : undefined,
@@ -133,6 +136,14 @@ watch(isStructured, (newValue) => {
           :value="user.uuid"
         />
       </PListbox>
+    </VeeField>
+
+    <VeeField v-slot="{ componentField }" name="mentioned_users">
+      <UserSelect
+        v-bind="componentField"
+        :label="t('note.mentionedUsers')"
+        multiple
+      />
     </VeeField>
 
     <PSwitch v-model="isStructured" :label="t('feedback.structuredFeedback')" />

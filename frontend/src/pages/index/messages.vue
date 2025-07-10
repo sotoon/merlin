@@ -12,7 +12,10 @@
       </div>
     </div>
 
-    <div v-if="!notes && pending" class="flex items-center justify-center py-8">
+    <div
+      v-if="!newNotes && pending"
+      class="flex items-center justify-center py-8"
+    >
       <PLoading class="text-primary" :size="20" />
     </div>
 
@@ -27,10 +30,10 @@
     </div>
 
     <template v-else>
-      <template v-if="notes?.length">
-        <NoteTypeFilter :notes />
+      <template v-if="newNotes?.length">
+        <NoteTypeFilter :notes="newNotes" />
 
-        <NoteListControls v-if="notes?.length">
+        <NoteListControls v-if="newNotes?.length">
           <NoteSearchFilter />
 
           <template #sort>
@@ -38,8 +41,8 @@
           </template>
 
           <template #filter>
-            <NoteWriterFilter :notes />
-            <NotePeriodFilter :notes />
+            <NoteWriterFilter :notes="newNotes" />
+            <NotePeriodFilter :notes="newNotes" />
             <NoteTeamFilter v-if="isTeamLeader" />
             <NoteReadStatusFilter />
           </template>
@@ -79,18 +82,28 @@ const {
   retrieveMentions: true,
 });
 const isTeamLeader = useIsTeamLeader();
+const { data: profile } = useGetProfile();
 
 // TODO: filter out templates in the backend
-const notesWithoutTemplates = computed(
-  () =>
-    notes.value?.filter(
-      ({ type }) =>
-        type !== NOTE_TYPE.template &&
-        type !== NOTE_TYPE.feedbackRequest &&
-        type !== NOTE_TYPE.feedback,
-    ) || [],
+const newNotes = computed(() =>
+  (notes.value || []).filter((note) => {
+    if (note.type === NOTE_TYPE.template) {
+      return false;
+    }
+    if (
+      note.type === NOTE_TYPE.feedbackRequest ||
+      note.type === NOTE_TYPE.feedback
+    ) {
+      if (note.mentioned_users?.includes(profile.value?.email || '')) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }),
 );
-const filteredNotes = useFilterNotes(notesWithoutTemplates);
+
+const filteredNotes = useFilterNotes(newNotes);
 const sortedNotes = useSortNotes(filteredNotes);
 const typeFilter = useRouteQuery<string>('type');
 </script>
