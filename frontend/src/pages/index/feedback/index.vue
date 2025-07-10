@@ -24,27 +24,26 @@ const {
   isError: ownedError,
   refetch: ownedRefresh,
 } = useGetFeedbackRequests('owned');
+const { data: messages } = useGetNotes({
+  retrieveMentions: true,
+  type: NOTE_TYPE.feedback,
+});
+const receivedFeedback = computed(() =>
+  (messages.value || []).filter(
+    (message) => message.feedback_request_uuid && !message.read_status,
+  ),
+);
+
 const {
   data: invitedRequests,
   isPending: invitedPending,
   isError: invitedError,
   refetch: invitedRefresh,
 } = useGetFeedbackRequests('invited');
-
-const { data: messages } = useGetNotes({ retrieveMentions: true });
-const newFeedback = computed(() =>
-  (messages.value || []).filter(
-    (message) =>
-      message.type === NOTE_TYPE.feedbackRequest && !message.read_status,
-  ),
-);
-const receivedFeedback = computed(() =>
-  (messages.value || []).filter(
-    (message) =>
-      message.type === NOTE_TYPE.feedback &&
-      message.feedback_request_uuid &&
-      !message.read_status,
-  ),
+const unreadInvitedRequestsCount = computed(
+  () =>
+    (invitedRequests.value || []).filter((request) => !request.note.read_status)
+      .length,
 );
 </script>
 
@@ -96,7 +95,7 @@ const receivedFeedback = computed(() =>
 
       <PTab :title="t('feedback.invitedRequests')">
         <template #prepend>
-          <Badge :count="newFeedback.length" :max="999" />
+          <Badge :count="unreadInvitedRequestsCount" :max="999" />
         </template>
 
         <div
@@ -128,9 +127,6 @@ const receivedFeedback = computed(() =>
             v-for="request in invitedRequests"
             :key="request.uuid"
             :request="request"
-            :has-new-entries="
-              newFeedback.some((f) => f.feedback_request_uuid === request.uuid)
-            "
           />
         </div>
         <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>

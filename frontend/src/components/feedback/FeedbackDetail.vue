@@ -21,6 +21,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const { data: profile } = useGetProfile();
 const { data: forms } = useGetFeedbackForms();
+const { data: users } = useGetUsers();
 const { mutateAsync: deleteRequest, isPending: isDeleting } =
   useDeleteFeedbackRequest(props.request.uuid);
 
@@ -50,6 +51,18 @@ const formSchema = computed(() => {
   if (!props.request.form_uuid || !forms.value) return undefined;
   const form = forms.value.find((f) => f.uuid === props.request.form_uuid);
   return form?.schema as FeedbackFormSchema;
+});
+
+// Map mentioned user emails to user objects with names
+const mentionedUsers = computed(() => {
+  if (!props.request.note?.mentioned_users?.length || !users.value) return [];
+
+  return props.request.note.mentioned_users
+    .map((email) => {
+      const user = users.value?.find((u) => u.email === email);
+      return user ? { email, name: user.name } : { email, name: email };
+    })
+    .filter(Boolean);
 });
 </script>
 
@@ -144,6 +157,21 @@ const formSchema = computed(() => {
               </PText>
             </template>
           </PTooltip>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="request.note?.mentioned_users?.length" class="mt-6">
+      <PText as="p" class="mb-2 text-gray-50" variant="caption1">
+        {{ t('note.mentionedUsers') }}:
+      </PText>
+      <div class="flex flex-wrap items-center gap-2">
+        <div
+          v-for="user in mentionedUsers"
+          :key="user.email"
+          class="rounded-full border border-gray-20 px-2 py-1"
+        >
+          <span>{{ user.name }}</span>
         </div>
       </div>
     </div>

@@ -108,12 +108,7 @@ export interface paths {
      *         • ?type=all      all requests (default) */
     get: operations['feedback_requests_list'];
     put?: never;
-    /** @description Feedback-request CRUD.
-     *
-     *     List endpoint supports filters:
-     *         • ?type=owned    requests user created
-     *         • ?type=invited  requests user should answer
-     *         • ?type=all      all requests (default) */
+    /** @description Create a feedback request and mark the note as read for the creator. */
     post: operations['feedback_requests_create'];
     delete?: never;
     options?: never;
@@ -786,6 +781,7 @@ export interface components {
     FeedbackRequestWrite: {
       title: string;
       content: string;
+      mentioned_users?: string[];
       /** Format: date */
       deadline?: string | null;
       /** Format: uuid */
@@ -797,6 +793,7 @@ export interface components {
       title: string;
       content: string;
       requestee_emails: string[];
+      mentioned_users?: string[];
       /** Format: date */
       deadline?: string | null;
       /** Format: uuid */
@@ -1052,6 +1049,7 @@ export interface components {
       title?: string;
       content?: string;
       requestee_emails?: string[];
+      mentioned_users?: string[];
       /** Format: date */
       deadline?: string | null;
       /** Format: uuid */

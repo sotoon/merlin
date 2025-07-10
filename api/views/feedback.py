@@ -99,7 +99,8 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
             self.queryset.select_related("note")
             .prefetch_related("note__mentioned_users")
             .filter(
-                Q(receiver=user)
+                Q(sender=user)
+                | Q(receiver=user)
                 | Q(feedback_request__note__owner=user)  # requester sees answers
                 | (Q(feedback_request__isnull=True) & Q(note__mentioned_users=user))
             )
