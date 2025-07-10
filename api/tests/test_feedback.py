@@ -143,7 +143,7 @@ def test_sender_can_send_feedback(api_client, user, receiver):
     """Sender posts ad-hoc feedback; sender & receiver can read entry."""
     api_client.force_authenticate(user)
     payload = {
-        "receiver_id": str(receiver.uuid),
+        "receiver_ids": [str(receiver.uuid)],
         "content": "Great work!",
         "evidence": "PR #123",
     }
@@ -170,7 +170,7 @@ def test_outsider_cannot_access_feedback(api_client, user, receiver, outsider):
     uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(receiver.uuid),
+            "receiver_ids": [str(receiver.uuid)],
             "content": "Hi",
         },
         format="json",
@@ -198,7 +198,7 @@ def test_second_sender_cannot_see_others_feedback(api_client, user_factory):
     fb1_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(receiver.uuid),
+            "receiver_ids": [str(receiver.uuid)],
             "content": "fb1",
         },
         format="json",
@@ -209,7 +209,7 @@ def test_second_sender_cannot_see_others_feedback(api_client, user_factory):
     fb2_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(receiver.uuid),
+            "receiver_ids": [str(receiver.uuid)],
             "content": "fb2",
         },
         format="json",
@@ -266,7 +266,7 @@ def test_mentioned_user_can_view_ad_hoc_feedback(
     fb_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(receiver.uuid),
+            "receiver_ids": [str(receiver.uuid)],
             "content": "Great collaboration @%s" % mentioned_user.email,
         },
         format="json",
@@ -306,7 +306,7 @@ def test_mentioned_user_cannot_view_request_answer(
     fb_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(user.uuid),
+            "receiver_ids": [str(user.uuid)],
             "feedback_request_uuid": str(fr_uuid),
             "content": "Here's my feedback @%s" % mentioned_user.email,
         },
@@ -350,14 +350,14 @@ def test_past_deadline_rejected(api_client, user, receiver):
 def test_self_invite_filtered(api_client, user):
     """Owner listed in requestee_emails should not receive a FeedbackRequestUserLink."""
     api_client.force_authenticate(user)
-    fr_uuid = api_client.post(
+    resp = api_client.post(
         reverse("api:feedback-requests-list"),
         {"title": "Need feedback", "content": "x", "requestee_emails": [user.email]},
         format="json",
-    ).data["uuid"]
+    )
+    # Self-invite must be rejected outright
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
-    fr = FeedbackRequest.objects.get(uuid=fr_uuid)
-    assert not fr.requestees.filter(user=user).exists()
 
 
 @pytest.mark.django_db
@@ -392,7 +392,7 @@ def test_uninvited_cannot_answer(api_client, user, receiver, outsider):
     resp = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(user.uuid),
+            "receiver_ids": [str(receiver.uuid)],
             "feedback_request_uuid": str(fr_uuid),
             "content": "I'm not invited",
         },
@@ -415,7 +415,7 @@ def test_receiver_must_be_owner(api_client, user, receiver, outsider):
     resp = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(outsider.uuid),  # wrong receiver
+            "receiver_ids": [str(receiver.uuid)],  # wrong receiver
             "feedback_request_uuid": str(fr_uuid),
             "content": "bad receiver",
         },
@@ -430,7 +430,7 @@ def test_self_feedback_blocked(api_client, user):
     api_client.force_authenticate(user)
     resp = api_client.post(
         reverse("api:feedback-entries-list"),
-        {"receiver_id": str(user.uuid), "content": "to myself"},
+        {"receiver_ids": [str(user.uuid)], "content": "to myself"},
         format="json",
     )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -452,7 +452,7 @@ def test_answered_flag_set(api_client, user, receiver):
     api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(user.uuid),
+            "receiver_ids": [str(user.uuid)],
             "feedback_request_uuid": str(fr_uuid),
             "content": "here",
         },
@@ -483,7 +483,7 @@ def test_request_owner_sees_all_answers(api_client, user, receiver, outsider):
     fb1_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(user.uuid),
+            "receiver_ids": [str(user.uuid)],
             "feedback_request_uuid": str(fr_uuid),
             "content": "r1",
         },
@@ -494,7 +494,7 @@ def test_request_owner_sees_all_answers(api_client, user, receiver, outsider):
     fb2_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(user.uuid),
+            "receiver_ids": [str(user.uuid)],
             "feedback_request_uuid": str(fr_uuid),
             "content": "r2",
         },
@@ -526,7 +526,7 @@ def test_mention_does_not_unlock_request_answer(api_client, user, receiver, outs
     fb_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(user.uuid),
+            "receiver_ids": [str(user.uuid)],
             "feedback_request_uuid": str(fr_uuid),
             "content": f"ping @{outsider.email}",
         },
@@ -550,7 +550,7 @@ def test_permissions_update_delete(api_client, user, receiver, outsider):
     api_client.force_authenticate(user)
     fb_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
-        {"receiver_id": str(receiver.uuid), "content": "hi"},
+        {"receiver_ids": [str(receiver.uuid)], "content": "hi"},
         format="json",
     ).data["uuid"]
     detail_url = reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
@@ -565,7 +565,7 @@ def test_permissions_update_delete(api_client, user, receiver, outsider):
     # Recreate for negative checks
     fb_uuid = api_client.post(
         reverse("api:feedback-entries-list"),
-        {"receiver_id": str(receiver.uuid), "content": "hi2"},
+        {"receiver_ids": [str(receiver.uuid)], "content": "hi2"},
         format="json",
     ).data["uuid"]
     detail_url = reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
@@ -590,7 +590,7 @@ def test_inactive_form_rejected(api_client, user, receiver, feedback_form_factor
     resp = api_client.post(
         reverse("api:feedback-entries-list"),
         {
-            "receiver_id": str(receiver.uuid),
+            "receiver_ids": [str(receiver.uuid)],
             "form_uuid": str(inactive_form.uuid),
             "content": "x",
         },
@@ -741,3 +741,55 @@ def test_all_filter_returns_both_owned_and_invited(api_client, user_factory):
 
     assert all_titles == {"R1", "R2"}
     assert default_titles == {"R1", "R2"}
+
+
+@pytest.mark.django_db
+def test_setting_mentioned_users_on_feedback_creation(api_client, user, receiver, mentioned_user):
+    """Mentioned users included in payload should be linked to the feedback note."""
+    api_client.force_authenticate(user)
+    payload = {
+        "receiver_ids": [str(receiver.uuid)],
+        "content": "Testing mentions",
+        "mentioned_users": [mentioned_user.email]
+    }
+    url = reverse("api:feedback-entries-list")
+    resp = api_client.post(url, payload, format="json")
+    assert resp.status_code == status.HTTP_201_CREATED
+
+    fb_uuid = resp.data["uuid"]
+    fb = Feedback.objects.get(uuid=fb_uuid)
+    assert list(fb.note.mentioned_users.all()) == [mentioned_user]
+
+
+@pytest.mark.django_db
+def test_bulk_feedback_creation(api_client, user, receiver, outsider):
+    """User can send the same ad-hoc feedback to multiple recipients at once."""
+    api_client.force_authenticate(user)
+
+    url = reverse("api:feedback-entries-list")
+    payload = {
+        "receiver_ids": [str(receiver.uuid), str(outsider.uuid)],
+        "content": "Great teamwork!",
+        "evidence": "PR #456"
+    }
+
+    resp = api_client.post(url, payload, format="json")
+    assert resp.status_code == status.HTTP_201_CREATED
+
+    # Should get back a list of two feedback objects
+    assert isinstance(resp.data, list)
+    assert len(resp.data) == 2
+
+    returned_uuids = {item["uuid"] for item in resp.data}
+    feedbacks = Feedback.objects.filter(uuid__in=returned_uuids)
+    assert feedbacks.count() == 2
+
+    # Verify each feedback entry
+    for fb in feedbacks:
+        assert fb.sender == user
+        assert fb.content == "Great teamwork!"
+        assert fb.evidence == "PR #456"
+        assert str(fb.receiver.uuid) in payload["receiver_ids"]
+
+
+

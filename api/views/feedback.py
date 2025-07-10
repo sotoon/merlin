@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from api.serializers.feedback import (
     FeedbackFormSerializer,
     FeedbackRequestReadOnlySerializer,
@@ -113,6 +113,23 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(feedback_request__isnull=True)
 
         return queryset
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instances = serializer.save()             # may be 1 object or a list
+
+        # Bulk-mode - list of Feedback objects
+        if isinstance(instances, list):
+            out = self.get_serializer(instances, many=True).data
+            headers = self.get_success_headers(out)
+            return Response(out, status=status.HTTP_201_CREATED, headers=headers)
+
+        # Single-item (ad-hoc or request-answer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
 
 
 # ─────────────────────────────────────

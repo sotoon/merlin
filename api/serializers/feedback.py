@@ -280,11 +280,17 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
 class FeedbackSerializer(serializers.Serializer):
     """
-    Serializer for feedback entries: supports ad-hoc feedback and answers to
-    requests, with full creation, update, and validation logic.
+    Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+
+    • `receiver_ids`   - list of UUIDs (required)
+    • `feedback_request_uuid` - present only when answering a request
+    • `form_uuid`     - optional structured form
     """
 
-    receiver_id = serializers.UUIDField()
+    receiver_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        allow_empty=False,
+    )
     feedback_request_uuid = serializers.UUIDField(required=False, allow_null=True)
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
     content = serializers.CharField()
@@ -292,6 +298,7 @@ class FeedbackSerializer(serializers.Serializer):
 
     uuid = serializers.UUIDField(read_only=True)
     sender = FeedbackUserSerializer(read_only=True)
+    # The field below controls what the API returns, not what it accepts
     receiver = FeedbackUserSerializer(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     note = NoteSerializer(read_only=True)
@@ -303,85 +310,114 @@ class FeedbackSerializer(serializers.Serializer):
         allow_empty=True,
     )
 
+    def validate(self, attrs):
+        """
+        Block self-feedback; skip the check when receiver_id is not supplied
+        (e.g. partial update that only edits content).
+        """
+        sender = self.context["request"].user
+        ids = attrs.get("receiver_ids")
+
+        if ids and str(sender.uuid) in map(str, ids):
+            raise serializers.ValidationError("You cannot send feedback to yourself")
+        
+        # request answers must be single-receiver
+        if attrs.get("feedback_request_uuid") and len(ids) != 1:
+            raise serializers.ValidationError(
+                "You can answer a feedback-request for one receiver only."
+            )
+        
+        return attrs
+    
     def create(self, validated_data):
         """
         Create a Feedback entry and its Note, optionally link to a FeedbackRequest,
         enforce invitee and receiver rules, and mark answered.
         """
         sender = self.context["request"].user
-        receiver_id = validated_data.pop("receiver_id")
+        receiver_ids = validated_data.pop("receiver_ids")
         feedback_request_uuid = validated_data.pop("feedback_request_uuid", None)
         form_uuid = validated_data.pop("form_uuid", None)
         mentioned_users = validated_data.pop("mentioned_users", [])
 
-        receiver = User.objects.get(uuid=receiver_id)
-        with transaction.atomic():
-            current_cycle = Cycle.get_current_cycle()
-            if current_cycle is None:
-                raise serializers.ValidationError("No active cycle defined")
+        # Fetch all receivers at once
+        receivers = {str(u.uuid): u for u in User.objects.filter(uuid__in=receiver_ids)}
+        missing   = set(map(str, receiver_ids)) - set(receivers)
+        if missing:
+            raise serializers.ValidationError(f"User(s) not found: {', '.join(missing)}")
 
-            note = Note.objects.create(
-                owner=sender,
-                title=f"Feedback from {sender.name}",
-                content=validated_data["content"],
-                date=timezone.now().date(),
-                type=NoteType.FEEDBACK,
-                cycle=current_cycle,
-            )
-            if mentioned_users:
-                note.mentioned_users.set(mentioned_users)
-            form = None
-            if form_uuid:
-                try:
-                    form = FeedbackForm.objects.get(uuid=form_uuid, is_active=True)
-                except FeedbackForm.DoesNotExist:
-                    raise serializers.ValidationError(
-                        "Invalid or inactive feedback form"
-                    )
-            feedback_request = None
-            if feedback_request_uuid:
-                feedback_request = FeedbackRequest.objects.select_related("note").get(
-                    uuid=feedback_request_uuid
+        # Optional form
+        form = None
+        if form_uuid:
+            try:
+                form = FeedbackForm.objects.get(uuid=form_uuid, is_active=True)
+            except FeedbackForm.DoesNotExist:
+                raise serializers.ValidationError("Invalid or inactive feedback form")
+
+        # Optional request
+        fq = None
+        if feedback_request_uuid:
+            fq = FeedbackRequest.objects.select_related("note").get(uuid=feedback_request_uuid)
+            # receiver must be the request owner
+            owner_uuid = str(fq.note.owner.uuid)
+            if owner_uuid not in receivers:
+                raise serializers.ValidationError(
+                    "Receiver_ids must contain the request owner only."
                 )
-                if receiver.id != feedback_request.note.owner_id:
-                    raise serializers.ValidationError(
-                        "Receiver must be the feedback-request owner"
-                    )
+            # sender must be invited
+            if not fq.requestees.filter(user=sender).exists():
+                raise serializers.ValidationError("You were not invited to answer.")
 
-                if (
-                    feedback_request
-                    and not feedback_request.requestees.filter(user=sender).exists()
-                ):
-                    raise serializers.ValidationError(
-                        "You were not invited to answer this request"
-                    )
+        # Active cycle
+        cycle = Cycle.get_current_cycle()
+        if cycle is None:
+            raise serializers.ValidationError("No active cycle defined")
 
-            # create feedback
-            feedback = Feedback.objects.create(
-                note=note,
-                sender=sender,
-                receiver=receiver,
-                feedback_request=feedback_request,
-                form=form,
-                content=validated_data["content"],
-                evidence=validated_data.get("evidence", ""),
-                cycle=current_cycle,
-            )
+        created = []
+        with transaction.atomic():
+            for rid in receiver_ids:
+                receiver = receivers[str(rid)]
 
-            # mark answered flag
-            if feedback_request:
+                note = Note.objects.create(
+                    owner=sender,
+                    title=f"Feedback from {sender.name}",
+                    content=validated_data["content"],
+                    date=timezone.now().date(),
+                    type=NoteType.FEEDBACK,
+                    cycle=cycle,
+                )
+
+                if mentioned_users:
+                    note.mentioned_users.set(mentioned_users)
+
+                fb = Feedback.objects.create(
+                    note=note,
+                    sender=sender,
+                    receiver=receiver,
+                    feedback_request=fq,
+                    form=form,
+                    content=validated_data["content"],
+                    evidence=validated_data.get("evidence", ""),
+                    cycle=cycle,
+                )
+                created.append(fb)
+
+                # ACL for receiver
+                from api.models.note import NoteUserAccess
+                NoteUserAccess.objects.update_or_create(
+                    user=receiver,
+                    note=note,
+                    defaults={"can_view": True, "can_view_feedbacks": True},
+                )
+
+            # mark answered once per request
+            if fq:
                 FeedbackRequestUserLink.objects.filter(
-                    request=feedback_request, user=sender
+                    request=fq, user=sender
                 ).update(answered=True)
 
-            from api.models.note import NoteUserAccess
+        return created[0] if len(created) == 1 else created
 
-            NoteUserAccess.objects.update_or_create(
-                user=receiver,
-                note=note,
-                defaults={"can_view": True, "can_view_feedbacks": True},
-            )
-        return feedback
 
     def update(self, instance, validated_data):
         """
@@ -411,27 +447,22 @@ class FeedbackSerializer(serializers.Serializer):
         instance.save(update_fields=["content", "evidence", "form"])
         return instance
 
-    def validate(self, attrs):
-        """
-        Block self-feedback; skip the check when receiver_id is not supplied
-        (e.g. partial update that only edits content).
-        """
-        sender = self.context["request"].user
-        receiver_id = attrs.get("receiver_id")
-        if receiver_id and sender.uuid == receiver_id:
-            raise serializers.ValidationError("You cannot send feedback to yourself")
-        return attrs
-
     def to_representation(self, instance):
         """
         Convert a Feedback instance into the API response format with uuid,
         content, evidence, sender, receiver, date_created, form_uuid, and note.
         """
+        if isinstance(instance, list):
+            return [self.to_representation(obj) for obj in instance]
+        
         return {
             "uuid": instance.uuid,
             "content": instance.content,
             "evidence": instance.evidence,
-            "sender": {"uuid": str(instance.sender.uuid), "name": instance.sender.name},
+            "sender": {
+                "uuid": str(instance.sender.uuid),
+                "name": instance.sender.name
+            },
             "receiver": {
                 "uuid": str(instance.receiver.uuid),
                 "name": instance.receiver.name,
