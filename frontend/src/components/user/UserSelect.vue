@@ -6,6 +6,7 @@
       :label
       :loading="pending"
       :multiple
+      :required
       searchable
     >
       <PListboxOption
@@ -33,7 +34,7 @@
 import { PChip, PListbox, PListboxOption } from '@pey/core';
 
 defineOptions({ inheritAttrs: false });
-defineProps<{ label?: string; multiple?: boolean }>();
+defineProps<{ label?: string; multiple?: boolean; required?: boolean }>();
 const model = defineModel<string[] | null>();
 
 const { data: users, pending } = useGetUsers();
