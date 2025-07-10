@@ -1830,6 +1830,12 @@ components:
           allOf:
           - $ref: '#/components/schemas/Note'
           readOnly: true
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            title: ایمیل سازمانی
       required:
       - content
       - date_created
@@ -1878,6 +1884,13 @@ components:
           minLength: 1
         evidence:
           type: string
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
       required:
       - content
       - receiver_id
@@ -2577,6 +2590,13 @@ components:
           minLength: 1
         evidence:
           type: string
+        mentioned_users:
+          type: array
+          items:
+            type: string
+            format: email
+            minLength: 1
+            title: ایمیل سازمانی
     PatchedFeedbackRequestWriteRequest:
       type: object
       description: |-

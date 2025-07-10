@@ -726,6 +726,7 @@ export interface components {
       /** Format: date-time */
       readonly date_created: string;
       readonly note: components['schemas']['Note'];
+      mentioned_users?: string[];
     };
     /** @description ModelSerializer for FeedbackForm: lists uuid, title, description, and schema. */
     FeedbackForm: {
@@ -746,6 +747,7 @@ export interface components {
       form_uuid?: string | null;
       content: string;
       evidence?: string;
+      mentioned_users?: string[];
     };
     /** @description Read-only serializer for FeedbackRequest: exposes note details, owner info,
      *     update timestamp, form uuid, and requestees. */
@@ -1042,6 +1044,7 @@ export interface components {
       form_uuid?: string | null;
       content?: string;
       evidence?: string;
+      mentioned_users?: string[];
     };
     /** @description Write-only serializer for creating and updating FeedbackRequest: handles title,
      *     content, invitee emails, deadline, and optional form. */

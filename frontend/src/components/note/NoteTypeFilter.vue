@@ -33,8 +33,10 @@ const newMessagesCounts = computed(
       )
       .reduce<Partial<Record<NoteType | 'all', number>>>((acc, message) => {
         acc.all = (acc.all || 0) + 1;
+        if (message.type === NOTE_TYPE.feedbackRequest) {
+          acc[NOTE_TYPE.feedback] = (acc[NOTE_TYPE.feedback] || 0) + 1;
+        }
         acc[message.type] = (acc[message.type] || 0) + 1;
-
         return acc;
       }, {}) || {},
 );
@@ -44,6 +46,7 @@ const typeOptions = computed(() => [
   { label: t('noteType.meeting'), value: NOTE_TYPE.meeting },
   { label: t('noteType.proposal'), value: NOTE_TYPE.proposal },
   { label: t('noteType.message'), value: NOTE_TYPE.message },
+  { label: t('noteType.feedback'), value: NOTE_TYPE.feedback },
 ]);
 const selectedTab = computed({
   get() {
