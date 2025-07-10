@@ -68,6 +68,11 @@ const { execute: updateOneOnOne, pending } = useUpdateOneOnOne({
   oneOnOneId: props.oneOnOne.id,
 });
 
+const openVibeModal = () => {
+  selectedVibe.value = props.oneOnOne.member_vibe || undefined;
+  isVibeModalOpen.value = true;
+};
+
 const handleVibeSubmit = () => {
   if (!selectedVibe.value) return;
 
@@ -138,12 +143,12 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         :label="`${getVibeEmoji(oneOnOne.member_vibe) || 'بازخوردی ثبت نشده است'}`"
       />
 
-      <PButton
-        v-if="!isTeamLeader && !oneOnOne.member_vibe"
-        variant="light"
-        @click="isVibeModalOpen = true"
-      >
-        {{ t('oneOnOne.submitVibe') }}
+      <PButton v-if="!isTeamLeader" variant="light" @click="openVibeModal">
+        {{
+          oneOnOne.member_vibe
+            ? t('oneOnOne.updateVibe')
+            : t('oneOnOne.submitVibe')
+        }}
       </PButton>
     </div>
 

@@ -26,7 +26,7 @@ const {
       <PText as="p" class="text-center text-danger" responsive>
         {{
           error.statusCode === 404
-            ? t('note.oneOnOneNotFound')
+            ? t('oneOnOne.oneOnOneNotFound')
             : t('note.getOneOnOneError')
         }}
       </PText>

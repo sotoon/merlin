@@ -212,7 +212,9 @@ const noteOptions = computed(() =>
   notes.value
     ?.filter(
       (note) =>
-        note.type !== NOTE_TYPE.template && note.uuid !== props.note?.uuid,
+        note.type !== NOTE_TYPE.template &&
+        note.feedback_request_uuid === null &&
+        note.uuid !== props.note?.uuid,
     )
     .sort(
       (a, b) =>
