@@ -167,7 +167,6 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                 cycle=current_cycle,
             )
 
-            # Add mentioned users to the note
             if mentioned_users:
                 note.mentioned_users.set(mentioned_users)
 
@@ -214,7 +213,6 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
             note.title = validated_data.get("title", note.title)
             note.content = validated_data.get("content", note.content)
 
-            # Update mentioned users
             if "mentioned_users" in validated_data:
                 mentioned_users = validated_data.get("mentioned_users", [])
                 note.mentioned_users.set(mentioned_users)
@@ -297,6 +295,13 @@ class FeedbackSerializer(serializers.Serializer):
     receiver = FeedbackUserSerializer(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     note = NoteSerializer(read_only=True)
+    mentioned_users = serializers.SlugRelatedField(
+        many=True,
+        slug_field="email",
+        queryset=User.objects.all(),
+        required=False,
+        allow_empty=True,
+    )
 
     def create(self, validated_data):
         """
@@ -307,6 +312,7 @@ class FeedbackSerializer(serializers.Serializer):
         receiver_id = validated_data.pop("receiver_id")
         feedback_request_uuid = validated_data.pop("feedback_request_uuid", None)
         form_uuid = validated_data.pop("form_uuid", None)
+        mentioned_users = validated_data.pop("mentioned_users", [])
 
         receiver = User.objects.get(uuid=receiver_id)
         with transaction.atomic():
@@ -322,6 +328,8 @@ class FeedbackSerializer(serializers.Serializer):
                 type=NoteType.FEEDBACK,
                 cycle=current_cycle,
             )
+            if mentioned_users:
+                note.mentioned_users.set(mentioned_users)
             form = None
             if form_uuid:
                 try:
@@ -385,6 +393,10 @@ class FeedbackSerializer(serializers.Serializer):
             # keep the note's body in sync
             instance.note.content = validated_data["content"]
             instance.note.save(update_fields=["content"])
+
+        if "mentioned_users" in validated_data:
+            mentioned_users = validated_data.get("mentioned_users", [])
+            instance.note.mentioned_users.set(mentioned_users)
 
         if "evidence" in validated_data:
             instance.evidence = validated_data["evidence"]

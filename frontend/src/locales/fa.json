@@ -140,7 +140,9 @@
     "message": "پیام",
     "proposal": "پروپوزال ارتقا",
     "template": "قالب",
-    "forms": "فرم‌ها"
+    "forms": "فرم‌ها",
+    "feedbackRequest": "درخواست فیدبک",
+    "feedback": "فیدبک"
   },
   "profile": {
     "chapter": "چپتر",

@@ -152,39 +152,59 @@ import { PScrollbar, PText } from '@pey/core';
 const { t } = useI18n();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 const isTeamLeader = useIsTeamLeader();
+const { data: profile } = useGetProfile();
 
-// TODO: filter out templates in the backend
-const messagesWithoutTemplates = computed(
-  () =>
-    messages.value?.filter(
-      (message) =>
-        message.type !== NOTE_TYPE.template &&
-        message.type !== NOTE_TYPE.feedbackRequest &&
-        message.type !== NOTE_TYPE.feedback,
-    ) || [],
-);
 const newMessagesCount = computed(
   () =>
-    messagesWithoutTemplates.value?.filter((message) => !message.read_status)
-      .length,
+    (messages.value || []).filter((message) => {
+      if (message.read_status) return false;
+      if (message.type === NOTE_TYPE.template) {
+        return false;
+      }
+      if (
+        message.type === NOTE_TYPE.feedbackRequest ||
+        message.type === NOTE_TYPE.feedback
+      ) {
+        if (message.mentioned_users?.includes(profile.value?.email || '')) {
+          return true;
+        }
+        return false;
+      }
+      return true;
+    }).length,
 );
 
 const newFeedbackCount = computed(
   () =>
-    (messages.value || []).filter(
-      (message) =>
-        (message.type === NOTE_TYPE.feedbackRequest ||
-          (message.type === NOTE_TYPE.feedback &&
-            message.feedback_request_uuid)) &&
-        !message.read_status,
-    ).length,
+    (messages.value || []).filter((message) => {
+      if (message.read_status) return false;
+      if (
+        message.type === NOTE_TYPE.feedback &&
+        message.feedback_request_uuid
+      ) {
+        return true;
+      }
+      if (message.type === NOTE_TYPE.feedbackRequest) {
+        if (message.feedback_request_uuid) return true;
+        if (
+          !message.feedback_request_uuid &&
+          !message.mentioned_users?.includes(profile.value?.email || '')
+        ) {
+          return true;
+        }
+        return false;
+      }
+      return false;
+    }).length,
 );
+
 const newAdhocFeedbackCount = computed(
   () =>
     (messages.value || []).filter(
       (message) =>
         message.type === NOTE_TYPE.feedback &&
         !message.feedback_request_uuid &&
+        !message.mentioned_users?.includes(profile.value?.email || '') &&
         !message.read_status,
     ).length,
 );
