@@ -61,6 +61,9 @@ class NoteSerializer(serializers.ModelSerializer):
     feedback_request_uuid = serializers.UUIDField(
         source="feedback.feedback_request.uuid", read_only=True
     )
+    feedback_uuid = serializers.UUIDField(
+        source="feedback.uuid", read_only=True
+    )
 
     class Meta:
         model = Note
