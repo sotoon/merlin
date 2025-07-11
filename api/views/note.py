@@ -23,7 +23,7 @@ from api.views.mixins import CycleQueryParamMixin
 
 __all__ = ['NoteViewSet', 'TemplatesView', 'CommentViewSet', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet', 'MyOneOnOneViewSet']
 
-
+    
 class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = NoteSerializer
@@ -39,17 +39,34 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         user_email = self.request.query_params.get("user")
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
+        note_type_filter = self.request.query_params.get("type")
+
         accessible_notes = get_notes_visible_to(self.request.user)
+
         if user_email:
             queryset = accessible_notes.filter(owner__email=user_email)
+
         elif retrieve_mentions:
             queryset = accessible_notes.filter(~Q(owner=self.request.user))
+
         else:
             queryset = accessible_notes.filter(owner=self.request.user)
-        
-        type = self.request.query_params.get("type")
-        if type:
-            queryset = queryset.filter(type=type)
+
+            # ALSO include feedback the user received
+            queryset = queryset | accessible_notes.filter(
+                type=NoteType.FEEDBACK,
+                feedback__receiver=self.request.user
+            )
+
+            # ALSO include 1-on-1s where the user is the member
+            queryset = queryset | accessible_notes.filter(
+                type=NoteType.ONE_ON_ONE,
+                one_on_one__member=self.request.user
+            )    
+
+        if note_type_filter:
+            queryset = queryset.filter(type=note_type_filter)
+
         return queryset.distinct()
 
     @action(detail=True, methods=["post"], url_path="read")
