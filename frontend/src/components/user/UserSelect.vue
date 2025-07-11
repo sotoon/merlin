@@ -42,6 +42,7 @@ const props = withDefaults(
     valueKey?: 'email' | 'uuid';
   }>(),
   {
+    label: undefined,
     valueKey: 'email',
   },
 );
