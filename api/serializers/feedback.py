@@ -380,7 +380,7 @@ class FeedbackSerializer(serializers.Serializer):
 
                 note = Note.objects.create(
                     owner=sender,
-                    title=f"Feedback from {sender.name}",
+                    title=f"بازخوردی از  {sender.name}",
                     content=validated_data["content"],
                     date=timezone.now().date(),
                     type=NoteType.FEEDBACK,
