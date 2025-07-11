@@ -169,6 +169,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { data: profile } = useGetProfile();
 const {
   meta,
   values: formValues,
@@ -215,7 +216,8 @@ const noteOptions = computed(() =>
       if (note.uuid === props.note?.uuid) return false;
       if (
         note.type === NOTE_TYPE.feedback &&
-        note.feedback_request_uuid_of_feedback
+        (note.feedback_request_uuid_of_feedback ||
+          note.owner === profile.value?.email)
       ) {
         return false;
       }
