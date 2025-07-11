@@ -2,11 +2,12 @@ from rest_framework import permissions
 
 from api.models import NoteUserAccess, Cycle
 
- 
+
 class IsCurrentCycleEditable(permissions.BasePermission):
     """
     Only allow editing OneOnOne notes if their cycle is the current cycle.
     """
+
     message = "You can only edit One-on-Ones in the current cycle."
 
     def has_object_permission(self, request, view, obj):
@@ -14,14 +15,15 @@ class IsCurrentCycleEditable(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         current = Cycle.get_current_cycle()
-        
+
         if current is None:
             self.message = "No active cycle exists; editing is disabled."
             return False
         return obj.cycle_id == current.id
 
+        # FUTURE ENHANCEMENT: Since a single NoteUserAccess row per (user, note) is guaranteed, use the logic on HasOneOnOnePermission: fetch once, use attr
 
-                                                    # FUTURE ENHANCEMENT: Since a single NoteUserAccess row per (user, note) is guaranteed, use the logic on HasOneOnOnePermission: fetch once, use attr
+
 class NotePermission(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj):
         if request.method == "POST":
@@ -43,6 +45,7 @@ class NotePermission(permissions.IsAuthenticated):
 
 class CommentPermission(permissions.IsAuthenticated):
     """Permission for legacy *comments* on Notes (renamed from Feedback)."""
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return NoteUserAccess.objects.filter(
@@ -80,14 +83,15 @@ class IsLeaderForMember(permissions.BasePermission):
 
         member_pk = view.kwargs.get("member_pk")
         from api.models import User
+
         try:
             member = User.objects.get(uuid=member_pk)
         except User.DoesNotExist:
             return False
 
         allowed = (
-            request.user.id != member.id and          # not the member
-            request.user.id == member.leader_id       # is the leader
+            request.user.id != member.id  # not the member
+            and request.user.id == member.leader_id  # is the leader
         )
 
         return allowed
@@ -98,6 +102,7 @@ class HasOneOnOneAccess(permissions.BasePermission):
     Object-level permission for One-on-One notes.
     Mirrors NotePermission's fine-grained logic.
     """
+
     def _get_access(self, request, obj):
         try:
             return NoteUserAccess.objects.get(user=request.user, note=obj.note)
@@ -106,7 +111,7 @@ class HasOneOnOneAccess(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         access = self._get_access(request, obj)
-                
+
         if access is None:
             return False
 
@@ -130,6 +135,7 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
     sender, receiver, or request owner may read;
     ad-hoc mentioned users may read.
     """
+
     def has_object_permission(self, request, view, obj):
         user = request.user
 
@@ -140,9 +146,9 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
                 return True
 
             # Allow the original request owner to read answers
-            if obj.feedback_request and obj.feedback_request.note.owner_id == user.id:                
+            if obj.feedback_request and obj.feedback_request.note.owner_id == user.id:
                 return True
-            
+
             # Ad-hoc feedbacks (no related request) also allow mentioned users
             if (
                 obj.feedback_request is None
@@ -164,7 +170,9 @@ class FeedbackRequestPermission(permissions.IsAuthenticated):
         if request.method in permissions.SAFE_METHODS:
             if obj.note.owner_id == user.id:
                 return True
-            return obj.requestees.filter(user_id=user.id).exists()
+            if obj.requestees.filter(user_id=user.id).exists():
+                return True
+            return obj.note.mentioned_users.filter(id=user.id).exists()
         # modifications only by owner
         return obj.note.owner_id == user.id
 

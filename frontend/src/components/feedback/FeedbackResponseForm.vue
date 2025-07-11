@@ -57,7 +57,7 @@ useStoreDraft({
   },
 });
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit((values, ctx) => {
   // If it's a structured form, use the JSON stringified form data as content
   const content = hasStructuredForm.value
     ? JSON.stringify(structuredFormData.value, null, 2)
@@ -67,7 +67,9 @@ const onSubmit = handleSubmit((values) => {
     content,
     evidence: hasStructuredForm.value ? '' : values.evidence,
     feedback_request_uuid: props.request.uuid,
-    receiver_id: props.request.owner_uuid,
+    receiver_ids: [props.request.owner_uuid],
+  }).then(() => {
+    ctx.resetForm();
   });
 });
 

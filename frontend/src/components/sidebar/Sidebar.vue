@@ -174,36 +174,34 @@ const newMessagesCount = computed(
     }).length,
 );
 
-const newFeedbackCount = computed(
-  () =>
-    (messages.value || []).filter((message) => {
-      if (message.read_status) return false;
-      if (
-        message.type === NOTE_TYPE.feedback &&
-        message.feedback_request_uuid
-      ) {
-        return true;
+const newFeedbackCount = computed(() => {
+  const uniqueFeedbackRequestUuids = new Set<string>();
+  (messages.value || []).forEach((message) => {
+    if (message.read_status) return;
+
+    if (
+      message.type === NOTE_TYPE.feedback &&
+      message.feedback_request_uuid_of_feedback
+    ) {
+      uniqueFeedbackRequestUuids.add(message.feedback_request_uuid_of_feedback);
+    }
+
+    if (message.type === NOTE_TYPE.feedbackRequest) {
+      if (!message.mentioned_users?.includes(profile.value?.email || '')) {
+        uniqueFeedbackRequestUuids.add(message.feedback_request_uuid || '');
       }
-      if (message.type === NOTE_TYPE.feedbackRequest) {
-        if (message.feedback_request_uuid) return true;
-        if (
-          !message.feedback_request_uuid &&
-          !message.mentioned_users?.includes(profile.value?.email || '')
-        ) {
-          return true;
-        }
-        return false;
-      }
-      return false;
-    }).length,
-);
+    }
+  });
+
+  return uniqueFeedbackRequestUuids.size;
+});
 
 const newAdhocFeedbackCount = computed(
   () =>
     (messages.value || []).filter(
       (message) =>
         message.type === NOTE_TYPE.feedback &&
-        !message.feedback_request_uuid &&
+        !message.feedback_request_uuid_of_feedback &&
         !message.mentioned_users?.includes(profile.value?.email || '') &&
         !message.read_status,
     ).length,

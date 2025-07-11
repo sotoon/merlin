@@ -210,12 +210,17 @@ useStoreDraft({
 
 const noteOptions = computed(() =>
   notes.value
-    ?.filter(
-      (note) =>
-        note.type !== NOTE_TYPE.template &&
-        note.feedback_request_uuid === null &&
-        note.uuid !== props.note?.uuid,
-    )
+    ?.filter((note) => {
+      if (note.type === NOTE_TYPE.template) return false;
+      if (note.uuid === props.note?.uuid) return false;
+      if (
+        note.type === NOTE_TYPE.feedback &&
+        note.feedback_request_uuid_of_feedback
+      ) {
+        return false;
+      }
+      return true;
+    })
     .sort(
       (a, b) =>
         new Date(b.date_updated).getTime() - new Date(a.date_updated).getTime(),

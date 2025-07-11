@@ -13,18 +13,18 @@
         v-for="user in filteredUsers"
         :key="user.uuid"
         :label="user.name || user.email"
-        :value="user.email"
+        :value="user[valueKey]"
       />
     </PListbox>
 
     <div class="mt-3 flex flex-wrap gap-3">
       <PChip
-        v-for="userEmail in model"
-        :key="userEmail"
-        :label="getUserLabel(userEmail)"
+        v-for="itemValue in model"
+        :key="itemValue"
+        :label="getUserLabel(itemValue)"
         removable
         size="small"
-        @remove="handleRemove(userEmail)"
+        @remove="handleRemove(itemValue)"
       />
     </div>
   </div>
@@ -34,7 +34,17 @@
 import { PChip, PListbox, PListboxOption } from '@pey/core';
 
 defineOptions({ inheritAttrs: false });
-defineProps<{ label?: string; multiple?: boolean; required?: boolean }>();
+const props = withDefaults(
+  defineProps<{
+    label?: string;
+    multiple?: boolean;
+    required?: boolean;
+    valueKey?: 'email' | 'uuid';
+  }>(),
+  {
+    valueKey: 'email',
+  },
+);
 const model = defineModel<string[] | null>();
 
 const { data: users, pending } = useGetUsers();
@@ -50,10 +60,10 @@ const filteredUsers = computed(() => {
   return users.value;
 });
 
-const getUserLabel = (userEmail: string) =>
-  users.value?.find((user) => user.email === userEmail)?.name || userEmail;
+const getUserLabel = (value: string) =>
+  users.value?.find((user) => user[props.valueKey] === value)?.name || value;
 
-const handleRemove = (userEmail: string) => {
-  model.value = model.value?.filter((email) => email !== userEmail) ?? [];
+const handleRemove = (value: string) => {
+  model.value = model.value?.filter((item) => item !== value) ?? [];
 };
 </script>
