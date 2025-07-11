@@ -82,7 +82,20 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], url_path="entries")
     def list_entries(self, request, uuid=None):
         feedback_request = self.get_object()
-        entries = Feedback.objects.filter(feedback_request=feedback_request)
+        note = feedback_request.note
+        user = request.user
+
+        # Show all answers to the request owner, and the mentioned ones
+        if user == note.owner or user in note.mentioned_users.all():
+            entries = Feedback.objects.filter(feedback_request=feedback_request)
+
+        # Requestees can only see their own answer
+        else:
+            entries = Feedback.objects.filter(
+                feedback_request=feedback_request,
+                sender=request.user
+            )
+
         serializer = FeedbackSerializer(
             entries, many=True, context={"request": request}
         )
