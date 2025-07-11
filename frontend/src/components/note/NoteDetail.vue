@@ -253,54 +253,6 @@ const mentionedUsers = computed(() =>
     props.note.mentioned_users.includes(email),
   ),
 );
-const linkedNotes = computed(() => [
-  ...(myNotes.value
-    ?.filter(({ uuid }) => props.note.linked_notes.includes(uuid))
-    .map((note) => ({
-      ...note,
-      to:
-        note.type === NOTE_TYPE.template
-          ? {
-              name: 'template',
-              params: { id: note.uuid },
-            }
-          : note.type === NOTE_TYPE.oneOnOne
-            ? {
-                name: 'one-on-one-id',
-                params: {
-                  userId: note.one_on_one_member,
-                  id: note.one_on_one_id,
-                },
-              }
-            : {
-                name: 'note',
-                params: {
-                  type: NOTE_TYPE_ROUTE_PARAM[note.type],
-                  id: note.uuid,
-                },
-              },
-    })) || []),
-  ...(mentionedNotes.value
-    ?.filter(({ uuid }) => props.note.linked_notes.includes(uuid))
-    .map((note) => ({
-      ...note,
-      to: {
-        name: 'note',
-        params: {
-          type: '-',
-          id: note.uuid,
-        },
-      },
-    })) || []),
-]);
-
-const finalizeNoteSubmission = () => {
-  updateNote({
-    body: {
-      submit_status: NOTE_SUBMIT_STATUS.final,
-    },
-  });
-};
 
 onMounted(() => {
   if (props.note.type === NOTE_TYPE.proposal) {
@@ -316,5 +268,63 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   finalSubmitHintTimeout && clearTimeout(finalSubmitHintTimeout);
+});
+
+function finalizeNoteSubmission() {
+  updateNote({
+    body: {
+      submit_status: NOTE_SUBMIT_STATUS.final,
+    },
+  });
+}
+
+function getNoteRoute(note: Note) {
+  switch (note.type) {
+    case NOTE_TYPE.template:
+      return {
+        name: 'template',
+        params: { id: note.uuid },
+      };
+    case NOTE_TYPE.oneOnOne:
+      return {
+        name: 'one-on-one-id',
+        params: {
+          userId: note.one_on_one_member,
+          id: note.one_on_one_id,
+        },
+      };
+    case NOTE_TYPE.feedbackRequest:
+      return {
+        name: 'feedback-detail',
+        params: { requestId: note.feedback_request_uuid },
+      };
+    case NOTE_TYPE.feedback:
+      return {
+        name: 'adhoc-feedback-detail',
+        params: { id: note.feedback_uuid },
+      };
+    default:
+      return {
+        name: 'note',
+        params: {
+          type: NOTE_TYPE_ROUTE_PARAM[note.type],
+          id: note.uuid,
+        },
+      };
+  }
+}
+
+const linkedNotes = computed(() => {
+  const allNotes = [...(myNotes.value || []), ...(mentionedNotes.value || [])];
+  const uniqueNotes = Array.from(
+    new Map(allNotes.map((n) => [n.uuid, n])).values(),
+  );
+
+  return uniqueNotes
+    .filter((note) => props.note.linked_notes.includes(note.uuid))
+    .map((note) => ({
+      ...note,
+      to: getNoteRoute(note),
+    }));
 });
 </script>

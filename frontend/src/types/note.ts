@@ -35,6 +35,8 @@ export interface Note {
   one_on_one_member: string | null;
   one_on_one_id: number | null;
   feedback_request_uuid: string | null;
+  feedback_uuid: string | null;
+  feedback_request_uuid_of_feedback: string | null;
 }
 
 export interface NoteFormValues

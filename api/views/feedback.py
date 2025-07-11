@@ -41,8 +41,10 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = self.queryset.select_related("note", "note__owner").prefetch_related(
-            "requestees__user"
+        queryset = (
+            self.queryset.select_related("note", "note__owner")
+            .prefetch_related("requestees__user", "note__mentioned_users")
+            .order_by("-date_created")
         )
 
         # Handle type filter
@@ -55,7 +57,9 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
         # For "all" or any other value, return all requests the user has access to
         else:
             queryset = queryset.filter(
-                Q(note__owner=user) | Q(requestees__user=user)
+                Q(note__owner=user)
+                | Q(requestees__user=user)
+                | Q(note__mentioned_users=user)
             ).distinct()
 
         return queryset
@@ -105,6 +109,7 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
                 | (Q(feedback_request__isnull=True) & Q(note__mentioned_users=user))
             )
             .distinct()
+            .order_by("-date_created")
         )
 
         # Handle ad-hoc filter
@@ -113,11 +118,11 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(feedback_request__isnull=True)
 
         return queryset
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        instances = serializer.save()             # may be 1 object or a list
+        instances = serializer.save()  # may be 1 object or a list
 
         # Bulk-mode - list of Feedback objects
         if isinstance(instances, list):
@@ -127,9 +132,9 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
 
         # Single-item (ad-hoc or request-answer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 # ─────────────────────────────────────

@@ -59,10 +59,11 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     one_on_one_id = serializers.IntegerField(source="one_on_one.id", read_only=True)
     feedback_request_uuid = serializers.UUIDField(
-        source="feedback.feedback_request.uuid", read_only=True
+        source="feedback_request.uuid", read_only=True
     )
-    feedback_uuid = serializers.UUIDField(
-        source="feedback.uuid", read_only=True
+    feedback_uuid = serializers.UUIDField(source="feedback.uuid", read_only=True)
+    feedback_request_uuid_of_feedback = serializers.UUIDField(
+        source="feedback.feedback_request.uuid", read_only=True
     )
 
     class Meta:
@@ -87,6 +88,8 @@ class NoteSerializer(serializers.ModelSerializer):
             "one_on_one_member",
             "one_on_one_id",
             "feedback_request_uuid",
+            "feedback_uuid",
+            "feedback_request_uuid_of_feedback",
         )
         read_only_fields = [
             "uuid",
@@ -97,6 +100,8 @@ class NoteSerializer(serializers.ModelSerializer):
             "one_on_one_member",
             "one_on_one_id",
             "feedback_request_uuid",
+            "feedback_uuid",
+            "feedback_request_uuid_of_feedback",
         ]
 
     def validate(self, data):

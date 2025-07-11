@@ -1792,12 +1792,17 @@ components:
     Feedback:
       type: object
       description: |-
-        Serializer for feedback entries: supports ad-hoc feedback and answers to
-        requests, with full creation, update, and validation logic.
+        Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+
+        • `receiver_ids`   - list of UUIDs (required)
+        • `feedback_request_uuid` - present only when answering a request
+        • `form_uuid`     - optional structured form
       properties:
-        receiver_id:
-          type: string
-          format: uuid
+        receiver_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         feedback_request_uuid:
           type: string
           format: uuid
@@ -1841,7 +1846,7 @@ components:
       - date_created
       - note
       - receiver
-      - receiver_id
+      - receiver_ids
       - sender
       - uuid
     FeedbackForm:
@@ -1865,12 +1870,17 @@ components:
     FeedbackRequest:
       type: object
       description: |-
-        Serializer for feedback entries: supports ad-hoc feedback and answers to
-        requests, with full creation, update, and validation logic.
+        Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+
+        • `receiver_ids`   - list of UUIDs (required)
+        • `feedback_request_uuid` - present only when answering a request
+        • `form_uuid`     - optional structured form
       properties:
-        receiver_id:
-          type: string
-          format: uuid
+        receiver_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         feedback_request_uuid:
           type: string
           format: uuid
@@ -1893,7 +1903,7 @@ components:
             title: ایمیل سازمانی
       required:
       - content
-      - receiver_id
+      - receiver_ids
     FeedbackRequestReadOnly:
       type: object
       description: |-
@@ -2265,6 +2275,14 @@ components:
           type: string
           format: uuid
           readOnly: true
+        feedback_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        feedback_request_uuid_of_feedback:
+          type: string
+          format: uuid
+          readOnly: true
       required:
       - access_level
       - content
@@ -2272,11 +2290,13 @@ components:
       - date_created
       - date_updated
       - feedback_request_uuid
+      - feedback_uuid
       - one_on_one_id
       - one_on_one_member
       - owner
       - owner_name
       - read_status
+      - feedback_request_uuid_of_feedback
       - title
       - uuid
     NoteMeta:
@@ -2571,12 +2591,17 @@ components:
     PatchedFeedbackRequest:
       type: object
       description: |-
-        Serializer for feedback entries: supports ad-hoc feedback and answers to
-        requests, with full creation, update, and validation logic.
+        Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+
+        • `receiver_ids`   - list of UUIDs (required)
+        • `feedback_request_uuid` - present only when answering a request
+        • `form_uuid`     - optional structured form
       properties:
-        receiver_id:
-          type: string
-          format: uuid
+        receiver_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         feedback_request_uuid:
           type: string
           format: uuid
