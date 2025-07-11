@@ -18,14 +18,6 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { mutateAsync: createEntry, isPending } = useCreateAdhocFeedbackEntry();
 const { data: forms, isPending: isFormsLoading } = useGetFeedbackForms();
-const { data: users, pending: isUsersLoading } = useGetUsers();
-const { data: profile } = useGetProfile();
-
-const filteredUsers = computed(() => {
-  if (!users.value) return [];
-  if (!profile.value) return users.value;
-  return users.value.filter((user) => user.email !== profile.value?.email);
-});
 
 const isStructured = ref(false);
 const structuredFormData = ref<Record<string, any>>({});
@@ -37,14 +29,14 @@ const {
   setFieldValue,
   setValues,
 } = useForm<{
-  receiver_id: string;
+  receiver_ids: string[];
   content: string;
   evidence: string;
   form_uuid?: string;
   mentioned_users?: string[];
 }>({
   initialValues: {
-    receiver_id: '',
+    receiver_ids: [],
     content: '',
     evidence: '',
     form_uuid: '',
@@ -79,7 +71,7 @@ const formSchema = computed(() => {
   return form?.schema as FeedbackFormSchema;
 });
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit((values, ctx) => {
   // If it's a structured form, use the JSON stringified form data as content
   const content = isStructured.value
     ? JSON.stringify(structuredFormData.value, null, 2)
@@ -89,10 +81,11 @@ const onSubmit = handleSubmit((values) => {
     content,
     mentioned_users: values.mentioned_users,
     evidence: isStructured.value ? '' : values.evidence,
-    receiver_id: values.receiver_id,
+    receiver_ids: values.receiver_ids,
     form_uuid: isStructured.value ? values.form_uuid : undefined,
   }).then(() => {
     emit('success');
+    ctx.resetForm();
   });
 });
 
@@ -146,22 +139,18 @@ watch(isStructured, (newValue) => {
   <form class="mt-4 space-y-4" @submit="onSubmit">
     <PLoading v-if="isFormsLoading" class="mx-auto text-primary" />
     <template v-else>
-      <VeeField v-slot="{ componentField }" name="receiver_id" rules="required">
-        <PListbox
+      <VeeField
+        v-slot="{ componentField }"
+        name="receiver_ids"
+        rules="required"
+      >
+        <UserSelect
           v-bind="componentField"
-          hide-details
           :label="t('feedback.selectReceiver')"
-          :loading="isUsersLoading"
+          multiple
           required
-          searchable
-        >
-          <PListboxOption
-            v-for="user in filteredUsers"
-            :key="user.uuid"
-            :label="user.name || user.email"
-            :value="user.uuid"
-          />
-        </PListbox>
+          value-key="uuid"
+        />
       </VeeField>
 
       <VeeField v-slot="{ componentField }" name="mentioned_users">

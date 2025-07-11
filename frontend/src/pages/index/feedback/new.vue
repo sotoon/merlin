@@ -7,29 +7,24 @@ definePageMeta({ name: 'feedback-new' });
 
 const { t } = useI18n();
 const router = useRouter();
-const {
-  mutateAsync: createFeedbackRequest,
-  isPending,
-  error,
-} = useCreateFeedbackRequest();
+const { mutateAsync: createFeedbackRequest, isPending } =
+  useCreateFeedbackRequest();
 
-const handleSubmit = async (
+const handleSubmit = (
   values: Schema<'FeedbackRequestWriteRequest'>,
   ctx: SubmissionContext<Schema<'FeedbackRequestWriteRequest'>>,
 ) => {
-  await createFeedbackRequest({
+  createFeedbackRequest({
     title: values.title,
     content: values.content,
     requestee_emails: values.requestee_emails,
     mentioned_users: values.mentioned_users,
     deadline: values.deadline,
     form_uuid: values.form_uuid,
-  });
-
-  if (!error.value) {
+  }).then(() => {
     ctx.resetForm();
     router.push({ name: 'feedback' });
-  }
+  });
 };
 
 const handleCancel = () => {

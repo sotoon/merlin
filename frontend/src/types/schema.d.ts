@@ -708,11 +708,13 @@ export interface components {
       /** محتوا */
       content: string;
     };
-    /** @description Serializer for feedback entries: supports ad-hoc feedback and answers to
-     *     requests, with full creation, update, and validation logic. */
+    /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+     *
+     *     • `receiver_ids`   - list of UUIDs (required)
+     *     • `feedback_request_uuid` - present only when answering a request
+     *     • `form_uuid`     - optional structured form */
     Feedback: {
-      /** Format: uuid */
-      receiver_id: string;
+      receiver_ids: string[];
       /** Format: uuid */
       feedback_request_uuid?: string | null;
       /** Format: uuid */
@@ -736,11 +738,13 @@ export interface components {
       description?: string;
       schema?: unknown;
     };
-    /** @description Serializer for feedback entries: supports ad-hoc feedback and answers to
-     *     requests, with full creation, update, and validation logic. */
+    /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+     *
+     *     • `receiver_ids`   - list of UUIDs (required)
+     *     • `feedback_request_uuid` - present only when answering a request
+     *     • `form_uuid`     - optional structured form */
     FeedbackRequest: {
-      /** Format: uuid */
-      receiver_id: string;
+      receiver_ids: string[];
       /** Format: uuid */
       feedback_request_uuid?: string | null;
       /** Format: uuid */
@@ -910,6 +914,10 @@ export interface components {
       readonly one_on_one_id: number;
       /** Format: uuid */
       readonly feedback_request_uuid: string;
+      /** Format: uuid */
+      readonly feedback_uuid: string;
+      /** Format: uuid */
+      readonly feedback_request_uuid_of_feedback: string;
     };
     /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
     NoteMeta: {
@@ -1033,11 +1041,13 @@ export interface components {
       /** محتوا */
       content?: string;
     };
-    /** @description Serializer for feedback entries: supports ad-hoc feedback and answers to
-     *     requests, with full creation, update, and validation logic. */
+    /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+     *
+     *     • `receiver_ids`   - list of UUIDs (required)
+     *     • `feedback_request_uuid` - present only when answering a request
+     *     • `form_uuid`     - optional structured form */
     PatchedFeedbackRequest: {
-      /** Format: uuid */
-      receiver_id?: string;
+      receiver_ids?: string[];
       /** Format: uuid */
       feedback_request_uuid?: string | null;
       /** Format: uuid */

@@ -28,11 +28,16 @@ const { data: messages } = useGetNotes({
   retrieveMentions: true,
   type: NOTE_TYPE.feedback,
 });
-const receivedFeedback = computed(() =>
-  (messages.value || []).filter(
-    (message) => message.feedback_request_uuid && !message.read_status,
-  ),
-);
+const receivedFeedback = computed(() => {
+  const feedbacks = (messages.value || []).filter(
+    (message) =>
+      message.feedback_request_uuid_of_feedback && !message.read_status,
+  );
+
+  return new Set(
+    feedbacks.map((feedback) => feedback.feedback_request_uuid_of_feedback),
+  );
+});
 
 const {
   data: invitedRequests,
@@ -52,7 +57,7 @@ const unreadInvitedRequestsCount = computed(
     <PTabs :model-value="currentTabIndex" @update:model-value="handleTabChange">
       <PTab :title="t('feedback.ownedRequests')">
         <template #prepend>
-          <Badge :count="receivedFeedback.length" :max="999" />
+          <Badge :count="receivedFeedback.size" :max="999" />
         </template>
 
         <div v-if="ownedPending" class="flex items-center justify-center py-8">
@@ -81,11 +86,7 @@ const unreadInvitedRequestsCount = computed(
             v-for="request in ownedRequests"
             :key="request.uuid"
             :request="request"
-            :has-new-entries="
-              receivedFeedback.some(
-                (f) => f.feedback_request_uuid === request.uuid,
-              )
-            "
+            :has-new-entries="receivedFeedback.has(request.uuid)"
           />
         </div>
         <PText v-else as="p" class="py-8 text-center text-gray-80" responsive>

@@ -229,6 +229,8 @@
     "feedbackNotFound": "بازخورد یافت نشد",
     "receivedFeedbackFrom": "بازخوردی از {name} دریافت کردید",
     "sentFeedbackTo": "بازخوردی به {name} ارسال کردید",
-    "from": "از"
+    "from": "از",
+    "received": "دریافتی",
+    "sent": "ارسالی"
   }
 }
