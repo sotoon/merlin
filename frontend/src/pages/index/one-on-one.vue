@@ -17,6 +17,7 @@ const shouldHideTitle = computed(
   () =>
     route.name === 'one-on-one-edit' ||
     route.name === 'one-on-one-id' ||
+    route.name === 'one-on-one-comment' ||
     route.name === 'one-on-one-new',
 );
 
@@ -39,7 +40,7 @@ const user = computed(() =>
         <i class="i-mdi-account-supervisor text-h1 text-primary" />
 
         <PHeading level="h1" responsive>
-          {{ t('common.oneOnOne') }} {{ user ? user.name : '' }}
+          {{ t('common.oneOnOne') }} {{ user ? `با ${user.name}` : '' }}
         </PHeading>
       </div>
 

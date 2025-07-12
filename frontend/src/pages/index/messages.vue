@@ -87,17 +87,14 @@ const { data: profile } = useGetProfile();
 // TODO: filter out templates in the backend
 const newNotes = computed(() =>
   (notes.value || []).filter((note) => {
-    if (note.type === NOTE_TYPE.template) {
+    if (note.type === NOTE_TYPE.template || note.type === NOTE_TYPE.oneOnOne) {
       return false;
     }
     if (
       note.type === NOTE_TYPE.feedbackRequest ||
       note.type === NOTE_TYPE.feedback
     ) {
-      if (note.mentioned_users?.includes(profile.value?.email || '')) {
-        return true;
-      }
-      return false;
+      return !!note.mentioned_users?.includes(profile.value?.email || '');
     }
     return true;
   }),

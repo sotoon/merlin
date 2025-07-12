@@ -70,6 +70,12 @@ export const NOTE_SORT_OPTION = {
   title: 'title',
 } as const;
 
+export const ONE_ON_ONE_SORT_OPTION = {
+  newest: 'newest',
+  oldest: 'oldest',
+  title: 'title',
+} as const;
+
 export const NOTE_SUBMIT_STATUS = {
   initial: 1,
   final: 2,
