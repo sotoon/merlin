@@ -9,8 +9,23 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils.translation import gettext_lazy as _
 
-from api.models import (Comment, Note, NoteType, NoteUserAccess, Summary, OneOnOne, UserTimeline)
-from api.permissions import CommentPermission as FeedbackPermission, NotePermission, SummaryPermission, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember
+from api.models import (
+    Comment,
+    Note,
+    NoteType,
+    NoteUserAccess,
+    Summary,
+    OneOnOne,
+    UserTimeline,
+)
+from api.permissions import (
+    CommentPermission as FeedbackPermission,
+    NotePermission,
+    SummaryPermission,
+    HasOneOnOneAccess,
+    IsCurrentCycleEditable,
+    IsLeaderForMember,
+)
 from api.serializers import (
     CommentSerializer,
     NoteSerializer,
@@ -21,9 +36,17 @@ from api.services import get_notes_visible_to
 from api.views.mixins import CycleQueryParamMixin
 
 
-__all__ = ['NoteViewSet', 'TemplatesView', 'CommentViewSet', 'FeedbackViewSet', 'SummaryViewSet', 'OneOnOneViewSet', 'MyOneOnOneViewSet']
+__all__ = [
+    "NoteViewSet",
+    "TemplatesView",
+    "CommentViewSet",
+    "FeedbackViewSet",
+    "SummaryViewSet",
+    "OneOnOneViewSet",
+    "MyOneOnOneViewSet",
+]
 
-    
+
 class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = NoteSerializer
@@ -54,15 +77,13 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
 
             # ALSO include feedback the user received
             queryset = queryset | accessible_notes.filter(
-                type=NoteType.FEEDBACK,
-                feedback__receiver=self.request.user
+                type=NoteType.FEEDBACK, feedback__receiver=self.request.user
             )
 
             # ALSO include 1-on-1s where the user is the member
             queryset = queryset | accessible_notes.filter(
-                type=NoteType.ONE_ON_ONE,
-                one_on_one__member=self.request.user
-            )    
+                type=NoteType.ONE_ON_ONE, one_on_one__member=self.request.user
+            )
 
         if note_type_filter:
             queryset = queryset.filter(type=note_type_filter)
@@ -192,21 +213,29 @@ class SummaryViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
         return Summary.objects.none()
 
 
-class OneOnOneViewSet(CycleQueryParamMixin,
-                      mixins.CreateModelMixin,
-                      mixins.RetrieveModelMixin,
-                      mixins.UpdateModelMixin,
-                      mixins.ListModelMixin,
-                      viewsets.GenericViewSet):
+class OneOnOneViewSet(
+    CycleQueryParamMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     """CRUD for 1-on-1 sessions *within* `/my-team/<member_id>/`."""
 
     serializer_class = OneOnOneSerializer
-    permission_classes = (permissions.IsAuthenticated, HasOneOnOneAccess, IsCurrentCycleEditable, IsLeaderForMember)
-    lookup_field = 'pk'
+    permission_classes = (
+        permissions.IsAuthenticated,
+        HasOneOnOneAccess,
+        IsCurrentCycleEditable,
+        IsLeaderForMember,
+    )
+    lookup_field = "pk"
 
     # Fetches user form the id in the url, with a guard-rail
     def _load_member(self):
         from api.models.user import User
+
         self.member_obj = User.objects.get(uuid=self.kwargs["member_pk"])
 
         if self.request.method != "POST":
@@ -214,7 +243,9 @@ class OneOnOneViewSet(CycleQueryParamMixin,
                 self.member_obj.leader_id != self.request.user.id
                 and self.member_obj.id != self.request.user.id
             ):
-                raise PermissionDenied(_("You do not have access to this direct report's one-on-ones."))
+                raise PermissionDenied(
+                    _("You do not have access to this direct report's one-on-ones.")
+                )
 
     # Loads member_obj once, and stores it on self before any list/create/detail methods
     def initial(self, request, *args, **kwargs):
@@ -234,13 +265,13 @@ class OneOnOneViewSet(CycleQueryParamMixin,
         with transaction.atomic():
             response = super().create(request, *args, **kwargs)
             if response.status_code == 201:
-                one_on_one_id = response.data.get('id')
+                one_on_one_id = response.data.get("id")
                 ooo = OneOnOne.objects.get(id=one_on_one_id)
-                
+
                 # Log to UserTimeline
                 UserTimeline.objects.create(
                     user=ooo.member,
-                    event_type='1on1_created',
+                    event_type="1on1_created",
                     cycle=ooo.cycle,
                     object_id=ooo.note.id,
                     extra_json={
@@ -252,14 +283,47 @@ class OneOnOneViewSet(CycleQueryParamMixin,
             return response
 
     def get_queryset(self):
-        qs = OneOnOne.objects.select_related("member", "cycle", "note").prefetch_related("tags", "note__linked_notes")
+        qs = OneOnOne.objects.select_related(
+            "member", "cycle", "note"
+        ).prefetch_related("tags", "note__linked_notes")
         if "member_pk" in self.kwargs:
             if self.request.user == self.member_obj:
                 qs = qs.filter(member=self.member_obj)
             else:
                 qs = qs.filter(member=self.member_obj, note__owner=self.request.user)
+
+        # Search functionality
+        search = self.request.query_params.get("search", "")
+        if search:
+            qs = qs.filter(
+                Q(note__title__icontains=search)
+                | Q(personal_summary__icontains=search)
+                | Q(career_summary__icontains=search)
+                | Q(communication_summary__icontains=search)
+                | Q(performance_summary__icontains=search)
+                | Q(actions__icontains=search)
+                | Q(extra_notes__icontains=search)
+            )
+
+        # Date range filtering
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+        if date_from:
+            qs = qs.filter(date_created__gte=date_from)
+        if date_to:
+            qs = qs.filter(date_created__lte=date_to)
+
+        # Sort functionality
+        sort = self.request.query_params.get("sort", "newest")
+        if sort == "oldest":
+            qs = qs.order_by("date_created")
+        elif sort == "title":
+            qs = qs.order_by("note__title")
+        else:  # default: 'newest'
+            qs = qs.order_by("-date_created")
+
         return super().filter_queryset(qs)
-    
+
     # Allows PATCH from the member, only if they are changing member_vibe
     def partial_update(self, request, *args, **kwargs):
         """
@@ -271,8 +335,8 @@ class OneOnOneViewSet(CycleQueryParamMixin,
         """
         instance = self.get_object()
         user = request.user
-        is_leader = (user == instance.note.owner)
-        is_member = (user == instance.member)
+        is_leader = user == instance.note.owner
+        is_member = user == instance.member
 
         patch_fields = set(request.data.keys())
 
@@ -280,15 +344,19 @@ class OneOnOneViewSet(CycleQueryParamMixin,
         if is_member:
             # Member can ONLY update their own member_vibe
             if not patch_fields.issubset({"member_vibe"}):
-                raise PermissionDenied(_("Members may only edit their own vibe (member_vibe)."))
+                raise PermissionDenied(
+                    _("Members may only edit their own vibe (member_vibe).")
+                )
         elif is_leader:
             # Leader can update anything EXCEPT member_vibe
             if "member_vibe" in patch_fields:
-                raise PermissionDenied(_("Leaders may not edit the member's vibe (member_vibe)."))
+                raise PermissionDenied(
+                    _("Leaders may not edit the member's vibe (member_vibe).")
+                )
         else:
             # No other users allowed
             raise PermissionDenied(_("You are not authorized to edit this one-on-one."))
-        
+
         return super().partial_update(request, *args, **kwargs)
 
     # Log in the UserTimeline
@@ -296,12 +364,12 @@ class OneOnOneViewSet(CycleQueryParamMixin,
         with transaction.atomic():
             response = super().update(request, *args, **kwargs)
             if response.status_code in (200, 202):
-                one_on_one_id = response.data.get('id')
+                one_on_one_id = response.data.get("id")
 
                 ooo = OneOnOne.objects.get(id=one_on_one_id)
                 UserTimeline.objects.create(
                     user=ooo.member,
-                    event_type='1on1_updated',
+                    event_type="1on1_updated",
                     cycle=ooo.cycle,
                     object_id=ooo.note.id,
                     extra_json={
@@ -314,14 +382,19 @@ class OneOnOneViewSet(CycleQueryParamMixin,
             return response
 
 
-class MyOneOnOneViewSet(mixins.ListModelMixin,
-                        mixins.RetrieveModelMixin,
-                        viewsets.GenericViewSet):
+class MyOneOnOneViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
     serializer_class = OneOnOneSerializer
     permission_classes = (IsAuthenticated, HasOneOnOneAccess)
 
     def get_queryset(self):
-        return OneOnOne.objects.select_related("note").prefetch_related("tags", "note__linked_notes").filter(member=self.request.user)
+        return (
+            OneOnOne.objects.select_related("note")
+            .prefetch_related("tags", "note__linked_notes")
+            .filter(member=self.request.user)
+        )
+
 
 # Backward compatibility route alias
 FeedbackViewSet = CommentViewSet

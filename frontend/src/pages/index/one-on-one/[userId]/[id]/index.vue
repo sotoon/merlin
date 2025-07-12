@@ -8,7 +8,14 @@ import {
   PDialog,
   PButton,
 } from '@pey/core';
-import { PeyEditIcon, PeyLinkIcon } from '@pey/icons';
+import {
+  PeyEditIcon,
+  PeyLinkIcon,
+  PeyChevronLeftIcon,
+  PeyChevronRightIcon,
+  PeyInfoFilledIcon,
+} from '@pey/icons';
+import dayjs from '~/utils/dayjs';
 
 definePageMeta({ name: 'one-on-one-id' });
 
@@ -17,92 +24,216 @@ const { t } = useI18n();
 
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
-const linkedNotes = computed(() => [
-  ...(myNotes.value
-    ?.filter(({ uuid }) => props.oneOnOne.note_meta.linked_notes.includes(uuid))
-    .map((note) => ({
-      ...note,
-      to:
-        note.type === NOTE_TYPE.template
-          ? {
-              name: 'template',
-              params: { id: note.uuid },
-            }
-          : note.type === NOTE_TYPE.oneOnOne
-            ? {
-                name: 'one-on-one-id',
-                params: {
-                  userId: note.one_on_one_member,
-                  id: note.one_on_one_id,
-                },
-              }
-            : {
-                name: 'note',
-                params: {
-                  type: NOTE_TYPE_ROUTE_PARAM[note.type],
-                  id: note.uuid,
-                },
-              },
-    })) || []),
-  ...(mentionedNotes.value
-    ?.filter(({ uuid }) => props.oneOnOne.note_meta.linked_notes.includes(uuid))
-    .map((note) => ({
-      ...note,
-      to: {
+
+// Get all one-on-ones for navigation (sorted by creation date on backend)
+const { data: allOneOnOnes } = useGetOneOnOneList({
+  userId: props.user.uuid,
+  sort: ref('newest'),
+});
+
+// Find current index and get previous/next one-on-ones
+const currentIndex = computed(
+  () =>
+    allOneOnOnes.value?.findIndex((item) => item.id === props.oneOnOne.id) ??
+    -1,
+);
+
+const previousOneOnOne = computed(() => {
+  const index = currentIndex.value;
+  return index > 0 ? allOneOnOnes.value?.[index - 1] ?? null : null;
+});
+
+const nextOneOnOne = computed(() => {
+  const index = currentIndex.value;
+  return index >= 0 &&
+    allOneOnOnes.value &&
+    index < allOneOnOnes.value.length - 1
+    ? allOneOnOnes.value[index + 1]
+    : null;
+});
+
+function getNoteRoute(note: Note) {
+  switch (note.type) {
+    case NOTE_TYPE.template:
+      return {
+        name: 'template',
+        params: { id: note.uuid },
+      };
+    case NOTE_TYPE.oneOnOne:
+      return {
+        name: 'one-on-one-id',
+        params: {
+          userId: note.one_on_one_member,
+          id: note.one_on_one_id,
+        },
+      };
+    case NOTE_TYPE.feedbackRequest:
+      return {
+        name: 'feedback-detail',
+        params: { requestId: note.feedback_request_uuid },
+      };
+    case NOTE_TYPE.feedback:
+      return {
+        name: 'adhoc-feedback-detail',
+        params: { id: note.feedback_uuid },
+      };
+    default:
+      return {
         name: 'note',
         params: {
-          type: '-',
+          type: NOTE_TYPE_ROUTE_PARAM[note.type],
           id: note.uuid,
         },
-      },
-    })) || []),
-]);
+      };
+  }
+}
+
+const linkedNotes = computed(() => {
+  const allNotes = [...(myNotes.value || []), ...(mentionedNotes.value || [])];
+  const uniqueNotes = Array.from(
+    new Map(allNotes.map((n) => [n.uuid, n])).values(),
+  );
+
+  return uniqueNotes
+    .filter((note) =>
+      (props.oneOnOne.note.linked_notes || []).includes(note.uuid),
+    )
+    .map((note) => ({
+      ...note,
+      to: getNoteRoute(note),
+    }));
+});
 
 const VIBES = [':)', ':|', ':('] as Schema<'MemberVibeEnum'>[];
 const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
 const isVibeModalOpen = ref(false);
 const selectedVibe = ref<Schema<'MemberVibeEnum'>>();
 
-const { execute: updateOneOnOne, pending } = useUpdateOneOnOne({
+// Tooltip visibility state
+let infoTooltipTimeout: NodeJS.Timeout | null = null;
+const infoTooltipVisibility = ref(false);
+
+const { mutate: updateOneOnOne, isPending } = useUpdateOneOnOne({
   userId: props.user.uuid,
   oneOnOneId: props.oneOnOne.id,
 });
 
-const openVibeModal = () => {
-  selectedVibe.value = props.oneOnOne.member_vibe || undefined;
-  isVibeModalOpen.value = true;
-};
-
 const handleVibeSubmit = () => {
   if (!selectedVibe.value) return;
 
-  updateOneOnOne({
-    body: { member_vibe: selectedVibe.value },
-    onSuccess: () => {
-      isVibeModalOpen.value = false;
+  updateOneOnOne(
+    { member_vibe: selectedVibe.value },
+    {
+      onSuccess: () => {
+        isVibeModalOpen.value = false;
+      },
     },
-  });
+  );
 };
 
 function getRelatedTags(section: Schema<'SectionEnum'>) {
   return props.oneOnOne.tag_links.filter((tag) => tag.section === section);
 }
+
+function hasUserDismissedInfoTooltip() {
+  if (process.client) {
+    return localStorage.getItem('one-on-one-info-tooltip-dismissed') === 'true';
+  }
+  return false;
+}
+
+function dismissInfoTooltip() {
+  if (process.client) {
+    localStorage.setItem('one-on-one-info-tooltip-dismissed', 'true');
+  }
+  infoTooltipVisibility.value = false;
+}
+
+onMounted(() => {
+  if (!hasUserDismissedInfoTooltip()) {
+    infoTooltipTimeout = setTimeout(() => {
+      infoTooltipVisibility.value = true;
+
+      infoTooltipTimeout = setTimeout(() => {
+        infoTooltipVisibility.value = false;
+      }, 5000);
+    }, 1000);
+  }
+});
+
+onBeforeUnmount(() => {
+  infoTooltipTimeout && clearTimeout(infoTooltipTimeout);
+});
 </script>
 
 <template>
   <div class="px-2 sm:px-4">
     <div class="flex items-start justify-between gap-8">
-      <div>
+      <div class="flex items-center">
         <i
           class="i-mdi-account-supervisor mb-3 me-4 inline-block align-middle text-h1 text-primary"
         />
 
         <PText responsive variant="h1" weight="bold">
-          {{ oneOnOne.note_meta.title }}
+          {{ oneOnOne.note.title }}
         </PText>
+
+        <PTooltip
+          :model-value="infoTooltipVisibility"
+          placement="bottom"
+          @update:model-value="
+            (value) => {
+              if (!value) {
+                dismissInfoTooltip();
+              }
+            }
+          "
+        >
+          <PeyInfoFilledIcon class="mr-2 text-gray-50" />
+
+          <template #content>
+            <PText variant="caption1">
+              اکثر اطلاعات موجود در یک‌به‌یک‌، فقط برای لیدر و عضو تیم قابل
+              دسترسی هستن.
+            </PText>
+            <br />
+            <PText variant="caption1">
+              تنها سه بخش زیر توسط اچ‌آر برای بررسی و تحلیل استفاده می‌شن:
+            </PText>
+            <ul>
+              <li>
+                <PText variant="caption1">
+                  ۱- متن موجود در بخش «مدیریت عملکرد»
+                </PText>
+              </li>
+              <li>
+                <PText variant="caption1">
+                  ۲- تمامی تگ‌های انتخاب شده در بخش‌های مختلف (بدون جزئیات متون)
+                </PText>
+              </li>
+              <li>
+                <PText variant="caption1">
+                  ۳- وایب‌ ایموجی‌هایی که لیدر و عضو تیم وارد می‌کنن
+                </PText>
+              </li>
+            </ul>
+            <br />
+            <PText variant="caption1">
+              به جز این سه دسته، اچ‌آر به باقی اطلاعاتی که در یک‌به‌یک وارد
+              می‌کنید، دسترسی نداره.
+            </PText>
+            <br />
+            <br />
+            <PText variant="caption1">
+              نکته: وایب وارد شده توسط هر فرد فقط برای خودش و اچ‌آر قابل
+              مشاهده‌ست، <br />
+              یعنی؛ لیدر دسترسی مشاهده‌ی ایموجی عضو تیم رو نداره، و بلعکس.
+            </PText>
+          </template>
+        </PTooltip>
       </div>
 
-      <div class="mt-2 flex flex-col items-end gap-4">
+      <div class="mt-2 flex items-end">
         <PIconButton
           v-if="isTeamLeader"
           class="shrink-0"
@@ -143,7 +274,11 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         :label="`${getVibeEmoji(oneOnOne.member_vibe) || 'بازخوردی ثبت نشده است'}`"
       />
 
-      <PButton v-if="!isTeamLeader" variant="light" @click="openVibeModal">
+      <PButton
+        v-if="!isTeamLeader"
+        variant="light"
+        @click="isVibeModalOpen = true"
+      >
         {{
           oneOnOne.member_vibe
             ? t('oneOnOne.updateVibe')
@@ -291,11 +426,11 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
     <PDialog
       v-model="isVibeModalOpen"
       :title="t('oneOnOne.submitVibe')"
-      :loading="pending"
+      :loading="isPending"
     >
       <template #default>
         <PText>
-          {{ t('oneOnOne.howWasTheMeeting') }}
+          {{ t('oneOnOne.howWasTheMeetingVibeMember') }}
         </PText>
 
         <div class="mt-6 flex flex-wrap items-center justify-center gap-4">
@@ -308,9 +443,9 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
               selectedVibe === vibe
                 ? 'border-primary bg-primary/10'
                 : 'border-gray-300 hover:border-gray-400',
-              pending ? 'cursor-not-allowed opacity-50' : '',
+              isPending ? 'cursor-not-allowed opacity-50' : '',
             ]"
-            :disabled="pending"
+            :disabled="isPending"
             @click="selectedVibe = vibe"
           >
             {{ getVibeEmoji(vibe) }}
@@ -322,15 +457,15 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         <div class="flex justify-end gap-4">
           <PButton
             variant="light"
-            :disabled="pending"
+            :disabled="isPending"
             @click="isVibeModalOpen = false"
           >
             {{ t('common.cancel') }}
           </PButton>
           <PButton
             variant="fill"
-            :disabled="!selectedVibe || pending"
-            :loading="pending"
+            :disabled="!selectedVibe || isPending"
+            :loading="isPending"
             @click="handleVibeSubmit"
           >
             {{ t('common.submit') }}
@@ -338,5 +473,59 @@ function getRelatedTags(section: Schema<'SectionEnum'>) {
         </div>
       </template>
     </PDialog>
+
+    <div class="mt-8 flex justify-between">
+      <PButton
+        :class="!previousOneOnOne ? 'invisible' : ''"
+        variant="light"
+        size="small"
+        @click="
+          previousOneOnOne &&
+            navigateTo({
+              name: 'one-on-one-id',
+              params: { userId: user.uuid, id: previousOneOnOne.id },
+            })
+        "
+      >
+        <PeyChevronRightIcon />
+        جلسه
+        {{
+          previousOneOnOne
+            ? dayjs(previousOneOnOne.date_created)
+                .calendar('jalali')
+                .locale('fa')
+                .format('D MMMM')
+            : ''
+        }}
+      </PButton>
+
+      <PButton
+        :class="!nextOneOnOne ? 'invisible' : ''"
+        variant="light"
+        size="small"
+        @click="
+          nextOneOnOne &&
+            navigateTo({
+              name: 'one-on-one-id',
+              params: { userId: user.uuid, id: nextOneOnOne.id },
+            })
+        "
+      >
+        جلسه
+        {{
+          nextOneOnOne
+            ? dayjs(nextOneOnOne.date_created)
+                .calendar('jalali')
+                .locale('fa')
+                .format('D MMMM')
+            : ''
+        }}
+        <PeyChevronLeftIcon />
+      </PButton>
+    </div>
+
+    <div class="mt-8">
+      <NoteComments :note="oneOnOne.note" type="one-on-one" />
+    </div>
   </div>
 </template>

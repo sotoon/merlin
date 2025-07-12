@@ -6,9 +6,11 @@
     "confirm": "تایید",
     "content": "متن",
     "date": "تاریخ",
+    "dateRange": "محدوده تاریخ",
+    "selectDateRange": "انتخاب محدوده تاریخ",
     "delete": "حذف",
     "expired": "منقضی",
-    "forms": "فرم‌ها",
+    "forms": "فرم‌های ارزیابی",
     "feedback": "فیدبک",
     "comment": "نظر",
     "goals": "اهداف و انتظارات",
@@ -18,8 +20,8 @@
     "messageToOthers": "پیام به دیگری",
     "myForms": "فرم‌های من",
     "myTeam": "تیم من",
-    "notes": "فرآیند مدیریت عملکرد",
-    "promotion": "فرآیند ارتقا",
+    "notes": "مدیریت عملکرد",
+    "promotion": "درخواست بررسی ارتقا",
     "performanceManagementGuide": "راهنمای مدیریت عملکرد",
     "personalNotes": "یادداشت‌های شخصی",
     "personal": "میز کار",
@@ -174,7 +176,8 @@
     "whatWeTalkedAboutOptions": "صحبت‌هامون به کدوم یکی از پارامترهای زیر وصل میشه؟",
     "whatActionsWeDefined": "چه اکشن‌هایی تعریف کردیم و پیگیری اکشن‌ها با چه کسی هست؟",
     "additionalNotes": "توضیحات و یادداشت‌های اضافی",
-    "howWasTheMeeting": "حال و هوای جلسه چطور بود؟",
+    "howWasTheMeetingVibeLeader": "حس‌ات نسبت به عملکرد {name} در این بازه چطور بوده؟",
+    "howWasTheMeetingVibeMember": "حس‌ات نسبت به عملکرد خودت در این بازه چطور بوده؟",
     "editOneOnOne": "ویرایش یک به یک",
     "createOneOnOne": "ایجاد یک به یک جدید",
     "oneOnOneNotFound": "یک به یک یافت نشد.",
@@ -232,5 +235,8 @@
     "from": "از",
     "received": "دریافتی",
     "sent": "ارسالی"
+  },
+  "messages": {
+    "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
   }
 }

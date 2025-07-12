@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex h-full w-64 flex-col overflow-hidden py-4">
+  <nav class="flex h-full w-64 flex-col overflow-hidden pb-4">
     <NuxtLink class="pb-4 pt-2 shadow" to="/">
       <PText as="p" class="text-center" weight="bold" variant="h4">
         {{ t('common.appName') }}
@@ -8,7 +8,7 @@
 
     <div class="flex grow flex-col overflow-hidden px-2">
       <PScrollbar class="-mx-2 grow px-2 py-4">
-        <ul class="space-y-6">
+        <ul class="space-y-2">
           <li>
             <SidebarLinkGroup :title="t('common.notes')">
               <li>
@@ -105,7 +105,10 @@
           </li>
 
           <li>
-            <SidebarLinkGroup :title="t('common.myTeam')">
+            <SidebarLinkGroup
+              :has-badge="!!newOneOnOneCount"
+              :title="t('common.myTeam')"
+            >
               <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
@@ -115,6 +118,7 @@
               </li>
               <li>
                 <SidebarLink
+                  :badge-count="newOneOnOneCount"
                   icon="i-mdi-account-supervisor"
                   :label="t('common.oneOnOne')"
                   :to="{ name: 'one-on-one' }"
@@ -158,7 +162,10 @@ const newMessagesCount = computed(
   () =>
     (messages.value || []).filter((message) => {
       if (message.read_status) return false;
-      if (message.type === NOTE_TYPE.template) {
+      if (
+        message.type === NOTE_TYPE.template ||
+        message.type === NOTE_TYPE.oneOnOne
+      ) {
         return false;
       }
       if (
@@ -204,6 +211,13 @@ const newAdhocFeedbackCount = computed(
         !message.feedback_request_uuid_of_feedback &&
         !message.mentioned_users?.includes(profile.value?.email || '') &&
         !message.read_status,
+    ).length,
+);
+
+const newOneOnOneCount = computed(
+  () =>
+    (messages.value || []).filter(
+      (message) => message.type === NOTE_TYPE.oneOnOne && !message.read_status,
     ).length,
 );
 </script>

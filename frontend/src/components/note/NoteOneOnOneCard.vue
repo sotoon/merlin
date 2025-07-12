@@ -29,7 +29,7 @@ const isTeamLeader = computed(() => props.oneOnOne.leader_vibe);
 
     <template #title>
       <PText as="h3" class="truncate" weight="medium">
-        {{ oneOnOne.note_meta.title }}
+        {{ oneOnOne.note.title }}
       </PText>
     </template>
 
