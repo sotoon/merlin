@@ -407,7 +407,10 @@ class FeedbackSerializer(serializers.Serializer):
                 NoteUserAccess.objects.update_or_create(
                     user=receiver,
                     note=note,
-                    defaults={"can_view": True, "can_view_feedbacks": True},
+                    defaults={"can_view": True,
+                              "can_view_feedbacks": True,
+                              "can_write_feedback": True
+                              },
                 )
 
             # mark answered once per request
