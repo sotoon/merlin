@@ -906,7 +906,7 @@ export interface components {
       mentioned_users?: string[];
       linked_notes?: string[];
       readonly read_status: string;
-      readonly access_level: string;
+      readonly access_level: components['schemas']['NoteUserAccess'] | null;
       /** وضعیت */
       submit_status?: components['schemas']['NoteSubmitStatusEnum'];
       /** Format: uuid */
@@ -918,18 +918,6 @@ export interface components {
       readonly feedback_uuid: string;
       /** Format: uuid */
       readonly feedback_request_uuid_of_feedback: string;
-    };
-    /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
-    NoteMeta: {
-      readonly id: number;
-      /** عنوان */
-      title: string;
-      readonly linked_notes: string[];
-    };
-    /** @description Nested minimal Note info for UI convenience (title, date, mentions, links). */
-    NoteMetaRequest: {
-      /** عنوان */
-      title: string;
     };
     NoteRequest: {
       /** عنوان */
@@ -959,11 +947,38 @@ export interface components {
      * @enum {integer}
      */
     NoteSubmitStatusEnum: 1 | 2 | 3;
+    NoteUserAccess: {
+      /** مشاهده */
+      can_view?: boolean;
+      /** ویرایش */
+      can_edit?: boolean;
+      /** مشاهده جمع‌بندی */
+      can_view_summary?: boolean;
+      /** نوشتن جمع‌بندی */
+      can_write_summary?: boolean;
+      /** مشاهده نظرها */
+      can_view_feedbacks?: boolean;
+      /** نوشتن فیدبک */
+      can_write_feedback?: boolean;
+    };
+    NoteUserAccessRequest: {
+      /** مشاهده */
+      can_view?: boolean;
+      /** ویرایش */
+      can_edit?: boolean;
+      /** مشاهده جمع‌بندی */
+      can_view_summary?: boolean;
+      /** نوشتن جمع‌بندی */
+      can_write_summary?: boolean;
+      /** مشاهده نظرها */
+      can_view_feedbacks?: boolean;
+      /** نوشتن فیدبک */
+      can_write_feedback?: boolean;
+    };
     /** @description Handles 1:1 CRUD with:
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI
      *
      *     Privacy logic:
      *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
@@ -971,8 +986,7 @@ export interface components {
      *     if the current user is the member. This ensures privacy and prevents bias or retaliation. */
     OneOnOne: {
       readonly id: number;
-      readonly note: number;
-      readonly note_meta: components['schemas']['NoteMeta'];
+      readonly note: components['schemas']['Note'];
       readonly member: number;
       readonly cycle: number;
       personal_summary?: string | null;
@@ -1003,7 +1017,6 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI
      *
      *     Privacy logic:
      *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
@@ -1106,7 +1119,6 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI
      *
      *     Privacy logic:
      *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,

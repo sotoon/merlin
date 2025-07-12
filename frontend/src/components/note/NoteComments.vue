@@ -16,23 +16,17 @@
       class="flex items-center justify-between gap-4 border-b border-gray-10 pb-4"
     >
       <PHeading :lvl="3" responsive>
-        {{
-          t(
-            note.type === NOTE_TYPE.proposal
-              ? 'note.feedbacks'
-              : 'note.comments',
-          )
-        }}
+        {{ t('note.comments') }}
       </PHeading>
 
       <PIconButton
-        v-if="note.access_level.can_write_feedback"
+        v-if="note.access_level?.can_write_feedback"
         class="shrink-0"
         :icon="userHasWrittenComment ? PeyEditIcon : PeyPlusIcon"
         type="button"
         @click="
           navigateTo({
-            name: 'note-comment',
+            name: getCommentRoute(),
             query: {
               owner: userHasWrittenComment ? profile?.email : undefined,
             },
@@ -42,23 +36,17 @@
     </div>
 
     <div class="p-4">
-      <NoteCommentList :comments="comments" />
+      <NoteCommentList :comments="comments" :type="type" />
     </div>
   </template>
 
   <PButton
-    v-else-if="note.access_level.can_write_feedback"
+    v-else-if="note.access_level?.can_write_feedback"
     :icon-start="PeyPlusIcon"
     variant="ghost"
-    @click="navigateTo({ name: 'note-comment' })"
+    @click="navigateTo({ name: getCommentRoute() })"
   >
-    {{
-      t(
-        note.type === NOTE_TYPE.proposal
-          ? 'note.writeFeedback'
-          : 'note.writeComment',
-      )
-    }}
+    {{ t('note.writeComment') }}
   </PButton>
 </template>
 
@@ -66,7 +54,10 @@
 import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
 import { PeyEditIcon, PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
-const props = defineProps<{ note: Note }>();
+const props = defineProps<{
+  note: Schema<'Note'> | Note;
+  type?: 'adhoc' | 'one-on-one';
+}>();
 
 const { t } = useI18n();
 const {
@@ -82,4 +73,13 @@ const { data: profile } = useGetProfile();
 const userHasWrittenComment = computed(() =>
   comments.value?.some((comment) => comment.owner === profile.value?.email),
 );
+
+function getCommentRoute() {
+  if (props.type === 'adhoc') {
+    return 'adhoc-comment';
+  } else if (props.type === 'one-on-one') {
+    return 'one-on-one-comment';
+  }
+  return 'note-comment';
+}
 </script>

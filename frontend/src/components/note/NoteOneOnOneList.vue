@@ -1,12 +1,21 @@
 <script lang="ts" setup>
 import { PText } from '@pey/core';
 
-const props = defineProps<{ userId: string; username: string }>();
+const props = defineProps<{
+  userId: string;
+  username: string;
+  search?: string;
+  sort?: keyof typeof ONE_ON_ONE_SORT_OPTION;
+  dateRange?: { from: Date; to: Date };
+}>();
 
 const { t } = useI18n();
 
-const { data, pending } = useGetOneOnOneList({
+const { data, isPending } = useGetOneOnOneList({
   userId: props.userId,
+  search: toRef(props, 'search'),
+  sort: toRef(props, 'sort'),
+  dateRange: toRef(props, 'dateRange'),
 });
 </script>
 
@@ -24,7 +33,7 @@ const { data, pending } = useGetOneOnOneList({
     </li>
   </ul>
   <PText
-    v-else-if="!pending"
+    v-else-if="!isPending"
     as="p"
     class="py-8 text-center text-gray-80"
     responsive

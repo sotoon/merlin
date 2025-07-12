@@ -13,7 +13,7 @@
             variant="ghost"
             @click="
               navigateTo({
-                name: 'note-comment',
+                name: getCommentRoute(),
                 query: { owner: comment.owner },
               })
             "
@@ -28,7 +28,19 @@
 import { PCard, PIconButton } from '@pey/core';
 import { PeyEditIcon } from '@pey/icons';
 
-defineProps<{ comments: Schema<'Comment'>[] }>();
+const props = defineProps<{
+  comments: Schema<'Comment'>[];
+  type?: 'adhoc' | 'one-on-one';
+}>();
 
 const { data: profile } = useGetProfile();
+
+function getCommentRoute() {
+  if (props.type === 'adhoc') {
+    return 'adhoc-comment';
+  } else if (props.type === 'one-on-one') {
+    return 'one-on-one-comment';
+  }
+  return 'note-comment';
+}
 </script>

@@ -13,6 +13,7 @@ import {
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
+  user: User;
   oneOnOne?: Schema<'OneOnOne'>;
   isSubmitting?: boolean;
 }>();
@@ -38,13 +39,23 @@ const { meta, handleSubmit, setValues, values } = useForm<
     actions: props.oneOnOne?.actions || '',
     leader_vibe: props.oneOnOne?.leader_vibe,
     extra_notes: props.oneOnOne?.extra_notes || '',
-    linked_notes: props.oneOnOne?.note_meta?.linked_notes || [],
+    linked_notes: props.oneOnOne?.note?.linked_notes || [],
+  },
+  validationSchema: {
+    personal_summary: 'max:700',
+    career_summary: 'max:700',
+    communication_summary: 'max:700',
+    performance_summary: 'required|max:700',
+    actions: 'max:700',
+    extra_notes: 'max:700',
+    leader_vibe: 'required',
   },
 });
 
 const selectedTags = ref<number[]>([]);
 
 const VIBES = [':)', ':|', ':('] as Schema<'LeaderVibeEnum'>[];
+const EXCLUDES_TOOLBARS = ['table'];
 
 watch(selectedTags, (newValue) => {
   setValues({ tags: newValue });
@@ -59,7 +70,7 @@ watch(
   { immediate: true },
 );
 
-const { data: tags, pending: isTagsLoading } = useGetOneOnOneTags();
+const { data: tags, isPending: isTagsLoading } = useGetOneOnOneTags();
 const personalTags = computed(() =>
   (tags.value || []).filter((tag) => tag.section === 'personal'),
 );
@@ -76,7 +87,14 @@ const performanceTags = computed(() =>
 const { data: notes, pending: isNotesLoading } = useGetNotes();
 const noteOptions = computed(() =>
   notes.value
-    ?.filter((note) => note.type !== NOTE_TYPE.template)
+    ?.filter(
+      (note) =>
+        note.type !== NOTE_TYPE.template &&
+        !(
+          note.type === NOTE_TYPE.feedback &&
+          note.feedback_request_uuid_of_feedback
+        ),
+    )
     .sort(
       (a, b) =>
         new Date(b.date_updated).getTime() - new Date(a.date_updated).getTime(),
@@ -132,12 +150,20 @@ useStoreDraft({
               </PText>
             </label>
 
-            <VeeField v-slot="{ value, handleChange }" name="personal_summary">
+            <VeeField
+              v-slot="{ value, handleChange, errorMessage }"
+              name="personal_summary"
+            >
               <Editor
                 :model-value="value"
+                :extends-toolbars="EXCLUDES_TOOLBARS"
+                :placeholder="ONE_ON_ONE_PLACEHOLDERS.personal_summary"
                 aria-labelledby="content-label"
                 @update:model-value="handleChange"
               />
+              <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+                {{ t('messages.max', { length: 700 }) }}
+              </div>
             </VeeField>
 
             <div class="space-y-4">
@@ -179,12 +205,20 @@ useStoreDraft({
               </PText>
             </label>
 
-            <VeeField v-slot="{ value, handleChange }" name="career_summary">
+            <VeeField
+              v-slot="{ value, handleChange, errorMessage }"
+              name="career_summary"
+            >
               <Editor
                 :model-value="value"
+                :extends-toolbars="EXCLUDES_TOOLBARS"
+                :placeholder="ONE_ON_ONE_PLACEHOLDERS.career_summary"
                 aria-labelledby="content-label"
                 @update:model-value="handleChange"
               />
+              <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+                {{ t('messages.max', { length: 700 }) }}
+              </div>
             </VeeField>
 
             <div class="space-y-4">
@@ -227,14 +261,19 @@ useStoreDraft({
             </label>
 
             <VeeField
-              v-slot="{ value, handleChange }"
+              v-slot="{ value, handleChange, errorMessage }"
               name="communication_summary"
             >
               <Editor
                 :model-value="value"
+                :extends-toolbars="EXCLUDES_TOOLBARS"
+                :placeholder="ONE_ON_ONE_PLACEHOLDERS.communication_summary"
                 aria-labelledby="content-label"
                 @update:model-value="handleChange"
               />
+              <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+                {{ t('messages.max', { length: 700 }) }}
+              </div>
             </VeeField>
 
             <div class="space-y-4">
@@ -278,15 +317,20 @@ useStoreDraft({
             </label>
 
             <VeeField
-              v-slot="{ value, handleChange }"
+              v-slot="{ value, handleChange, errorMessage }"
               name="performance_summary"
               rules="required"
             >
               <Editor
                 :model-value="value"
+                :extends-toolbars="EXCLUDES_TOOLBARS"
+                :placeholder="ONE_ON_ONE_PLACEHOLDERS.performance_summary"
                 aria-labelledby="content-label"
                 @update:model-value="handleChange"
               />
+              <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+                {{ t('messages.max', { length: 700 }) }}
+              </div>
             </VeeField>
 
             <div class="space-y-4">
@@ -325,12 +369,17 @@ useStoreDraft({
           </PText>
         </label>
 
-        <VeeField v-slot="{ value, handleChange }" name="actions">
+        <VeeField v-slot="{ value, handleChange, errorMessage }" name="actions">
           <Editor
             :model-value="value"
+            :extends-toolbars="EXCLUDES_TOOLBARS"
+            :placeholder="ONE_ON_ONE_PLACEHOLDERS.actions"
             aria-labelledby="actions"
             @update:model-value="handleChange"
           />
+          <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+            {{ t('messages.max', { length: 700 }) }}
+          </div>
         </VeeField>
       </div>
 
@@ -341,12 +390,20 @@ useStoreDraft({
           </PText>
         </label>
 
-        <VeeField v-slot="{ value, handleChange }" name="extra_notes">
+        <VeeField
+          v-slot="{ value, handleChange, errorMessage }"
+          name="extra_notes"
+        >
           <Editor
             :model-value="value"
+            :extends-toolbars="EXCLUDES_TOOLBARS"
+            :placeholder="ONE_ON_ONE_PLACEHOLDERS.extra_notes"
             aria-labelledby="extra_notes"
             @update:model-value="handleChange"
           />
+          <div v-if="errorMessage" class="mt-1 text-sm text-danger">
+            {{ t('messages.max', { length: 700 }) }}
+          </div>
         </VeeField>
       </div>
 
@@ -380,7 +437,9 @@ useStoreDraft({
               variant="caption1"
               weight="bold"
             >
-              {{ t('oneOnOne.howWasTheMeeting') }}
+              {{
+                t('oneOnOne.howWasTheMeetingVibeLeader', { name: user.name })
+              }}
             </PText>
           </label>
 

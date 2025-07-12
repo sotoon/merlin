@@ -9,7 +9,7 @@ const props = defineProps<{ user: User }>();
 const { t } = useI18n();
 const router = useRouter();
 
-const { execute: createOneOnOne, pending } = useCreateOneOnOne({
+const { mutate: createOneOnOne, isPending } = useCreateOneOnOne({
   userId: props.user.uuid,
 });
 
@@ -17,8 +17,7 @@ const handleSubmit = (
   values: Schema<'OneOnOneRequest'>,
   ctx: SubmissionContext<Schema<'OneOnOneRequest'>>,
 ) => {
-  createOneOnOne({
-    body: { ...values },
+  createOneOnOne(values, {
     onSuccess: () => {
       navigateTo({
         name: 'one-on-one-userId',
@@ -40,12 +39,13 @@ const handleCancel = () => {
       <i class="i-mdi-calendar text-h1 text-primary" />
 
       <PHeading level="h1" responsive>
-        {{ t('oneOnOne.createOneOnOne') }} {{ user.name }}
+        {{ t('oneOnOne.createOneOnOne') }} {{ user ? `با ${user.name}` : '' }}
       </PHeading>
     </div>
 
     <NoteOneOnOneForm
-      :is-submitting="pending"
+      :user="user"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />

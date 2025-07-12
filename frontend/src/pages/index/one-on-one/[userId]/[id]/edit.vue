@@ -8,7 +8,7 @@ const props = defineProps<{ oneOnOne: Schema<'OneOnOne'>; user: User }>();
 const { t } = useI18n();
 const router = useRouter();
 
-const { execute: updateOneOnOne, pending } = useUpdateOneOnOne({
+const { mutate: updateOneOnOne, isPending } = useUpdateOneOnOne({
   userId: props.user.uuid,
   oneOnOneId: props.oneOnOne.id,
 });
@@ -17,12 +17,11 @@ const handleSubmit = (
   values: Schema<'OneOnOneRequest'>,
   ctx: SubmissionContext<Schema<'OneOnOneRequest'>>,
 ) => {
-  updateOneOnOne({
-    body: { ...values },
+  updateOneOnOne(values, {
     onSuccess: () => {
       navigateTo({
-        name: 'one-on-one-userId',
-        params: { userId: props.user.uuid },
+        name: 'one-on-one-id',
+        params: { userId: props.user.uuid, id: props.oneOnOne.id },
       });
       ctx.resetForm();
     },
@@ -35,18 +34,19 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <PBox class="mx-auto max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
+  <PBox class="mx-auto max-w-3xl border-none !shadow-none">
     <div class="mb-4 flex items-center gap-4 border-b border-gray-10 pb-4">
       <i class="i-mdi-calendar text-h1 text-primary" />
 
       <PHeading level="h1" responsive>
-        {{ t('oneOnOne.editOneOnOne') }} {{ user.name }}
+        {{ t('oneOnOne.editOneOnOne') }} {{ user ? `با ${user.name}` : '' }}
       </PHeading>
     </div>
 
     <NoteOneOnOneForm
       :one-on-one="oneOnOne"
-      :is-submitting="pending"
+      :user="user"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
