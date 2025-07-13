@@ -15,8 +15,8 @@ dependencies:
     specifier: ^1.0.4
     version: 1.0.4
   '@tanstack/vue-query':
-    specifier: ^5.80.7
-    version: 5.80.7(vue@3.4.20)
+    specifier: ^5.81.5
+    version: 5.81.5(vue@3.4.20)
   '@vee-validate/i18n':
     specifier: ^4.12.5
     version: 4.12.5
@@ -50,6 +50,9 @@ dependencies:
   vue-router:
     specifier: ^4.3.0
     version: 4.3.0(vue@3.4.20)
+  vuedraggable:
+    specifier: ^4.1.0
+    version: 4.1.0(vue@3.4.20)
 
 devDependencies:
   '@egoist/tailwindcss-icons':
@@ -2249,12 +2252,12 @@ packages:
       remove-accents: 0.5.0
     dev: false
 
-  /@tanstack/query-core@5.80.7:
-    resolution: {integrity: sha512-s09l5zeUKC8q7DCCCIkVSns8zZrK4ZDT6ryEjxNBFi68G4z2EBobBS7rdOY3r6W1WbUDpc1fe5oY+YO/+2UVUg==}
+  /@tanstack/query-core@5.81.5:
+    resolution: {integrity: sha512-ZJOgCy/z2qpZXWaj/oxvodDx07XcQa9BF92c0oINjHkoqUPsmm3uG08HpTaviviZ/N9eP1f9CM7mKSEkIo7O1Q==}
     dev: false
 
-  /@tanstack/vue-query@5.80.7(vue@3.4.20):
-    resolution: {integrity: sha512-o6LmRdBnmyr0TNRqgTY8JRwsfYhPqaIimz7ksHYIhiPlGsBuX1x0FfPmbfbcs1WT70uhYraF7xicZrTi4mskNA==}
+  /@tanstack/vue-query@5.81.5(vue@3.4.20):
+    resolution: {integrity: sha512-Ylt2pzRj1KyXOoidRemRoySU8ub3PXLKwGBr+iQxs6lhfvo1JlimTS2CANM2+3Uph+7JIIguFc8w0Mw3vSjVsw==}
     peerDependencies:
       '@vue/composition-api': ^1.1.2
       vue: ^2.6.0 || ^3.3.0
@@ -2263,7 +2266,7 @@ packages:
         optional: true
     dependencies:
       '@tanstack/match-sorter-utils': 8.19.4
-      '@tanstack/query-core': 5.80.7
+      '@tanstack/query-core': 5.81.5
       '@vue/devtools-api': 6.6.4
       vue: 3.4.20(typescript@5.3.3)
       vue-demi: 0.14.10(vue@3.4.20)
@@ -7765,6 +7768,10 @@ packages:
       smart-buffer: 4.2.0
     dev: false
 
+  /sortablejs@1.14.0:
+    resolution: {integrity: sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==}
+    dev: false
+
   /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
@@ -8843,6 +8850,15 @@ packages:
       '@vue/server-renderer': 3.4.20(vue@3.4.20)
       '@vue/shared': 3.4.20
       typescript: 5.3.3
+
+  /vuedraggable@4.1.0(vue@3.4.20):
+    resolution: {integrity: sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==}
+    peerDependencies:
+      vue: ^3.0.1
+    dependencies:
+      sortablejs: 1.14.0
+      vue: 3.4.20(typescript@5.3.3)
+    dev: false
 
   /w3c-keyname@2.2.8:
     resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==}

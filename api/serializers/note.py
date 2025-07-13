@@ -17,13 +17,23 @@ from api.models import (
     ValueTag,
     Cycle,
     UserTimeline,
+    Comment,
+    Note,
+    NoteType,
+    NoteUserAccess,
+    Summary,
+    User,
+    OneOnOne,
+    OneOnOneTagLink,
+    ValueTag,
+    Cycle,
 )
 
 
 __all__ = [
     "NoteUserAccessSerializer",
     "NoteSerializer",
-    "FeedbackSerializer",
+    "CommentSerializer",
     "SummarySerializer",
     "OneOnOneSerializer",
     "OneOnOneTagLinkReadSerializer",
@@ -38,6 +48,7 @@ class NoteUserAccessSerializer(serializers.ModelSerializer):
             "can_edit",
             "can_view_summary",
             "can_write_summary",
+            "can_view_feedbacks",
             "can_write_feedback",
         ]
 
@@ -59,6 +70,13 @@ class NoteSerializer(serializers.ModelSerializer):
         source="one_on_one.member", read_only=True, slug_field="uuid"
     )
     one_on_one_id = serializers.IntegerField(source="one_on_one.id", read_only=True)
+    feedback_request_uuid = serializers.UUIDField(
+        source="feedback_request.uuid", read_only=True
+    )
+    feedback_uuid = serializers.UUIDField(source="feedback.uuid", read_only=True)
+    feedback_request_uuid_of_feedback = serializers.UUIDField(
+        source="feedback.feedback_request.uuid", read_only=True
+    )
 
     class Meta:
         model = Note
@@ -81,6 +99,9 @@ class NoteSerializer(serializers.ModelSerializer):
             "submit_status",
             "one_on_one_member",
             "one_on_one_id",
+            "feedback_request_uuid",
+            "feedback_uuid",
+            "feedback_request_uuid_of_feedback",
         )
         read_only_fields = [
             "uuid",
@@ -90,6 +111,9 @@ class NoteSerializer(serializers.ModelSerializer):
             "access_level",
             "one_on_one_member",
             "one_on_one_id",
+            "feedback_request_uuid",
+            "feedback_uuid",
+            "feedback_request_uuid_of_feedback",
         ]
 
     def validate(self, data):
@@ -123,7 +147,7 @@ class NoteSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
 
 
-class FeedbackSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         queryset=User.objects.all(),
@@ -133,7 +157,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
     class Meta:
-        model = Feedback
+        model = Comment
         fields = (
             "uuid",
             "owner",
@@ -152,7 +176,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         user = validated_data["owner"]
         note = validated_data["note"]
         content = validated_data["content"]
-        feedback, created = Feedback.objects.update_or_create(
+        feedback, created = Comment.objects.update_or_create(
             owner=user, note=note, defaults={"content": content}
         )
         return feedback
@@ -209,7 +233,6 @@ class OneOnOneSerializer(serializers.ModelSerializer):
     - Client sends 'tags': [id, ...]
     - Server creates Note, OneOnOne, TagLinks in a single transaction
     - 'tag_links' read-only for analytics/reporting
-    - 'note_meta' nested for UI
 
     Privacy logic:
     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
@@ -253,6 +276,7 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = (
             "id",
+            "note",
             "member",
             "cycle",
             "date_created",

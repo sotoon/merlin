@@ -1,6 +1,6 @@
 <template>
   <PBox class="max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
-    <div v-if="isLoading" class="flex items-center justify-center py-8">
+    <div v-if="isPending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 
@@ -23,5 +23,5 @@ import { PBox, PButton, PLoading, PText } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 
 const { t } = useI18n();
-const { data: profile, isLoading, error, refetch } = useGetProfile();
+const { data: profile, isPending, error, refetch } = useGetProfile();
 </script>

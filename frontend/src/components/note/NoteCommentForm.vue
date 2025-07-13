@@ -3,7 +3,7 @@
     <VeeField v-slot="{ value, handleChange }" name="content">
       <Editor
         :model-value="value"
-        :placeholder="t('note.writeFeedbackContent')"
+        :placeholder="t('note.writeCommentContent')"
         @update:model-value="handleChange"
       />
     </VeeField>
@@ -37,21 +37,21 @@ import { PButton } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
-  feedback?: NoteFeedback;
+  comment?: Schema<'Comment'>;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
   submit: [
-    values: NoteFeedbackFormValues,
-    ctx: SubmissionContext<NoteFeedbackFormValues>,
+    values: Schema<'CommentRequest'>,
+    ctx: SubmissionContext<Schema<'CommentRequest'>>,
   ];
   cancel: [];
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit } = useForm<NoteFeedbackFormValues>({
+const { meta, handleSubmit } = useForm<Schema<'CommentRequest'>>({
   initialValues: {
-    content: props.feedback?.content || '',
+    content: props.comment?.content || '',
   },
 });
 useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });

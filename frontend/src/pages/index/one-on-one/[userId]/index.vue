@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-definePageMeta({ name: 'one-on-one-userId' });
-
 import { useRouteQuery } from '@vueuse/router';
 import { computed } from 'vue';
 import dayjs from '~/utils/dayjs';
 
 defineProps<{ user: User }>();
+definePageMeta({ name: 'one-on-one-userId' });
 
 const search = useRouteQuery('q', '');
 const sort = useRouteQuery('sort', ONE_ON_ONE_SORT_OPTION.newest);

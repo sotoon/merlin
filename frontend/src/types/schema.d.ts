@@ -21,6 +21,163 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/feedback-entries/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Endpoint for sending feedback (ad-hoc or answer). */
+    get: operations['feedback_entries_list'];
+    put?: never;
+    /** @description Endpoint for sending feedback (ad-hoc or answer). */
+    post: operations['feedback_entries_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/feedback-entries/{uuid}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Endpoint for sending feedback (ad-hoc or answer). */
+    get: operations['feedback_entries_retrieve'];
+    /** @description Endpoint for sending feedback (ad-hoc or answer). */
+    put: operations['feedback_entries_update'];
+    post?: never;
+    /** @description Endpoint for sending feedback (ad-hoc or answer). */
+    delete: operations['feedback_entries_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Endpoint for sending feedback (ad-hoc or answer). */
+    patch: operations['feedback_entries_partial_update'];
+    trace?: never;
+  };
+  '/api/feedback-forms/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Publicly list active feedback forms. */
+    get: operations['feedback_forms_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/feedback-forms/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Publicly list active feedback forms. */
+    get: operations['feedback_forms_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/feedback-requests/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Feedback-request CRUD.
+     *
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
+    get: operations['feedback_requests_list'];
+    put?: never;
+    /** @description Create a feedback request and mark the note as read for the creator. */
+    post: operations['feedback_requests_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/feedback-requests/{uuid}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Feedback-request CRUD.
+     *
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
+    get: operations['feedback_requests_retrieve'];
+    /** @description Feedback-request CRUD.
+     *
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
+    put: operations['feedback_requests_update'];
+    post?: never;
+    /** @description Feedback-request CRUD.
+     *
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
+    delete: operations['feedback_requests_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Feedback-request CRUD.
+     *
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
+    patch: operations['feedback_requests_partial_update'];
+    trace?: never;
+  };
+  '/api/feedback-requests/{uuid}/entries/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Feedback-request CRUD.
+     *
+     *     List endpoint supports filters:
+     *         • ?type=owned    requests user created
+     *         • ?type=invited  requests user should answer
+     *         • ?type=all      all requests (default) */
+    get: operations['feedback_requests_entries_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/forms/': {
     parameters: {
       query?: never;
@@ -306,36 +463,36 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/notes/{note_uuid}/feedbacks/': {
+  '/api/notes/{note_uuid}/comments/': {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations['notes_feedbacks_list'];
+    get: operations['notes_comments_list'];
     put?: never;
-    post: operations['notes_feedbacks_create'];
+    post: operations['notes_comments_create'];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  '/api/notes/{note_uuid}/feedbacks/{uuid}/': {
+  '/api/notes/{note_uuid}/comments/{uuid}/': {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations['notes_feedbacks_retrieve'];
-    put: operations['notes_feedbacks_update'];
+    get: operations['notes_comments_retrieve'];
+    put: operations['notes_comments_update'];
     post?: never;
-    delete: operations['notes_feedbacks_destroy'];
+    delete: operations['notes_comments_destroy'];
     options?: never;
     head?: never;
-    patch: operations['notes_feedbacks_partial_update'];
+    patch: operations['notes_comments_partial_update'];
     trace?: never;
   };
   '/api/notes/{note_uuid}/summaries/': {
@@ -528,7 +685,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    Feedback: {
+    Comment: {
       /** Format: uuid */
       readonly uuid: string;
       /**
@@ -542,7 +699,7 @@ export interface components {
       /** محتوا */
       content: string;
     };
-    FeedbackRequest: {
+    CommentRequest: {
       /**
        * ایمیل سازمانی
        * Format: email
@@ -550,6 +707,109 @@ export interface components {
       owner?: string;
       /** محتوا */
       content: string;
+    };
+    /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+     *
+     *     • `receiver_ids`   - list of UUIDs (required)
+     *     • `feedback_request_uuid` - present only when answering a request
+     *     • `form_uuid`     - optional structured form */
+    Feedback: {
+      receiver_ids: string[];
+      /** Format: uuid */
+      feedback_request_uuid?: string | null;
+      /** Format: uuid */
+      form_uuid?: string | null;
+      content: string;
+      evidence?: string;
+      /** Format: uuid */
+      readonly uuid: string;
+      readonly sender: components['schemas']['FeedbackUser'];
+      readonly receiver: components['schemas']['FeedbackUser'];
+      /** Format: date-time */
+      readonly date_created: string;
+      readonly note: components['schemas']['Note'];
+      mentioned_users?: string[];
+    };
+    /** @description ModelSerializer for FeedbackForm: lists uuid, title, description, and schema. */
+    FeedbackForm: {
+      /** Format: uuid */
+      readonly uuid: string;
+      title: string;
+      description?: string;
+      schema?: unknown;
+    };
+    /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+     *
+     *     • `receiver_ids`   - list of UUIDs (required)
+     *     • `feedback_request_uuid` - present only when answering a request
+     *     • `form_uuid`     - optional structured form */
+    FeedbackRequest: {
+      receiver_ids: string[];
+      /** Format: uuid */
+      feedback_request_uuid?: string | null;
+      /** Format: uuid */
+      form_uuid?: string | null;
+      content: string;
+      evidence?: string;
+      mentioned_users?: string[];
+    };
+    /** @description Read-only serializer for FeedbackRequest: exposes note details, owner info,
+     *     update timestamp, form uuid, and requestees. */
+    FeedbackRequestReadOnly: {
+      /** Format: uuid */
+      readonly uuid: string;
+      readonly title: string;
+      readonly content: string;
+      /** Format: date */
+      deadline?: string | null;
+      readonly owner_name: string;
+      /** Format: uuid */
+      readonly owner_uuid: string;
+      /** Format: date-time */
+      readonly date_updated: string;
+      readonly requestees: components['schemas']['FeedbackRequestUserLink'][];
+      /** Format: uuid */
+      readonly form_uuid: string | null;
+      readonly note: components['schemas']['Note'];
+    };
+    /** @description Serializer for FeedbackRequestUserLink: shows linked user's uuid, name,
+     *     email, and answered flag. */
+    FeedbackRequestUserLink: {
+      /** Format: uuid */
+      readonly uuid: string;
+      readonly name: string;
+      /** Format: email */
+      readonly email: string;
+      answered?: boolean;
+    };
+    /** @description Write-only serializer for creating and updating FeedbackRequest: handles title,
+     *     content, invitee emails, deadline, and optional form. */
+    FeedbackRequestWrite: {
+      title: string;
+      content: string;
+      mentioned_users?: string[];
+      /** Format: date */
+      deadline?: string | null;
+      /** Format: uuid */
+      form_uuid?: string | null;
+    };
+    /** @description Write-only serializer for creating and updating FeedbackRequest: handles title,
+     *     content, invitee emails, deadline, and optional form. */
+    FeedbackRequestWriteRequest: {
+      title: string;
+      content: string;
+      requestee_emails: string[];
+      mentioned_users?: string[];
+      /** Format: date */
+      deadline?: string | null;
+      /** Format: uuid */
+      form_uuid?: string | null;
+    };
+    /** @description Simple serializer for user info in feedback: exposes uuid and name. */
+    FeedbackUser: {
+      /** Format: uuid */
+      readonly uuid: string;
+      readonly name: string;
     };
     /** @description Serializer for listing forms, along with its cycle metadata,
      *     and assignment completion status. */
@@ -652,6 +912,12 @@ export interface components {
       /** Format: uuid */
       readonly one_on_one_member: string;
       readonly one_on_one_id: number;
+      /** Format: uuid */
+      readonly feedback_request_uuid: string;
+      /** Format: uuid */
+      readonly feedback_uuid: string;
+      /** Format: uuid */
+      readonly feedback_request_uuid_of_feedback: string;
     };
     NoteRequest: {
       /** عنوان */
@@ -690,6 +956,8 @@ export interface components {
       can_view_summary?: boolean;
       /** نوشتن جمع‌بندی */
       can_write_summary?: boolean;
+      /** مشاهده نظرها */
+      can_view_feedbacks?: boolean;
       /** نوشتن فیدبک */
       can_write_feedback?: boolean;
     };
@@ -702,6 +970,8 @@ export interface components {
       can_view_summary?: boolean;
       /** نوشتن جمع‌بندی */
       can_write_summary?: boolean;
+      /** مشاهده نظرها */
+      can_view_feedbacks?: boolean;
       /** نوشتن فیدبک */
       can_write_feedback?: boolean;
     };
@@ -709,7 +979,6 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI
      *
      *     Privacy logic:
      *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
@@ -748,7 +1017,6 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI
      *
      *     Privacy logic:
      *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
@@ -777,7 +1045,7 @@ export interface components {
       tag: components['schemas']['TagReadRequest'];
       section: components['schemas']['SectionEnum'];
     };
-    PatchedFeedbackRequest: {
+    PatchedCommentRequest: {
       /**
        * ایمیل سازمانی
        * Format: email
@@ -785,6 +1053,33 @@ export interface components {
       owner?: string;
       /** محتوا */
       content?: string;
+    };
+    /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
+     *
+     *     • `receiver_ids`   - list of UUIDs (required)
+     *     • `feedback_request_uuid` - present only when answering a request
+     *     • `form_uuid`     - optional structured form */
+    PatchedFeedbackRequest: {
+      receiver_ids?: string[];
+      /** Format: uuid */
+      feedback_request_uuid?: string | null;
+      /** Format: uuid */
+      form_uuid?: string | null;
+      content?: string;
+      evidence?: string;
+      mentioned_users?: string[];
+    };
+    /** @description Write-only serializer for creating and updating FeedbackRequest: handles title,
+     *     content, invitee emails, deadline, and optional form. */
+    PatchedFeedbackRequestWriteRequest: {
+      title?: string;
+      content?: string;
+      requestee_emails?: string[];
+      mentioned_users?: string[];
+      /** Format: date */
+      deadline?: string | null;
+      /** Format: uuid */
+      form_uuid?: string | null;
     };
     /** @description Serializer for listing forms, along with its cycle metadata,
      *     and assignment completion status. */
@@ -824,7 +1119,6 @@ export interface components {
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
      *     - 'tag_links' read-only for analytics/reporting
-     *     - 'note_meta' nested for UI
      *
      *     Privacy logic:
      *     The leader and member should not see each other's 'vibe' feedback. In the to_representation method,
@@ -1009,6 +1303,8 @@ export interface components {
      *     * `Message` - پیام
      *     * `Template` - قالب
      *     * `OneOnOne` - یک‌به‌یک
+     *     * `FeedbackRequest` - درخواست بازخورد
+     *     * `Feedback` - بازخورد
      * @enum {string}
      */
     TypeEnum:
@@ -1019,7 +1315,9 @@ export interface components {
       | 'Proposal'
       | 'Message'
       | 'Template'
-      | 'OneOnOne';
+      | 'OneOnOne'
+      | 'FeedbackRequest'
+      | 'Feedback';
     User: {
       /** Format: uuid */
       readonly uuid: string;
@@ -1083,6 +1381,346 @@ export interface operations {
               access?: string;
             };
           };
+        };
+      };
+    };
+  };
+  feedback_entries_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Feedback'][];
+        };
+      };
+    };
+  };
+  feedback_entries_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeedbackRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequest'];
+        'multipart/form-data': components['schemas']['FeedbackRequest'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Feedback'];
+        };
+      };
+    };
+  };
+  feedback_entries_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Feedback'];
+        };
+      };
+    };
+  };
+  feedback_entries_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeedbackRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequest'];
+        'multipart/form-data': components['schemas']['FeedbackRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Feedback'];
+        };
+      };
+    };
+  };
+  feedback_entries_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  feedback_entries_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedFeedbackRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedFeedbackRequest'];
+        'multipart/form-data': components['schemas']['PatchedFeedbackRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Feedback'];
+        };
+      };
+    };
+  };
+  feedback_forms_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackForm'][];
+        };
+      };
+    };
+  };
+  feedback_forms_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this فرم بازخورد. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackForm'];
+        };
+      };
+    };
+  };
+  feedback_requests_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackRequestReadOnly'][];
+        };
+      };
+    };
+  };
+  feedback_requests_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeedbackRequestWriteRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequestWriteRequest'];
+        'multipart/form-data': components['schemas']['FeedbackRequestWriteRequest'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackRequestWrite'];
+        };
+      };
+    };
+  };
+  feedback_requests_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackRequestReadOnly'];
+        };
+      };
+    };
+  };
+  feedback_requests_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeedbackRequestWriteRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequestWriteRequest'];
+        'multipart/form-data': components['schemas']['FeedbackRequestWriteRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackRequestWrite'];
+        };
+      };
+    };
+  };
+  feedback_requests_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  feedback_requests_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedFeedbackRequestWriteRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedFeedbackRequestWriteRequest'];
+        'multipart/form-data': components['schemas']['PatchedFeedbackRequestWriteRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackRequestWrite'];
+        };
+      };
+    };
+  };
+  feedback_requests_entries_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeedbackRequestWrite'];
         };
       };
     };
@@ -1639,7 +2277,7 @@ export interface operations {
       };
     };
   };
-  notes_feedbacks_list: {
+  notes_comments_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -1655,12 +2293,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'][];
+          'application/json': components['schemas']['Comment'][];
         };
       };
     };
   };
-  notes_feedbacks_create: {
+  notes_comments_create: {
     parameters: {
       query?: never;
       header?: never;
@@ -1671,9 +2309,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['FeedbackRequest'];
-        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequest'];
-        'multipart/form-data': components['schemas']['FeedbackRequest'];
+        'application/json': components['schemas']['CommentRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['CommentRequest'];
+        'multipart/form-data': components['schemas']['CommentRequest'];
       };
     };
     responses: {
@@ -1682,12 +2320,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
   };
-  notes_feedbacks_retrieve: {
+  notes_comments_retrieve: {
     parameters: {
       query?: never;
       header?: never;
@@ -1704,12 +2342,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
   };
-  notes_feedbacks_update: {
+  notes_comments_update: {
     parameters: {
       query?: never;
       header?: never;
@@ -1721,9 +2359,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['FeedbackRequest'];
-        'application/x-www-form-urlencoded': components['schemas']['FeedbackRequest'];
-        'multipart/form-data': components['schemas']['FeedbackRequest'];
+        'application/json': components['schemas']['CommentRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['CommentRequest'];
+        'multipart/form-data': components['schemas']['CommentRequest'];
       };
     };
     responses: {
@@ -1732,12 +2370,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };
   };
-  notes_feedbacks_destroy: {
+  notes_comments_destroy: {
     parameters: {
       query?: never;
       header?: never;
@@ -1758,7 +2396,7 @@ export interface operations {
       };
     };
   };
-  notes_feedbacks_partial_update: {
+  notes_comments_partial_update: {
     parameters: {
       query?: never;
       header?: never;
@@ -1770,9 +2408,9 @@ export interface operations {
     };
     requestBody?: {
       content: {
-        'application/json': components['schemas']['PatchedFeedbackRequest'];
-        'application/x-www-form-urlencoded': components['schemas']['PatchedFeedbackRequest'];
-        'multipart/form-data': components['schemas']['PatchedFeedbackRequest'];
+        'application/json': components['schemas']['PatchedCommentRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedCommentRequest'];
+        'multipart/form-data': components['schemas']['PatchedCommentRequest'];
       };
     };
     responses: {
@@ -1781,7 +2419,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Feedback'];
+          'application/json': components['schemas']['Comment'];
         };
       };
     };

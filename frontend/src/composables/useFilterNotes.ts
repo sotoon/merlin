@@ -29,7 +29,10 @@ export const useFilterNotes = (notes: Ref<Note[]> | (() => Note[])) => {
           NOTE_SEARCHABLE_KEYS.some((key) =>
             note[key]?.toLowerCase()?.includes(queryFilter.value.toLowerCase()),
           )) &&
-        note.type === (typeFilter.value ?? note.type) &&
+        ((typeFilter.value === NOTE_TYPE.feedback &&
+          (note.type === NOTE_TYPE.feedback ||
+            note.type === NOTE_TYPE.feedbackRequest)) ||
+          note.type === (typeFilter.value ?? note.type)) &&
         note.owner === (writerFilter.value ?? note.owner) &&
         note.year === (yearFilter.value ?? note.year) &&
         note.period === (periodFilter.value ?? note.period) &&

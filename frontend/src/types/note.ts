@@ -34,6 +34,9 @@ export interface Note {
   year: number;
   one_on_one_member: string | null;
   one_on_one_id: number | null;
+  feedback_request_uuid: string | null;
+  feedback_uuid: string | null;
+  feedback_request_uuid_of_feedback: string | null;
 }
 
 export interface NoteFormValues
@@ -68,18 +71,6 @@ export interface NoteSummaryFormValues
     | 'salary_change'
   > {
   committee_date: Date;
-}
-
-export interface NoteFeedback {
-  content: string;
-  note: string;
-  owner: string;
-  owner_name: string;
-  uuid: string;
-}
-
-export interface NoteFeedbackFormValues {
-  content: string;
 }
 
 export interface NoteTemplateFormValues

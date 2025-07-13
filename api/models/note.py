@@ -5,7 +5,7 @@ from .base import MerlinBaseModel
 from api.models.organization import ValueTag, ValueSection
 from api.models.cycle import Cycle
 
-__all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Feedback', 'Summary', 'NoteUserAccess', 'Vibe',
+__all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
            'OneOnOne', 'OneOnOneTagLink', 'leader_permissions']
 
 class NoteType(models.TextChoices):
@@ -17,6 +17,8 @@ class NoteType(models.TextChoices):
     Message = "Message", "پیام"
     Template = "Template", "قالب"
     ONE_ON_ONE = "OneOnOne", "یک‌به‌یک"
+    FEEDBACK_REQUEST = "FeedbackRequest", "درخواست بازخورد"
+    FEEDBACK = "Feedback", "بازخورد"
 
     @classmethod
     def default(cls):
@@ -111,7 +113,7 @@ class Note(MerlinBaseModel):
         return self.title
 
 
-class Feedback(MerlinBaseModel):
+class Comment(MerlinBaseModel):
     owner = models.ForeignKey("api.User", on_delete=models.CASCADE, verbose_name="نویسنده")
     content = models.TextField(verbose_name="محتوا")
     note = models.ForeignKey(Note, on_delete=models.CASCADE, verbose_name="یادداشت")
@@ -123,8 +125,8 @@ class Feedback(MerlinBaseModel):
             "owner",
             "note",
         )
-        verbose_name = "فیدبک"
-        verbose_name_plural = "فیدبک‌ها"
+        verbose_name = "نظر"
+        verbose_name_plural = "نظرها"
 
     def __str__(self):
         return f"{self.owner} - {self.note}"
@@ -176,9 +178,10 @@ class NoteUserAccess(MerlinBaseModel):
     can_edit = models.BooleanField(default=False, verbose_name="ویرایش")
     can_view_summary = models.BooleanField(default=False, verbose_name="مشاهده جمع‌بندی")
     can_write_summary = models.BooleanField(default=False, verbose_name="نوشتن جمع‌بندی")
+    # Deprecated naming preserved for compatibility; still primary flag.
     can_write_feedback = models.BooleanField(default=False, verbose_name="نوشتن فیدبک")
     can_view_feedbacks = models.BooleanField(
-        default=False, verbose_name="مشاهده فیدبک‌ها"
+        default=False, verbose_name="مشاهده نظرها"
     )
 
     class Meta:
@@ -284,7 +287,6 @@ class NoteUserAccess(MerlinBaseModel):
                     "can_view_summary": False,
                     "can_write_summary": False,
                     "can_view_feedbacks": False,
-                    "can_write_feedback": True
                 },
             )
 
@@ -304,11 +306,11 @@ class OneOnOne(MerlinBaseModel):
     member = models.ForeignKey(
         "api.User", on_delete=models.CASCADE, related_name="one_on_ones"
     )
-    # --- 700-char summaries ---
-    personal_summary = models.CharField(max_length=700, null=True, blank=True)
-    career_summary = models.CharField(max_length=700, null=True, blank=True)
-    communication_summary = models.CharField(max_length=700, null=True, blank=True)    
-    performance_summary = models.CharField(max_length=700)
+
+    personal_summary = models.CharField(null=True, blank=True)
+    career_summary = models.CharField(null=True, blank=True)
+    communication_summary = models.CharField(null=True, blank=True)    
+    performance_summary = models.CharField(max_length=800)
 
     # Actions text
     actions = models.TextField(null=True, blank=True)
@@ -343,3 +345,88 @@ class OneOnOneTagLink(models.Model):
         unique_together = ("one_on_one", "tag", "section")
         verbose_name = "One-on-One Tag Link"
         verbose_name_plural = "One-on-One Tag Links"
+
+# ────────────────────────────────────────────────────────────────
+# Feedback feature models
+# ----------------------------------------------------------------
+
+
+class FeedbackForm(MerlinBaseModel):
+    """Stores a predefined questionnaire for structured feedback."""
+
+    title = models.CharField(max_length=256)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    schema = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        verbose_name = "فرم بازخورد"
+        verbose_name_plural = "فرم‌های بازخورد"
+
+    def __str__(self):
+        return self.title
+
+
+class FeedbackRequest(MerlinBaseModel):
+    """Extra metadata for a feedback request note (Note.type = FEEDBACK_REQUEST)."""
+
+    note = models.OneToOneField("Note", on_delete=models.CASCADE, related_name="feedback_request")
+    deadline = models.DateField(null=True, blank=True)
+    form = models.ForeignKey(FeedbackForm, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        verbose_name = "درخواست بازخورد"
+        verbose_name_plural = "درخواست‌های بازخورد"
+
+    def __str__(self):
+        return f"Request • {self.note.title}"
+
+
+class FeedbackRequestUserLink(models.Model):
+    """Who was asked to give feedback and whether they answered."""
+
+    request = models.ForeignKey(FeedbackRequest, on_delete=models.CASCADE, related_name="requestees")
+    user = models.ForeignKey("api.User", on_delete=models.CASCADE)
+    answered = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("request", "user")
+        verbose_name = "لینک درخواست بازخورد"
+        verbose_name_plural = "لینک‌های درخواست بازخورد"
+
+    def __str__(self):
+        return f"{self.request} → {self.user}"
+
+
+class FeedbackTagLink(models.Model):
+    feedback = models.ForeignKey("Feedback", on_delete=models.CASCADE)
+    tag = models.ForeignKey(ValueTag, on_delete=models.CASCADE)
+    section = models.CharField(max_length=32, choices=ValueSection.choices)
+
+    class Meta:
+        unique_together = ("feedback", "tag", "section")
+        verbose_name = "تگ بازخورد"
+        verbose_name_plural = "تگ‌های بازخورد"
+
+
+class Feedback(MerlinBaseModel):
+    """An actual feedback message (ad-hoc or answer to a request)."""
+
+    note = models.OneToOneField("Note", on_delete=models.CASCADE, related_name="feedback")
+    sender = models.ForeignKey("api.User", on_delete=models.CASCADE, related_name="sent_feedbacks")
+    receiver = models.ForeignKey("api.User", on_delete=models.CASCADE, related_name="received_feedbacks")
+    feedback_request = models.ForeignKey("FeedbackRequest", null=True, blank=True, on_delete=models.SET_NULL, related_name="feedback_answers")
+    form = models.ForeignKey(FeedbackForm, null=True, blank=True, on_delete=models.SET_NULL)
+    content = models.TextField()
+    evidence = models.TextField(blank=True)
+    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT)
+    tags = models.ManyToManyField(ValueTag, through=FeedbackTagLink, related_name="feedback_tags")
+
+    class Meta:
+        verbose_name = "بازخورد"
+        verbose_name_plural = "بازخوردها"
+        ordering = ("-date_created",)
+        db_table = "api_feedback_entry"
+
+    def __str__(self):
+        return f"Feedback • {self.sender} → {self.receiver}"
