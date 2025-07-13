@@ -11,13 +11,13 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "vue-tsc --noEmit",
-    "schema": "openapi-typescript ../schema.yml -o src/types/schema.d.ts"
+    "schema": "openapi-typescript ../schema.yml -o src/types/schema.d.ts && prettier -w src/types/schema.d.ts"
   },
   "dependencies": {
     "@pey/core": "^1.17.0",
     "@pey/icons": "^1.10.2",
     "@pey/tailwind-preset": "^1.0.4",
-    "@tanstack/vue-query": "^5.80.7",
+    "@tanstack/vue-query": "^5.81.5",
     "@vee-validate/i18n": "^4.12.5",
     "@vee-validate/nuxt": "^4.12.5",
     "@vee-validate/rules": "^4.12.5",
@@ -28,7 +28,8 @@
     "sass": "^1.75.0",
     "vue": "^3.4.19",
     "vue-debounce": "^5.0.1",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@egoist/tailwindcss-icons": "^1.8.0",

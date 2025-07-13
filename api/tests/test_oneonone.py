@@ -114,8 +114,8 @@ def test_oneonone_requires_note_and_member(cycle):
 
 @pytest.mark.django_db
 def test_summary_length_limit(note, member):
-    """Performance summary >400 chars rejected."""
-    too_long = "x" * 401
+    """Performance summary >800 chars rejected."""
+    too_long = "x" * 801
     with pytest.raises(Exception):
         OneOnOne.objects.create(note=note, member=member, cycle=note.cycle, performance_summary=too_long)
 
@@ -196,13 +196,16 @@ def test_leader_can_create_one_on_one(api_client, one_on_one, cycle):
         "member_vibe": ":(",
         "tags": [],
     }
+
     resp = api_client.post(url, data, format="json")
     assert resp.status_code == status.HTTP_201_CREATED
 
-    note_uuid = resp.data["note_meta"]["id"]
+    note_uuid = resp.data["note"]["uuid"]
+    note_obj = Note.objects.get(uuid=note_uuid)
     assert NoteUserAccess.objects.filter(
-        note__pk=note_uuid, user=leader, can_edit=True
+        note=note_obj, user=leader, can_edit=True
     ).exists()
+
 
 
 @pytest.mark.django_db
@@ -297,8 +300,11 @@ def test_member_can_only_patch_member_vibe(api_client, one_on_one):
 @pytest.mark.django_db
 def test_member_vibe_forbidden_in_closed_cycle(api_client, one_on_one):
     """
-    Members may NOT edit their vibe after the 1-on-1’s cycle is inactive.
+    Members may NOT edit their vibe after the 1-on-1's cycle is inactive.
     """
+    # We should ateast have one active cycle for the code to not break.
+    CycleFactory(is_active=True)
+
     # close the cycle
     one_on_one.cycle.is_active = False
     one_on_one.cycle.save(update_fields=["is_active"])
@@ -434,6 +440,9 @@ def test_vibe_privacy(api_client, member, one_on_one):
 
 @pytest.mark.django_db
 def test_my_team_lists_reports(api_client, leader, member, outsider):
+    # We should have atleast one active cycle, for the code to not break    
+    CycleFactory(is_active=True)
+    
     member.leader = leader
     member.save()    
 
@@ -480,8 +489,9 @@ def test_timeline_entry_after_create(api_client, user_factory, cycle_factory):
     resp = api_client.post(url, payload, format="json")
     assert resp.status_code == status.HTTP_201_CREATED
 
-    note_id = resp.data["note"]
-    note = Note.objects.get(pk=note_id)
+    note_uuid = resp.data["note"]["uuid"] if isinstance(resp.data["note"], dict) else resp.data["note"]
+    note = Note.objects.get(uuid=note_uuid)
+
 
     assert UserTimeline.objects.filter(
         object_id=note.id,

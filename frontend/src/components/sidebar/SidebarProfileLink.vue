@@ -22,7 +22,7 @@
         {{ data?.name }}
       </PText>
 
-      <PLoading v-else-if="isLoading" class="text-primary" />
+      <PLoading v-else-if="isPending" class="text-primary" />
     </div>
   </NuxtLink>
 </template>
@@ -31,5 +31,5 @@
 import { PLoading, PText } from '@pey/core';
 import { PeyUserIcon } from '@pey/icons';
 
-const { data, isLoading } = useGetProfile();
+const { data, isPending } = useGetProfile();
 </script>

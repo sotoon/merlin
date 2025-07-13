@@ -6,6 +6,8 @@ export const NOTE_TYPE = {
   proposal: 'Proposal',
   template: 'Template',
   forms: 'forms',
+  feedbackRequest: 'FeedbackRequest',
+  feedback: 'Feedback',
 } as const;
 
 export const NOTE_TYPE_ROUTE_PARAM = {
@@ -15,6 +17,8 @@ export const NOTE_TYPE_ROUTE_PARAM = {
   [NOTE_TYPE.message]: 'message',
   [NOTE_TYPE.proposal]: 'proposal',
   [NOTE_TYPE.forms]: 'forms',
+  [NOTE_TYPE.feedbackRequest]: 'feedbackRequest',
+  [NOTE_TYPE.feedback]: 'feedback',
 } as const;
 
 export const NOTE_TYPE_ICON = {
@@ -25,6 +29,8 @@ export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.proposal]: 'i-mdi-chart-line',
   [NOTE_TYPE.template]: 'i-mdi-clipboard-text',
   [NOTE_TYPE.forms]: 'i-mdi-form',
+  [NOTE_TYPE.feedbackRequest]: 'i-mdi-feedback',
+  [NOTE_TYPE.feedback]: 'i-mdi-feedback',
 };
 
 export const getNoteTypeLabels = (t: (key: string) => string) => ({
@@ -35,6 +41,8 @@ export const getNoteTypeLabels = (t: (key: string) => string) => ({
   [NOTE_TYPE.proposal]: t('noteType.proposal'),
   [NOTE_TYPE.template]: t('noteType.template'),
   [NOTE_TYPE.forms]: t('noteType.forms'),
+  [NOTE_TYPE.feedbackRequest]: t('noteType.feedbackRequest'),
+  [NOTE_TYPE.feedback]: t('noteType.feedback'),
 });
 
 export const NOTES_WITH_SUMMARY: NoteType[] = [

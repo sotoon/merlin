@@ -17,7 +17,7 @@ const shouldHideTitle = computed(
   () =>
     route.name === 'one-on-one-edit' ||
     route.name === 'one-on-one-id' ||
-    route.name === 'one-on-one-feedback' ||
+    route.name === 'one-on-one-comment' ||
     route.name === 'one-on-one-new',
 );
 
