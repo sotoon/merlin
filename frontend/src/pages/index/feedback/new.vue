@@ -10,10 +10,10 @@ const router = useRouter();
 const { mutateAsync: createFeedbackRequest, isPending } =
   useCreateFeedbackRequest();
 
-const handleSubmit = (
+function handleSubmit(
   values: Schema<'FeedbackRequestWriteRequest'>,
   ctx: SubmissionContext<Schema<'FeedbackRequestWriteRequest'>>,
-) => {
+) {
   createFeedbackRequest({
     title: values.title,
     content: values.content,
@@ -21,15 +21,15 @@ const handleSubmit = (
     mentioned_users: values.mentioned_users,
     deadline: values.deadline,
     form_uuid: values.form_uuid,
-  }).then(() => {
+  }).then((data) => {
     ctx.resetForm();
-    router.push({ name: 'feedback' });
+    router.push({ name: 'feedback-detail', params: { requestId: data.uuid } });
   });
-};
+}
 
-const handleCancel = () => {
+function handleCancel() {
   router.back();
-};
+}
 </script>
 
 <template>

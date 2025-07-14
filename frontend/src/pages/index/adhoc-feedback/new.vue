@@ -7,13 +7,13 @@ definePageMeta({ name: 'adhoc-feedback-new' });
 const { t } = useI18n();
 const router = useRouter();
 
-const handleSuccess = () => {
-  router.push({ name: 'adhoc-feedback' });
-};
+function handleSuccess(data: Schema<'Feedback'>) {
+  router.push({ name: 'adhoc-feedback-detail', params: { id: data.uuid } });
+}
 
-const handleCancel = () => {
+function handleCancel() {
   router.back();
-};
+}
 </script>
 
 <template>
