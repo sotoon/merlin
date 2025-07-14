@@ -11,7 +11,7 @@ import { useForm } from 'vee-validate';
 import FeedbackStructuredForm from './FeedbackStructuredForm.vue';
 
 const emit = defineEmits<{
-  (e: 'success'): void;
+  (e: 'success', data: Schema<'Feedback'>): void;
   (e: 'cancel'): void;
 }>();
 
@@ -83,8 +83,8 @@ const onSubmit = handleSubmit((values, ctx) => {
     evidence: isStructured.value ? '' : values.evidence,
     receiver_ids: values.receiver_ids,
     form_uuid: isStructured.value ? values.form_uuid : undefined,
-  }).then(() => {
-    emit('success');
+  }).then((data) => {
+    emit('success', data);
     ctx.resetForm();
   });
 });

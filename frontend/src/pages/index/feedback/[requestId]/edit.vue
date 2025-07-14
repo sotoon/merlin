@@ -13,10 +13,10 @@ const { t } = useI18n();
 const { mutateAsync: updateRequest, isPending: isSubmitting } =
   useUpdateFeedbackRequest(props.request.uuid);
 
-const handleSubmit = (
+function handleSubmit(
   values: Schema<'FeedbackRequestWrite'>,
   ctx: SubmissionContext<Schema<'FeedbackRequestWrite'>>,
-) => {
+) {
   updateRequest(values).then(() => {
     navigateTo({
       name: 'feedback-detail',
@@ -24,7 +24,7 @@ const handleSubmit = (
     });
     ctx.resetForm();
   });
-};
+}
 </script>
 <template>
   <div>
