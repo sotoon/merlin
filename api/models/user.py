@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+import logging
 
 from api.models.base import MerlinBaseModel
 from api.models.note import Note, NoteUserAccess, leader_permissions
@@ -8,6 +9,8 @@ from api.models.role import RoleScope
 from api.services import ensure_leader_note_accesses
 
 __all__ = ['User']
+
+logger = logging.getLogger(__name__)
 
 class User(MerlinBaseModel, AbstractUser):
     email = models.EmailField(unique=True, verbose_name="ایمیل سازمانی")
@@ -90,19 +93,23 @@ class User(MerlinBaseModel, AbstractUser):
         committee_role_members = set()
 
         for role in self.committee.roles.distinct():
-            role_scope = role.role_scope.lower()
-            role_type = role.role_type.lower()
+            role_type_raw = role.role_type
+            role_scope_raw = role.role_scope
+            role_scope = role_scope_raw.lower()
+            role_type = role_type_raw.lower().replace(" ", "_")  # normalize to attribute style
             member = None
 
-            if role.role_scope == RoleScope.USER:
-                member = getattr(self, role_type)
+            if role_scope_raw == RoleScope.USER:
+                member = getattr(self, role_type, None)
             else:
-                scope_object = getattr(self, role_scope)
+                scope_object = getattr(self, role_scope, None)
                 if scope_object:
-                    member = getattr(scope_object, role_type)
+                    member = getattr(scope_object, role_type, None)
 
             if member:
                 committee_role_members.add(member)
+            else:
+                logger.warning("Unresolved committee role %s:%s for user %s (id=%s)", role.role_scope, role.role_type, self, self.pk)
         return committee_role_members
 
     def ensure_new_leader_note_accesses(self, new_leader):

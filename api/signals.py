@@ -36,6 +36,22 @@ def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
     NoteUserAccess.ensure_note_predefined_accesses(instance)
 
 
+@receiver(m2m_changed, sender=Committee.roles.through)
+def handle_committee_roles_changed(sender, instance, action, **kwargs):
+    """Recompute ACLs for all users of a committee when its role list changes."""
+    if action not in ("post_add", "post_remove", "post_clear"):
+        return
+
+    from api.models import NoteType, NoteSubmitStatus  # local import to avoid circular
+
+    affected_users = instance.committee_users.all()
+    for user in affected_users:
+        notes = user.note_set.filter(type=NoteType.Proposal,
+                                     submit_status__in=[NoteSubmitStatus.PENDING, NoteSubmitStatus.REVIEWED])
+        for note in notes:
+            NoteUserAccess.ensure_note_predefined_accesses(note)
+
+
 @receiver(post_save, sender=Summary)
 def ensure_summary_predefined_access(sender, instance, created, **kwargs):
     if instance.submit_status == SummarySubmitStatus.DONE:

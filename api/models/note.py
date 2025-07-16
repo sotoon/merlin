@@ -7,7 +7,7 @@ from api.models.organization import ValueTag, ValueSection
 from api.models.cycle import Cycle
 
 __all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
-           'OneOnOne', 'OneOnOneTagLink', 'leader_permissions']
+           'OneOnOne', 'OneOnOneTagLink', 'leader_permissions', 'committee_roles_permissions']
 
 
 class NoteType(models.TextChoices):
@@ -292,8 +292,6 @@ class NoteUserAccess(MerlinBaseModel):
 
         # Mentioned users
         for user in note.mentioned_users.all():
-            if committee is not None and user in committee.members.all():
-                continue
             cls.objects.update_or_create(
                 user=user,
                 note=note,
@@ -303,6 +301,7 @@ class NoteUserAccess(MerlinBaseModel):
                     "can_view_summary": False,
                     "can_write_summary": False,
                     "can_view_feedbacks": False,
+                    "can_write_feedback": True,
                 },
             )
 

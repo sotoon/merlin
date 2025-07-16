@@ -9,16 +9,19 @@ __all__ = ['OrganizationAdmin', 'DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin',
 
 @admin.register(Organization)
 class OrganizationAdmin(BaseModelAdmin):
-    list_display = ("name", "cto", "vp", "ceo", "function_owner", "cpo")
-    search_fields = ["name"]
-    autocomplete_fields = ["cto", "vp", "ceo", "function_owner", "cpo"]
-    fields = (
-        "uuid", "name", "description",
-        ("cto", "vp", "ceo"),
-        ("function_owner", "cpo"),
-        ("date_created", "date_updated")
-    )
+    class OrganizationResource(BaseModelResource):
+        class Meta:
+            model = Organization
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", )
+
+    resource_class = OrganizationResource
+    list_display = ("name", "date_created", "date_updated",)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("-date_created", "name")
+    # search_fields = ["name", "cto__name", "cto__email"]
+    # search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
+    search_fields = ["name"]
 
 
 @admin.register(Department)
@@ -50,23 +53,6 @@ class TribeAdmin(BaseModelAdmin):
     ordering = ("-date_created", "name")
     search_fields = ["name", "department__name", "leader__name", "leader__email"]
     search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
-
-
-@admin.register(Organization)
-class OrganizationAdmin(BaseModelAdmin):
-    class OrganizationResource(BaseModelResource):
-        class Meta:
-            model = Organization
-            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", )
-
-    resource_class = OrganizationResource
-    list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", ("date_created", "date_updated"),)
-    readonly_fields = ("uuid", "date_created", "date_updated")
-    ordering = ("-date_created", "name")
-    # search_fields = ["name", "cto__name", "cto__email"]
-    # search_help_text = "جستجو در نام قبیله، نام دپارتمان، نام لیدر، ایمیل لیدر "
-    search_fields = ["name"]
 
 
 @admin.register(Chapter)
