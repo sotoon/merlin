@@ -14,7 +14,10 @@
         </PHeading>
       </div>
 
-      <NuxtLink v-if="!isUser" :to="{ name: 'note-create' }">
+      <NuxtLink
+        v-if="!isUser && noteType !== NOTE_TYPE.message"
+        :to="{ name: 'note-create' }"
+      >
         <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
       </NuxtLink>
     </div>
@@ -50,6 +53,13 @@
         </NoteListControls>
       </template>
 
+      <PAlert
+        v-if="noteType === NOTE_TYPE.message"
+        title="این قسمت به زودی حذف خواهد شد"
+        content="اگر اطلاعات مهمی در این قسمت دارید، لطفا آن‌ها را بردارید. از این پس می‌توانید از قسمت «درخواست فیدبک» یا «فیدبک مستقیم» استفاده کنید."
+        variant="danger"
+      />
+
       <NoteList
         v-if="sortedNotes.length"
         :notes="sortedNotes"
@@ -65,7 +75,14 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PHeading, PIconButton, PLoading, PText } from '@pey/core';
+import {
+  PButton,
+  PHeading,
+  PIconButton,
+  PLoading,
+  PText,
+  PAlert,
+} from '@pey/core';
 import { PeyPlusIcon, PeyRetryIcon } from '@pey/icons';
 
 definePageMeta({ name: 'notes' });

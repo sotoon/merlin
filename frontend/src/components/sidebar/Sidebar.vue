@@ -78,6 +78,16 @@
                   :to="{ name: 'adhoc-feedback' }"
                 />
               </li>
+              <li>
+                <SidebarLink
+                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.message]"
+                  :label="t('noteType.message')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
+                  }"
+                />
+              </li>
             </SidebarLinkGroup>
           </li>
 
