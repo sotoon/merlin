@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("api", "0043_merge_20250220_2313"),
+        ("api", "0010_alter_feedback_unique_together"),
     ]
 
     operations = [

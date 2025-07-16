@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 
 from api.models.base import MerlinBaseModel
 from api.models.user import User
@@ -48,6 +49,30 @@ class Organization(MerlinBaseModel):
         blank=True,
         related_name="organization_cpo",
         verbose_name="سی پی او",
+    )
+    hr_manager = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_hr_manager",
+        verbose_name="مدیر اچ‌آر",
+    )
+    sales_manager = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_sales_manager",
+        verbose_name="مدیر فروش",
+    )
+    cfo = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="organization_cfo",
+        verbose_name="سی‌اف‌او",
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
@@ -99,12 +124,28 @@ class Tribe(MerlinBaseModel):
         Department, on_delete=models.SET_NULL, null=True, verbose_name="دپارتمان"
     )
     leader = models.ForeignKey(
-        User,
+        "api.User",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="tribe_leader",
         verbose_name="لیدر",
+    )
+    product_director = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="product_director_tribes",
+        verbose_name="دیرکتور محصولی",
+    )
+    engineering_director = models.ForeignKey(
+        "api.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="engineering_director_tribes",
+        verbose_name="دیرکتور فنی",
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
 
@@ -149,9 +190,10 @@ class Team(MerlinBaseModel):
 class Committee(MerlinBaseModel):
     name = models.CharField(max_length=256, verbose_name="نام")
     members = models.ManyToManyField(
-        User, related_name="committee_members", verbose_name="اعضا"
+        "api.User", related_name="committee_members", verbose_name="اعضا"
     )
     description = models.TextField(blank=True, verbose_name="توضیحات")
+    roles = models.ManyToManyField("api.Role", related_name='role_committees', blank=True)
 
     class Meta:
         verbose_name = "کمیته"
@@ -159,6 +201,48 @@ class Committee(MerlinBaseModel):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        """Ensure every role attached to this committee resolves to an actual user for at least one committee member.
+        If not, raise a ValidationError so admins notice mis-configuration early.
+        """
+        super().clean()
+
+        # Skip when no roles or no sample user is available yet.
+        if not self.roles.exists():
+            return
+
+        # Prefer a user that is explicitly assigned to this committee via FK
+        sample_user = self.committee_users.first() if hasattr(self, "committee_users") else None
+        # Fallback to members M2M if no FK user yet
+        if sample_user is None:
+            sample_user = self.members.first()
+
+        if sample_user is None:
+            return  # Nothing to validate without users
+
+        from api.models import RoleScope  # Local import to avoid circular dependency
+
+        unresolved = []
+        for role in self.roles.all():
+            role_scope = role.role_scope.lower()
+            role_type = role.role_type.lower()
+            member = None
+
+            if role.role_scope == RoleScope.USER:
+                member = getattr(sample_user, role_type, None)
+            else:
+                scope_object = getattr(sample_user, role_scope, None)
+                if scope_object is not None:
+                    member = getattr(scope_object, role_type, None)
+
+            if member is None:
+                unresolved.append(f"{role.get_role_scope_display()} / {role.get_role_type_display()}")
+
+        if unresolved:
+            raise ValidationError({
+                "roles": _(f"These committee roles cannot be resolved for the current data: {', '.join(unresolved)}")
+            })
     
 # Values models
 class ValueSection(models.TextChoices):
