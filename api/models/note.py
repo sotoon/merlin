@@ -2,11 +2,14 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from .base import MerlinBaseModel
-from api.models.organization import ValueTag, ValueSection
-from api.models.cycle import Cycle
+from api.models import (Cycle,
+                        Committee,
+                        ValueTag,
+                        ValueSection
+                        )
 
 __all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
-           'OneOnOne', 'OneOnOneTagLink', 'leader_permissions']
+           'OneOnOne', 'OneOnOneTagLink', 'leader_permissions', 'committee_roles_permissions']
 
 class NoteType(models.TextChoices):
     GOAL = "Goal", "هدف"
@@ -56,6 +59,18 @@ leader_permissions = {
         "can_edit": False,
         "can_view_summary": True,
         "can_write_summary": True,
+        "can_write_feedback": True,
+        "can_view_feedbacks": True,
+    }
+}
+
+
+committee_roles_permissions = {
+    NoteType.Proposal: {
+        "can_view": True,
+        "can_edit": False,
+        "can_view_summary": True,
+        "can_write_summary": False,
         "can_write_feedback": True,
         "can_view_feedbacks": True,
     }
@@ -257,27 +272,26 @@ class NoteUserAccess(MerlinBaseModel):
         )
 
         # Committee members
-        committee = note.owner.committee
+        committee:Committee = note.owner.committee
         if committee is not None:
-            for member in committee.members.all():
-                if note.type == NoteType.Proposal:
+            # Committee role members
+            if note.submit_status in (NoteSubmitStatus.PENDING, NoteSubmitStatus.REVIEWED) and note.type in committee_roles_permissions.keys():
+                for member in note.owner.get_committee_role_members():
                     cls.objects.update_or_create(
                         user=member,
                         note=note,
-                        defaults={
-                            "can_view": note.is_sent_to_committee(),
-                            "can_edit": False,
-                            "can_view_summary": True,
-                            "can_write_summary": True,
-                            "can_write_feedback": True,
-                            "can_view_feedbacks": True,
-                        },
+                        defaults=committee_roles_permissions[note.type],
                     )
+                for member in committee.members.all():
+                    cls.objects.update_or_create(
+                        user=member,
+                        note=note,
+                        defaults=committee_roles_permissions[note.type],
+                    )
+
 
         # Mentioned users
         for user in note.mentioned_users.all():
-            if committee is not None and user in committee.members.all():
-                continue
             cls.objects.update_or_create(
                 user=user,
                 note=note,
@@ -287,6 +301,7 @@ class NoteUserAccess(MerlinBaseModel):
                     "can_view_summary": False,
                     "can_write_summary": False,
                     "can_view_feedbacks": False,
+                    "can_write_feedback": True,
                 },
             )
 
