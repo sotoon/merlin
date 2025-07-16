@@ -1,11 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+import logging
 
-from .base import MerlinBaseModel
+from api.models.base import MerlinBaseModel
 from api.services import ensure_leader_note_accesses
 
+
 __all__ = ['User']
+
+
+logger = logging.getLogger(__name__)
+
 
 class User(MerlinBaseModel, AbstractUser):
     email = models.EmailField(unique=True, verbose_name="ایمیل سازمانی")
@@ -30,6 +36,9 @@ class User(MerlinBaseModel, AbstractUser):
     )
     team = models.ForeignKey(
         "Team", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="تیم"
+    )
+    organization = models.ForeignKey(
+        "Organization", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="سازمان"
     )
     leader = models.ForeignKey(
         "User", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="لیدر"
@@ -60,6 +69,35 @@ class User(MerlinBaseModel, AbstractUser):
         if self.name:
             return self.name
         return self.email
+
+    @property
+    def tribe(self):
+        return self.team.tribe
+
+    def get_committee_role_members(self):
+        committee_role_members = set()
+
+        for role in self.committee.roles.distinct():
+            role_type_raw = role.role_type
+            role_scope_raw = role.role_scope
+            role_scope = role_scope_raw.lower()
+            role_type = role_type_raw.lower().replace(" ", "_")  # normalize to attribute style
+            member = None
+
+            from api.models import RoleScope
+
+            if role_scope_raw == RoleScope.USER:
+                member = getattr(self, role_type, None)
+            else:
+                scope_object = getattr(self, role_scope, None)
+                if scope_object:
+                    member = getattr(scope_object, role_type, None)
+
+            if member:
+                committee_role_members.add(member)
+            else:
+                logger.warning("Unresolved committee role %s:%s for user %s (id=%s)", role.role_scope, role.role_type, self, self.pk)
+        return committee_role_members
 
     def save(self, *args, **kwargs):
         self.username = self.email

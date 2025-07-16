@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("api", "0047_rename_other_notes_oneonone_extra_notes_and_more"),
+        ("api", "0044_feedback_cycle_note_cycle_summary_cycle"),
     ]
 
     operations = [

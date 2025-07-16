@@ -10,6 +10,7 @@ from api.models import (
     Team,
     Tribe,
     User,
+    Organization,
 )
 
 
@@ -42,6 +43,31 @@ RESOURCE_FIELDS = {
         attribute="leader",
         widget=ForeignKeyWidget(User, field="email"),
     ),
+    "product_manager": fields.Field(
+        column_name="product_manager",
+        attribute="product_manager",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "hrbp": fields.Field(
+        column_name="hrbp",
+        attribute="hrbp",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "director": fields.Field(
+        column_name="director",
+        attribute="director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "product_director": fields.Field(
+        column_name="product_director",
+        attribute="product_director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
+    "engineering_director": fields.Field(
+        column_name="engineering_director",
+        attribute="engineering_director",
+        widget=ForeignKeyWidget(User, field="email"),
+    ),
     "owner": fields.Field(
         column_name="owner",
         attribute="owner",
@@ -66,6 +92,11 @@ RESOURCE_FIELDS = {
         column_name="tribe",
         attribute="tribe",
         widget=ForeignKeyWidget(Tribe, field="name"),
+    ),
+    "organization": fields.Field(
+        column_name="organization",
+        attribute="organization",
+        widget=ForeignKeyWidget(Organization, field="name"),
     ),
     "committee": fields.Field(
         column_name="committee",
