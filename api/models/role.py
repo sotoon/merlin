@@ -1,5 +1,7 @@
 from django.db import models
 from api.models.base import MerlinBaseModel
+from django.core.exceptions import ValidationError
+from django.apps import apps
 
 __all__ = ['RoleType', 'RoleScope', 'Role', ]
 
@@ -55,3 +57,43 @@ class Role(MerlinBaseModel):
 
     def __str__(self):
         return f"{self.get_role_type_display()} - {self.get_role_scope_display()}"
+
+    def _normalize_attr(self, value: str) -> str:
+        """Helper: convert 'Product Director' → 'product_director' to match model fields."""
+        return value.lower().replace(" ", "_")
+
+    def clean(self):
+        """Ensure (role_type, role_scope) maps to a real attribute on the target model.
+        Allows future role types/scopes as long as the field exists.
+        """
+        # Avoid circular imports by resolving lazily via apps
+        from api.models import RoleScope  # local import only for Enum access
+
+        scope_map = {
+            RoleScope.USER: "api.User",
+            RoleScope.TEAM: "api.Team",
+            RoleScope.TRIBE: "api.Tribe",
+            RoleScope.ORGANIZATION: "api.Organization",
+            RoleScope.CHAPTER: "api.Chapter",
+        }
+        target_model_label = scope_map.get(self.role_scope)
+        if not target_model_label:
+            return  # unknown scope - let DB handle/ other validation
+
+        target_model = apps.get_model(target_model_label)
+        attr_name = self._normalize_attr(self.role_type)
+        if not hasattr(target_model, attr_name):
+            raise ValidationError(
+                {
+                    "role_scope": (
+                        f"'{self.get_role_type_display()}' cannot use scope "
+                        f"{self.get_role_scope_display()} – attribute '{attr_name}' "
+                        f"does not exist on {target_model.__name__}."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        # Run full_clean() to enforce validation rules even outside admin
+        self.full_clean()
+        super().save(*args, **kwargs)
