@@ -41,7 +41,9 @@
   </template>
 
   <PButton
-    v-else-if="note.access_level?.can_write_feedback"
+    v-else-if="
+      note.access_level?.can_write_feedback && note.type !== NOTE_TYPE.message
+    "
     :icon-start="PeyPlusIcon"
     variant="ghost"
     @click="navigateTo({ name: getCommentRoute() })"
