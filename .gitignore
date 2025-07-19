@@ -162,5 +162,6 @@ merlin/static
 
 output.json
 
+.vscode/
 
 .idea
