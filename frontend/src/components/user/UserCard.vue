@@ -2,7 +2,7 @@
   <PCard
     class="transition-shadow duration-300 hover:shadow-lg"
     header-border
-    :title="user.name"
+    :title="user.name || ''"
   >
     <PText as="p" class="truncate text-gray-80" variant="caption1">
       {{ t('user.teamName', { name: user.team }) }}
@@ -21,7 +21,7 @@
 <script lang="ts" setup>
 import { PCard, PText } from '@pey/core';
 
-defineProps<{ user: User }>();
+defineProps<{ user: Schema<'Profile'> | Schema<'ProfileList'> }>();
 
 const { t } = useI18n();
 </script>

@@ -14,7 +14,7 @@ import type { SubmissionContext } from 'vee-validate';
 import { ONE_ON_ONE_PLACEHOLDERS } from '~/constants/placeholders';
 
 const props = defineProps<{
-  user: User;
+  user: Schema<'Profile'>;
   oneOnOne?: Schema<'OneOnOne'>;
   isSubmitting?: boolean;
 }>();
@@ -439,7 +439,9 @@ useStoreDraft({
               weight="bold"
             >
               {{
-                t('oneOnOne.howWasTheMeetingVibeLeader', { name: user.name })
+                t('oneOnOne.howWasTheMeetingVibeLeader', {
+                  name: user.name || '',
+                })
               }}
             </PText>
           </label>
