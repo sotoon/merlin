@@ -80,7 +80,7 @@
 import { PButton, PInput } from '@pey/core';
 
 const props = defineProps<{
-  profile: User;
+  profile: Schema<'Profile'>;
   isSubmitting?: boolean;
 }>();
 const emit = defineEmits<{
@@ -91,9 +91,9 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { meta, handleSubmit } = useForm<ProfileFormValues>({
   initialValues: {
-    name: props.profile.name,
-    gmail: props.profile.gmail,
-    phone: props.profile.phone,
+    name: props.profile.name || '',
+    gmail: props.profile.gmail || '',
+    phone: props.profile.phone || '',
   },
 });
 

@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from api.models import (
-        User,
+    User,
 )
 
 
-__all__ = ['UserSerializer', 'ProfileSerializer', 'ProfileListSerializer']
+__all__ = ["UserSerializer", "ProfileSerializer", "ProfileListSerializer"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -52,11 +52,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileListSerializer(serializers.ModelSerializer):
+    team = serializers.SlugRelatedField(read_only=True, slug_field="name")
+
     class Meta:
         model = User
-        fields = (
-            "uuid",
-            "email",
-            "name",
-        )
-
+        fields = ("uuid", "email", "name", "team")

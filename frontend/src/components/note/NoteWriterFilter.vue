@@ -15,7 +15,7 @@
       <PListboxOption
         v-for="{ name, email, uuid } in writers"
         :key="uuid"
-        :label="name"
+        :label="name || ''"
         :value="email"
       />
     </PListbox>
@@ -30,7 +30,7 @@ const props = defineProps<{ notes: Note[] }>();
 
 const { t } = useI18n();
 const writerFilter = useRouteQuery<string>('writer', undefined);
-const { data: users, pending: usersPending } = useGetUsers();
+const { data: users, isPending: usersPending } = useGetUsers();
 
 const noteOwners = computed(
   () => new Set(props.notes.map((note) => note.owner)),
