@@ -1,9 +1,7 @@
-type GetMyTeamResponse = User[];
-
 export const useGetMyTeam = (
-  fetchOptions?: UseApiFetchOptions<GetMyTeamResponse>,
+  fetchOptions?: UseApiFetchOptions<Schema<'Profile'>[]>,
 ) =>
-  useApiFetch<GetMyTeamResponse>('/my-team/', {
+  useApiFetch<Schema<'Profile'>[]>('/my-team/', {
     key: 'my-team',
     dedupe: 'defer',
     ...fetchOptions,

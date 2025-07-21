@@ -29,9 +29,13 @@ forms_router = routers.DefaultRouter()
 forms_router.register(r"forms", views.FormViewSet, basename="forms")
 
 # ─── Nested feedback and routers ─────────────────────────────────────────────
-router.register(r"feedback-forms",    views.FeedbackFormViewSet,    basename="feedback-forms")
-router.register(r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests")
-router.register(r"feedback-entries",  views.FeedbackEntryViewSet,   basename="feedback-entries")
+router.register(r"feedback-forms", views.FeedbackFormViewSet, basename="feedback-forms")
+router.register(
+    r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests"
+)
+router.register(
+    r"feedback-entries", views.FeedbackEntryViewSet, basename="feedback-entries"
+)
 
 # ─── URL PATTERNS ────────────────────────────────────────────────────────────────
 urlpatterns = [
@@ -40,7 +44,8 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("verify-token/", views.VerifyTokenView.as_view(), name="verify-token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
-    path("users/", views.UsersView.as_view(), name="users"),
+    path("users/", views.UserListView.as_view(), name="user-list"),
+    path("users/<uuid:uuid>/", views.UserDetailView.as_view(), name="user-detail"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
     path("", include(router.urls)),

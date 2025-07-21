@@ -3,7 +3,10 @@ import { PBox, PHeading } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'one-on-one-edit' });
-const props = defineProps<{ oneOnOne: Schema<'OneOnOne'>; user: User }>();
+const props = defineProps<{
+  oneOnOne: Schema<'OneOnOne'>;
+  user: Schema<'Profile'>;
+}>();
 
 const { t } = useI18n();
 const router = useRouter();

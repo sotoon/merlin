@@ -1,6 +1,6 @@
 from django.db.models import Max, Count, Q
 from rest_framework import permissions, viewsets
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -11,7 +11,7 @@ from api.serializers import (
 )
 
 
-__all__ = ['ProfileView', 'UsersView', 'MyTeamViewSet']
+__all__ = ["ProfileView", "UserListView", "UserDetailView", "MyTeamViewSet"]
 
 
 class ProfileView(RetrieveUpdateAPIView):
@@ -31,16 +31,17 @@ class ProfileView(RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 
-class UsersView(ListAPIView):
-    """
-    List all app users
-    """
-
+class UserListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileListSerializer
+    queryset = User.objects.all()
 
-    def get_queryset(self):
-        return User.objects.all()
+
+class UserDetailView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+    queryset = User.objects.all()
+    lookup_field = "uuid"
 
 
 class MyTeamViewSet(viewsets.ReadOnlyModelViewSet):
@@ -51,22 +52,20 @@ class MyTeamViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         leader = self.request.user
-        cycle  = Cycle.get_current_cycle()
-        return (
-            User.objects.filter(leader=leader)
-            .annotate(
-                latest_oneonone=Max(
-                    "one_on_ones__note__date",
-                    filter=Q(one_on_ones__note__owner=leader,
-                             one_on_ones__cycle=cycle,
-                             ),
-                    
+        cycle = Cycle.get_current_cycle()
+        return User.objects.filter(leader=leader).annotate(
+            latest_oneonone=Max(
+                "one_on_ones__note__date",
+                filter=Q(
+                    one_on_ones__note__owner=leader,
+                    one_on_ones__cycle=cycle,
                 ),
-                oneonone_count=Count(
-                    "one_on_ones",
-                    filter=Q(one_on_ones__note__owner=leader,
-                             one_on_ones__cycle=cycle,
-                             ),
+            ),
+            oneonone_count=Count(
+                "one_on_ones",
+                filter=Q(
+                    one_on_ones__note__owner=leader,
+                    one_on_ones__cycle=cycle,
                 ),
-            )
+            ),
         )
