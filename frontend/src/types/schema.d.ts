@@ -637,8 +637,23 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description List all app users */
     get: operations['users_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/{uuid}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['users_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1201,6 +1216,8 @@ export interface components {
       email: string;
       /** نام */
       name?: string | null;
+      /** نام */
+      readonly team: string;
     };
     ProfileRequest: {
       /** نام */
@@ -2860,6 +2877,27 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ProfileList'][];
+        };
+      };
+    };
+  };
+  users_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Profile'];
         };
       };
     };

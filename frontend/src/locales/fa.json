@@ -36,7 +36,10 @@
     "results": "نتایج فرم‌ها",
     "feedbackRequest": "درخواست فیدبک",
     "viewDetails": "مشاهده جزئیات",
-    "back": "بازگشت"
+    "back": "بازگشت",
+    "users": "کاربران",
+    "details": "جزئیات",
+    "timeline": "تاریخچه"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -162,10 +165,11 @@
     "team": "تیم"
   },
   "user": {
-    "getUsersError": "خطا در دریافت کاربرها",
     "noUser": "کاربری برای نمایش وجود ندارد.",
     "teamName": "تیم {name}",
-    "userNotes": "یادداشت‌های {name}"
+    "userNotes": "یادداشت‌های {name}",
+    "getUsersError": "خطا در دریافت لیست کاربران",
+    "getUserError": "خطا در دریافت اطلاعات کاربر"
   },
   "oneOnOne": {
     "individualDimension": "بعد فردی",

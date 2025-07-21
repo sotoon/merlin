@@ -2,7 +2,7 @@
 import { PLoading, PTabs, PTab } from '@pey/core';
 
 definePageMeta({ name: 'one-on-one' });
-defineProps<{ users: User[]; pendingUsers: boolean }>();
+defineProps<{ users: Schema<'Profile'>[]; pendingUsers: boolean }>();
 
 const { t } = useI18n();
 

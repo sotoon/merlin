@@ -17,7 +17,7 @@
 import { PHeading } from '@pey/core';
 
 definePageMeta({ name: 'profile-edit' });
-defineProps<{ profile: User }>();
+defineProps<{ profile: Schema<'Profile'> }>();
 
 const { t } = useI18n();
 const { execute: updateProfile, pending } = useUpdateProfile();

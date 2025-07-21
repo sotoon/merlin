@@ -4,7 +4,7 @@
       v-model="model"
       hide-details
       :label
-      :loading="pending"
+      :loading="isPending"
       :multiple
       :required
       searchable
@@ -48,7 +48,7 @@ const props = withDefaults(
 );
 const model = defineModel<string[] | null>();
 
-const { data: users, pending } = useGetUsers();
+const { data: users, isPending } = useGetUsers();
 const { data: profile } = useGetProfile();
 
 const filteredUsers = computed(() => {

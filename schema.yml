@@ -1682,7 +1682,6 @@ paths:
   /api/users/:
     get:
       operationId: users_list
-      description: List all app users
       tags:
       - users
       security:
@@ -1695,6 +1694,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProfileList'
+          description: ''
+  /api/users/{uuid}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
           description: ''
   /api/value-tags/:
     get:
@@ -2906,8 +2926,13 @@ components:
           nullable: true
           title: نام
           maxLength: 256
+        team:
+          type: string
+          title: نام
+          readOnly: true
       required:
       - email
+      - team
       - uuid
     ProfileRequest:
       type: object

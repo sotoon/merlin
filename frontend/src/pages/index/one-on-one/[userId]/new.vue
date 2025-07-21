@@ -4,7 +4,7 @@ import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'one-on-one-new' });
 
-const props = defineProps<{ user: User }>();
+const props = defineProps<{ user: Schema<'Profile'> }>();
 
 const { t } = useI18n();
 const router = useRouter();
