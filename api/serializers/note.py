@@ -16,7 +16,6 @@ from api.models import (
     OneOnOneTagLink,
     ValueTag,
     Cycle,
-    UserTimeline,
     Comment,
     Note,
     NoteType,
