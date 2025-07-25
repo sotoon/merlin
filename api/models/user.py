@@ -59,9 +59,7 @@ class User(MerlinBaseModel, AbstractUser):
         related_name="committee_users",
         verbose_name="کمیته",
     )
-    level = models.CharField(
-        max_length=256, default="", blank=True, null=True, verbose_name="سطح"
-    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

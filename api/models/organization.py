@@ -5,7 +5,18 @@ from django.core.exceptions import ValidationError
 from api.models.base import MerlinBaseModel
 from api.models.user import User
 
-__all__ = ['Organization', 'Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag']
+__all__ = ['Organization', 'Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag', 'CommitteeType']
+
+
+class CommitteeType(models.TextChoices):
+    PROMOTION = "PROMOTION", "ارتقا"
+    NOTICE = "NOTICE", "نوتیس"
+    MAPPING = "MAPPING", "مپینگ اولیه"
+    EVALUATION = "EVALUATION", "ارزیابی"
+
+    @classmethod
+    def default(cls):
+        return cls.PROMOTION
 
 
 class Organization(MerlinBaseModel):
@@ -188,6 +199,12 @@ class Team(MerlinBaseModel):
 
 
 class Committee(MerlinBaseModel):
+    committee_type = models.CharField(
+        max_length=16,
+        choices=CommitteeType.choices,
+        default=CommitteeType.default,
+        verbose_name="نوع کمیته",
+    )
     name = models.CharField(max_length=256, verbose_name="نام")
     members = models.ManyToManyField(
         "api.User", related_name="committee_members", verbose_name="اعضا"
