@@ -630,6 +630,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/title-changes/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['title_changes_list'];
+    put?: never;
+    post: operations['title_changes_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/users/': {
     parameters: {
       query?: never;
@@ -638,6 +654,23 @@ export interface paths {
       cookie?: never;
     };
     get: operations['users_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/{user_id}/timeline/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Return paginated timeline events for a given user_id respecting feature flag and basic ACL. */
+    get: operations['users_timeline_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -723,6 +756,26 @@ export interface components {
       /** محتوا */
       content: string;
     };
+    /**
+     * @description * `SENIORITY_CHANGE` - تغییر سطح لدر
+     *     * `PAY_CHANGE` - تغییر بسته‌ حقوقی
+     *     * `BONUS_PAYOUT` - پرداخت پاداش
+     *     * `EVALUATION` - خروجی ارزیابی کمیته
+     *     * `MAPPING` - بازنشانی روی لدر
+     *     * `TITLE_CHANGE` - تغییر عنوان شغلی
+     *     * `STOCK_GRANT` - اعطای سهام
+     *     * `NOTICE` - نوتیس
+     * @enum {string}
+     */
+    EventTypeEnum:
+      | 'SENIORITY_CHANGE'
+      | 'PAY_CHANGE'
+      | 'BONUS_PAYOUT'
+      | 'EVALUATION'
+      | 'MAPPING'
+      | 'TITLE_CHANGE'
+      | 'STOCK_GRANT'
+      | 'NOTICE';
     /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
      *
      *     • `receiver_ids`   - list of UUIDs (required)
@@ -1060,6 +1113,21 @@ export interface components {
       tag: components['schemas']['TagReadRequest'];
       section: components['schemas']['SectionEnum'];
     };
+    PaginatedTimelineEventLiteList: {
+      /** @example 123 */
+      count?: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=4
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=2
+       */
+      previous?: string | null;
+      results?: components['schemas']['TimelineEventLite'][];
+    };
     PatchedCommentRequest: {
       /**
        * ایمیل سازمانی
@@ -1203,8 +1271,6 @@ export interface components {
       readonly team: string;
       /** نام */
       readonly leader: string | null;
-      /** سطح */
-      readonly level: string | null;
     };
     ProfileList: {
       /** Format: uuid */
@@ -1301,6 +1367,38 @@ export interface components {
       name_en: string;
       name_fa: string;
       section: components['schemas']['SectionEnum'];
+    };
+    TimelineEventLite: {
+      readonly id: number;
+      event_type?: components['schemas']['EventTypeEnum'];
+      /** Format: date */
+      effective_date: string;
+      summary_text: string;
+      readonly object_url: string;
+      readonly model: string;
+      readonly object_id: string;
+    };
+    TitleChange: {
+      readonly id: number;
+      user: number;
+      old_title: string;
+      new_title: string;
+      reason?: string | null;
+      /** Format: date */
+      effective_date: string;
+      /**
+       * تاریخ ساخت
+       * Format: date-time
+       */
+      readonly date_created: string | null;
+    };
+    TitleChangeRequest: {
+      user: number;
+      old_title: string;
+      new_title: string;
+      reason?: string | null;
+      /** Format: date */
+      effective_date: string;
     };
     TokenRefresh: {
       readonly access: string;
@@ -2862,6 +2960,50 @@ export interface operations {
       };
     };
   };
+  title_changes_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TitleChange'][];
+        };
+      };
+    };
+  };
+  title_changes_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TitleChangeRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['TitleChangeRequest'];
+        'multipart/form-data': components['schemas']['TitleChangeRequest'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TitleChange'];
+        };
+      };
+    };
+  };
   users_list: {
     parameters: {
       query?: never;
@@ -2877,6 +3019,30 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ProfileList'][];
+        };
+      };
+    };
+  };
+  users_timeline_list: {
+    parameters: {
+      query?: {
+        /** @description A page number within the paginated result set. */
+        page?: number;
+      };
+      header?: never;
+      path: {
+        user_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedTimelineEventLiteList'];
         };
       };
     };

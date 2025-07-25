@@ -36,9 +36,11 @@
           </PBox>
         </PTab>
         <PTab :title="t('common.timeline')">
-          <div class="py-8 text-center">
-            <PText>This is a placeholder for the user's timeline.</PText>
-          </div>
+          <PBox
+            class="mx-auto max-w-3xl bg-white px-2 py-8 sm:px-4 lg:px-8 lg:pt-10"
+          >
+            <UserTimeline :user-id="userId" />
+          </PBox>
         </PTab>
       </PTabs>
 
@@ -67,6 +69,7 @@ import { useRoute } from 'vue-router';
 import { useGetUser } from '~/composables/users/useGetUsers';
 import { useGetProfile } from '~/composables/users/useGetProfile';
 import ProfileDetail from '~/components/profile/ProfileDetail.vue';
+import UserTimeline from '~/components/timeline/UserTimeline.vue';
 
 definePageMeta({ name: 'user-detail' });
 

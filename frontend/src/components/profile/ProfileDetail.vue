@@ -68,8 +68,6 @@ const logout = useLogout();
           :label="t('profile.leader')"
           :value="profile.leader"
         />
-
-        <PropertyTableRow :label="t('profile.level')" :value="profile.level" />
       </PropertyTable>
 
       <PropertyTable :title="t('profile.contactInfo')">
