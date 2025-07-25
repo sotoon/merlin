@@ -52,7 +52,7 @@ urlpatterns = [
     path("users/<uuid:uuid>/", views.UserDetailView.as_view(), name="user-detail"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
-    path("users/<int:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
+    path("users/<uuid:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
     path("", include(router.urls)),
     path("", include(comments_router.urls)),
     path("", include(summaries_router.urls)),

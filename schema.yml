@@ -1679,6 +1679,47 @@ paths:
                 items:
                   $ref: '#/components/schemas/Note'
           description: ''
+  /api/title-changes/:
+    get:
+      operationId: title_changes_list
+      tags:
+      - title-changes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TitleChange'
+          description: ''
+    post:
+      operationId: title_changes_create
+      tags:
+      - title-changes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TitleChangeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TitleChangeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TitleChangeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TitleChange'
+          description: ''
   /api/users/:
     get:
       operationId: users_list
@@ -1694,6 +1735,34 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProfileList'
+          description: ''
+  /api/users/{user_id}/timeline/:
+    get:
+      operationId: users_timeline_list
+      description: Return paginated timeline events for a given user_id respecting
+        feature flag and basic ACL.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTimelineEventLiteList'
           description: ''
   /api/users/{uuid}/:
     get:
@@ -1809,6 +1878,26 @@ components:
           title: محتوا
       required:
       - content
+    EventTypeEnum:
+      enum:
+      - SENIORITY_CHANGE
+      - PAY_CHANGE
+      - BONUS_PAYOUT
+      - EVALUATION
+      - MAPPING
+      - TITLE_CHANGE
+      - STOCK_GRANT
+      - NOTICE
+      type: string
+      description: |-
+        * `SENIORITY_CHANGE` - تغییر سطح لدر
+        * `PAY_CHANGE` - تغییر بسته‌ حقوقی
+        * `BONUS_PAYOUT` - پرداخت پاداش
+        * `EVALUATION` - خروجی ارزیابی کمیته
+        * `MAPPING` - بازنشانی روی لدر
+        * `TITLE_CHANGE` - تغییر عنوان شغلی
+        * `STOCK_GRANT` - اعطای سهام
+        * `NOTICE` - نوتیس
     Feedback:
       type: object
       description: |-
@@ -2594,6 +2683,26 @@ components:
       required:
       - section
       - tag
+    PaginatedTimelineEventLiteList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEventLite'
     PatchedCommentRequest:
       type: object
       properties:
@@ -2896,17 +3005,11 @@ components:
           nullable: true
           title: نام
           readOnly: true
-        level:
-          type: string
-          readOnly: true
-          nullable: true
-          title: سطح
       required:
       - chapter
       - department
       - email
       - leader
-      - level
       - team
       - uuid
     ProfileList:
@@ -3099,6 +3202,93 @@ components:
       - name_en
       - name_fa
       - section
+    TimelineEventLite:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        event_type:
+          $ref: '#/components/schemas/EventTypeEnum'
+        effective_date:
+          type: string
+          format: date
+        summary_text:
+          type: string
+          maxLength: 256
+        object_url:
+          type: string
+          readOnly: true
+        model:
+          type: string
+          readOnly: true
+        object_id:
+          type: string
+          readOnly: true
+      required:
+      - effective_date
+      - id
+      - model
+      - object_id
+      - object_url
+      - summary_text
+    TitleChange:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+        old_title:
+          type: string
+          maxLength: 256
+        new_title:
+          type: string
+          maxLength: 256
+        reason:
+          type: string
+          nullable: true
+        effective_date:
+          type: string
+          format: date
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ ساخت
+      required:
+      - date_created
+      - effective_date
+      - id
+      - new_title
+      - old_title
+      - user
+    TitleChangeRequest:
+      type: object
+      properties:
+        user:
+          type: integer
+        old_title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        new_title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        reason:
+          type: string
+          nullable: true
+        effective_date:
+          type: string
+          format: date
+      required:
+      - effective_date
+      - new_title
+      - old_title
+      - user
     TokenRefresh:
       type: object
       properties:
