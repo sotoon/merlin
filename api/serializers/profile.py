@@ -38,7 +38,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "chapter",
             "team",
             "leader",
-            "level",
         )
         read_only_fields = [
             "uuid",
@@ -47,7 +46,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "chapter",
             "team",
             "leader",
-            "level",
         ]
 
 

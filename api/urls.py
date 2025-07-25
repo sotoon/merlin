@@ -4,6 +4,7 @@ from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from api import views
+from api.views import UserTimelineView
 
 # ─── Top-level router ────────────────────────────────────────────────────────────
 router = routers.DefaultRouter()
@@ -33,6 +34,9 @@ router.register(r"feedback-forms",    views.FeedbackFormViewSet,    basename="fe
 router.register(r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests")
 router.register(r"feedback-entries",  views.FeedbackEntryViewSet,   basename="feedback-entries")
 
+# ─── Profile timeline endpoints ───────────────────────────────────────────────
+router.register(r"title-changes", views.TitleChangeViewSet, basename="title-changes")
+
 # ─── URL PATTERNS ────────────────────────────────────────────────────────────────
 urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
@@ -43,6 +47,7 @@ urlpatterns = [
     path("users/", views.UsersView.as_view(), name="users"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
+    path("users/<int:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
     path("", include(router.urls)),
     path("", include(comments_router.urls)),
     path("", include(summaries_router.urls)),
