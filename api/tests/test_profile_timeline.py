@@ -95,7 +95,7 @@ def test_flag_off_returns_404(settings, api_client, member):
     """Timeline endpoint returns 403 when the feature flag is off."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "off"
     api_client.force_authenticate(member)
-    url = reverse("api:user-timeline", args=[member.pk])
+    url = reverse("api:user-timeline", args=[str(member.uuid)])
     resp = api_client.get(url)
     assert resp.status_code == 403
 
@@ -110,7 +110,7 @@ def test_self_can_view(settings, api_client, member):
     """A user can view their own timeline when flag is 'all'."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
-    url = reverse("api:user-timeline", args=[member.pk])
+    url = reverse("api:user-timeline", args=[str(member.uuid)])
     assert api_client.get(url).status_code == 200
 
 
@@ -119,7 +119,7 @@ def test_leader_can_view(settings, api_client, leader, member):
     """Direct leader can view subordinate timeline."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(leader)
-    url = reverse("api:user-timeline", args=[member.pk])
+    url = reverse("api:user-timeline", args=[str(member.uuid)])
     assert api_client.get(url).status_code == 200
 
 
@@ -129,7 +129,7 @@ def test_regular_user_denied(settings, api_client, member, leader):
     stranger = User.objects.create(email="stranger@example.com", username="stranger")
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(stranger)
-    url = reverse("api:user-timeline", args=[leader.pk])
+    url = reverse("api:user-timeline", args=[str(leader.uuid)])
     assert api_client.get(url).status_code == 403
 
 
@@ -196,11 +196,46 @@ def test_serializer_without_artefact_returns_nulls(settings, api_client, leader)
         created_by=leader,
     )
 
-    url = reverse("api:user-timeline", args=[leader.pk])
+    url = reverse("api:user-timeline", args=[str(leader.uuid)])
     data = api_client.get(url).json()["results"][0]
     assert data["object_url"] is None
     assert data["model"] is None
     assert data["object_id"] is None
+
+
+# ---------------------------------------------------------------------------
+# Serializer – summary object_url
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_serializer_summary_has_object_url(settings, api_client, member):
+    """Timeline event for Summary should include proper nested URL."""
+    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
+    api_client.force_authenticate(member)
+
+    # create note & summary
+    note = Note.objects.create(
+        owner=member,
+        title="Review note",
+        content="...",
+        date=timezone.now().date(),
+        type=NoteType.GOAL,
+    )
+    Summary.objects.create(
+        note=note,
+        content="x",
+        bonus=5,
+        ladder_change="",
+        submit_status=SummarySubmitStatus.DONE,
+    )
+
+    url = reverse("api:user-timeline", args=[str(member.uuid)])
+    data = api_client.get(url).json()["results"][0]
+    assert data["model"] == "summary"
+    assert data["object_url"] is not None
+    # URL should include both note id and summary id segments
+    assert f"/notes/{note.id}/summaries/" in data["object_url"]
 
 
 # ---------------------------------------------------------------------------
@@ -274,7 +309,7 @@ def test_level_embedded_when_param_set(settings, api_client, member, member_snap
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
-    url = reverse("api:user-timeline", args=[member.pk]) + "?include_level=true"
+    url = reverse("api:user-timeline", args=[str(member.uuid)]) + "?include_level=true"
     resp = api_client.get(url)
     assert resp.status_code == 200
     body = resp.json()
@@ -287,7 +322,7 @@ def test_level_not_embedded_without_param(settings, api_client, member, member_s
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
-    url = reverse("api:user-timeline", args=[member.pk])
+    url = reverse("api:user-timeline", args=[str(member.uuid)])
     body = api_client.get(url).json()
     assert "level" not in body
 
@@ -297,6 +332,6 @@ def test_level_not_embedded_when_no_snapshot(settings, api_client, member):
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
-    url = reverse("api:user-timeline", args=[member.pk]) + "?include_level=true"
+    url = reverse("api:user-timeline", args=[str(member.uuid)]) + "?include_level=true"
     body = api_client.get(url).json()
     assert "level" not in body

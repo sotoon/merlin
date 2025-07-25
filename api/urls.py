@@ -40,6 +40,9 @@ router.register(
 
 # ─── Profile timeline endpoints ───────────────────────────────────────────────
 router.register(r"title-changes", views.TitleChangeViewSet, basename="title-changes")
+router.register(r"notices", views.NoticeViewSet, basename="notice")
+# Disabled until stock-grant detail endpoint is finalised
+# router.register(r"stock-grants", views.StockGrantViewSet, basename="stockgrant")
 
 # ─── URL PATTERNS ────────────────────────────────────────────────────────────────
 urlpatterns = [
