@@ -16,7 +16,7 @@ from api.models import (
     NoteUserAccess,
     Summary,
     OneOnOne,
-    UserTimeline,
+    OneOnOneActivityLog,
 )
 from api.permissions import (
     CommentPermission as FeedbackPermission,
@@ -260,7 +260,7 @@ class OneOnOneViewSet(
             ctx["member"] = self.member_obj
         return ctx
 
-    # Log in the UserTimeline
+    # Log activity
     def create(self, request, *args, **kwargs):
         with transaction.atomic():
             response = super().create(request, *args, **kwargs)
@@ -268,8 +268,8 @@ class OneOnOneViewSet(
                 one_on_one_id = response.data.get("id")
                 ooo = OneOnOne.objects.get(id=one_on_one_id)
 
-                # Log to UserTimeline
-                UserTimeline.objects.create(
+                # Log activity
+                OneOnOneActivityLog.objects.create(
                     user=ooo.member,
                     event_type="1on1_created",
                     cycle=ooo.cycle,
@@ -359,7 +359,7 @@ class OneOnOneViewSet(
 
         return super().partial_update(request, *args, **kwargs)
 
-    # Log in the UserTimeline
+    # Log activity
     def update(self, request, *args, **kwargs):
         with transaction.atomic():
             response = super().update(request, *args, **kwargs)
@@ -367,7 +367,7 @@ class OneOnOneViewSet(
                 one_on_one_id = response.data.get("id")
 
                 ooo = OneOnOne.objects.get(id=one_on_one_id)
-                UserTimeline.objects.create(
+                OneOnOneActivityLog.objects.create(
                     user=ooo.member,
                     event_type="1on1_updated",
                     cycle=ooo.cycle,

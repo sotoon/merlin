@@ -85,8 +85,8 @@ class TeamAdmin(BaseModelAdmin):
 
 @admin.register(Committee)
 class CommitteeAdmin(BaseModelAdmin):
-    list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid", "name", "description", "members", "roles", ("date_created", "date_updated"),)
+    list_display = ("name", "committee_type", "date_created", "date_updated",)
+    fields = ("uuid", "name", "committee_type", "description", "members", "roles", ("date_created", "date_updated"),)
     filter_horizontal = ("members", "roles",)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
