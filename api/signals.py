@@ -1,5 +1,6 @@
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .models import (
     Committee,
@@ -280,8 +281,8 @@ def stockgrant_to_timeline(sender, instance: StockGrantModel, created, **kwargs)
     _create_timeline_event(
         user=instance.user,
         event_type=EventType.STOCK_GRANT,
-        summary_text=f"{instance.shares} {instance.get_grant_type_display()} granted",
-        effective_date=instance.cliff_date,
+        summary_text=instance.description or "Stock grant issued",
+        effective_date=timezone.now().date(),
         source_obj=instance,
         created_by=instance.created_by,
     )

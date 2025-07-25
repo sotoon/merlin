@@ -37,6 +37,7 @@
     "feedbackRequest": "درخواست فیدبک",
     "viewDetails": "مشاهده جزئیات",
     "back": "بازگشت",
+    "organization": "سازمان",
     "users": "کاربران",
     "details": "جزئیات",
     "timeline": "تاریخچه"
@@ -170,6 +171,25 @@
     "userNotes": "یادداشت‌های {name}",
     "getUsersError": "خطا در دریافت لیست کاربران",
     "getUserError": "خطا در دریافت اطلاعات کاربر"
+  },
+  "timeline": {
+    "getTimelineError": "خطا در دریافت تاریخچه کاربر",
+    "loadMore": "بارگذاری بیشتر",
+    "noMoreEvents": "رویداد دیگری وجود ندارد",
+    "noEvents": "هیچ رویدادی برای نمایش وجود ندارد",
+    "viewDetails": "مشاهده جزئیات",
+    "currentLevel": "سطح فعلی",
+    "showDetails": "نمایش جزئیات",
+    "hideDetails": "مخفی کردن جزئیات",
+    "seniorityChange": "تغییر سطح لدر",
+    "payChange": "تغییر بسته حقوقی",
+    "bonusPayout": "پرداخت پاداش",
+    "evaluation": "خروجی ارزیابی کمیته",
+    "mapping": "بازنشانی روی لدر",
+    "titleChange": "تغییر عنوان شغلی",
+    "stockGrant": "اعطای سهام",
+    "notice": "نوتیس",
+    "unknownEvent": "رویداد ناشناخته"
   },
   "oneOnOne": {
     "individualDimension": "بعد فردی",

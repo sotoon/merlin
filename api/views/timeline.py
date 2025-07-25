@@ -5,7 +5,6 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import mixins, viewsets
-from rest_framework.response import Response
 
 from api.models import User, TimelineEvent, RoleType, TitleChange
 from api.serializers.timeline import TimelineEventLiteSerializer, TitleChangeSerializer
@@ -33,12 +32,12 @@ class UserTimelineView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     class _Pagination(PageNumberPagination):
-        page_size = 50
+        page_size = 10
 
     pagination_class = _Pagination
 
     def get_queryset(self):
-        target_user = get_object_or_404(User, pk=self.kwargs["user_id"])
+        target_user = get_object_or_404(User, uuid=self.kwargs["user_id"])
         request_user = self.request.user
 
         # Feature flag – allow only when enabled
@@ -67,7 +66,7 @@ class UserTimelineView(ListAPIView):
         response = super().list(request, *args, **kwargs)
 
         if request.query_params.get("include_level") == "true":
-            target_user = get_object_or_404(User, pk=self.kwargs["user_id"])
+            target_user = get_object_or_404(User, uuid=self.kwargs["user_id"])
             level_data = get_current_level(target_user)
             if level_data:
                 response.data["level"] = level_data
