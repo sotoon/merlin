@@ -10,9 +10,18 @@
           {{ user?.name }}
         </PHeading>
       </div>
+
+      <PButton
+        v-if="isManager"
+        class="shrink-0"
+        tabindex="-1"
+        @click="titleChangeDialogOpen = true"
+      >
+        {{ t('common.changeJobTitle') }}
+      </PButton>
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div v-if="isPending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 
@@ -21,7 +30,7 @@
         {{ t('user.getUserError') }}
       </PText>
 
-      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
         {{ t('common.retry') }}
       </PButton>
     </div>
@@ -51,6 +60,14 @@
         <ProfileDetail :profile="user" />
       </PBox>
     </div>
+
+    <TitleChangeDialog
+      :open="titleChangeDialogOpen"
+      :user-uuid="userId"
+      :current-title="user?.current_job_title || ''"
+      @close="titleChangeDialogOpen = false"
+      @success="refetch"
+    />
   </div>
 </template>
 
@@ -66,10 +83,9 @@ import {
 } from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 import { useRoute } from 'vue-router';
-import { useGetUser } from '~/composables/users/useGetUsers';
-import { useGetProfile } from '~/composables/users/useGetProfile';
 import ProfileDetail from '~/components/profile/ProfileDetail.vue';
 import UserTimeline from '~/components/timeline/UserTimeline.vue';
+import TitleChangeDialog from '~/components/user/TitleChangeDialog.vue';
 
 definePageMeta({ name: 'user-detail' });
 
@@ -77,12 +93,7 @@ const { t } = useI18n();
 const route = useRoute();
 const userId = computed(() => route.params.id as string);
 
-const {
-  data: user,
-  isPending: pending,
-  error,
-  refetch: refresh,
-} = useGetUser(userId);
+const { data: user, isPending, error, refetch } = useGetUser(userId);
 const { data: currentUserProfile } = useGetProfile();
 
 const isManager = computed(() => {
@@ -91,6 +102,8 @@ const isManager = computed(() => {
   }
   return currentUserProfile.value.name === user.value.leader;
 });
+
+const titleChangeDialogOpen = ref(false);
 
 useHead({
   title: user.value?.name,
