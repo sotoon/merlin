@@ -10,6 +10,19 @@
           {{ profile?.name }}
         </PHeading>
       </div>
+
+      <div class="flex items-center gap-2">
+        <NuxtLink :to="{ name: 'profile-edit' }">
+          <PIconButton class="shrink-0" :icon="PeyEditIcon" tabindex="-1" />
+        </NuxtLink>
+
+        <PIconButton
+          class="shrink-0"
+          color="danger"
+          :icon="PeyLogoutIcon"
+          @click="logout"
+        />
+      </div>
     </div>
 
     <div v-if="isPending" class="flex items-center justify-center py-8">
@@ -29,11 +42,7 @@
     <div v-else-if="profile">
       <PTabs class="pt-4">
         <PTab :title="t('common.details')">
-          <PBox
-            class="mx-auto max-w-3xl bg-white px-2 py-8 sm:px-4 lg:px-8 lg:pt-10"
-          >
-            <ProfileDetail :profile="profile" :is-current-user="true" />
-          </PBox>
+          <ProfileDetail :profile="profile" />
         </PTab>
         <PTab :title="t('common.timeline')">
           <UserTimeline :user-id="profile.uuid" />
@@ -52,8 +61,9 @@ import {
   PText,
   PTabs,
   PTab,
+  PIconButton,
 } from '@pey/core';
-import { PeyRetryIcon } from '@pey/icons';
+import { PeyEditIcon, PeyLogoutIcon, PeyRetryIcon } from '@pey/icons';
 import ProfileDetail from '~/components/profile/ProfileDetail.vue';
 import UserTimeline from '~/components/timeline/UserTimeline.vue';
 
@@ -61,6 +71,7 @@ definePageMeta({ name: 'profile' });
 
 const { t } = useI18n();
 const { data: profile, isPending, error, refetch } = useGetProfile();
+const logout = useLogout();
 
 useHead({
   title: profile.value?.name,
