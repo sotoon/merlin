@@ -1751,7 +1751,8 @@ paths:
       - in: path
         name: user_id
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
       tags:
       - users
@@ -2964,6 +2965,9 @@ components:
     Profile:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -3005,10 +3009,15 @@ components:
           nullable: true
           title: نام
           readOnly: true
+        current_job_title:
+          type: string
+          readOnly: true
       required:
       - chapter
+      - current_job_title
       - department
       - email
+      - id
       - leader
       - team
       - uuid

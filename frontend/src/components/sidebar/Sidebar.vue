@@ -136,14 +136,6 @@
               </li>
             </SidebarLinkGroup>
           </li>
-
-          <li>
-            <SidebarLink
-              icon="i-mdi-account-group-outline"
-              :label="t('common.users')"
-              :to="{ name: 'user-list' }"
-            />
-          </li>
         </ul>
       </PScrollbar>
 
@@ -153,6 +145,12 @@
           icon="i-mdi-message-text"
           :label="t('common.messages')"
           :to="{ name: 'messages' }"
+        />
+
+        <SidebarLink
+          icon="i-mdi-account-group-outline"
+          :label="t('common.users')"
+          :to="{ name: 'user-list' }"
         />
 
         <SidebarLink

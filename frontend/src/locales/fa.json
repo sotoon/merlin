@@ -21,7 +21,7 @@
     "myForms": "فرم‌های من",
     "myTeam": "تیم من",
     "notes": "مدیریت عملکرد",
-    "promotion": "درخواست بررسی ارتقا",
+    "promotion": "کمیته‌ها",
     "performanceManagementGuide": "راهنمای مدیریت عملکرد",
     "personalNotes": "یادداشت‌های شخصی",
     "personal": "میز کار",
@@ -40,7 +40,14 @@
     "organization": "سازمان",
     "users": "کاربران",
     "details": "جزئیات",
-    "timeline": "تاریخچه"
+    "timeline": "تاریخچه",
+    "changeJobTitle": "تغییر عنوان شغلی",
+    "newJobTitle": "عنوان شغلی جدید",
+    "reasonForChange": "دلیل تغییر",
+    "effectiveDate": "تاریخ اعمال",
+    "changeTitleSuccess": "عنوان شغلی با موفقیت تغییر یافت",
+    "changeTitleError": "خطا در تغییر عنوان شغلی",
+    "maintainerOnly": "فقط مدیران سیستم می‌توانند عنوان شغلی را تغییر دهند"
   },
   "form": {
     "assignForm": "ارسال فرم",

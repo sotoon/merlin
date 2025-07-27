@@ -1250,6 +1250,7 @@ export interface components {
       submit_status?: components['schemas']['SummarySubmitStatusEnum'];
     };
     Profile: {
+      readonly id: number;
       /** Format: uuid */
       readonly uuid: string;
       /**
@@ -1271,6 +1272,7 @@ export interface components {
       readonly team: string;
       /** نام */
       readonly leader: string | null;
+      readonly current_job_title: string;
     };
     ProfileList: {
       /** Format: uuid */
@@ -3031,7 +3033,7 @@ export interface operations {
       };
       header?: never;
       path: {
-        user_id: number;
+        user_id: string;
       };
       cookie?: never;
     };
