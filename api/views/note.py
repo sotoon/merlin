@@ -63,6 +63,7 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
         user_email = self.request.query_params.get("user")
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
         note_type_filter = self.request.query_params.get("type")
+        proposal_type_filter = self.request.query_params.get("proposal_type")
 
         accessible_notes = get_notes_visible_to(self.request.user)
 
@@ -87,6 +88,9 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
 
         if note_type_filter:
             queryset = queryset.filter(type=note_type_filter)
+
+        if proposal_type_filter:
+            queryset = queryset.filter(proposal_type=proposal_type_filter)
 
         return queryset.distinct()
 

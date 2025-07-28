@@ -9,8 +9,10 @@
     <div
       class="relative flex items-center gap-3 rounded p-3"
       :class="{
-        'bg-primary-10': slot?.isActive,
-        'group-focus:bg-gray-00 hover:bg-gray-00': !slot?.isActive,
+        'bg-primary-10': isActiveProp ?? slot?.isActive,
+        'group-focus:bg-gray-00 hover:bg-gray-00': !(
+          isActiveProp ?? slot?.isActive
+        ),
       }"
     >
       <i
@@ -18,18 +20,18 @@
         :class="[
           icon,
           {
-            'text-primary': slot?.isActive,
-            'text-gray': !slot?.isActive,
+            'text-primary': isActiveProp ?? slot?.isActive,
+            'text-gray': !(isActiveProp ?? slot?.isActive),
           },
         ]"
       />
 
       <PText
         :class="{
-          'text-gray-100': slot?.isActive,
-          'text-gray-80': !slot?.isActive,
+          'text-gray-100': isActiveProp ?? slot?.isActive,
+          'text-gray-80': !(isActiveProp ?? slot?.isActive),
         }"
-        :weight="slot?.isActive ? 'medium' : 'regular'"
+        :weight="isActiveProp ?? slot?.isActive ? 'medium' : 'regular'"
         variant="caption1"
       >
         {{ label }}
@@ -52,7 +54,10 @@ export interface SidebarLink {
 interface SidebarLinkProps extends SidebarLink {
   badgeCount?: number;
   external?: boolean;
+  isActive?: boolean;
 }
 
-defineProps<SidebarLinkProps>();
+const props = defineProps<SidebarLinkProps>();
+
+const isActiveProp = computed(() => props.isActive);
 </script>

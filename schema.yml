@@ -1553,6 +1553,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Note'
           description: ''
+  /api/notices/:
+    get:
+      operationId: notices_list
+      tags:
+      - notices
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notice'
+          description: ''
+  /api/notices/{id}/:
+    get:
+      operationId: notices_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this نوتیس.
+        required: true
+      tags:
+      - notices
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notice'
+          description: ''
   /api/profile/:
     get:
       operationId: profile_retrieve
@@ -1751,7 +1788,8 @@ paths:
       - in: path
         name: user_id
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
       tags:
       - users
@@ -2350,6 +2388,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2440,6 +2482,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2514,6 +2560,43 @@ components:
         can_write_feedback:
           type: boolean
           title: نوشتن فیدبک
+    Notice:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+        notice_type:
+          $ref: '#/components/schemas/NoticeTypeEnum'
+        description:
+          type: string
+        committee_date:
+          type: string
+          format: date
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ ساخت
+      required:
+      - committee_date
+      - date_created
+      - description
+      - id
+      - user
+    NoticeTypeEnum:
+      enum:
+      - PERFORMANCE
+      - CONDUCT
+      - OTHER
+      type: string
+      description: |-
+        * `PERFORMANCE` - عملکردی
+        * `CONDUCT` - رفتاری
+        * `OTHER` - سایر
     OneOnOne:
       type: object
       description: |-
@@ -2841,6 +2924,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2964,6 +3051,9 @@ components:
     Profile:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -3005,10 +3095,15 @@ components:
           nullable: true
           title: نام
           readOnly: true
+        current_job_title:
+          type: string
+          readOnly: true
       required:
       - chapter
+      - current_job_title
       - department
       - email
+      - id
       - leader
       - team
       - uuid
@@ -3055,6 +3150,18 @@ components:
           nullable: true
           title: موبایل
           maxLength: 256
+    ProposalTypeEnum:
+      enum:
+      - PROMOTION
+      - NOTICE
+      - MAPPING
+      - EVALUATION
+      type: string
+      description: |-
+        * `PROMOTION` - ارتقا
+        * `NOTICE` - نوتیس
+        * `MAPPING` - مپینگ اولیه
+        * `EVALUATION` - ارزیابی
     SectionEnum:
       enum:
       - personal

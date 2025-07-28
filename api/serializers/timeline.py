@@ -49,8 +49,8 @@ class TimelineEventLiteSerializer(serializers.ModelSerializer):
         viewname_map = {
             "note": "api:note-detail",
             "summary": "api:summaries-detail",
-            "stockgrant": "api:stockgrant-detail",
-            "notice": "api:notice-detail",
+            # "stockgrant": "api:stockgrant-detail",  # Commented out - no endpoint exists
+            # "notice": "api:notice-detail",  # Commented out - no endpoint exists
         }
 
         viewname = viewname_map.get(ct_model)

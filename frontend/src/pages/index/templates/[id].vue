@@ -55,15 +55,10 @@ const noteId = computed(() => {
   return '';
 });
 
-const {
-  data: note,
-  pending,
-  error,
-  refresh,
-} = useGetNote({ id: noteId.value });
-const { execute: updateNote, pending: isSubmitting } = useUpdateNote({
-  id: noteId.value,
-});
+const { data: note, pending, error, refresh } = useGetNote(noteId.value);
+const { execute: updateNote, pending: isSubmitting } = useUpdateNote(
+  noteId.value,
+);
 
 const handleSubmit = (
   values: NoteTemplateFormValues,

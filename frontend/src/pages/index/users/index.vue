@@ -24,23 +24,37 @@
       </PButton>
     </div>
 
-    <div
-      v-else
-      class="grid grid-cols-1 gap-2 py-4 md:grid-cols-2 md:gap-3 xl:grid-cols-3"
-    >
-      <NuxtLink
-        v-for="user in users"
-        :key="user.uuid"
-        :to="{ name: 'user-detail', params: { id: user.uuid } }"
-      >
-        <UserCard :user="user" />
-      </NuxtLink>
+    <div v-else class="py-4">
+      <PTable :data="users" :items-per-page="10" paginate searchable>
+        <PTableColumn type="index" />
+        <PTableColumn label="نام" prop="name" />
+        <PTableColumn label="ایمیل" prop="email" />
+        <PTableColumn label="تیم" prop="team" />
+        <PTableColumn>
+          <template #default="{ row }">
+            <NuxtLink
+              :to="{ name: 'user-detail', params: { id: (row as any).uuid } }"
+            >
+              <PButton size="small" color="primary">
+                {{ t('common.details') }}
+              </PButton>
+            </NuxtLink>
+          </template>
+        </PTableColumn>
+      </PTable>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { PButton, PHeading, PLoading, PText } from '@pey/core';
+import {
+  PButton,
+  PHeading,
+  PLoading,
+  PText,
+  PTable,
+  PTableColumn,
+} from '@pey/core';
 import { PeyRetryIcon } from '@pey/icons';
 
 definePageMeta({ name: 'user-list' });
