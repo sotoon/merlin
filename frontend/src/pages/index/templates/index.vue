@@ -15,7 +15,7 @@
       </NuxtLink>
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div v-if="isPending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 
@@ -24,7 +24,7 @@
         {{ t('note.getTemplatesError') }}
       </PText>
 
-      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
         {{ t('common.retry') }}
       </PButton>
     </div>
@@ -47,9 +47,9 @@ const { t } = useI18n();
 useHead({ title: t('common.templates') });
 const {
   data: notes,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetNotes({
   type: NOTE_TYPE.template,
 });

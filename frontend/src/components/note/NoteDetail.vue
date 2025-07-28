@@ -241,9 +241,9 @@ const { data: profile } = useGetProfile();
 const { data: users } = useGetUsers();
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
-const { execute: updateNote, pending: updatingNote } = useUpdateNote({
-  id: props.note.uuid,
-});
+const { execute: updateNote, pending: updatingNote } = useUpdateNote(
+  props.note.uuid,
+);
 
 let finalSubmitHintTimeout: NodeJS.Timeout | null = null;
 const finalSubmitHintVisibility = ref(false);

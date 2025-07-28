@@ -577,6 +577,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/notices/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['notices_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/notices/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['notices_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile/': {
     parameters: {
       query?: never;
@@ -971,6 +1003,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       readonly read_status: string;
@@ -1003,6 +1037,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       /** وضعیت */
@@ -1043,6 +1079,26 @@ export interface components {
       /** نوشتن فیدبک */
       can_write_feedback?: boolean;
     };
+    Notice: {
+      readonly id: number;
+      user: number;
+      notice_type?: components['schemas']['NoticeTypeEnum'];
+      description: string;
+      /** Format: date */
+      committee_date: string;
+      /**
+       * تاریخ ساخت
+       * Format: date-time
+       */
+      readonly date_created: string | null;
+    };
+    /**
+     * @description * `PERFORMANCE` - عملکردی
+     *     * `CONDUCT` - رفتاری
+     *     * `OTHER` - سایر
+     * @enum {string}
+     */
+    NoticeTypeEnum: 'PERFORMANCE' | 'CONDUCT' | 'OTHER';
     /** @description Handles 1:1 CRUD with:
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
@@ -1193,6 +1249,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       /** وضعیت */
@@ -1250,6 +1308,7 @@ export interface components {
       submit_status?: components['schemas']['SummarySubmitStatusEnum'];
     };
     Profile: {
+      readonly id: number;
       /** Format: uuid */
       readonly uuid: string;
       /**
@@ -1271,6 +1330,7 @@ export interface components {
       readonly team: string;
       /** نام */
       readonly leader: string | null;
+      readonly current_job_title: string;
     };
     ProfileList: {
       /** Format: uuid */
@@ -1293,6 +1353,14 @@ export interface components {
       /** موبایل */
       phone?: string | null;
     };
+    /**
+     * @description * `PROMOTION` - ارتقا
+     *     * `NOTICE` - نوتیس
+     *     * `MAPPING` - مپینگ اولیه
+     *     * `EVALUATION` - ارزیابی
+     * @enum {string}
+     */
+    ProposalTypeEnum: 'PROMOTION' | 'NOTICE' | 'MAPPING' | 'EVALUATION';
     /**
      * @description * `personal` - بعد فردی
      *     * `career` - مسیر رشد و انتظارات
@@ -2835,6 +2903,47 @@ export interface operations {
       };
     };
   };
+  notices_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Notice'][];
+        };
+      };
+    };
+  };
+  notices_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this نوتیس. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Notice'];
+        };
+      };
+    };
+  };
   profile_retrieve: {
     parameters: {
       query?: never;
@@ -3031,7 +3140,7 @@ export interface operations {
       };
       header?: never;
       path: {
-        user_id: number;
+        user_id: string;
       };
       cookie?: never;
     };
