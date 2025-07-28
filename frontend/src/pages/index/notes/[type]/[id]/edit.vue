@@ -26,7 +26,7 @@ definePageMeta({ name: 'note-edit' });
 const props = defineProps<{ note: Note }>();
 
 const { t } = useI18n();
-const { execute: updateNote, pending } = useUpdateNote({ id: props.note.uuid });
+const { execute: updateNote, pending } = useUpdateNote(props.note.uuid);
 
 const noteTypeLabels = computed(() => getNoteTypeLabels(t));
 
