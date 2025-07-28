@@ -64,7 +64,7 @@
     <TitleChangeDialog
       :open="titleChangeDialogOpen"
       :user-uuid="userId"
-      :current-title="user?.current_job_title || ''"
+      :current-title="user?.current_job_title || '-'"
       @close="titleChangeDialogOpen = false"
       @success="refetch"
     />
