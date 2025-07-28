@@ -2388,6 +2388,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2478,6 +2482,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2916,6 +2924,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -3138,6 +3150,18 @@ components:
           nullable: true
           title: موبایل
           maxLength: 256
+    ProposalTypeEnum:
+      enum:
+      - PROMOTION
+      - NOTICE
+      - MAPPING
+      - EVALUATION
+      type: string
+      description: |-
+        * `PROMOTION` - ارتقا
+        * `NOTICE` - نوتیس
+        * `MAPPING` - مپینگ اولیه
+        * `EVALUATION` - ارزیابی
     SectionEnum:
       enum:
       - personal

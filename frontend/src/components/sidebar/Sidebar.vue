@@ -46,12 +46,50 @@
             <SidebarLinkGroup :title="t('common.promotion')">
               <li>
                 <SidebarLink
-                  :icon="NOTE_TYPE_ICON[NOTE_TYPE.proposal]"
-                  :label="t('common.proposal')"
+                  :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.promotion]"
+                  :label="t('proposalType.promotion')"
                   :to="{
                     name: 'notes',
                     params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+                    query: { proposal_type: PROPOSAL_TYPE.promotion },
                   }"
+                  :is-active="isProposalActive(PROPOSAL_TYPE.promotion)"
+                />
+              </li>
+              <li>
+                <SidebarLink
+                  :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.notice]"
+                  :label="t('proposalType.notice')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+                    query: { proposal_type: PROPOSAL_TYPE.notice },
+                  }"
+                  :is-active="isProposalActive(PROPOSAL_TYPE.notice)"
+                />
+              </li>
+              <li>
+                <SidebarLink
+                  :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.mapping]"
+                  :label="t('proposalType.mapping')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+                    query: { proposal_type: PROPOSAL_TYPE.mapping },
+                  }"
+                  :is-active="isProposalActive(PROPOSAL_TYPE.mapping)"
+                />
+              </li>
+              <li>
+                <SidebarLink
+                  :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.evaluation]"
+                  :label="t('proposalType.evaluation')"
+                  :to="{
+                    name: 'notes',
+                    params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] },
+                    query: { proposal_type: PROPOSAL_TYPE.evaluation },
+                  }"
+                  :is-active="isProposalActive(PROPOSAL_TYPE.evaluation)"
                 />
               </li>
             </SidebarLinkGroup>
@@ -178,9 +216,18 @@
 import { PScrollbar, PText } from '@pey/core';
 
 const { t } = useI18n();
+const route = useRoute();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 const isTeamLeader = useIsTeamLeader();
 const { data: profile } = useGetProfile();
+
+const isProposalActive = (proposalType: ProposalType) => {
+  return (
+    route.name === 'notes' &&
+    route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal] &&
+    route.query.proposal_type === proposalType
+  );
+};
 
 const newMessagesCount = computed(
   () =>
