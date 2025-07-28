@@ -8,7 +8,7 @@ from api.models import (Cycle,
                         ValueSection
                         )
 
-__all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
+__all__ = ['NoteType', 'ProposalType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
            'OneOnOne', 'OneOnOneTagLink', 'leader_permissions', 'committee_roles_permissions']
 
 class NoteType(models.TextChoices):
@@ -26,6 +26,17 @@ class NoteType(models.TextChoices):
     @classmethod
     def default(cls):
         return cls.GOAL
+
+
+class ProposalType(models.TextChoices):
+    PROMOTION = "PROMOTION", "ارتقا"
+    NOTICE = "NOTICE", "نوتیس"
+    MAPPING = "MAPPING", "مپینگ اولیه"
+    EVALUATION = "EVALUATION", "ارزیابی"
+
+    @classmethod
+    def default(cls):
+        return cls.PROMOTION
 
 
 class NoteSubmitStatus(models.IntegerChoices):
@@ -89,6 +100,12 @@ class Note(MerlinBaseModel):
         choices=NoteType.choices,
         default=NoteType.default(),
         verbose_name="نوع",
+    )
+    proposal_type = models.CharField(
+        max_length=16,
+        choices=ProposalType.choices,
+        default=ProposalType.default,
+        verbose_name="نوع پروپوزال",
     )
     mentioned_users = models.ManyToManyField(
         "api.User",

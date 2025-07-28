@@ -24,6 +24,7 @@ class NoteAdmin(BaseModelAdmin):
                 "content",
                 "date",
                 "type",
+                "proposal_type",
                 "mentioned_users",
                 "linked_notes",
                 "cycle",
@@ -33,16 +34,17 @@ class NoteAdmin(BaseModelAdmin):
     list_display = (
         "title",
         "type",
+        "proposal_type",
         "owner",
         "date",
         "submit_status",
         "date_created",
         "date_updated",
     )
-    list_filter = ("type",)
+    list_filter = ("type", "proposal_type",)
     fields = (
         "uuid",
-        ("title", "type"),
+        ("title", "type", "proposal_type"),
         ("owner", "date", "period", "year"),
         "content",
         "mentioned_users",

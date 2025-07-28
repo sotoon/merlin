@@ -91,6 +91,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "period",
             "year",
             "type",
+            "proposal_type",
             "mentioned_users",
             "linked_notes",
             "read_status",
@@ -116,9 +117,15 @@ class NoteSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        """Require proposal_type when creating or updating a Proposal note."""
         if not self.instance:
-            owner = self.context["request"].user
-            data["owner"] = owner
+            data["owner"] = self.context["request"].user
+
+        note_type = data.get("type", getattr(self.instance, "type", None))
+        prop_type = data.get("proposal_type", getattr(self.instance, "proposal_type", None))
+        if note_type == NoteType.Proposal and not prop_type:
+            raise serializers.ValidationError({"proposal_type": _("This field is required for Proposal notes.")})
+
         return super().validate(data)
 
     def validate_mentioned_users(self, value):
