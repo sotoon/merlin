@@ -8,7 +8,6 @@ from api.models import (
     Tribe,
     Department,
     Committee,
-    CommitteeType,
     Note,
     NoteType,
     Summary,
@@ -17,6 +16,7 @@ from api.models import (
     TimelineEvent,
     EventType,
     SenioritySnapshot,
+    ProposalType
 )
 
 
@@ -55,9 +55,10 @@ def member(team, leader):
     )
 
 
+# Note: Committee currently has no type field.
 @pytest.fixture
 def committee(db):
-    return Committee.objects.create(name="Eval-Com", committee_type=CommitteeType.EVALUATION)
+    return Committee.objects.create(name="Eval-Com")
 
 
 @pytest.fixture
@@ -139,22 +140,22 @@ def test_regular_user_denied(settings, api_client, member, leader):
 
 
 @pytest.mark.parametrize(
-    "committee_type, ladder, salary, expected",
+    "proposal_type, ladder, salary, expected",
     [
-        (CommitteeType.EVALUATION, True, True, [EventType.EVALUATION]),
-        (CommitteeType.PROMOTION, True, False, [EventType.SENIORITY_CHANGE]),
-        (CommitteeType.PROMOTION, False, True, [EventType.PAY_CHANGE]),
-        (CommitteeType.PROMOTION, True, True, [EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE]),
-        (CommitteeType.MAPPING, False, False, [EventType.MAPPING]),
-        (CommitteeType.NOTICE, False, False, [EventType.NOTICE]),
+        (ProposalType.EVALUATION, True, True, [EventType.EVALUATION]),
+        (ProposalType.PROMOTION, True, False, [EventType.SENIORITY_CHANGE]),
+        (ProposalType.PROMOTION, False, True, [EventType.PAY_CHANGE]),
+        (ProposalType.PROMOTION, True, True, [EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE]),
+        (ProposalType.MAPPING, False, False, [EventType.MAPPING]),
+        (ProposalType.NOTICE, False, False, [EventType.NOTICE]),
     ],
 )
 @pytest.mark.django_db
-def test_summary_generates_correct_events(settings, committee_type, ladder, salary, expected, member):
+def test_summary_generates_correct_events(settings, proposal_type, ladder, salary, expected, member):
     """Summary DONE emits correct TimelineEvent(s) per committee type and data fields."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
 
-    committee = Committee.objects.create(name="C", committee_type=committee_type)
+    committee = Committee.objects.create(name="C")
     member.committee = committee
     member.save()
 
@@ -164,6 +165,7 @@ def test_summary_generates_correct_events(settings, committee_type, ladder, sala
         content="...",
         date=timezone.now().date(),
         type=NoteType.GOAL,
+        proposal_type=proposal_type,
     )
     Summary.objects.create(
         note=note,

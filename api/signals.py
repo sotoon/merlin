@@ -15,6 +15,7 @@ from .models import (
     FormAssignment,
     OneOnOne,
     ValueTag,
+    ProposalType
 )
 
 from api.models.timeline import (
@@ -184,27 +185,24 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
 
     effective_date = instance.committee_date or instance.date_created.date()
 
-    # Determine committee type
-    committee = getattr(instance.note.owner, "committee", None)
-    from api.models.organization import CommitteeType  # local import to avoid circular
-
-    ctype = getattr(committee, "committee_type", CommitteeType.EVALUATION) if committee else CommitteeType.EVALUATION
+    # Determine proposal type (falls back to PROMOTION)
+    ptype = getattr(instance.note, "proposal_type", ProposalType.PROMOTION)
     event_map = {
-        CommitteeType.EVALUATION: EventType.EVALUATION,
+        ProposalType.EVALUATION: EventType.EVALUATION,
         # Promotions may cause changes in Pay Band and/or Seniority.
-        CommitteeType.PROMOTION: (
+        ProposalType.PROMOTION: (
             (EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE)
             if getattr(instance, "ladder_change", None) and getattr(instance, "salary_change", None)
             else EventType.SENIORITY_CHANGE
             if getattr(instance, "ladder_change", None)
             else EventType.PAY_CHANGE
             if getattr(instance, "salary_change", None)
-            else EventType.SENIORITY_CHANGE  # fallback to seniority change if neither is set
+            else EventType.SENIORITY_CHANGE
         ),
-        CommitteeType.MAPPING: EventType.MAPPING,
-        CommitteeType.NOTICE: EventType.NOTICE,
+        ProposalType.MAPPING: EventType.MAPPING,
+        ProposalType.NOTICE: EventType.NOTICE,
     }
-    event_type_value = event_map.get(ctype, EventType.EVALUATION)
+    event_type_value = event_map.get(ptype, EventType.EVALUATION)
 
     def _build_text(ev):
         if ev == EventType.EVALUATION:
