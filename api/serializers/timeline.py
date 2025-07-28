@@ -2,11 +2,13 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from django.urls import NoReverseMatch
 
-from api.models import TimelineEvent, TitleChange
+from api.models import TimelineEvent, TitleChange, Notice, StockGrant
 
 __all__ = [
     "TimelineEventLiteSerializer",
     "TitleChangeSerializer",
+    "NoticeSerializer",
+    # "StockGrantSerializer",  # Disabled until stock-grant detail endpoint is finalised
 ]
 
 
@@ -84,3 +86,31 @@ class TitleChangeSerializer(serializers.ModelSerializer):
             "date_created",
         ]
         read_only_fields = ["id", "date_created"] 
+
+
+# Simple read-only serializers for drill-down views
+
+
+class NoticeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notice
+        fields = [
+            "id",
+            "user",
+            "notice_type",
+            "description",
+            "committee_date",
+            "date_created",
+        ]
+
+
+# Disabled until stock-grant detail endpoint is finalised
+# class StockGrantSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = StockGrant
+#         fields = [
+#             "id",
+#             "user",
+#             "description",
+#             "date_created",
+#         ] 

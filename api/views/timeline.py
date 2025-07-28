@@ -6,13 +6,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework import mixins, viewsets
 
-from api.models import User, TimelineEvent, RoleType, TitleChange
-from api.serializers.timeline import TimelineEventLiteSerializer, TitleChangeSerializer
+from api.models import User, TimelineEvent, RoleType, TitleChange, Notice
+from api.serializers.timeline import (
+    TimelineEventLiteSerializer,
+    TitleChangeSerializer,
+    NoticeSerializer,
+    # StockGrantSerializer,  # Disabled until endpoint is finalised
+)
 from api.services import can_view_timeline, has_role
 from api.utils import get_current_level
 
 
-__all__ = ["UserTimelineView", "TitleChangeViewSet"]
+__all__ = ["UserTimelineView", "TitleChangeViewSet", "NoticeViewSet"]
 
 
 class IsMaintainer(IsAuthenticated):
@@ -79,3 +84,19 @@ class TitleChangeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewset
     serializer_class = TitleChangeSerializer
     permission_classes = [IsMaintainer]
     pagination_class = None 
+
+
+# Read-only endpoints for Notice & StockGrant
+class NoticeViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Notice.objects.select_related("user")
+    serializer_class = NoticeSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+
+# class StockGrantViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+#     """Disabled until stock-grant detail endpoint is finalised."""
+#     queryset = StockGrant.objects.select_related("user")
+#     serializer_class = StockGrantSerializer
+#     permission_classes = [IsAuthenticated]
+#     pagination_class = None 

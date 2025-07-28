@@ -136,6 +136,14 @@
               </li>
             </SidebarLinkGroup>
           </li>
+
+          <li>
+            <SidebarLink
+              icon="i-mdi-account-group-outline"
+              :label="t('common.users')"
+              :to="{ name: 'user-list' }"
+            />
+          </li>
         </ul>
       </PScrollbar>
 
