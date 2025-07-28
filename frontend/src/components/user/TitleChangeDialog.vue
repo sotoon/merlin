@@ -98,7 +98,7 @@ const { meta, handleSubmit, setValues, resetForm } = useForm<
 >({
   initialValues: {
     user: 0,
-    old_title: props.currentTitle || 'هیچ',
+    old_title: props.currentTitle,
     new_title: '',
     reason: '',
     effective_date: new Date() as unknown as string,
