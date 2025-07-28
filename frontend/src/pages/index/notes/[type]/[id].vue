@@ -52,10 +52,7 @@ const {
   pending,
   error,
   refresh,
-} = useGetNote(
-  { id: noteId.value },
-  {
-    onResponse: route.query.read ? () => updateNoteReadStatus(true) : undefined,
-  },
-);
+} = useGetNote(noteId.value, {
+  onResponse: route.query.read ? () => updateNoteReadStatus(true) : undefined,
+});
 </script>
