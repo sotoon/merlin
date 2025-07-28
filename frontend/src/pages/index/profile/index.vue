@@ -54,7 +54,6 @@
 
 <script lang="ts" setup>
 import {
-  PBox,
   PButton,
   PHeading,
   PLoading,

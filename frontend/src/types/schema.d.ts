@@ -577,6 +577,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/notices/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['notices_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/notices/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['notices_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile/': {
     parameters: {
       query?: never;
@@ -1043,6 +1075,26 @@ export interface components {
       /** نوشتن فیدبک */
       can_write_feedback?: boolean;
     };
+    Notice: {
+      readonly id: number;
+      user: number;
+      notice_type?: components['schemas']['NoticeTypeEnum'];
+      description: string;
+      /** Format: date */
+      committee_date: string;
+      /**
+       * تاریخ ساخت
+       * Format: date-time
+       */
+      readonly date_created: string | null;
+    };
+    /**
+     * @description * `PERFORMANCE` - عملکردی
+     *     * `CONDUCT` - رفتاری
+     *     * `OTHER` - سایر
+     * @enum {string}
+     */
+    NoticeTypeEnum: 'PERFORMANCE' | 'CONDUCT' | 'OTHER';
     /** @description Handles 1:1 CRUD with:
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
@@ -2833,6 +2885,47 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Note'];
+        };
+      };
+    };
+  };
+  notices_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Notice'][];
+        };
+      };
+    };
+  };
+  notices_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this نوتیس. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Notice'];
         };
       };
     };
