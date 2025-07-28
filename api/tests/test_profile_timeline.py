@@ -236,8 +236,8 @@ def test_serializer_summary_has_object_url(settings, api_client, member):
     data = api_client.get(url).json()["results"][0]
     assert data["model"] == "summary"
     assert data["object_url"] is not None
-    # URL should include both note id and summary id segments
-    assert f"/notes/{note.id}/summaries/" in data["object_url"]
+    frontend_path = f"/notes/{note.type.lower()}/{note.uuid}"
+    assert frontend_path in data["object_url"]
 
 
 # ---------------------------------------------------------------------------

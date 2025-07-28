@@ -22,6 +22,30 @@ class TimelineEventLiteSerializer(serializers.ModelSerializer):
         if not obj.content_type:
             return None
 
+        ct_model = obj.content_type.model
+
+        request = self.context.get("request")
+
+        # ──────────────────────────────────────────────
+        # Front-end friendly URLs for Note/Summary
+        # scheme://host/notes/<type>/<uuid>
+        # ──────────────────────────────────────────────
+        if ct_model in {"note", "summary"}:
+            try:
+                if ct_model == "note":
+                    note_obj = obj.content_type.get_object_for_this_type(id=obj.object_id)
+                else:  # summary ➜ fetch related note
+                    summary_obj = obj.content_type.get_object_for_this_type(id=obj.object_id)
+                    note_obj = summary_obj.note
+
+                base = f"{request.scheme}://{request.get_host()}"
+                return f"{base}/notes/{note_obj.type.lower()}/{note_obj.uuid}"
+            except Exception:
+                pass  # fall back to API URL
+
+        # ──────────────────────────────────────────────
+        # Fallback: keep old DRF reverse for other models
+        # ──────────────────────────────────────────────
         viewname_map = {
             "note": "api:note-detail",
             "summary": "api:summaries-detail",
@@ -29,25 +53,17 @@ class TimelineEventLiteSerializer(serializers.ModelSerializer):
             "notice": "api:notice-detail",
         }
 
-        viewname = viewname_map.get(obj.content_type.model)
+        viewname = viewname_map.get(ct_model)
         if not viewname:
             return None
 
-        request = self.context.get("request")
         try:
-            # For nested URLs like summaries, we need both note_id and summary_id
-            if obj.content_type.model == "summary":
-                # Get the note_id from the summary object
-                summary_obj = obj.content_type.get_object_for_this_type(
-                    id=obj.object_id
-                )
-                return reverse(
-                    viewname, args=[summary_obj.note.id, obj.object_id], request=request
-                )
+            if ct_model == "summary":
+                summary_obj = obj.content_type.get_object_for_this_type(id=obj.object_id)
+                return reverse(viewname, args=[summary_obj.note.id, obj.object_id], request=request)
             else:
                 return reverse(viewname, args=[obj.object_id], request=request)
         except (NoReverseMatch, Exception):
-            # Return None if URL generation fails
             return None
 
     def get_model(self, obj):
