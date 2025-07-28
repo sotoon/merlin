@@ -80,41 +80,30 @@
 import { PButton, PDialog, PInput, PDatePickerInput } from '@pey/core';
 import { useCreateTitleChange } from '~/composables/users/useCreateTitleChange';
 
-interface Props {
+const props = defineProps<{
   open: boolean;
   userUuid: string;
   currentTitle: string;
-}
-
-interface Emits {
+}>();
+const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'success'): void;
-}
-
-interface TitleChangeFormValues {
-  user: number;
-  old_title: string;
-  new_title: string;
-  reason: string;
-  effective_date: Date;
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+}>();
 
 const { t } = useI18n();
 const { mutate, isPending, error } = useCreateTitleChange();
 
-const { meta, handleSubmit, setValues, resetForm } =
-  useForm<TitleChangeFormValues>({
-    initialValues: {
-      user: 0,
-      old_title: props.currentTitle,
-      new_title: '',
-      reason: '',
-      effective_date: new Date(),
-    },
-  });
+const { meta, handleSubmit, setValues, resetForm } = useForm<
+  Schema<'TitleChangeRequest'>
+>({
+  initialValues: {
+    user: 0,
+    old_title: props.currentTitle || 'هیچ',
+    new_title: '',
+    reason: '',
+    effective_date: new Date() as unknown as string,
+  },
+});
 
 const { data: userData } = useGetUser(props.userUuid);
 watch(userData, (newUserData) => {
@@ -123,12 +112,12 @@ watch(userData, (newUserData) => {
   }
 });
 
-const handleClose = (newValue: boolean) => {
+function handleClose(newValue: boolean) {
   if (!newValue) {
     emit('close');
     resetForm();
   }
-};
+}
 
 const onSubmit = handleSubmit((values) => {
   if (!values.new_title.trim()) {
@@ -172,7 +161,7 @@ watch(
         old_title: props.currentTitle,
         new_title: '',
         reason: '',
-        effective_date: new Date(),
+        effective_date: new Date() as unknown as string,
       });
     }
   },
