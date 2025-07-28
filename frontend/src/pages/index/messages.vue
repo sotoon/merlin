@@ -13,7 +13,7 @@
     </div>
 
     <div
-      v-if="!newNotes && pending"
+      v-if="!newNotes && isPending"
       class="flex items-center justify-center py-8"
     >
       <PLoading class="text-primary" :size="20" />
@@ -24,7 +24,7 @@
         {{ t('note.getMessagesError') }}
       </PText>
 
-      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
         {{ t('common.retry') }}
       </PButton>
     </div>
@@ -75,9 +75,9 @@ const { t } = useI18n();
 useHead({ title: t('common.messages') });
 const {
   data: notes,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetNotes({
   retrieveMentions: true,
 });

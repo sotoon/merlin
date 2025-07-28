@@ -169,6 +169,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const route = useRoute();
 const { data: profile } = useGetProfile();
 const {
   meta,
@@ -185,9 +186,13 @@ const {
     year: props.note?.year || YEARS[1],
     period: props.note?.period || 0,
     linked_notes: props.note?.linked_notes || [],
+    proposal_type:
+      props.note?.proposal_type ||
+      (route.query.proposal_type as ProposalType) ||
+      undefined,
   },
 });
-const { data: notes, pending: isNotesLoading } = useGetNotes();
+const { data: notes, isPending: isNotesLoading } = useGetNotes();
 
 const isEditing = computed(() => Boolean(props.note));
 
@@ -250,3 +255,5 @@ const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', values, ctx);
 });
 </script>
+
+<!-- NoteForm component with proposal type selection for proposal notes. -->

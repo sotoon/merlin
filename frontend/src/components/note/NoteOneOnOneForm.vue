@@ -85,7 +85,7 @@ const performanceTags = computed(() =>
   (tags.value || []).filter((tag) => tag.section === 'performance'),
 );
 
-const { data: notes, pending: isNotesLoading } = useGetNotes();
+const { data: notes, isPending: isNotesLoading } = useGetNotes();
 const noteOptions = computed(() =>
   notes.value
     ?.filter(

@@ -1003,6 +1003,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       readonly read_status: string;
@@ -1035,6 +1037,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       /** وضعیت */
@@ -1245,6 +1249,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       /** وضعیت */
@@ -1347,6 +1353,14 @@ export interface components {
       /** موبایل */
       phone?: string | null;
     };
+    /**
+     * @description * `PROMOTION` - ارتقا
+     *     * `NOTICE` - نوتیس
+     *     * `MAPPING` - مپینگ اولیه
+     *     * `EVALUATION` - ارزیابی
+     * @enum {string}
+     */
+    ProposalTypeEnum: 'PROMOTION' | 'NOTICE' | 'MAPPING' | 'EVALUATION';
     /**
      * @description * `personal` - بعد فردی
      *     * `career` - مسیر رشد و انتظارات

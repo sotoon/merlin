@@ -98,6 +98,7 @@
     "getNoteError": "خطا در دریافت یادداشت",
     "getNotesError": "خطا در دریافت یادداشت‌ها",
     "getSummaryError": "خطا در دریافت جمع‌بندی",
+    "proposalType": "نوع پروپوزال",
     "getTemplatesError": "خطا در دریافت قالب‌ها",
     "ladderChange": "تغییر در سطح لدر",
     "lastEdit": "آخرین ویرایش",
@@ -156,6 +157,12 @@
     "forms": "فرم‌ها",
     "feedbackRequest": "درخواست فیدبک",
     "feedback": "فیدبک"
+  },
+  "proposalType": {
+    "promotion": "ارتقا",
+    "notice": "نوتیس",
+    "mapping": "مپینگ اولیه",
+    "evaluation": "ارزیابی"
   },
   "profile": {
     "chapter": "چپتر",
