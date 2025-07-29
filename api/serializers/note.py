@@ -17,15 +17,7 @@ from api.models import (
     ValueTag,
     Cycle,
     Comment,
-    Note,
-    NoteType,
-    NoteUserAccess,
-    Summary,
-    User,
-    OneOnOne,
-    OneOnOneTagLink,
-    ValueTag,
-    Cycle,
+    Ladder,
 )
 
 
@@ -190,12 +182,17 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    ladder = serializers.SlugRelatedField(
+        queryset=Ladder.objects.all(), slug_field="code", required=False, allow_null=True
+    )
 
     class Meta:
         model = Summary
         fields = (
             "uuid",
             "note",
+            "ladder",
+            "aspect_changes",
             "content",
             "performance_label",
             "ladder_change",
@@ -204,9 +201,7 @@ class SummarySerializer(serializers.ModelSerializer):
             "committee_date",
             "submit_status",
         )
-        read_only_fields = [
-            "uuid",
-        ]
+        read_only_fields = ["uuid", "note"]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]

@@ -27,12 +27,7 @@ from api.models import (
 class Command(BaseCommand):
     help = "Seed the database with demo data for manual testing of the Profile Timeline feature. Idempotent (safe to run multiple times)."
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--reset",
-            action="store_true",
-            help="Delete previously-seeded demo objects before seeding again.",
-        )
+    # No arguments: command always resets demo data
 
     # ---------------------------------------------------------------------
     # Helpers
@@ -51,15 +46,34 @@ class Command(BaseCommand):
     ]
 
     def handle(self, *args, **options):
-        if options.get("reset"):
-            self.stdout.write(self.style.WARNING("Reset flag enabled – deleting existing demo data…"))
-            self._reset()
+        self.stdout.write(self.style.WARNING("حذف داده‌های دمو قبلی…"))
+        self._reset()
 
         self._seed_org()
+
+        # Ensure there is an active performance cycle
+        from api.models import Cycle
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # First, deactivate all existing cycles
+        Cycle.objects.filter(is_active=True).update(is_active=False)
+        
+        # Then create or update the active cycle
+        Cycle.objects.update_or_create(
+            is_active=True,
+            defaults={
+                "name": "دوره فعلی",
+                "start_date": timezone.now(),
+                "end_date": timezone.now() + timedelta(days=90),
+            },
+        )
+
         ladders = self._seed_ladders()
         self._seed_pay_bands()
         leader, member = self._seed_users()
         self._seed_seniority_snapshot(member, ladders[0])
+        self._seed_seniority_snapshot(leader, ladders[0])
         self._seed_compensation_snapshot(member)
         self._seed_notice(member, leader)
         self._seed_stock_grant(member, leader)
@@ -155,7 +169,7 @@ class Command(BaseCommand):
 
     def _seed_users(self):
         team = Team.objects.get(name="API")
-        leader, _ = User.objects.get_or_create(
+        leader, created_leader = User.objects.get_or_create(
             email="leader@example.com",
             defaults={
                 "username": "leader",
@@ -163,7 +177,11 @@ class Command(BaseCommand):
                 "is_staff": True,
             },
         )
-        member, _ = User.objects.get_or_create(
+        if created_leader or not leader.has_usable_password():
+            leader.set_password("pw")
+            leader.save(update_fields=["password"])
+
+        member, created_member = User.objects.get_or_create(
             email="member@example.com",
             defaults={
                 "username": "member",
@@ -172,6 +190,10 @@ class Command(BaseCommand):
                 "team": team,
             },
         )
+        if created_member or not member.has_usable_password():
+            member.set_password("pw")
+            member.save(update_fields=["password"])
+
         return leader, member
 
     # ------------------------------------------------------------------
@@ -247,62 +269,62 @@ class Command(BaseCommand):
             },
             {
                 "event_type": EventType.EVALUATION,
-                "summary_text": "Committee result – Ladder SW / Bonus 5% / Pay band ↑",
+                "summary_text": "نتیجه کمیته – لدر SW / پاداش ۵٪ / پله حقوقی ↑",
                 "effective_date": today - timedelta(days=300),  # 10 months ago
             },
             {
                 "event_type": EventType.STOCK_GRANT,
-                "summary_text": "50 RSUs granted - 4 year vesting schedule",
+                "summary_text": "۵۰ سهم RSU اعطا شد - برنامه واگذاری ۴ ساله",
                 "effective_date": today - timedelta(days=280),  # 9 months ago
             },
             {
                 "event_type": EventType.PAY_CHANGE,
-                "summary_text": "Pay band increased from 3 to 4",
+                "summary_text": "افزایش پله‌ی حقوقی از ۳ به ۴",
                 "effective_date": today - timedelta(days=250),  # 8 months ago
             },
             {
                 "event_type": EventType.BONUS_PAYOUT,
-                "summary_text": "Annual bonus payout - 8% of salary",
+                "summary_text": "پرداخت پاداش سالانه - ۸٪ از حقوق",
                 "effective_date": today - timedelta(days=200),  # 6.5 months ago
             },
             {
                 "event_type": EventType.NOTICE,
-                "summary_text": "Performance notice - Excellent work on API improvements",
+                "summary_text": "نوتیس عملکردی - بهبود عالی در API",
                 "effective_date": today - timedelta(days=150),  # 5 months ago
             },
             {
                 "event_type": EventType.SENIORITY_CHANGE,
-                "summary_text": "Seniority level increased - Technical Leadership +1",
+                "summary_text": "افزایش سطح ارشدیت - رهبری فنی +۱",
                 "effective_date": today - timedelta(days=120),  # 4 months ago
             },
             {
                 "event_type": EventType.MAPPING,
-                "summary_text": "Mapped to Software Ladder - Level 3",
+                "summary_text": "مپ به لدر نرم‌افزار - سطح ۳",
                 "effective_date": today - timedelta(days=90),  # 3 months ago
             },
             {
                 "event_type": EventType.EVALUATION,
-                "summary_text": "Committee result – Ladder SW / Bonus 8% / Pay band ↑",
+                "summary_text": "نتیجه کمیته – لدر SW / پاداش ۸٪ / پله حقوقی ↑",
                 "effective_date": today - timedelta(days=60),  # 2 months ago
             },
             {
                 "event_type": EventType.STOCK_GRANT,
-                "summary_text": "Additional 25 RSUs - Performance reward",
+                "summary_text": "۲۵ سهم RSU اضافی - پاداش عملکرد",
                 "effective_date": today - timedelta(days=45),  # 1.5 months ago
             },
             {
                 "event_type": EventType.TITLE_CHANGE,
-                "summary_text": "Developer → Senior Developer",
+                "summary_text": "برنامه‌نویس → برنامه‌نویس ارشد",
                 "effective_date": today - timedelta(days=30),  # 1 month ago
             },
             {
                 "event_type": EventType.PAY_CHANGE,
-                "summary_text": "Pay band increased from 4 to 5",
+                "summary_text": "افزایش پله‌ی حقوقی از ۴ به ۵",
                 "effective_date": today - timedelta(days=15),  # 2 weeks ago
             },
             {
                 "event_type": EventType.NOTICE,
-                "summary_text": "Performance notice - Outstanding leadership in team projects",
+                "summary_text": "نوتیس عملکردی - رهبری برجسته در پروژه‌های تیمی",
                 "effective_date": today - timedelta(days=7),  # 1 week ago
             },
         ]
@@ -340,52 +362,52 @@ class Command(BaseCommand):
             },
             {
                 "event_type": EventType.EVALUATION,
-                "summary_text": "Committee result – Leadership evaluation / Bonus 12% / Pay band ↑",
+                "summary_text": "نتیجه کمیته – ارزیابی رهبری / پاداش ۱۲٪ / پله حقوقی ↑",
                 "effective_date": today - timedelta(days=350),  # 11.5 months ago
             },
             {
                 "event_type": EventType.STOCK_GRANT,
-                "summary_text": "100 RSUs granted - Leadership role compensation",
+                "summary_text": "۱۰۰ سهم RSU اعطا شد - جبران نقش رهبری",
                 "effective_date": today - timedelta(days=320),  # 10.5 months ago
             },
             {
                 "event_type": EventType.PAY_CHANGE,
-                "summary_text": "Pay band increased from 5 to 6 - Leadership promotion",
+                "summary_text": "افزایش پله‌ی حقوقی از ۵ به ۶ - ارتقای رهبری",
                 "effective_date": today - timedelta(days=300),  # 10 months ago
             },
             {
                 "event_type": EventType.NOTICE,
-                "summary_text": "Performance notice - Excellent team leadership and mentoring",
+                "summary_text": "نوتیس عملکردی - رهبری و منتورینگ ضعیف تیم",
                 "effective_date": today - timedelta(days=180),  # 6 months ago
             },
             {
                 "event_type": EventType.SENIORITY_CHANGE,
-                "summary_text": "Seniority level increased - Leadership skills +2",
+                "summary_text": "افزایش سطح ارشدیت - مهارت‌های رهبری +۲",
                 "effective_date": today - timedelta(days=150),  # 5 months ago
             },
             {
                 "event_type": EventType.BONUS_PAYOUT,
-                "summary_text": "Leadership bonus payout - 15% of salary",
+                "summary_text": "پرداخت پاداش رهبری - ۱۵٪ از حقوق",
                 "effective_date": today - timedelta(days=120),  # 4 months ago
             },
             {
                 "event_type": EventType.MAPPING,
-                "summary_text": "Mapped to Leadership Ladder - Level 4",
+                "summary_text": "مپ به لدر رهبری - سطح ۴",
                 "effective_date": today - timedelta(days=90),  # 3 months ago
             },
             {
                 "event_type": EventType.EVALUATION,
-                "summary_text": "Committee result – Team performance review / Bonus 15% / Pay band ↑",
+                "summary_text": "نتیجه کمیته – ارزیابی عملکرد تیم / پاداش ۱۵٪ / پله حقوقی ↑",
                 "effective_date": today - timedelta(days=60),  # 2 months ago
             },
             {
                 "event_type": EventType.STOCK_GRANT,
-                "summary_text": "Additional 50 RSUs - Team success reward",
+                "summary_text": "۵۰ سهم RSU اضافی - پاداش موفقیت تیم",
                 "effective_date": today - timedelta(days=30),  # 1 month ago
             },
             {
                 "event_type": EventType.NOTICE,
-                "summary_text": "Performance notice - Outstanding team management and project delivery",
+                "summary_text": "نوتیس عملکردی - مدیریت تیم و تحویل پروژه غیر قابل قبول",
                 "effective_date": today - timedelta(days=10),  # 1.5 weeks ago
             },
         ]

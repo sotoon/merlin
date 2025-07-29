@@ -337,3 +337,148 @@ def test_level_not_embedded_when_no_snapshot(settings, api_client, member):
     url = reverse("api:user-timeline", args=[str(member.uuid)]) + "?include_level=true"
     body = api_client.get(url).json()
     assert "level" not in body
+
+
+# ────────────────────────────────────────────────────────────
+# Current ladder endpoint & snapshot signal
+# ────────────────────────────────────────────────────────────
+
+import json
+from api.models import Ladder, LadderAspect, SenioritySnapshot, Cycle, ProposalType, SummarySubmitStatus
+
+
+def _create_ladder_with_aspects():
+    ladder = Ladder.objects.create(code="SW", name="Software")
+    LadderAspect.objects.create(ladder=ladder, code="DES", name="Design", order=1)
+    LadderAspect.objects.create(ladder=ladder, code="IMP", name="Implementation", order=2)
+    LadderAspect.objects.create(ladder=ladder, code="BUS", name="Business Acumen", order=3)
+    LadderAspect.objects.create(ladder=ladder, code="COM", name="Communication", order=4)
+    LadderAspect.objects.create(ladder=ladder, code="TL", name="Technical Leadership", order=5)
+    return ladder
+
+
+@pytest.mark.django_db
+def test_current_ladder_self(api_client, leader):
+    ladder = _create_ladder_with_aspects()
+    SenioritySnapshot.objects.create(
+        user=leader,
+        ladder=ladder,
+        overall_score=3,
+        details_json={"DES": 3, "IMP": 3},
+        effective_date=timezone.now().date(),
+    )
+
+    api_client.force_authenticate(leader)
+    resp = api_client.get("/api/profile/current-ladder/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["ladder"] == "SW"
+    assert any(a["code"] == "DES" for a in data["aspects"])
+
+
+@pytest.mark.django_db
+def test_leader_can_view_subordinate_ladder(api_client, leader, member):
+    ladder = _create_ladder_with_aspects()
+    SenioritySnapshot.objects.create(
+        user=member,
+        ladder=ladder,
+        overall_score=3,
+        details_json={"DES": 3, "IMP": 3},
+        effective_date=timezone.now().date(),
+    )
+
+    api_client.force_authenticate(leader)
+    url = f"/api/profile/{member.uuid}/current-ladder/"
+    assert api_client.get(url).status_code == 200
+
+
+@pytest.mark.django_db
+def test_unrelated_user_denied_current_ladder(api_client, leader, member):
+    stranger = User.objects.create(email="stranger@example.com", username="stranger")
+    ladder = _create_ladder_with_aspects()
+    SenioritySnapshot.objects.create(
+        user=member,
+        ladder=ladder,
+        overall_score=3,
+        details_json={},
+        effective_date=timezone.now().date(),
+    )
+    api_client.force_authenticate(stranger)
+    url = f"/api/profile/{member.uuid}/current-ladder/"
+    assert api_client.get(url).status_code == 403
+
+
+@pytest.mark.django_db
+def test_summary_done_creates_snapshot(api_client, member):
+    ladder = _create_ladder_with_aspects()
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    note = Note.objects.create(
+        owner=member,
+        title="Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 4}},
+        salary_change=10,
+        bonus=5,
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).first()
+    assert snap is not None
+    # Should have all 5 aspects, with DES at level 4 and others at default level 3
+    assert snap.details_json.get("DES") == 4
+    assert len(snap.details_json) == 5  # All 5 aspects should be present
+    assert snap.details_json.get("IMP") == 3  # Other aspects should be at default level
+    assert snap.details_json.get("BUS") == 3
+    assert snap.details_json.get("COM") == 3
+    assert snap.details_json.get("TL") == 3
+
+
+@pytest.mark.django_db
+def test_summary_merge_snapshot(api_client, member):
+    ladder = _create_ladder_with_aspects()
+    today = timezone.now().date()
+    cycle = Cycle.objects.create(name="C", start_date=timezone.now(), end_date=timezone.now())
+
+    # existing snapshot with all 5 aspects at level 3
+    SenioritySnapshot.objects.create(
+        user=member,
+        ladder=ladder,
+        overall_score=3,
+        details_json={"DES": 3, "IMP": 3, "BUS": 3, "COM": 3, "TL": 3},
+        effective_date=today,
+    )
+
+    # new summary changes only DES -> 4
+    note = Note.objects.create(
+        owner=member,
+        title="Proposal",
+        content="…",
+        date=today,
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 4}},
+        salary_change=0,
+        bonus=0,
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).latest("effective_date")
+    # Should preserve all 5 aspects, only DES changed to 4
+    assert snap.details_json == {"DES": 4, "IMP": 3, "BUS": 3, "COM": 3, "TL": 3}
+    # Overall score should be (4+3+3+3+3)/5 = 3.2
+    assert snap.overall_score == 3.2
