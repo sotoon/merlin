@@ -5,7 +5,7 @@ from .base import MerlinBaseModel
 from api.models import (Cycle,
                         Committee,
                         ValueTag,
-                        ValueSection
+                        ValueSection,
                         )
 
 __all__ = ['NoteType', 'ProposalType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
@@ -170,6 +170,10 @@ class Summary(MerlinBaseModel):
     performance_label = models.CharField(
         max_length=256, default="", blank=True, null=True, verbose_name="لیبل عملکردی"
     )
+    ladder = models.ForeignKey(
+        "api.Ladder", null=True, blank=True, on_delete=models.PROTECT, verbose_name="لدر"
+    )
+    aspect_changes = models.JSONField(default=dict, blank=True, verbose_name="تغییرات ابعاد لدر")
     ladder_change = models.CharField(
         max_length=256,
         default="",

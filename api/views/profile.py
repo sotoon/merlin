@@ -2,16 +2,20 @@ from django.db.models import Max, Count, Q
 from rest_framework import permissions, viewsets
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 
-from api.models import User, Cycle
+from api.services.timeline_access import can_view_timeline
+from api.models import User, Cycle, Ladder, SenioritySnapshot
 from api.serializers import (
     ProfileSerializer,
     ProfileListSerializer,
 )
 
 
-__all__ = ["ProfileView", "UserListView", "UserDetailView", "MyTeamViewSet"]
+__all__ = ["ProfileView", "UserListView", "UserDetailView", "MyTeamViewSet", "CurrentLadderView"]
 
 
 class ProfileView(RetrieveUpdateAPIView):
@@ -53,19 +57,48 @@ class MyTeamViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         leader = self.request.user
         cycle = Cycle.get_current_cycle()
-        return User.objects.filter(leader=leader).annotate(
-            latest_oneonone=Max(
-                "one_on_ones__note__date",
-                filter=Q(
-                    one_on_ones__note__owner=leader,
-                    one_on_ones__cycle=cycle,
+        qs = User.objects.filter(leader=leader)
+
+        if cycle is not None:
+            qs = qs.annotate(
+                latest_oneonone=Max(
+                    "one_on_ones__note__date",
+                    filter=Q(
+                        one_on_ones__note__owner=leader,
+                        one_on_ones__cycle=cycle,
+                    ),
                 ),
-            ),
-            oneonone_count=Count(
-                "one_on_ones",
-                filter=Q(
-                    one_on_ones__note__owner=leader,
-                    one_on_ones__cycle=cycle,
+                oneonone_count=Count(
+                    "one_on_ones",
+                    filter=Q(
+                        one_on_ones__note__owner=leader,
+                        one_on_ones__cycle=cycle,
+                    ),
                 ),
-            ),
+            )
+
+        return qs
+
+
+class CurrentLadderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_uuid=None):
+        # Determine target user
+        if user_uuid is None:
+            target = request.user
+        else:
+            target = get_object_or_404(User, uuid=user_uuid)
+
+        # Permission check using existing timeline ACL
+        if not can_view_timeline(request.user, target):
+            raise PermissionDenied("شما اجازه مشاهده این بخش را ندارید")
+
+        snapshot = (
+            SenioritySnapshot.objects.filter(user=target)
+            .order_by("-effective_date", "-date_created")
+            .first()
         )
+        ladder = snapshot.ladder if snapshot else Ladder.objects.first()
+        aspects = ladder.aspects.order_by("order").values("code", "name")
+        return Response({"ladder": ladder.code, "aspects": list(aspects)})

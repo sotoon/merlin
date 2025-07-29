@@ -51,6 +51,12 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("verify-token/", views.VerifyTokenView.as_view(), name="verify-token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
+    path("profile/current-ladder/", views.CurrentLadderView.as_view(), name="current-ladder"),
+    path(
+        "profile/<uuid:user_uuid>/current-ladder/",
+        views.CurrentLadderView.as_view(),
+        name="current-ladder-other",
+    ),
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<uuid:uuid>/", views.UserDetailView.as_view(), name="user-detail"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),

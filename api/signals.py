@@ -206,11 +206,16 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
 
     def _build_text(ev):
         if ev == EventType.EVALUATION:
-            return (
-                f"Committee result – Ladder {instance.ladder_change or '-'} / "
-                f"Bonus {instance.bonus}% / Pay band ↑"
+            ladder = instance.ladder_change if instance.ladder_change else "-"
+            bonus = f"{instance.bonus}%" if instance.bonus is not None else "۰٪"
+            salary = (
+                f"{instance.salary_change}%" if instance.salary_change else "۰٪"
             )
-        return instance.performance_label or "Committee outcome"
+            return (
+                f"نتیجه کمیته – لدر {ladder} / پاداش {bonus} / افزایش حقوق {salary}"
+            )
+        # For PAY_CHANGE / SENIORITY_CHANGE etc we fall back to performance_label if set.
+        return instance.performance_label or "خروجی کمیته"
 
     # Handle promotions that generate two separate events
     if isinstance(event_type_value, tuple):
@@ -234,23 +239,59 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
         )
 
     # Create snapshots if needed
-    if instance.salary_change or instance.bonus or instance.ladder_change:
+    if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):
         # PayBand lookup is out of scope; we still record salary change absolute value
-        CompensationSnapshot.objects.create(
-            user=instance.note.owner,
-            pay_band=PayBand.objects.first() if PayBand.objects.exists() else None,
-            bonus_percentage=instance.bonus or 0,
-            effective_date=effective_date,
-        )
-        if instance.ladder_change:
-            SenioritySnapshot.objects.create(
+        if instance.salary_change or instance.bonus:
+            CompensationSnapshot.objects.create(
                 user=instance.note.owner,
-                ladder=Ladder.objects.filter(code=instance.ladder_change).first(),
-                title="",
-                overall_score=0,  # TODO compute from ladder steps
-                details_json={},
+                pay_band=PayBand.objects.first() if PayBand.objects.exists() else None,
+                bonus_percentage=instance.bonus or 0,
                 effective_date=effective_date,
             )
+        # Persist new seniority snapshot when ladder & aspect changes present
+        if instance.ladder and instance.aspect_changes:
+            # Extract changed aspects from the summary
+            deltas = {
+                code: data.get("new_level")
+                for code, data in instance.aspect_changes.items()
+                if data.get("changed") and data.get("new_level") is not None
+            }
+
+            from django.db import transaction
+
+            with transaction.atomic():
+                # Get the latest snapshot for this user and ladder
+                latest_snapshot = SenioritySnapshot.objects.filter(
+                    user=instance.note.owner,
+                    ladder=instance.ladder
+                ).order_by('effective_date').last()
+                
+                # Start with existing details or create default for all aspects
+                if latest_snapshot:
+                    details = latest_snapshot.details_json.copy()
+                else:
+                    # If no existing snapshot, create default for all aspects
+                    from api.models import LadderAspect
+                    aspects = LadderAspect.objects.filter(ladder=instance.ladder)
+                    details = {aspect.code: 3 for aspect in aspects}  # Default level 3
+                
+                # Merge new changes
+                details.update(deltas)
+                
+                # Calculate overall score
+                overall = round(sum(details.values()) / len(details), 1) if details else 0
+                
+                # Create or update snapshot
+                snapshot, created = SenioritySnapshot.objects.update_or_create(
+                    user=instance.note.owner,
+                    ladder=instance.ladder,
+                    effective_date=effective_date,
+                    defaults={
+                        'details_json': details,
+                        'overall_score': overall,
+                        'title': instance.performance_label if instance.performance_label else ''
+                    }
+                )
 
 
 # ────────────────────────────────────────────────────────────────
@@ -265,7 +306,7 @@ def notice_to_timeline(sender, instance: NoticeModel, created, **kwargs):
     _create_timeline_event(
         user=instance.user,
         event_type=EventType.NOTICE,
-        summary_text=f"{instance.get_notice_type_display()} notice",
+        summary_text=f"نوتیس {instance.get_notice_type_display()}",
         effective_date=instance.committee_date,
         source_obj=instance,
         created_by=instance.created_by,
@@ -279,7 +320,7 @@ def stockgrant_to_timeline(sender, instance: StockGrantModel, created, **kwargs)
     _create_timeline_event(
         user=instance.user,
         event_type=EventType.STOCK_GRANT,
-        summary_text=instance.description or "Stock grant issued",
+        summary_text=instance.description or "تخصیص سهام",
         effective_date=timezone.now().date(),
         source_obj=instance,
         created_by=instance.created_by,
