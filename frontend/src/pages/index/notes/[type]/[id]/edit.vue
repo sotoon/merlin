@@ -11,7 +11,7 @@
     <NoteForm
       :note="note"
       :note-type="note.type"
-      :is-submitting="pending"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
@@ -26,7 +26,7 @@ definePageMeta({ name: 'note-edit' });
 const props = defineProps<{ note: Note }>();
 
 const { t } = useI18n();
-const { execute: updateNote, pending } = useUpdateNote(props.note.uuid);
+const { mutate: updateNote, isPending } = useUpdateNote(props.note.uuid);
 
 const noteTypeLabels = computed(() => getNoteTypeLabels(t));
 
@@ -38,13 +38,18 @@ const handleSubmit = (
     values.date &&
     `${values.date.getFullYear()}-${values.date.getMonth() + 1}-${values.date.getDate()}`;
 
-  updateNote({
-    body: { ...values, date: dateString },
-    onSuccess: () => {
-      navigateTo({ name: 'note' });
-      ctx.resetForm();
+  updateNote(
+    {
+      ...values,
+      date: dateString,
     },
-  });
+    {
+      onSuccess: () => {
+        navigateTo({ name: 'note' });
+        ctx.resetForm();
+      },
+    },
+  );
 };
 
 const handleCancel = () => {

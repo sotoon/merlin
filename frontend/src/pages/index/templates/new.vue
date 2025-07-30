@@ -12,7 +12,7 @@
     </div>
 
     <NoteTemplateForm
-      :is-submitting="pending"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
@@ -26,7 +26,7 @@ import type { SubmissionContext } from 'vee-validate';
 definePageMeta({ name: 'template-create' });
 
 const { t } = useI18n();
-const { execute: createNote, pending } = useCreateNote();
+const { mutate: createNote, isPending } = useCreateNote();
 
 const handleSubmit = (
   values: NoteTemplateFormValues,
@@ -35,13 +35,19 @@ const handleSubmit = (
   const date = new Date();
   const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
-  createNote({
-    body: { ...values, date: dateString, type: NOTE_TYPE.template },
-    onSuccess: () => {
-      ctx.resetForm();
-      navigateTo({ name: 'templates' });
+  createNote(
+    {
+      ...values,
+      date: dateString,
+      type: NOTE_TYPE.template,
     },
-  });
+    {
+      onSuccess: () => {
+        ctx.resetForm();
+        navigateTo({ name: 'templates' });
+      },
+    },
+  );
 };
 
 const handleCancel = () => {

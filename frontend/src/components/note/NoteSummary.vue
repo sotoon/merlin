@@ -158,6 +158,7 @@ import {
   PeyPlusIcon,
   PeyRetryIcon,
 } from '@pey/icons';
+import { useQueryClient } from '@tanstack/vue-query';
 
 const props = defineProps<{ note: Note }>();
 
@@ -165,6 +166,7 @@ let finalSubmitHintTimeout: NodeJS.Timeout | null = null;
 const finalSubmitHintVisibility = ref(false);
 const finalSubmitButton = ref<HTMLElement | null>(null);
 
+const queryClient = useQueryClient();
 const { t } = useI18n();
 const {
   data: summaries,
@@ -188,7 +190,7 @@ const finalizeSummarySubmission = () => {
       submit_status: NOTE_SUMMARY_SUBMIT_STATUS.final,
     },
     onSuccess: () => {
-      invalidateNuxtData(['note', props.note.uuid]);
+      queryClient.invalidateQueries({ queryKey: ['note', props.note.uuid] });
     },
   });
 };

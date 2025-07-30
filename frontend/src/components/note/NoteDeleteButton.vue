@@ -39,12 +39,12 @@ const props = withDefaults(
 const emit = defineEmits<{ success: [] }>();
 
 const { t } = useI18n();
-const { execute: deleteNote, pending: isDeleteLoading } = useDeleteNote({
-  id: props.noteId,
-});
+const { mutate: deleteNote, isPending: isDeleteLoading } = useDeleteNote(
+  props.noteId,
+);
 
 const handleDelete = () => {
-  deleteNote({
+  deleteNote(undefined, {
     onSuccess: () => {
       emit('success');
     },

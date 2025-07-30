@@ -241,7 +241,7 @@ const { data: profile } = useGetProfile();
 const { data: users } = useGetUsers();
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
-const { execute: updateNote, pending: updatingNote } = useUpdateNote(
+const { mutate: updateNote, isPending: updatingNote } = useUpdateNote(
   props.note.uuid,
 );
 
@@ -272,9 +272,7 @@ onBeforeUnmount(() => {
 
 function finalizeNoteSubmission() {
   updateNote({
-    body: {
-      submit_status: NOTE_SUBMIT_STATUS.final,
-    },
+    submit_status: NOTE_SUBMIT_STATUS.final,
   });
 }
 
