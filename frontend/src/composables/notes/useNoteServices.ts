@@ -1,18 +1,25 @@
-import { useQuery } from '@tanstack/vue-query';
-import { useQueryClient } from '@tanstack/vue-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { Note, ProposalType } from '~/types/note';
 
 // Get single note
 type GetNoteResponse = Note | null;
 
+interface Error {
+  detail?: string;
+}
+
 export const useGetNote = (
   id: string,
   fetchOptions: UseApiFetchOptions<GetNoteResponse> = {},
-) =>
-  useApiFetch<GetNoteResponse>(`/notes/${id}/`, {
-    key: createNuxtDataKey(['note', id]),
+) => {
+  const { $api } = useNuxtApp();
+
+  return useQuery<GetNoteResponse>({
+    queryKey: ['note', id],
+    queryFn: () => $api.fetch<GetNoteResponse>(`/notes/${id}/`),
     ...fetchOptions,
   });
+};
 
 interface UseGetNotesOptions {
   type?: NoteType;
@@ -28,7 +35,7 @@ export const useGetNotes = (options: MaybeRef<UseGetNotesOptions> = {}) => {
     queryKey: computed(() => {
       const opts = unref(options);
       return [
-        'notes',
+        'note-list',
         opts.type,
         opts.user,
         opts.retrieveMentions,
@@ -68,20 +75,13 @@ interface CreateNotePayload
 }
 
 export const useCreateNote = () => {
-  const queryClient = useQueryClient();
+  const { $api } = useNuxtApp();
+  const invalidateQueries = useInvalidateQueries();
 
-  return useApiMutation<
-    Note,
-    {
-      detail?: string;
-    },
-    CreateNotePayload
-  >('/notes/', {
-    method: 'POST',
+  return useMutation<Note, Error, CreateNotePayload>({
+    mutationFn: (data) => $api.fetch('/notes/', { method: 'POST', body: data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notes'],
-      });
+      invalidateQueries('note-list');
     },
   });
 };
@@ -101,20 +101,34 @@ interface UpdateNotePayload
   > {}
 
 export const useUpdateNote = (id: string) => {
+  const { $api } = useNuxtApp();
   const queryClient = useQueryClient();
+  const invalidateQueries = useInvalidateQueries();
 
-  return useApiMutation<
-    Note,
-    {
-      detail?: string;
-    },
-    UpdateNotePayload
-  >(`/notes/${id}/`, {
-    method: 'PATCH',
+  return useMutation<Note, Error, UpdateNotePayload>({
+    mutationFn: (data) =>
+      $api.fetch(`/notes/${id}/`, {
+        method: 'PATCH',
+        body: data,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notes'],
-      });
+      invalidateQueries('note-list');
+      queryClient.invalidateQueries({ queryKey: ['note', id] });
+    },
+  });
+};
+
+export const useDeleteNote = (id: string) => {
+  const { $api } = useNuxtApp();
+  const invalidateQueries = useInvalidateQueries();
+
+  return useMutation<never, Error, undefined>({
+    mutationFn: () =>
+      $api.fetch(`/notes/${id}/`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      invalidateQueries('note-list');
     },
   });
 };

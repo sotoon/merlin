@@ -10,7 +10,7 @@
 
     <NoteForm
       :note-type="noteType"
-      :is-submitting="pending"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
@@ -26,7 +26,7 @@ const props = defineProps<{ noteType: NoteType }>();
 
 const { t } = useI18n();
 const router = useRouter();
-const { execute: createNote, pending } = useCreateNote();
+const { mutate: createNote, isPending } = useCreateNote();
 
 const noteTypeLabels = computed(() => getNoteTypeLabels(t));
 
@@ -37,13 +37,19 @@ const handleSubmit = (
   const date = values.date || new Date();
   const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
-  createNote({
-    body: { ...values, date: dateString, type: props.noteType },
-    onSuccess: (newNote) => {
-      navigateTo({ name: 'note', params: { id: newNote.uuid } });
-      ctx.resetForm();
+  createNote(
+    {
+      ...values,
+      date: dateString,
+      type: props.noteType,
     },
-  });
+    {
+      onSuccess: (newNote) => {
+        navigateTo({ name: 'note', params: { id: newNote.uuid } });
+        ctx.resetForm();
+      },
+    },
+  );
 };
 
 const handleCancel = () => {
