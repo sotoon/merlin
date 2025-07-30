@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
 
 from api.models import (
     User,
@@ -16,7 +17,10 @@ from api.models import (
     TimelineEvent,
     EventType,
     SenioritySnapshot,
-    ProposalType
+    ProposalType,
+    Cycle,
+    Ladder,
+    LadderAspect
 )
 
 
@@ -27,26 +31,31 @@ from api.models import (
 
 @pytest.fixture
 def department(db):
+    """Create a test department for test data."""
     return Department.objects.create(name="Engineering")
 
 
 @pytest.fixture
 def tribe(department):
+    """Create a test tribe under the department."""
     return Tribe.objects.create(name="Backend", department=department)
 
 
 @pytest.fixture
 def team(tribe, department):
+    """Create a test team under the tribe."""
     return Team.objects.create(name="API", tribe=tribe, department=department)
 
 
 @pytest.fixture
 def leader(db):
+    """Create a test leader user."""
     return User.objects.create(email="leader@example.com", username="leader")
 
 
 @pytest.fixture
 def member(team, leader):
+    """Create a test member user with leader and team."""
     return User.objects.create(
         email="member@example.com",
         username="member",
@@ -55,14 +64,15 @@ def member(team, leader):
     )
 
 
-# Note: Committee currently has no type field.
 @pytest.fixture
 def committee(db):
+    """Create a test committee for evaluation."""
     return Committee.objects.create(name="Eval-Com")
 
 
 @pytest.fixture
 def summary(member):
+    """Create a test summary with note for timeline testing."""
     note = Note.objects.create(
         owner=member,
         title="Cycle Summary",
@@ -82,6 +92,7 @@ def summary(member):
 
 @pytest.fixture
 def api_client(db):
+    """Create API client for testing."""
     from rest_framework.test import APIClient   # delayed import
     return APIClient()
 
@@ -288,8 +299,14 @@ def member_snapshot(member):
     )
 
 
+# ---------------------------------------------------------------------------
+# Ladder and SenioritySnapshot tests
+# ---------------------------------------------------------------------------
+
+
 @pytest.mark.django_db
 def test_get_current_level_returns_none_when_no_snapshot():
+    """User without seniority snapshot returns None for current level."""
     from api.utils import get_current_level
 
     u = User.objects.create(email="plain@example.com", username="plain")
@@ -298,6 +315,7 @@ def test_get_current_level_returns_none_when_no_snapshot():
 
 @pytest.mark.django_db
 def test_get_current_level_returns_latest(member_snapshot, member):
+    """User with seniority snapshot returns latest level data."""
     from api.utils import get_current_level
 
     data = get_current_level(member)
@@ -308,6 +326,7 @@ def test_get_current_level_returns_latest(member_snapshot, member):
 
 @pytest.mark.django_db
 def test_level_embedded_when_param_set(settings, api_client, member, member_snapshot):
+    """Timeline includes level data when include_level parameter is set."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
@@ -321,6 +340,7 @@ def test_level_embedded_when_param_set(settings, api_client, member, member_snap
 
 @pytest.mark.django_db
 def test_level_not_embedded_without_param(settings, api_client, member, member_snapshot):
+    """Timeline excludes level data when include_level parameter is not set."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
@@ -331,6 +351,7 @@ def test_level_not_embedded_without_param(settings, api_client, member, member_s
 
 @pytest.mark.django_db
 def test_level_not_embedded_when_no_snapshot(settings, api_client, member):
+    """Timeline excludes level data when user has no seniority snapshot."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
@@ -348,6 +369,7 @@ from api.models import Ladder, LadderAspect, SenioritySnapshot, Cycle, ProposalT
 
 
 def _create_ladder_with_aspects():
+    """Create a test ladder with all 5 aspects for testing."""
     ladder = Ladder.objects.create(code="SW", name="Software")
     LadderAspect.objects.create(ladder=ladder, code="DES", name="Design", order=1)
     LadderAspect.objects.create(ladder=ladder, code="IMP", name="Implementation", order=2)
@@ -359,6 +381,7 @@ def _create_ladder_with_aspects():
 
 @pytest.mark.django_db
 def test_current_ladder_self(api_client, leader):
+    """User can view their own current ladder information."""
     ladder = _create_ladder_with_aspects()
     SenioritySnapshot.objects.create(
         user=leader,
@@ -378,6 +401,7 @@ def test_current_ladder_self(api_client, leader):
 
 @pytest.mark.django_db
 def test_leader_can_view_subordinate_ladder(api_client, leader, member):
+    """Leader can view subordinate's current ladder information."""
     ladder = _create_ladder_with_aspects()
     SenioritySnapshot.objects.create(
         user=member,
@@ -394,6 +418,7 @@ def test_leader_can_view_subordinate_ladder(api_client, leader, member):
 
 @pytest.mark.django_db
 def test_unrelated_user_denied_current_ladder(api_client, leader, member):
+    """Unrelated user cannot view another user's current ladder information."""
     stranger = User.objects.create(email="stranger@example.com", username="stranger")
     ladder = _create_ladder_with_aspects()
     SenioritySnapshot.objects.create(
@@ -410,6 +435,7 @@ def test_unrelated_user_denied_current_ladder(api_client, leader, member):
 
 @pytest.mark.django_db
 def test_summary_done_creates_snapshot(api_client, member):
+    """Summary with DONE status creates seniority snapshot with all aspects."""
     ladder = _create_ladder_with_aspects()
     cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
     note = Note.objects.create(
@@ -444,6 +470,7 @@ def test_summary_done_creates_snapshot(api_client, member):
 
 @pytest.mark.django_db
 def test_summary_merge_snapshot(api_client, member):
+    """Summary merges aspect changes with existing snapshot data."""
     ladder = _create_ladder_with_aspects()
     today = timezone.now().date()
     cycle = Cycle.objects.create(name="C", start_date=timezone.now(), end_date=timezone.now())
@@ -482,3 +509,422 @@ def test_summary_merge_snapshot(api_client, member):
     assert snap.details_json == {"DES": 4, "IMP": 3, "BUS": 3, "COM": 3, "TL": 3}
     # Overall score should be (4+3+3+3+3)/5 = 3.2
     assert snap.overall_score == 3.2
+
+
+# ---------------------------------------------------------------------------
+# Object URL Tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_object_url_for_note_localhost(api_client, member):
+    """Test object_url generation for note in localhost environment."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Note).id,
+        object_id=note.id,
+        created_by=member,
+    )
+    
+    # Create request with localhost host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'localhost:8000'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Check that object_url points to localhost frontend
+    assert data['object_url'] is not None
+    assert 'http://localhost:3000' in data['object_url']
+    assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_for_note_staging(api_client, member):
+    """Test object_url generation for note in staging environment."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Note).id,
+        object_id=note.id,
+        created_by=member,
+    )
+    
+    # Create request with staging host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'st.merlin.sotoon.ir'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Check that object_url points to staging frontend
+    assert data['object_url'] is not None
+    assert 'https://st.merlin.sotoon.ir' in data['object_url']
+    assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_for_note_production(api_client, member):
+    """Test object_url generation for note in production environment."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Note).id,
+        object_id=note.id,
+        created_by=member,
+    )
+    
+    # Create request with production host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'merlin.sotoon.ir'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Check that object_url points to production frontend
+    assert data['object_url'] is not None
+    assert 'https://merlin.sotoon.ir' in data['object_url']
+    assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_for_summary_localhost(api_client, member):
+    """Test object_url generation for summary in localhost environment."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create a summary
+    summary = Summary.objects.create(
+        note=note,
+        content="Test summary",
+        ladder=_create_ladder_with_aspects(),
+        aspect_changes={"DES": {"changed": True, "new_level": 4}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Summary).id,
+        object_id=summary.id,
+        created_by=member,
+    )
+    
+    # Create request with localhost host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'localhost:8000'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Check that object_url points to localhost frontend and uses note's type
+    assert data['object_url'] is not None
+    assert 'http://localhost:3000' in data['object_url']
+    assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_for_summary_staging(api_client, member):
+    """Test object_url generation for summary in staging environment."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create a summary
+    summary = Summary.objects.create(
+        note=note,
+        content="Test summary",
+        ladder=_create_ladder_with_aspects(),
+        aspect_changes={"DES": {"changed": True, "new_level": 4}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Summary).id,
+        object_id=summary.id,
+        created_by=member,
+    )
+    
+    # Create request with staging host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'st.merlin.sotoon.ir'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Check that object_url points to staging frontend
+    assert data['object_url'] is not None
+    assert 'https://st.merlin.sotoon.ir' in data['object_url']
+    assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_for_summary_production(api_client, member):
+    """Test object_url generation for summary in production environment."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create a summary
+    summary = Summary.objects.create(
+        note=note,
+        content="Test summary",
+        ladder=_create_ladder_with_aspects(),
+        aspect_changes={"DES": {"changed": True, "new_level": 4}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Summary).id,
+        object_id=summary.id,
+        created_by=member,
+    )
+    
+    # Create request with production host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'merlin.sotoon.ir'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Check that object_url points to production frontend
+    assert data['object_url'] is not None
+    assert 'https://merlin.sotoon.ir' in data['object_url']
+    assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_without_request_context(api_client, member):
+    """Test object_url generation without request context (should fallback)."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    # Create a note
+    note = Note.objects.create(
+        owner=member,
+        title="Test Proposal",
+        content="Test content",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+    )
+    
+    # Create timeline event
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Note).id,
+        object_id=note.id,
+        created_by=member,
+    )
+    
+    # Serialize without request context
+    serializer = TimelineEventLiteSerializer(event)
+    data = serializer.data
+    
+    # Should fallback to API URL when no request context
+    assert data['object_url'] is not None
+    assert '/api/notes/' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_for_different_note_types(api_client, member):
+    """Test object_url generation for different note types."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    note_types = [
+        NoteType.Proposal,
+        NoteType.GOAL,
+        NoteType.ONE_ON_ONE,
+        NoteType.MEETING,
+    ]
+    
+    for note_type in note_types:
+        # Create a note
+        note = Note.objects.create(
+            owner=member,
+            title=f"Test {note_type}",
+            content="Test content",
+            date=timezone.now().date(),
+            type=note_type,
+            proposal_type=ProposalType.PROMOTION if note_type == NoteType.Proposal else ProposalType.PROMOTION,  # All notes need proposal_type
+            cycle=Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now()),
+        )
+        
+        # Create timeline event
+        event = TimelineEvent.objects.create(
+            user=member,
+            event_type=EventType.SENIORITY_CHANGE,
+            summary_text="Test event",
+            effective_date=timezone.now().date(),
+            content_type_id=ContentType.objects.get_for_model(Note).id,
+            object_id=note.id,
+            created_by=member,
+        )
+        
+        # Create request with localhost host
+        request = factory.get('/')
+        request.META['HTTP_HOST'] = 'localhost:8000'
+        
+        # Serialize with request context
+        serializer = TimelineEventLiteSerializer(event, context={'request': request})
+        data = serializer.data
+        
+        # Check that object_url uses correct note type
+        assert data['object_url'] is not None
+        assert f'/notes/{note.type.lower()}/{note.uuid}' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_object_url_with_exception_handling(api_client, member):
+    """Test object_url generation when object lookup fails."""
+    from django.test import RequestFactory
+    from api.serializers.timeline import TimelineEventLiteSerializer
+    
+    factory = RequestFactory()
+    
+    # Create timeline event with non-existent object_id
+    event = TimelineEvent.objects.create(
+        user=member,
+        event_type=EventType.SENIORITY_CHANGE,
+        summary_text="Test event",
+        effective_date=timezone.now().date(),
+        content_type_id=ContentType.objects.get_for_model(Note).id,
+        object_id=99999,  # Non-existent ID
+        created_by=member,
+    )
+    
+    # Create request with localhost host
+    request = factory.get('/')
+    request.META['HTTP_HOST'] = 'localhost:8000'
+    
+    # Serialize with request context
+    serializer = TimelineEventLiteSerializer(event, context={'request': request})
+    data = serializer.data
+    
+    # Should handle exception gracefully and return a URL (even for non-existent objects)
+    assert data['object_url'] is not None
+    assert '/api/notes/' in data['object_url']
