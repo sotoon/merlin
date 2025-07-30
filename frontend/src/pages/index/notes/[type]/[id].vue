@@ -1,21 +1,19 @@
 <template>
   <PBox class="mx-auto max-w-3xl bg-white px-2 py-8 sm:px-4 lg:px-8 lg:pt-10">
-    <PLoading v-if="pending" class="text-primary" :size="20" />
+    <PLoading v-if="isPending" class="text-primary" :size="20" />
 
     <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
       <PText as="p" class="text-center text-danger" responsive>
         {{
-          error.statusCode === 404
-            ? t('note.noteNotFound')
-            : t('note.getNoteError')
+          errorCode === 404 ? t('note.noteNotFound') : t('note.getNoteError')
         }}
       </PText>
 
       <PButton
-        v-if="error.statusCode !== 404"
+        v-if="errorCode !== 404"
         color="gray"
         :icon-start="PeyRetryIcon"
-        @click="refresh"
+        @click="refetch"
       >
         {{ t('common.retry') }}
       </PButton>
@@ -49,10 +47,12 @@ const { execute: updateNoteReadStatus } = useUpdateNoteReadStatus({
 });
 const {
   data: note,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetNote(noteId.value, {
   onResponse: route.query.read ? () => updateNoteReadStatus(true) : undefined,
 });
+
+const errorCode = computed(() => (error.value as any)?.response?.status);
 </script>
