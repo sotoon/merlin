@@ -628,6 +628,38 @@ export interface paths {
     patch: operations['profile_partial_update'];
     trace?: never;
   };
+  '/api/profile/{user_uuid}/current-ladder/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['profile_current_ladder_retrieve_2'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/profile/current-ladder/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['profile_current_ladder_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/signup/': {
     parameters: {
       query?: never;
@@ -765,6 +797,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** @description Serializer for ladder aspect with code and name. */
+    Aspect: {
+      /** @description Aspect code (e.g., 'DES', 'IMP', 'BUS') */
+      code: string;
+      /** @description Aspect name */
+      name: string;
+    };
     Comment: {
       /** Format: uuid */
       readonly uuid: string;
@@ -787,6 +826,13 @@ export interface components {
       owner?: string;
       /** محتوا */
       content: string;
+    };
+    /** @description Serializer for current ladder and aspects response. */
+    CurrentLadder: {
+      /** @description Ladder code (e.g., 'SW', 'DEVOPS') */
+      ladder: string;
+      /** @description List of ladder aspects with their codes and names */
+      aspects: components['schemas']['Aspect'][];
     };
     /**
      * @description * `SENIORITY_CHANGE` - تغییر سطح لدر
@@ -1286,6 +1332,16 @@ export interface components {
       phone?: string | null;
     };
     PatchedSummaryRequest: {
+      ladder?: string | null;
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}} */
+      aspect_changes?: {
+        [key: string]: {
+          /** @description Whether the aspect has changed */
+          changed: boolean;
+          /** @description New level for the aspect (1-10) */
+          new_level: number;
+        };
+      };
       /** محتوا */
       content?: string;
       /** لیبل عملکردی */
@@ -1374,6 +1430,16 @@ export interface components {
       readonly uuid: string;
       /** Format: uuid */
       readonly note: string;
+      ladder?: string | null;
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}} */
+      aspect_changes?: {
+        [key: string]: {
+          /** @description Whether the aspect has changed */
+          changed: boolean;
+          /** @description New level for the aspect (1-10) */
+          new_level: number;
+        };
+      };
       /** محتوا */
       content: string;
       /** لیبل عملکردی */
@@ -1396,6 +1462,16 @@ export interface components {
       submit_status?: components['schemas']['SummarySubmitStatusEnum'];
     };
     SummaryRequest: {
+      ladder?: string | null;
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}} */
+      aspect_changes?: {
+        [key: string]: {
+          /** @description Whether the aspect has changed */
+          changed: boolean;
+          /** @description New level for the aspect (1-10) */
+          new_level: number;
+        };
+      };
       /** محتوا */
       content: string;
       /** لیبل عملکردی */
@@ -3009,6 +3085,46 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Profile'];
+        };
+      };
+    };
+  };
+  profile_current_ladder_retrieve_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentLadder'];
+        };
+      };
+    };
+  };
+  profile_current_ladder_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentLadder'];
         };
       };
     };

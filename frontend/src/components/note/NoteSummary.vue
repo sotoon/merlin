@@ -131,6 +131,21 @@
                 : '-'
             "
           />
+
+          <template
+            v-if="
+              summaries[0].aspect_changes &&
+              Object.keys(summaries[0].aspect_changes).length > 0
+            "
+          >
+            <PropertyTableRow
+              v-for="(aspectChange, aspectCode) in summaries[0].aspect_changes"
+              v-show="aspectChange.changed"
+              :key="aspectCode"
+              :label="getAspectName(aspectCode)"
+              :value="aspectChange.new_level"
+            />
+          </template>
         </PropertyTable>
       </PBox>
     </article>
@@ -184,6 +199,16 @@ const {
 });
 const { mutate: updateSummary, isPending: updatingSummary } =
   useCreateNoteSummary(props.note.uuid);
+
+const { data: ladderData } = useGetCurrentLadder();
+
+const getAspectName = (aspectCode: string | number) => {
+  const code = String(aspectCode);
+  return (
+    ladderData.value?.aspects?.find((aspect) => aspect.code === code)?.name ||
+    code
+  );
+};
 
 const finalizeSummarySubmission = () => {
   if (!summaries.value?.length) return;

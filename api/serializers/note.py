@@ -2,11 +2,11 @@ from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 
 from api.services import grant_oneonone_access
 from api.serializers.organization import TagReadSerializer
 from api.models import (
-    Feedback,
     Note,
     NoteType,
     NoteUserAccess,
@@ -114,9 +114,13 @@ class NoteSerializer(serializers.ModelSerializer):
             data["owner"] = self.context["request"].user
 
         note_type = data.get("type", getattr(self.instance, "type", None))
-        prop_type = data.get("proposal_type", getattr(self.instance, "proposal_type", None))
+        prop_type = data.get(
+            "proposal_type", getattr(self.instance, "proposal_type", None)
+        )
         if note_type == NoteType.Proposal and not prop_type:
-            raise serializers.ValidationError({"proposal_type": _("This field is required for Proposal notes.")})
+            raise serializers.ValidationError(
+                {"proposal_type": _("This field is required for Proposal notes.")}
+            )
 
         return super().validate(data)
 
@@ -180,11 +184,45 @@ class CommentSerializer(serializers.ModelSerializer):
         return feedback
 
 
+@extend_schema_field(
+    {
+        "type": "object",
+        "description": "Changes to ladder aspects",
+        "additionalProperties": {
+            "type": "object",
+            "properties": {
+                "changed": {
+                    "type": "boolean",
+                    "description": "Whether the aspect has changed",
+                },
+                "new_level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "New level for the aspect (1-10)",
+                },
+            },
+            "required": ["changed", "new_level"],
+        },
+    }
+)
+class AspectChangesField(serializers.JSONField):
+    """Custom field for aspect_changes with proper schema documentation."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.help_text = "Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}}"
+
+
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     ladder = serializers.SlugRelatedField(
-        queryset=Ladder.objects.all(), slug_field="code", required=False, allow_null=True
+        queryset=Ladder.objects.all(),
+        slug_field="code",
+        required=False,
+        allow_null=True,
     )
+    aspect_changes = AspectChangesField(required=False, default=dict)
 
     class Meta:
         model = Summary

@@ -12,10 +12,17 @@ from api.models import User, Cycle, Ladder, SenioritySnapshot
 from api.serializers import (
     ProfileSerializer,
     ProfileListSerializer,
+    CurrentLadderSerializer,
 )
 
 
-__all__ = ["ProfileView", "UserListView", "UserDetailView", "MyTeamViewSet", "CurrentLadderView"]
+__all__ = [
+    "ProfileView",
+    "UserListView",
+    "UserDetailView",
+    "MyTeamViewSet",
+    "CurrentLadderView",
+]
 
 
 class ProfileView(RetrieveUpdateAPIView):
@@ -82,6 +89,7 @@ class MyTeamViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CurrentLadderView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = CurrentLadderSerializer
 
     def get(self, request, user_uuid=None):
         # Determine target user
@@ -101,4 +109,8 @@ class CurrentLadderView(APIView):
         )
         ladder = snapshot.ladder if snapshot else Ladder.objects.first()
         aspects = ladder.aspects.order_by("order").values("code", "name")
-        return Response({"ladder": ladder.code, "aspects": list(aspects)})
+
+        data = {"ladder": ladder.code, "aspects": list(aspects)}
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid()
+        return Response(serializer.validated_data)

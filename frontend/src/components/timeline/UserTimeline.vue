@@ -18,6 +18,21 @@
       <!-- User Level Card -->
       <UserLevelCard :level="data?.pages?.[0]?.level" />
 
+      <!-- Timeline Controls -->
+      <PBox class="mb-6 flex flex-wrap items-center gap-8 bg-white p-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <i class="i-mdi-timeline-clock text-h3 text-gray-50" />
+          <PText variant="body" class="text-gray-90">
+            {{ t('common.timeline') }}
+          </PText>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <PeyFilterIcon class="text-gray-50" />
+          <TimelineEventTypeFilter v-model="selectedEventTypes" />
+        </div>
+      </PBox>
+
       <!-- Timeline -->
       <div class="relative">
         <!-- Timeline line -->
@@ -31,7 +46,7 @@
             class="space-y-6"
           >
             <div
-              v-for="event in page.results"
+              v-for="event in getFilteredEvents(page.results)"
               :key="event.id"
               class="relative flex items-start gap-4"
             >
@@ -114,10 +129,11 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PLoading, PText } from '@pey/core';
-import { PeyRetryIcon } from '@pey/icons';
+import { PButton, PLoading, PText, PBox } from '@pey/core';
+import { PeyRetryIcon, PeyFilterIcon } from '@pey/icons';
 import { useGetUserTimeline } from '~/composables/users/useGetUserTimeline';
 import UserLevelCard from './UserLevelCard.vue';
+import TimelineEventTypeFilter from './TimelineEventTypeFilter.vue';
 
 const props = defineProps<{
   userId: string;
@@ -133,6 +149,19 @@ const {
   hasNextPage,
   isFetchingNextPage,
 } = useGetUserTimeline(props.userId);
+
+// Filter state
+const selectedEventTypes = ref<string[]>([]);
+
+// Filter events based on selected event types
+const getFilteredEvents = (events: any[]) => {
+  if (!selectedEventTypes.value.length) {
+    return events;
+  }
+  return events.filter((event) =>
+    selectedEventTypes.value.includes(event.event_type),
+  );
+};
 
 const getEventIcon = (eventType?: string) => {
   switch (eventType) {
