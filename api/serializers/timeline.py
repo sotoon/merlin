@@ -38,7 +38,18 @@ class TimelineEventLiteSerializer(serializers.ModelSerializer):
                     summary_obj = obj.content_type.get_object_for_this_type(id=obj.object_id)
                     note_obj = summary_obj.note
 
-                base = f"{request.scheme}://{request.get_host()}"
+                # Environment-aware frontend URL
+                from django.conf import settings
+                host = request.get_host()
+                
+                # TODO: add environment variable for this
+                if "localhost" in host or "127.0.0.1" in host:
+                    base = "http://localhost:3000"  # Local development
+                elif "st.merlin.sotoon.ir" in host:
+                    base = "https://st.merlin.sotoon.ir"  # Staging
+                else:
+                    base = "https://merlin.sotoon.ir"  # Production
+
                 return f"{base}/notes/{note_obj.type.lower()}/{note_obj.uuid}"
             except Exception:
                 pass  # fall back to API URL
