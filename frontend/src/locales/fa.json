@@ -47,7 +47,10 @@
     "effectiveDate": "تاریخ اعمال",
     "changeTitleSuccess": "عنوان شغلی با موفقیت تغییر یافت",
     "changeTitleError": "خطا در تغییر عنوان شغلی",
-    "maintainerOnly": "فقط مدیران سیستم می‌توانند عنوان شغلی را تغییر دهند"
+    "maintainerOnly": "فقط مدیران سیستم می‌توانند عنوان شغلی را تغییر دهند",
+    "errorLoadingData": "خطا در بارگذاری اطلاعات",
+    "clear": "پاک کردن",
+    "apply": "اعمال"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -145,7 +148,9 @@
     "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\"",
     "writeTemplateContent": "متن قالب را بنویسید...",
     "year": "سال",
-    "currentCycle": "دوره فعلی"
+    "currentCycle": "دوره فعلی",
+    "aspectChanges": "تغییرات ابعاد لدر",
+    "hasChanged": "تغییر کرده"
   },
   "noteType": {
     "goal": "هدف",
@@ -203,7 +208,8 @@
     "titleChange": "تغییر عنوان شغلی",
     "stockGrant": "اعطای سهام",
     "notice": "نوتیس",
-    "unknownEvent": "رویداد ناشناخته"
+    "unknownEvent": "رویداد ناشناخته",
+    "filterByEventType": "فیلتر بر اساس نوع رویداد"
   },
   "oneOnOne": {
     "individualDimension": "بعد فردی",

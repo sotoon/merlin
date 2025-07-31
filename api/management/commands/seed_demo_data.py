@@ -58,7 +58,7 @@ class Command(BaseCommand):
 
         # First, deactivate all existing cycles
         Cycle.objects.filter(is_active=True).update(is_active=False)
-        
+
         # Then create or update the active cycle
         Cycle.objects.update_or_create(
             is_active=True,
@@ -112,8 +112,12 @@ class Command(BaseCommand):
         Tribe.objects.filter(name="Backend").delete()
         Department.objects.filter(name="Engineering").delete()
         Organization.objects.filter(name="Merlin Demo Org").delete()
-        LadderLevel.objects.filter(ladder__code__in=[c for c, _ in self.LADDER_CODES]).delete()
-        LadderAspect.objects.filter(ladder__code__in=[c for c, _ in self.LADDER_CODES]).delete()
+        LadderLevel.objects.filter(
+            ladder__code__in=[c for c, _ in self.LADDER_CODES]
+        ).delete()
+        LadderAspect.objects.filter(
+            ladder__code__in=[c for c, _ in self.LADDER_CODES]
+        ).delete()
         Ladder.objects.filter(code__in=[c for c, _ in self.LADDER_CODES]).delete()
         PayBand.objects.filter(number__lte=10).delete()
 
@@ -447,4 +451,4 @@ class Command(BaseCommand):
                 "overall_score": overall,
                 "details_json": details,
             },
-        ) 
+        )

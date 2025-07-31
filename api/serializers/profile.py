@@ -6,7 +6,12 @@ from api.models import (
 from api.utils.timeline import get_current_job_title
 
 
-__all__ = ["UserSerializer", "ProfileSerializer", "ProfileListSerializer"]
+__all__ = [
+    "UserSerializer",
+    "ProfileSerializer",
+    "ProfileListSerializer",
+    "CurrentLadderSerializer",
+]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -64,3 +69,19 @@ class ProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("uuid", "email", "name", "team")
+
+
+class AspectSerializer(serializers.Serializer):
+    """Serializer for ladder aspect with code and name."""
+
+    code = serializers.CharField(help_text="Aspect code (e.g., 'DES', 'IMP', 'BUS')")
+    name = serializers.CharField(help_text="Aspect name")
+
+
+class CurrentLadderSerializer(serializers.Serializer):
+    """Serializer for current ladder and aspects response."""
+
+    ladder = serializers.CharField(help_text="Ladder code (e.g., 'SW', 'DEVOPS')")
+    aspects = AspectSerializer(
+        many=True, help_text="List of ladder aspects with their codes and names"
+    )

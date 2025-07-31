@@ -8,6 +8,46 @@
       />
     </VeeField>
 
+    <div v-if="ladderData?.aspects" class="max-w-lg space-y-6">
+      <h3 class="text-gray-900 font-medium">
+        {{ t('note.aspectChanges') }}
+      </h3>
+
+      <div
+        v-for="(aspect, index) in ladderData?.aspects || []"
+        :key="aspect.code"
+        class="flex flex-wrap items-center gap-6 md:flex-row"
+      >
+        <div class="grow">
+          <VeeField
+            v-slot="{ componentField }"
+            :name="`aspect_changes.${aspect.code}.new_level`"
+            :rules="
+              aspectCheckboxStates[index]
+                ? 'required|min_value:1|max_value:10'
+                : 'min_value:1|max_value:10'
+            "
+          >
+            <PInput
+              v-bind="componentField"
+              :label="aspect.name"
+              type="number"
+              min="1"
+              max="10"
+              :required="aspectCheckboxStates[index]"
+              :disabled="!aspectCheckboxStates[index]"
+            />
+          </VeeField>
+        </div>
+
+        <PCheckbox
+          v-model="aspectCheckboxStates[index]"
+          :label="t('note.hasChanged')"
+          :value="true"
+        />
+      </div>
+    </div>
+
     <div v-if="showCommitteeFields" class="flex max-w-lg flex-col gap-6">
       <div class="flex flex-col flex-wrap gap-6 md:flex-row">
         <div class="grow">
@@ -125,6 +165,7 @@ import {
   PInput,
   PListbox,
   PListboxOption,
+  PCheckbox,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
@@ -132,25 +173,45 @@ const props = defineProps<{
   summary?: Schema<'Summary'>;
   showCommitteeFields?: boolean;
   isSubmitting?: boolean;
+  userUuid?: string;
 }>();
 const emit = defineEmits<{
   submit: [
-    values: NoteSummaryFormValues,
-    ctx: SubmissionContext<NoteSummaryFormValues>,
+    values: Schema<'SummaryRequest'>,
+    ctx: SubmissionContext<Schema<'SummaryRequest'>>,
   ];
   cancel: [];
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit } = useForm<NoteSummaryFormValues>({
+const { data: ladderData } = useGetCurrentLadder(props.userUuid);
+
+const aspectCheckboxStates = ref<boolean[]>([]);
+watch(
+  ladderData,
+  (newLadderData) => {
+    if (newLadderData?.aspects) {
+      // Initialize with existing values if editing, otherwise fill with false
+      aspectCheckboxStates.value = newLadderData.aspects.map((aspect) => {
+        return props.summary?.aspect_changes?.[aspect.code]?.changed || false;
+      });
+    }
+  },
+  { immediate: true },
+);
+
+const { meta, handleSubmit, values, setValues } = useForm<
+  Schema<'SummaryRequest'>
+>({
   initialValues: {
     content: props.summary?.content || '',
+    aspect_changes: props.summary?.aspect_changes,
     performance_label: props.summary?.performance_label || undefined,
     ladder_change: props.summary?.ladder_change || '',
     bonus: props.summary?.bonus || undefined,
     salary_change: props.summary?.salary_change || undefined,
     committee_date: props.summary?.committee_date
-      ? new Date(props.summary?.committee_date)
+      ? (new Date(props.summary?.committee_date) as unknown as string)
       : undefined,
   },
 });
@@ -159,4 +220,23 @@ useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
 const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', values, ctx);
 });
+
+watch(
+  aspectCheckboxStates,
+  (newStates) => {
+    const newAspectChanges: Schema<'Summary'>['aspect_changes'] = {};
+
+    ladderData.value?.aspects?.forEach((aspect, index) => {
+      newAspectChanges[aspect.code] = {
+        changed: newStates[index] || false,
+        new_level: newStates[index]
+          ? values.aspect_changes?.[aspect.code]?.new_level || 1
+          : 1,
+      };
+    });
+
+    setValues({ aspect_changes: newAspectChanges });
+  },
+  { deep: true },
+);
 </script>
