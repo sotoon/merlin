@@ -8,13 +8,13 @@ const props = defineProps<{
 
 definePageMeta({ name: 'feedback-detail' });
 const queryClient = useQueryClient();
+const { mutate: updateReadStatus } = useUpdateNoteReadStatus();
 
 watch(
   () => props.request.note,
   (newVal) => {
     if (newVal && !newVal.read_status) {
-      const { execute } = useUpdateNoteReadStatus({ id: newVal.uuid });
-      execute(true);
+      updateReadStatus(newVal.uuid, true);
 
       queryClient.invalidateQueries({
         predicate: (query) => {
@@ -30,8 +30,7 @@ watch(
   (newVal) => {
     newVal.forEach(({ note }) => {
       if (note && !note.read_status) {
-        const { execute } = useUpdateNoteReadStatus({ id: note.uuid });
-        execute(true);
+        updateReadStatus(note.uuid, true);
       }
     });
   },

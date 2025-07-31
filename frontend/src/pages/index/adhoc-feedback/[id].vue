@@ -13,13 +13,13 @@ const {
   error,
   refetch,
 } = useGetAdhocFeedbackEntry(String(route.params.id));
+const { mutate: updateReadStatus } = useUpdateNoteReadStatus();
 
 watch(
   () => entry.value?.note,
   (newVal) => {
     if (newVal && !newVal.read_status) {
-      const { execute } = useUpdateNoteReadStatus({ id: newVal.uuid });
-      execute(true);
+      updateReadStatus(newVal.uuid, true);
       queryClient.invalidateQueries({ queryKey: ['adhoc-feedback-entries'] });
     }
   },
