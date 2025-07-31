@@ -1,9 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { Note, ProposalType } from '~/types/note';
 
-// Get single note
-type GetNoteResponse = Note | null;
-
 interface Error {
   detail?: string;
 }
@@ -11,9 +8,9 @@ interface Error {
 export const useGetNote = (id: string) => {
   const { $api } = useNuxtApp();
 
-  return useQuery<GetNoteResponse>({
+  return useQuery<Note>({
     queryKey: ['note', id],
-    queryFn: () => $api.fetch<GetNoteResponse>(`/notes/${id}/`),
+    queryFn: () => $api.fetch(`/notes/${id}/`),
   });
 };
 
@@ -52,29 +49,11 @@ export const useGetNotes = (options: MaybeRef<UseGetNotesOptions> = {}) => {
   });
 };
 
-interface CreateNotePayload
-  extends Pick<
-    Partial<Note>,
-    | 'title'
-    | 'content'
-    | 'type'
-    | 'mentioned_users'
-    | 'year'
-    | 'period'
-    | 'linked_notes'
-    | 'submit_status'
-    | 'proposal_type'
-  > {
-  content: string;
-  date: string;
-  title: string;
-}
-
 export const useCreateNote = () => {
   const { $api } = useNuxtApp();
   const invalidateQueries = useInvalidateQueries();
 
-  return useMutation<Note, Error, CreateNotePayload>({
+  return useMutation<Note, Error, Schema<'NoteRequest'>>({
     mutationFn: (data) => $api.fetch('/notes/', { method: 'POST', body: data }),
     onSuccess: () => {
       invalidateQueries('note-list');
@@ -82,26 +61,12 @@ export const useCreateNote = () => {
   });
 };
 
-interface UpdateNotePayload
-  extends Pick<
-    Partial<Note>,
-    | 'title'
-    | 'content'
-    | 'mentioned_users'
-    | 'date'
-    | 'year'
-    | 'period'
-    | 'linked_notes'
-    | 'submit_status'
-    | 'proposal_type'
-  > {}
-
 export const useUpdateNote = (id: string) => {
   const { $api } = useNuxtApp();
   const queryClient = useQueryClient();
   const invalidateQueries = useInvalidateQueries();
 
-  return useMutation<Note, Error, UpdateNotePayload>({
+  return useMutation<Note, Error, Schema<'PatchedNoteRequest'>>({
     mutationFn: (data) =>
       $api.fetch(`/notes/${id}/`, {
         method: 'PATCH',
@@ -127,4 +92,49 @@ export const useDeleteNote = (id: string) => {
       invalidateQueries('note-list');
     },
   });
+};
+
+export const useUpdateNoteReadStatus = () => {
+  const queryClient = useQueryClient();
+  const { $api } = useNuxtApp();
+
+  const { mutate: markAsRead, isPending: readPending } = useMutation({
+    mutationFn: (id: string) =>
+      $api.fetch(`/notes/${id}/read/`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return (
+            query.queryKey[0] === 'note' || query.queryKey[0] === 'note-list'
+          );
+        },
+      });
+    },
+  });
+
+  const { mutate: markAsUnread, isPending: unreadPending } = useMutation({
+    mutationFn: (id: string) =>
+      $api.fetch(`/notes/${id}/unread/`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return (
+            query.queryKey[0] === 'note' || query.queryKey[0] === 'note-list'
+          );
+        },
+      });
+    },
+  });
+
+  const mutate = (id: string, readStatus: boolean) => {
+    if (readStatus) {
+      markAsRead(id);
+    } else {
+      markAsUnread(id);
+    }
+  };
+
+  const isPending = computed(() => readPending.value || unreadPending.value);
+
+  return { mutate, isPending };
 };

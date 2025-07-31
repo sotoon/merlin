@@ -12,30 +12,33 @@ const {
 
 const isEditMode = computed(() => Boolean(owner && typeof owner === 'string'));
 
-const { data: userComments, pending: getCommentsPending } = useGetNoteComments({
-  noteId: props.entry.note.uuid,
-  owner: isEditMode.value ? (owner as string) : '',
-  enabled: isEditMode.value,
-});
-const { execute: createNoteComment, pending: isSubmitting } =
+const { data: userComments, isPending: getCommentsPending } =
+  useGetNoteComments({
+    noteId: props.entry.note.uuid,
+    owner: isEditMode.value ? (owner as string) : '',
+    enabled: isEditMode.value,
+  });
+const { mutate: createNoteComment, isPending: isSubmitting } =
   useCreateNoteComment(props.entry.note.uuid);
 
 const handleSubmit = (
   values: Schema<'CommentRequest'>,
   ctx: SubmissionContext<Schema<'CommentRequest'>>,
 ) => {
-  createNoteComment({
-    body: values,
-    onSuccess: () => {
-      ctx.resetForm();
-      navigateTo({
-        name: 'adhoc-feedback-detail',
-        params: {
-          id: props.entry.uuid,
-        },
-      });
+  createNoteComment(
+    { ...values },
+    {
+      onSuccess: () => {
+        ctx.resetForm();
+        navigateTo({
+          name: 'adhoc-feedback-detail',
+          params: {
+            id: props.entry.uuid,
+          },
+        });
+      },
     },
-  });
+  );
 };
 
 const handleCancel = () => {
