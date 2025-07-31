@@ -58,29 +58,5 @@ export interface NoteFormValues
   title: string;
 }
 
-export interface NoteSummary {
-  bonus: number;
-  committee_date: string | null;
-  content: string;
-  ladder_change: string;
-  note: string;
-  performance_label: string;
-  salary_change: number;
-  submit_status: NoteSummarySubmitStatus;
-  uuid: string;
-}
-
-export interface NoteSummaryFormValues
-  extends Pick<
-    NoteSummary,
-    | 'content'
-    | 'performance_label'
-    | 'ladder_change'
-    | 'bonus'
-    | 'salary_change'
-  > {
-  committee_date: Date;
-}
-
 export interface NoteTemplateFormValues
   extends Pick<Note, 'title' | 'content' | 'mentioned_users'> {}

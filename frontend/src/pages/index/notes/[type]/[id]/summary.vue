@@ -34,12 +34,12 @@ const { mutate: createNoteSummary, isPending } = useCreateNoteSummary(
 );
 
 const handleSubmit = (
-  values: NoteSummaryFormValues,
-  ctx: SubmissionContext<NoteSummaryFormValues>,
+  values: Schema<'SummaryRequest'>,
+  ctx: SubmissionContext<Schema<'SummaryRequest'>>,
 ) => {
   const committeeDateString =
     values.committee_date &&
-    `${values.committee_date.getFullYear()}-${values.committee_date.getMonth() + 1}-${values.committee_date.getDate()}`;
+    `${(values.committee_date as unknown as Date).getFullYear()}-${(values.committee_date as unknown as Date).getMonth() + 1}-${(values.committee_date as unknown as Date).getDate()}`;
 
   createNoteSummary(
     {

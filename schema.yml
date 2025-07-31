@@ -1655,6 +1655,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/Profile'
           description: ''
+  /api/profile/{user_uuid}/current-ladder/:
+    get:
+      operationId: profile_current_ladder_retrieve_2
+      parameters:
+      - in: path
+        name: user_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentLadder'
+          description: ''
+  /api/profile/current-ladder/:
+    get:
+      operationId: profile_current_ladder_retrieve
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentLadder'
+          description: ''
   /api/signup/:
     post:
       operationId: signup_create
@@ -1876,6 +1911,19 @@ paths:
           description: Verified Successfully
 components:
   schemas:
+    Aspect:
+      type: object
+      description: Serializer for ladder aspect with code and name.
+      properties:
+        code:
+          type: string
+          description: Aspect code (e.g., 'DES', 'IMP', 'BUS')
+        name:
+          type: string
+          description: Aspect name
+      required:
+      - code
+      - name
     Comment:
       type: object
       properties:
@@ -1916,6 +1964,21 @@ components:
           title: محتوا
       required:
       - content
+    CurrentLadder:
+      type: object
+      description: Serializer for current ladder and aspects response.
+      properties:
+        ladder:
+          type: string
+          description: Ladder code (e.g., 'SW', 'DEVOPS')
+        aspects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Aspect'
+          description: List of ladder aspects with their codes and names
+      required:
+      - aspects
+      - ladder
     EventTypeEnum:
       enum:
       - SENIORITY_CHANGE
@@ -3014,6 +3077,28 @@ components:
     PatchedSummaryRequest:
       type: object
       properties:
+        ladder:
+          type: string
+          minLength: 1
+          nullable: true
+        aspect_changes:
+          type: object
+          description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
+            bool, ''new_level'': int}}'
+          additionalProperties:
+            type: object
+            properties:
+              changed:
+                type: boolean
+                description: Whether the aspect has changed
+              new_level:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: New level for the aspect (1-10)
+            required:
+            - changed
+            - new_level
         content:
           type: string
           minLength: 1
@@ -3185,6 +3270,27 @@ components:
           type: string
           format: uuid
           readOnly: true
+        ladder:
+          type: string
+          nullable: true
+        aspect_changes:
+          type: object
+          description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
+            bool, ''new_level'': int}}'
+          additionalProperties:
+            type: object
+            properties:
+              changed:
+                type: boolean
+                description: Whether the aspect has changed
+              new_level:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: New level for the aspect (1-10)
+            required:
+            - changed
+            - new_level
         content:
           type: string
           title: محتوا
@@ -3225,6 +3331,28 @@ components:
     SummaryRequest:
       type: object
       properties:
+        ladder:
+          type: string
+          minLength: 1
+          nullable: true
+        aspect_changes:
+          type: object
+          description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
+            bool, ''new_level'': int}}'
+          additionalProperties:
+            type: object
+            properties:
+              changed:
+                type: boolean
+                description: Whether the aspect has changed
+              new_level:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: New level for the aspect (1-10)
+            required:
+            - changed
+            - new_level
         content:
           type: string
           minLength: 1
