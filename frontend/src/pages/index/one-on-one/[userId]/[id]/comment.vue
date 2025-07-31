@@ -12,31 +12,34 @@ const {
 
 const isEditMode = computed(() => Boolean(owner && typeof owner === 'string'));
 
-const { data: userComments, pending: getCommentsPending } = useGetNoteComments({
-  noteId: props.oneOnOne.note.uuid,
-  owner: isEditMode.value ? (owner as string) : '',
-  enabled: isEditMode.value,
-});
-const { execute: createNoteComment, pending: isSubmitting } =
+const { data: userComments, isPending: getCommentsPending } =
+  useGetNoteComments({
+    noteId: props.oneOnOne.note.uuid,
+    owner: isEditMode.value ? (owner as string) : '',
+    enabled: isEditMode.value,
+  });
+const { mutate: createNoteComment, isPending: isSubmitting } =
   useCreateNoteComment(props.oneOnOne.note.uuid);
 
 const handleSubmit = (
   values: Schema<'CommentRequest'>,
   ctx: SubmissionContext<Schema<'CommentRequest'>>,
 ) => {
-  createNoteComment({
-    body: values,
-    onSuccess: () => {
-      ctx.resetForm();
-      navigateTo({
-        name: 'one-on-one-id',
-        params: {
-          id: props.oneOnOne.note.one_on_one_id,
-          userId: props.oneOnOne.note.one_on_one_member,
-        },
-      });
+  createNoteComment(
+    { ...values },
+    {
+      onSuccess: () => {
+        ctx.resetForm();
+        navigateTo({
+          name: 'one-on-one-id',
+          params: {
+            id: props.oneOnOne.note.one_on_one_id,
+            userId: props.oneOnOne.note.one_on_one_member,
+          },
+        });
+      },
     },
-  });
+  );
 };
 
 const handleCancel = () => {

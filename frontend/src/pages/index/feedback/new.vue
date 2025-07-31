@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PBox, PText } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
-import { useCreateFeedbackRequest } from '~/composables/useFeedbackServices';
+import { useCreateFeedbackRequest } from '~/composables/services/useFeedbackServices';
 
 definePageMeta({ name: 'feedback-new' });
 
