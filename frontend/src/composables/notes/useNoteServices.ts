@@ -8,16 +8,12 @@ interface Error {
   detail?: string;
 }
 
-export const useGetNote = (
-  id: string,
-  fetchOptions: UseApiFetchOptions<GetNoteResponse> = {},
-) => {
+export const useGetNote = (id: string) => {
   const { $api } = useNuxtApp();
 
   return useQuery<GetNoteResponse>({
     queryKey: ['note', id],
     queryFn: () => $api.fetch<GetNoteResponse>(`/notes/${id}/`),
-    ...fetchOptions,
   });
 };
 

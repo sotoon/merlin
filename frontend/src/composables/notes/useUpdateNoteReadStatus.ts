@@ -1,68 +1,46 @@
-interface UpdateNoteReadStatusResponse extends Note {}
+import { useQueryClient, useMutation } from '@tanstack/vue-query';
 
-interface UseUpdateNoteReadStatusOptions {
-  id: string;
-}
+export const useUpdateNoteReadStatus = () => {
+  const queryClient = useQueryClient();
+  const { $api } = useNuxtApp();
 
-export const useUpdateNoteReadStatus = ({
-  id,
-}: UseUpdateNoteReadStatusOptions) => {
-  const nuxtApp = useNuxtApp();
-
-  const updateNoteReadStatus = (readStatus: boolean) => {
-    const nuxtData = nuxtApp.payload.data;
-
-    const notesDataKeys = Object.keys(nuxtData).filter((key) =>
-      key.match(/^notes::.*:(true)?$/),
-    );
-
-    notesDataKeys.forEach((key) => {
-      const messageIndex = nuxtData[key].findIndex(
-        (message: Note) => message.uuid === id,
-      );
-
-      if (messageIndex < 0) {
-        return;
-      }
-
-      nuxtData[key][messageIndex].read_status = readStatus;
-    });
-  };
-
-  const { execute: markAsRead, pending: readPending } = useApiMutation<
-    UpdateNoteReadStatusResponse,
-    unknown,
-    never
-  >(`/notes/${id}/read/`, {
-    method: 'POST',
+  const { mutate: markAsRead, isPending: readPending } = useMutation({
+    mutationFn: (id: string) =>
+      $api.fetch(`/notes/${id}/read/`, { method: 'POST' }),
     onSuccess: () => {
-      updateNoteReadStatus(true);
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return (
+            query.queryKey[0] === 'note' || query.queryKey[0] === 'note-list'
+          );
+        },
+      });
     },
   });
 
-  const { execute: markAsUnread, pending: unreadPending } = useApiMutation<
-    UpdateNoteReadStatusResponse,
-    unknown,
-    never
-  >(`/notes/${id}/unread/`, {
-    method: 'POST',
+  const { mutate: markAsUnread, isPending: unreadPending } = useMutation({
+    mutationFn: (id: string) =>
+      $api.fetch(`/notes/${id}/unread/`, { method: 'POST' }),
     onSuccess: () => {
-      updateNoteReadStatus(false);
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return (
+            query.queryKey[0] === 'note' || query.queryKey[0] === 'note-list'
+          );
+        },
+      });
     },
   });
 
-  const execute = (
-    readStatus: boolean,
-    options: { onSuccess?: () => void } = {},
-  ) => {
+  const mutate = (id: string, readStatus: boolean) => {
     if (readStatus) {
-      markAsRead(options);
+      markAsRead(id);
     } else {
-      markAsUnread(options);
+      markAsUnread(id);
     }
   };
 
-  const pending = computed(() => readPending.value || unreadPending.value);
+  const isPending = computed(() => readPending.value || unreadPending.value);
 
-  return { execute, pending };
+  return { mutate, isPending };
 };

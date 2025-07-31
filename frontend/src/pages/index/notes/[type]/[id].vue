@@ -42,16 +42,13 @@ const noteId = computed(() => {
   return '';
 });
 
-const { execute: updateNoteReadStatus } = useUpdateNoteReadStatus({
-  id: noteId.value,
-});
-const {
-  data: note,
-  isPending,
-  error,
-  refetch,
-} = useGetNote(noteId.value, {
-  onResponse: route.query.read ? () => updateNoteReadStatus(true) : undefined,
+const { mutate: updateReadStatus } = useUpdateNoteReadStatus();
+const { data: note, isPending, error, refetch } = useGetNote(noteId.value);
+
+watch(note, (newValue) => {
+  if (newValue && route.query.read) {
+    updateReadStatus(noteId.value, true);
+  }
 });
 
 const errorCode = computed(() => (error.value as any)?.response?.status);
