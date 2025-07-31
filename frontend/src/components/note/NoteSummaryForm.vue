@@ -129,7 +129,7 @@ import {
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
-  summary?: NoteSummary;
+  summary?: Schema<'Summary'>;
   showCommitteeFields?: boolean;
   isSubmitting?: boolean;
 }>();
@@ -145,10 +145,10 @@ const { t } = useI18n();
 const { meta, handleSubmit } = useForm<NoteSummaryFormValues>({
   initialValues: {
     content: props.summary?.content || '',
-    performance_label: props.summary?.performance_label,
+    performance_label: props.summary?.performance_label || undefined,
     ladder_change: props.summary?.ladder_change || '',
-    bonus: props.summary?.bonus,
-    salary_change: props.summary?.salary_change,
+    bonus: props.summary?.bonus || undefined,
+    salary_change: props.summary?.salary_change || undefined,
     committee_date: props.summary?.committee_date
       ? new Date(props.summary?.committee_date)
       : undefined,

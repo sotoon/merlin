@@ -41,7 +41,7 @@ const handleSubmit = (
     {
       ...values,
       date: dateString,
-      type: props.noteType,
+      type: props.noteType as Schema<'TypeEnum'>,
     },
     {
       onSuccess: (newNote) => {

@@ -1,12 +1,12 @@
 <template>
-  <PLoading v-if="pending" class="text-primary" />
+  <PLoading v-if="isPending" class="text-primary" />
 
   <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
     <PText as="p" class="text-center text-danger" responsive>
       {{ t('note.getSummaryError') }}
     </PText>
 
-    <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+    <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
       {{ t('common.retry') }}
     </PButton>
   </div>
@@ -99,9 +99,11 @@
           <PropertyTableRow
             :label="t('note.performanceBonus')"
             :value="
-              (summaries[0].bonus / 100).toLocaleString('fa-IR', {
-                style: 'percent',
-              })
+              summaries[0].bonus
+                ? (summaries[0].bonus / 100).toLocaleString('fa-IR', {
+                    style: 'percent',
+                  })
+                : '-'
             "
           />
 
@@ -112,7 +114,11 @@
 
           <PropertyTableRow
             :label="t('note.salaryChange')"
-            :value="summaries[0].salary_change.toLocaleString('fa-IR')"
+            :value="
+              summaries[0].salary_change
+                ? summaries[0].salary_change.toLocaleString('fa-IR')
+                : '-'
+            "
           />
 
           <PropertyTableRow
@@ -170,29 +176,29 @@ const queryClient = useQueryClient();
 const { t } = useI18n();
 const {
   data: summaries,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetNoteSummaries({
   noteId: props.note.uuid,
 });
-const { execute: updateSummary, pending: updatingSummary } =
-  useCreateNoteSummary({
-    noteId: props.note.uuid,
-  });
+const { mutate: updateSummary, isPending: updatingSummary } =
+  useCreateNoteSummary(props.note.uuid);
 
 const finalizeSummarySubmission = () => {
   if (!summaries.value?.length) return;
 
-  updateSummary({
-    body: {
+  updateSummary(
+    {
       ...summaries.value[0],
       submit_status: NOTE_SUMMARY_SUBMIT_STATUS.final,
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['note', props.note.uuid] });
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['note', props.note.uuid] });
+      },
     },
-  });
+  );
 };
 
 watch(
