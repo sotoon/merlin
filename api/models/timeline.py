@@ -84,7 +84,7 @@ class TimelineEvent(MerlinBaseModel):
     # Target employee
     user = models.ForeignKey("api.User", on_delete=models.PROTECT, related_name="timeline_events")
     event_type = models.CharField(max_length=32, choices=EventType.choices, default=EventType.default())
-    summary_text = models.CharField(max_length=256)
+    summary_text = models.CharField(max_length=512)
     effective_date = models.DateField()
 
     # Generic relation to source artefact (Note, Summary, Notice, etc.)

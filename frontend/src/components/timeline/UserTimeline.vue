@@ -74,7 +74,7 @@
                     </PText>
                   </div>
 
-                  <PText class="text-gray-80" variant="body">
+                  <PText class="text-gray-80 whitespace-pre-line" variant="body">
                     {{ event.summary_text }}
                   </PText>
 
