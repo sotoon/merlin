@@ -1,8 +1,10 @@
+import threading
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
-from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema_field
 
 from api.services import grant_oneonone_access
 from api.serializers.organization import TagReadSerializer
@@ -19,6 +21,17 @@ from api.models import (
     Comment,
     Ladder,
 )
+
+# Thread-local storage for current user
+_current_user = threading.local()
+
+def get_current_user():
+    """Get the current user from thread-local storage."""
+    return getattr(_current_user, 'user', None)
+
+def set_current_user(user):
+    """Set the current user in thread-local storage."""
+    _current_user.user = user
 
 
 __all__ = [
@@ -247,6 +260,11 @@ class SummarySerializer(serializers.ModelSerializer):
         return super().validate(data)
 
     def create(self, validated_data):
+        # Store current user for signal access
+        request = self.context.get("request")
+        if request and hasattr(request, 'user'):
+            set_current_user(request.user)
+        
         instance, created = Summary.objects.update_or_create(
             note=validated_data["note"], defaults=validated_data
         )

@@ -1,3 +1,4 @@
+import re
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -15,13 +16,13 @@ from .models import (
     FormAssignment,
     OneOnOne,
     ValueTag,
-    ProposalType
+    ProposalType,
+    Notice,
 )
 
 from api.models.timeline import (
     TimelineEvent,
     EventType,
-    Notice as NoticeModel,
     StockGrant as StockGrantModel,
     TitleChange as TitleChangeModel,
     CompensationSnapshot,
@@ -29,6 +30,7 @@ from api.models.timeline import (
     PayBand,
 )
 from api.models.ladder import Ladder
+from api.serializers.note import get_current_user
 
 
 # ────────────────────────────────────────────────────────────────
@@ -185,58 +187,16 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
 
     effective_date = instance.committee_date or instance.date_created.date()
 
-    # Determine proposal type (falls back to PROMOTION)
+    # Determine proposal type
     ptype = getattr(instance.note, "proposal_type", ProposalType.PROMOTION)
-    event_map = {
-        ProposalType.EVALUATION: EventType.EVALUATION,
-        # Promotions may cause changes in Pay Band and/or Seniority.
-        ProposalType.PROMOTION: (
-            (EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE)
-            if getattr(instance, "ladder_change", None) and getattr(instance, "salary_change", None)
-            else EventType.SENIORITY_CHANGE
-            if getattr(instance, "ladder_change", None)
-            else EventType.PAY_CHANGE
-            if getattr(instance, "salary_change", None)
-            else EventType.SENIORITY_CHANGE
-        ),
-        ProposalType.MAPPING: EventType.MAPPING,
-        ProposalType.NOTICE: EventType.NOTICE,
-    }
-    event_type_value = event_map.get(ptype, EventType.EVALUATION)
-
-    def _build_text(ev):
-        if ev == EventType.EVALUATION:
-            ladder = instance.ladder_change if instance.ladder_change else "-"
-            bonus = f"{instance.bonus}%" if instance.bonus is not None else "۰٪"
-            salary = (
-                f"{instance.salary_change}%" if instance.salary_change else "۰٪"
-            )
-            return (
-                f"نتیجه کمیته – لدر {ladder} / پاداش {bonus} / افزایش حقوق {salary}"
-            )
-        # For PAY_CHANGE / SENIORITY_CHANGE etc we fall back to performance_label if set.
-        return instance.performance_label or "خروجی کمیته"
-
-    # Handle promotions that generate two separate events
-    if isinstance(event_type_value, tuple):
-        for ev in event_type_value:
-            _create_timeline_event(
-                user=instance.note.owner,
-                event_type=ev,
-                summary_text=_build_text(ev)[:256],
-                effective_date=effective_date,
-                source_obj=instance,
-                created_by=instance.note.owner,
-            )
-    else:
-        _create_timeline_event(
-            user=instance.note.owner,
-            event_type=event_type_value,
-            summary_text=_build_text(event_type_value)[:256],
-            effective_date=effective_date,
-            source_obj=instance,
-            created_by=instance.note.owner,
-        )
+    
+    # Generate timeline events based on proposal type
+    if ptype in [ProposalType.PROMOTION, ProposalType.EVALUATION]:
+        _create_promotion_evaluation_events(instance, effective_date)
+    elif ptype == ProposalType.NOTICE:
+        _create_notice_event(instance, effective_date)
+    elif ptype == ProposalType.MAPPING:
+        _create_mapping_event(instance, effective_date)
 
     # Create snapshots if needed
     if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):
@@ -273,7 +233,7 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                     # If no existing snapshot, create default for all aspects
                     from api.models import LadderAspect
                     aspects = LadderAspect.objects.filter(ladder=instance.ladder)
-                    details = {aspect.code: 3 for aspect in aspects}  # Default level 3
+                    details = {aspect.code: 0 for aspect in aspects}  # Default level 0
                 
                 # Merge new changes
                 details.update(deltas)
@@ -294,13 +254,197 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                 )
 
 
+def _create_promotion_evaluation_events(instance: Summary, effective_date):
+    """Create timeline events for PROMOTION and EVALUATION proposals."""
+    events_created = []
+    
+    # Get the member (note owner) instead of the leader
+    member = instance.note.owner
+    
+    # Get the current user who created the summary
+    created_by_user = get_current_user()
+    
+    # Salary change event
+    if instance.salary_change and instance.salary_change > 0:
+        _create_timeline_event(
+            user=member,
+            event_type=EventType.PAY_CHANGE,
+            summary_text=f"افزایش پله‌ی حقوقی: {instance.salary_change}",
+            effective_date=effective_date,
+            source_obj=instance,
+            created_by=created_by_user,
+        )
+        events_created.append(EventType.PAY_CHANGE)
+    
+    # Seniority change event (if there are aspect changes)
+    if instance.ladder and instance.aspect_changes:
+        # Get aspect names
+        from api.models import LadderAspect
+        aspect_names = {}
+        for aspect in LadderAspect.objects.filter(ladder=instance.ladder):
+            aspect_names[aspect.code] = aspect.name
+        
+        # Get previous snapshot for comparison
+        latest_snapshot = SenioritySnapshot.objects.filter(
+            user=member,
+            ladder=instance.ladder
+        ).order_by('effective_date').last()
+        
+        # Build seniority change text
+        aspect_changes = []
+        for code, data in instance.aspect_changes.items():
+            if data.get("changed") and data.get("new_level"):
+                aspect_name = aspect_names.get(code, code)
+                old_level = latest_snapshot.details_json.get(code, 1) if latest_snapshot else 1
+                new_level = data.get("new_level")
+                
+                if old_level == new_level:
+                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {new_level}")
+                else:
+                    aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level}")
+        
+        if aspect_changes:
+            # Calculate overall level change using ALL aspects of the ladder
+            # Get all aspects for this ladder
+            from api.models import LadderAspect
+            all_aspects = LadderAspect.objects.filter(ladder=instance.ladder)
+            
+            # Calculate old overall using all aspects
+            old_details = latest_snapshot.details_json if latest_snapshot else {}
+            old_overall = 0
+            if old_details:
+                old_overall = round(sum(old_details.values()) / len(old_details), 1)
+            
+            # Calculate new overall using all aspects
+            new_details = {}
+            for aspect in all_aspects:
+                # Use new_level if aspect was changed, otherwise use old level
+                if aspect.code in instance.aspect_changes and instance.aspect_changes[aspect.code].get("changed"):
+                    new_details[aspect.code] = instance.aspect_changes[aspect.code].get("new_level", old_details.get(aspect.code, 0))
+                else:
+                    new_details[aspect.code] = old_details.get(aspect.code, 0)
+            
+            new_overall = round(sum(new_details.values()) / len(new_details), 1) if new_details else 0
+            
+            seniority_text = "\n".join(aspect_changes)
+            if old_overall != new_overall:
+                seniority_text += f"\n\nسطح کلی: از {old_overall} به {new_overall}"
+            
+            _create_timeline_event(
+                user=member,
+                event_type=EventType.SENIORITY_CHANGE,
+                summary_text=seniority_text,
+                effective_date=effective_date,
+                source_obj=instance,
+                created_by=created_by_user,
+            )
+            events_created.append(EventType.SENIORITY_CHANGE)
+    else:
+        pass # No ladder or aspect_changes
+    
+    # Bonus event
+    if instance.bonus and instance.bonus > 0:
+        _create_timeline_event(
+            user=member,
+            event_type=EventType.BONUS_PAYOUT,
+            summary_text=f"پرداخت پاداش - {instance.bonus}٪ از حقوق",
+            effective_date=effective_date,
+            source_obj=instance,
+            created_by=created_by_user,
+        )
+        events_created.append(EventType.BONUS_PAYOUT)
+    
+    # Always create EVALUATION event for EVALUATION proposals
+    if instance.note.proposal_type == ProposalType.EVALUATION:
+        _create_timeline_event(
+            user=member,
+            event_type=EventType.EVALUATION,
+            summary_text=instance.performance_label or "ارزیابی عملکرد",
+            effective_date=effective_date,
+            source_obj=instance,
+            created_by=created_by_user,
+        )
+    # For PROMOTION proposals, create a general evaluation event only if no other events were created
+    elif not events_created:
+        _create_timeline_event(
+            user=member,
+            event_type=EventType.EVALUATION,
+            summary_text=instance.performance_label or "خروجی کمیته",
+            effective_date=effective_date,
+            source_obj=instance,
+            created_by=created_by_user,
+        )
+
+
+def _create_notice_event(instance: Summary, effective_date):
+    """Create timeline event for NOTICE proposals."""
+    # Get the member (note owner) instead of the leader
+    member = instance.note.owner
+    
+    # Get the current user who created the summary
+    created_by_user = get_current_user()
+    
+    # For now, use the content as notice description
+    # In the future, this should be linked to the Notice model
+    notice_text = instance.content or "نوتیس"
+    # Clean HTML tags
+    notice_text = re.sub(r'<[^>]+>', '', notice_text)
+    
+    _create_timeline_event(
+        user=member,
+        event_type=EventType.NOTICE,
+        summary_text=notice_text,
+        effective_date=effective_date,
+        source_obj=instance,
+        created_by=created_by_user,
+    )
+
+
+def _create_mapping_event(instance: Summary, effective_date):
+    """Create timeline event for MAPPING proposals."""
+    # Get the member (note owner) instead of the leader
+    member = instance.note.owner
+    
+    # Get the current user who created the summary
+    created_by_user = get_current_user()
+    
+    if instance.ladder and instance.aspect_changes:
+        # Calculate overall level the same way as snapshot creation
+        # Get all aspects for this ladder
+        from api.models import LadderAspect
+        aspects = LadderAspect.objects.filter(ladder=instance.ladder)
+        
+        # Build the complete details dictionary with all aspects
+        details = {}
+        for aspect in aspects:
+            # Use new_level if aspect was changed, otherwise use default 0
+            new_level = instance.aspect_changes.get(aspect.code, {}).get("new_level", 0)
+            details[aspect.code] = new_level
+        
+        # Calculate overall level using ALL aspects (same as snapshot creation)
+        overall_level = round(sum(details.values()) / len(details), 1) if details else 0
+        
+        mapping_text = f"مپ به لدر {instance.ladder.name} - سطح: {overall_level}"
+    else:
+        mapping_text = "مپ به لدر - سطح: مشخص نشد."
+    
+    _create_timeline_event(
+        user=member,
+        event_type=EventType.MAPPING,
+        summary_text=mapping_text,
+        effective_date=effective_date,
+        source_obj=instance,
+        created_by=created_by_user,
+    )
+
+
 # ────────────────────────────────────────────────────────────────
 # Lightweight artefacts → timeline events
 # ----------------------------------------------------------------
 
 
-@receiver(post_save, sender=NoticeModel)
-def notice_to_timeline(sender, instance: NoticeModel, created, **kwargs):
+@receiver(post_save, sender=Notice)
+def notice_to_timeline(sender, instance: Notice, created, **kwargs):
     if not created:
         return
     _create_timeline_event(
