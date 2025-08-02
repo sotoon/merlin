@@ -22,6 +22,7 @@ __all__ = [
     "UserDetailView",
     "MyTeamViewSet",
     "CurrentLadderView",
+    "LadderListView",
 ]
 
 
@@ -114,3 +115,24 @@ class CurrentLadderView(APIView):
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
         return Response(serializer.validated_data)
+
+
+class LadderListView(ListAPIView):
+    """Return all available ladders with their aspects."""
+    permission_classes = [IsAuthenticated]
+    queryset = Ladder.objects.prefetch_related('aspects').all()
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        data = []
+        
+        for ladder in queryset:
+            aspects = ladder.aspects.order_by("order").values("code", "name")
+            data.append({
+                "code": ladder.code,
+                "name": ladder.name,
+                "description": ladder.description,
+                "aspects": list(aspects)
+            })
+        
+        return Response(data)

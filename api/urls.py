@@ -57,6 +57,7 @@ urlpatterns = [
         views.CurrentLadderView.as_view(),
         name="current-ladder-other",
     ),
+    path("ladders/", views.LadderListView.as_view(), name="ladders"),
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<uuid:uuid>/", views.UserDetailView.as_view(), name="user-detail"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
