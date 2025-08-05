@@ -7,7 +7,6 @@ import {
   PListboxOption,
   PSwitch,
 } from '@pey/core';
-import { useForm } from 'vee-validate';
 import FeedbackStructuredForm from './FeedbackStructuredForm.vue';
 
 const emit = defineEmits<{

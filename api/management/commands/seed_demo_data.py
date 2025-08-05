@@ -37,13 +37,25 @@ class Command(BaseCommand):
         ("SW", "Software Ladder"),
         ("PD", "Product Ladder"),
     ]
-    ASPECTS = [
-        ("DES", "Design"),
-        ("IMP", "Implementation"),
-        ("BUS", "Business Acumen"),
-        ("COM", "Communication"),
-        ("TL", "Technical Leadership"),
-    ]
+    
+    # Define aspects for each ladder type
+    LADDER_ASPECTS = {
+        "SW": [
+            ("DES", "طراحی"),
+            ("IMP", "پیاده‌سازی"),
+            ("BUS", "بینش کسب‌وکار"),
+            ("COM", "ارتباطات"),
+            ("TL", "رهبری فنی"),
+        ],
+        "PD": [
+            ("STR", "استراتژی"),
+            ("EXE", "اجرا"),
+            ("USR", "تحقیقات کاربری"),
+            ("ANL", "تحلیل داده"),
+            ("COM", "ارتباطات"),
+            ("LDR", "رهبری"),
+        ],
+    }
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.WARNING("حذف داده‌های دمو قبلی…"))
@@ -142,7 +154,7 @@ class Command(BaseCommand):
             ladders.append(ladder)
 
             # Aspects
-            for order, (asp_code, asp_name) in enumerate(self.ASPECTS, start=1):
+            for order, (asp_code, asp_name) in enumerate(self.LADDER_ASPECTS[code], start=1):
                 aspect, _ = LadderAspect.objects.get_or_create(
                     ladder=ladder,
                     code=asp_code,

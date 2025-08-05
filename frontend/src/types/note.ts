@@ -27,6 +27,7 @@ export interface Note {
   mentioned_users: string[];
   owner: string;
   owner_name: string;
+  owner_uuid: string;
   period: number;
   read_status: boolean;
   submit_status: NoteSubmitStatus;

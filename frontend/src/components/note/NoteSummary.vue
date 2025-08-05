@@ -91,35 +91,37 @@
 
       <PBox v-if="note.type === NOTE_TYPE.proposal">
         <PropertyTable>
-          <PropertyTableRow
-            :label="t('note.performanceLabel')"
-            :value="summaries[0].performance_label"
-          />
+          <template v-if="note.proposal_type !== PROPOSAL_TYPE.notice">
+            <PropertyTableRow
+              :label="t('note.performanceLabel')"
+              :value="summaries[0].performance_label"
+            />
 
-          <PropertyTableRow
-            :label="t('note.performanceBonus')"
-            :value="
-              summaries[0].bonus
-                ? (summaries[0].bonus / 100).toLocaleString('fa-IR', {
-                    style: 'percent',
-                  })
-                : '-'
-            "
-          />
+            <PropertyTableRow
+              :label="t('note.performanceBonus')"
+              :value="
+                summaries[0].bonus
+                  ? (summaries[0].bonus / 100).toLocaleString('fa-IR', {
+                      style: 'percent',
+                    })
+                  : '-'
+              "
+            />
 
-          <PropertyTableRow
-            :label="t('note.ladderChange')"
-            :value="summaries[0].ladder_change"
-          />
+            <PropertyTableRow
+              :label="t('note.ladderChange')"
+              :value="summaries[0].ladder_change"
+            />
 
-          <PropertyTableRow
-            :label="t('note.salaryChange')"
-            :value="
-              summaries[0].salary_change
-                ? summaries[0].salary_change.toLocaleString('fa-IR')
-                : '-'
-            "
-          />
+            <PropertyTableRow
+              :label="t('note.salaryChange')"
+              :value="
+                summaries[0].salary_change
+                  ? summaries[0].salary_change.toLocaleString('fa-IR')
+                  : '-'
+              "
+            />
+          </template>
 
           <PropertyTableRow
             :label="t('note.committeeDate')"
@@ -142,7 +144,7 @@
               v-for="(aspectChange, aspectCode) in summaries[0].aspect_changes"
               v-show="aspectChange.changed"
               :key="aspectCode"
-              :label="getAspectName(aspectCode)"
+              :label="aspectDict[aspectCode]"
               :value="aspectChange.new_level"
             />
           </template>
@@ -189,6 +191,8 @@ const finalSubmitButton = ref<HTMLElement | null>(null);
 
 const queryClient = useQueryClient();
 const { t } = useI18n();
+const invalidateQueries = useInvalidateQueries();
+
 const {
   data: summaries,
   isPending,
@@ -200,15 +204,20 @@ const {
 const { mutate: updateSummary, isPending: updatingSummary } =
   useCreateNoteSummary(props.note.uuid);
 
-const { data: ladderData } = useGetCurrentLadder();
-
-const getAspectName = (aspectCode: string | number) => {
-  const code = String(aspectCode);
+const { data: ladderData } = useGetLadders();
+const aspectDict = computed(() => {
   return (
-    ladderData.value?.aspects?.find((aspect) => aspect.code === code)?.name ||
-    code
+    ladderData.value?.reduce(
+      (acc, ladder) => {
+        ladder.aspects.forEach((aspect) => {
+          acc[aspect.code] = aspect.name;
+        });
+        return acc;
+      },
+      {} as Record<string, string>,
+    ) || {}
   );
-};
+});
 
 const finalizeSummarySubmission = () => {
   if (!summaries.value?.length) return;
@@ -220,6 +229,7 @@ const finalizeSummarySubmission = () => {
     },
     {
       onSuccess: () => {
+        invalidateQueries('note-list');
         queryClient.invalidateQueries({ queryKey: ['note', props.note.uuid] });
       },
     },

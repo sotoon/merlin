@@ -150,7 +150,9 @@
     "year": "سال",
     "currentCycle": "دوره فعلی",
     "aspectChanges": "تغییرات ابعاد لدر",
-    "hasChanged": "تغییر کرده"
+    "hasChanged": "تغییر کرده",
+    "selectLadder": "انتخاب لدر",
+    "selectLadderPlaceholder": "لدر مورد نظر را انتخاب کنید"
   },
   "noteType": {
     "goal": "هدف",

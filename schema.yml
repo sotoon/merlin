@@ -703,6 +703,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Form'
           description: ''
+  /api/ladders/:
+    get:
+      operationId: ladders_list
+      description: Return all available ladders with their aspects.
+      tags:
+      - ladders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LadderList'
+          description: ''
   /api/login/:
     post:
       operationId: login_create
@@ -2379,6 +2396,29 @@ components:
         * `TL` - Team Leader
         * `MANAGER` - Manager
         * `GENERAL` - General
+    LadderList:
+      type: object
+      description: Serializer for list of ladders with their aspects.
+      properties:
+        code:
+          type: string
+          description: Ladder code (e.g., 'SW', 'DEVOPS')
+        name:
+          type: string
+          description: Ladder name
+        description:
+          type: string
+          description: Ladder description
+        aspects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Aspect'
+          description: List of ladder aspects with their codes and names
+      required:
+      - aspects
+      - code
+      - description
+      - name
     LeaderVibeEnum:
       enum:
       - :)
@@ -2425,6 +2465,10 @@ components:
           readOnly: true
         owner_name:
           type: string
+          readOnly: true
+        owner_uuid:
+          type: string
+          format: uuid
           readOnly: true
         title:
           type: string
@@ -2512,6 +2556,7 @@ components:
       - one_on_one_member
       - owner
       - owner_name
+      - owner_uuid
       - read_status
       - title
       - uuid
@@ -3450,7 +3495,7 @@ components:
           format: date
         summary_text:
           type: string
-          maxLength: 256
+          maxLength: 512
         object_url:
           type: string
           readOnly: true
