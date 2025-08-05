@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from api.models import (
     User,
+    Ladder,
 )
 from api.utils.timeline import get_current_job_title
 
@@ -11,6 +12,8 @@ __all__ = [
     "ProfileSerializer",
     "ProfileListSerializer",
     "CurrentLadderSerializer",
+    "LadderSerializer",
+    "LadderListSerializer",
 ]
 
 
@@ -85,3 +88,23 @@ class CurrentLadderSerializer(serializers.Serializer):
     aspects = AspectSerializer(
         many=True, help_text="List of ladder aspects with their codes and names"
     )
+
+
+class LadderSerializer(serializers.ModelSerializer):
+    """Serializer for a single ladder with its aspects."""
+    
+    aspects = AspectSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Ladder
+        fields = ("code", "name", "description", "aspects")
+        read_only_fields = ("code", "name", "description", "aspects")
+
+
+class LadderListSerializer(serializers.Serializer):
+    """Serializer for list of ladders with their aspects."""
+    
+    code = serializers.CharField(help_text="Ladder code (e.g., 'SW', 'DEVOPS')")
+    name = serializers.CharField(help_text="Ladder name")
+    description = serializers.CharField(help_text="Ladder description")
+    aspects = AspectSerializer(many=True, help_text="List of ladder aspects with their codes and names")

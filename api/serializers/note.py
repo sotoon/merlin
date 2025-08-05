@@ -62,6 +62,7 @@ class NoteSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
     )
     owner_name = serializers.CharField(source="owner.name", read_only=True)
+    owner_uuid = serializers.UUIDField(source="owner.uuid", read_only=True)
     mentioned_users = serializers.SlugRelatedField(
         many=True, required=False, queryset=User.objects.all(), slug_field="email"
     )
@@ -90,6 +91,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "date_updated",
             "owner",
             "owner_name",
+            "owner_uuid",
             "title",
             "content",
             "date",

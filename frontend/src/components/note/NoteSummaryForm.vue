@@ -8,58 +8,103 @@
       />
     </VeeField>
 
-    <div v-if="ladderData?.aspects" class="max-w-lg space-y-6">
-      <h3 class="text-gray-900 font-medium">
-        {{ t('note.aspectChanges') }}
-      </h3>
-
-      <div
-        v-for="(aspect, index) in ladderData?.aspects || []"
-        :key="aspect.code"
-        class="flex flex-wrap items-center gap-6 md:flex-row"
+    <div v-if="ladders?.length && !isNotice" class="max-w-lg space-y-6">
+      <VeeField
+        v-slot="{ componentField }"
+        name="ladder"
+        :rules="isEvaluation ? '' : 'required'"
       >
-        <div class="grow">
-          <VeeField
-            v-slot="{ componentField }"
-            :name="`aspect_changes.${aspect.code}.new_level`"
-            :rules="
-              aspectCheckboxStates[index]
-                ? 'required|min_value:1|max_value:10'
-                : 'min_value:1|max_value:10'
-            "
+        <PListbox
+          v-bind="componentField"
+          :required="!isEvaluation"
+          :label="t('note.selectLadder')"
+          :placeholder="t('note.selectLadderPlaceholder')"
+          @update:model-value="onLadderChange"
+        >
+          <PListboxOption
+            v-for="ladder in ladders"
+            :key="ladder.code"
+            :label="ladder.name"
+            :value="ladder.code"
           >
-            <PInput
-              v-bind="componentField"
-              :label="aspect.name"
-              type="number"
-              min="1"
-              max="10"
-              :required="aspectCheckboxStates[index]"
-              :disabled="!aspectCheckboxStates[index]"
-            />
-          </VeeField>
-        </div>
+            <div class="flex flex-col">
+              <span class="font-medium">{{ ladder.name }}</span>
+              <span class="text-gray-500 text-sm">
+                {{ ladder.description }}
+              </span>
+            </div>
+          </PListboxOption>
+        </PListbox>
+      </VeeField>
 
-        <PCheckbox
-          v-model="aspectCheckboxStates[index]"
-          :label="t('note.hasChanged')"
-          :value="true"
-        />
-      </div>
+      <template v-if="currentAspects.length">
+        <h3 class="text-gray-900 font-medium">
+          {{ t('note.aspectChanges') }}
+        </h3>
+
+        <div
+          v-for="aspect in currentAspects"
+          :key="aspect.code"
+          class="flex flex-wrap items-end gap-6 md:flex-row"
+        >
+          <div class="grow">
+            <VeeField
+              v-slot="{ componentField }"
+              :name="`aspect_changes.${aspect.code}.new_level`"
+              :rules="
+                isAspectChanged(aspect.code) && !isEvaluation
+                  ? 'required|min_value:1|max_value:10'
+                  : 'min_value:1|max_value:10'
+              "
+            >
+              <PInput
+                v-bind="componentField"
+                :label="aspect.name"
+                type="number"
+                min="1"
+                max="10"
+                hide-details
+                :required="isAspectChanged(aspect.code) && !isEvaluation"
+                :disabled="!isAspectChanged(aspect.code)"
+                :placeholder="isAspectChanged(aspect.code) ? undefined : ''"
+                :model-value="getAspectDisplayValue(aspect.code)"
+              />
+            </VeeField>
+          </div>
+
+          <label class="mb-2 flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              :checked="isAspectChanged(aspect.code)"
+              class="text-primary-600 border-gray-300 focus:ring-primary-500 h-4 w-4 rounded bg-gray-100 focus:ring-2"
+              @change="
+                (e) =>
+                  toggleAspectChanged(
+                    aspect.code,
+                    (e.target as HTMLInputElement).checked,
+                  )
+              "
+            />
+            <span class="text-gray-700 text-sm font-medium"
+              >{{ t('note.hasChanged') }}
+            </span>
+          </label>
+        </div>
+      </template>
     </div>
 
     <div v-if="showCommitteeFields" class="flex max-w-lg flex-col gap-6">
-      <div class="flex flex-col flex-wrap gap-6 md:flex-row">
-        <div class="grow">
+      <div v-if="!isNotice" class="flex flex-col flex-wrap gap-6 md:flex-row">
+        <div v-if="isEvaluation" class="grow">
           <VeeField
             v-slot="{ componentField }"
             name="performance_label"
-            rules="required"
+            :rules="isEvaluation ? '' : 'required'"
           >
             <PListbox
               v-bind="componentField"
               :label="t('note.performanceLabel')"
-              required
+              :required="!isEvaluation"
             >
               <PListboxOption
                 v-for="item in PERFORMANCE_LABELS"
@@ -72,29 +117,33 @@
         </div>
 
         <div class="md:w-36">
-          <VeeField v-slot="{ componentField }" name="bonus" rules="required">
+          <VeeField
+            v-slot="{ componentField }"
+            name="bonus"
+            :rules="isEvaluation ? '' : 'required'"
+          >
             <PInput
               v-bind="componentField"
               :label="t('note.performanceBonus')"
               prefix="%"
-              required
+              :required="!isEvaluation"
               type="number"
             />
           </VeeField>
         </div>
       </div>
 
-      <div class="flex flex-col flex-wrap gap-6 md:flex-row">
+      <div v-if="!isNotice" class="flex flex-col flex-wrap gap-6 md:flex-row">
         <VeeField
           v-slot="{ componentField }"
           name="ladder_change"
-          rules="required"
+          :rules="isEvaluation ? '' : 'required'"
         >
           <PInput
             v-bind="componentField"
             class="grow"
             :label="t('note.ladderChange')"
-            required
+            :required="!isEvaluation"
           />
         </VeeField>
 
@@ -102,12 +151,12 @@
           <VeeField
             v-slot="{ componentField }"
             name="salary_change"
-            rules="required"
+            :rules="isEvaluation ? '' : 'required'"
           >
             <PListbox
               v-bind="componentField"
               :label="t('note.salaryChange')"
-              required
+              :required="!isEvaluation"
             >
               <PListboxOption
                 v-for="change in SALARY_CHANGES"
@@ -165,7 +214,6 @@ import {
   PInput,
   PListbox,
   PListboxOption,
-  PCheckbox,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
@@ -173,7 +221,7 @@ const props = defineProps<{
   summary?: Schema<'Summary'>;
   showCommitteeFields?: boolean;
   isSubmitting?: boolean;
-  userUuid?: string;
+  note: Note;
 }>();
 const emit = defineEmits<{
   submit: [
@@ -184,28 +232,15 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { data: ladderData } = useGetCurrentLadder(props.userUuid);
-
-const aspectCheckboxStates = ref<boolean[]>([]);
-watch(
-  ladderData,
-  (newLadderData) => {
-    if (newLadderData?.aspects) {
-      // Initialize with existing values if editing, otherwise fill with false
-      aspectCheckboxStates.value = newLadderData.aspects.map((aspect) => {
-        return props.summary?.aspect_changes?.[aspect.code]?.changed || false;
-      });
-    }
-  },
-  { immediate: true },
-);
+const { data: ladders } = useGetLadders();
 
 const { meta, handleSubmit, values, setValues } = useForm<
   Schema<'SummaryRequest'>
 >({
   initialValues: {
     content: props.summary?.content || '',
-    aspect_changes: props.summary?.aspect_changes,
+    aspect_changes: props.summary?.aspect_changes || {},
+    ladder: props.summary?.ladder || '',
     performance_label: props.summary?.performance_label || undefined,
     ladder_change: props.summary?.ladder_change || '',
     bonus: props.summary?.bonus || undefined,
@@ -215,28 +250,103 @@ const { meta, handleSubmit, values, setValues } = useForm<
       : undefined,
   },
 });
-useUnsavedChangesGuard({ disabled: () => !meta.value.dirty });
+
+const isEditing = computed(() => Boolean(props.summary));
+useUnsavedChangesGuard({
+  disabled: () => !meta.value.dirty || !isEditing.value,
+});
+
+const selectedLadder = computed(() => {
+  if (!ladders.value || !values.ladder) return null;
+  return ladders.value.find((ladder) => ladder.code === values.ladder);
+});
+
+const currentAspects = computed(() => {
+  return selectedLadder.value?.aspects || [];
+});
+
+// Helper function to check if an aspect is changed
+const isAspectChanged = (aspectCode: string) => {
+  return values.aspect_changes?.[aspectCode]?.changed || false;
+};
+
+// Helper function to get display value for aspect inputs
+const getAspectDisplayValue = (aspectCode: string) => {
+  if (isAspectChanged(aspectCode)) {
+    return values.aspect_changes?.[aspectCode]?.new_level || '';
+  }
+  return '';
+};
+
+// Function to toggle aspect changed state
+const toggleAspectChanged = (aspectCode: string, value: boolean) => {
+  const aspectChanges = { ...values.aspect_changes };
+
+  if (!aspectChanges[aspectCode]) {
+    aspectChanges[aspectCode] = {
+      changed: false,
+      new_level: 1,
+    };
+  }
+
+  aspectChanges[aspectCode] = {
+    ...aspectChanges[aspectCode],
+    changed: value,
+    new_level: value ? aspectChanges[aspectCode].new_level || 1 : 1,
+  };
+
+  setValues({ aspect_changes: aspectChanges });
+};
+
+// Handle ladder selection change
+function onLadderChange(ladderCode: string) {
+  if (ladderCode && ladders.value) {
+    const ladder = ladders.value.find((l) => l.code === ladderCode);
+    if (ladder) {
+      const allAspectChanges = { ...values.aspect_changes };
+
+      ladder.aspects.forEach((aspect) => {
+        const summaryAspect = props.summary?.aspect_changes?.[aspect.code];
+        allAspectChanges[aspect.code] = {
+          changed: summaryAspect?.changed || false,
+          new_level: summaryAspect?.new_level || 1,
+        };
+      });
+
+      // Reset all previous aspects to changed: false
+      Object.keys(allAspectChanges).forEach((aspectCode) => {
+        if (!ladder.aspects.find((aspect) => aspect.code === aspectCode)) {
+          allAspectChanges[aspectCode] = {
+            changed: false,
+            new_level: 1,
+          };
+        }
+      });
+
+      // Clean up aspects that have changed: true but no new_level
+      Object.keys(allAspectChanges).forEach((aspectCode) => {
+        const aspect = allAspectChanges[aspectCode];
+        if (aspect.changed && !aspect.new_level) {
+          allAspectChanges[aspectCode] = {
+            changed: false,
+            new_level: 1,
+          };
+        }
+      });
+
+      setValues({ aspect_changes: allAspectChanges });
+    }
+  }
+}
+
+const isEvaluation = computed(
+  () => props.note.proposal_type === PROPOSAL_TYPE.evaluation,
+);
+const isNotice = computed(
+  () => props.note.proposal_type === PROPOSAL_TYPE.notice,
+);
 
 const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', values, ctx);
 });
-
-watch(
-  aspectCheckboxStates,
-  (newStates) => {
-    const newAspectChanges: Schema<'Summary'>['aspect_changes'] = {};
-
-    ladderData.value?.aspects?.forEach((aspect, index) => {
-      newAspectChanges[aspect.code] = {
-        changed: newStates[index] || false,
-        new_level: newStates[index]
-          ? values.aspect_changes?.[aspect.code]?.new_level || 1
-          : 1,
-      };
-    });
-
-    setValues({ aspect_changes: newAspectChanges });
-  },
-  { deep: true },
-);
 </script>
