@@ -9,10 +9,11 @@ from rest_framework.response import Response
 
 from api.services.timeline_access import can_view_timeline
 from api.models import User, Cycle, Ladder, SenioritySnapshot
-from api.serializers import (
+from api.serializers.profile import (
     ProfileSerializer,
     ProfileListSerializer,
     CurrentLadderSerializer,
+    LadderListSerializer,
 )
 
 
@@ -120,6 +121,7 @@ class CurrentLadderView(APIView):
 class LadderListView(ListAPIView):
     """Return all available ladders with their aspects."""
     permission_classes = [IsAuthenticated]
+    serializer_class = LadderListSerializer
     queryset = Ladder.objects.prefetch_related('aspects').all()
     
     def list(self, request, *args, **kwargs):
@@ -128,11 +130,12 @@ class LadderListView(ListAPIView):
         
         for ladder in queryset:
             aspects = ladder.aspects.order_by("order").values("code", "name")
-            data.append({
+            serializer = self.get_serializer({
                 "code": ladder.code,
                 "name": ladder.name,
                 "description": ladder.description,
                 "aspects": list(aspects)
             })
+            data.append(serializer.data)
         
         return Response(data)

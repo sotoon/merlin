@@ -305,6 +305,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/ladders/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Return all available ladders with their aspects. */
+    get: operations['ladders_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/login/': {
     parameters: {
       query?: never;
@@ -1001,6 +1018,17 @@ export interface components {
      * @enum {string}
      */
     FormTypeEnum: 'PM' | 'TL' | 'MANAGER' | 'GENERAL';
+    /** @description Serializer for list of ladders with their aspects. */
+    LadderList: {
+      /** @description Ladder code (e.g., 'SW', 'DEVOPS') */
+      code: string;
+      /** @description Ladder name */
+      name: string;
+      /** @description Ladder description */
+      description: string;
+      /** @description List of ladder aspects with their codes and names */
+      aspects: components['schemas']['Aspect'][];
+    };
     /**
      * @description * `:)` - 😊
      *     * `:|` - 😐
@@ -1034,6 +1062,8 @@ export interface components {
        */
       readonly owner: string;
       readonly owner_name: string;
+      /** Format: uuid */
+      readonly owner_uuid: string;
       /** عنوان */
       title: string;
       /** محتوا */
@@ -2217,6 +2247,25 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Form'];
+        };
+      };
+    };
+  };
+  ladders_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LadderList'][];
         };
       };
     };
