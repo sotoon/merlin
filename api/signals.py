@@ -162,7 +162,7 @@ def _create_timeline_event(*, user, event_type, summary_text, effective_date, so
     TimelineEvent.objects.create(
         user=user,
         event_type=event_type,
-        summary_text=summary_text[:256],
+        summary_text=summary_text,
         effective_date=effective_date,
         content_type=content_type,
         object_id=object_id,
@@ -187,6 +187,33 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
 
     effective_date = instance.committee_date or instance.date_created.date()
 
+    # Check for ladder change FIRST and create timeline event
+    # Get the latest snapshot for this user to check if ladder changed
+    latest_snapshot = SenioritySnapshot.objects.filter(
+        user=instance.note.owner
+    ).order_by('effective_date', 'date_created').last()
+    
+    # Debug: Print ladder change detection info
+    print(f"DEBUG: Latest snapshot ladder: {latest_snapshot.ladder.name if latest_snapshot else 'None'}")
+    print(f"DEBUG: Summary ladder: {instance.ladder.name if instance.ladder else 'None'}")
+    print(f"DEBUG: Ladder changed: {latest_snapshot.ladder != instance.ladder if latest_snapshot and instance.ladder else 'No comparison'}")
+    
+    if latest_snapshot and instance.ladder and latest_snapshot.ladder != instance.ladder:
+        # Ladder has changed, create LADDER_CHANGED event FIRST
+        old_ladder_name = latest_snapshot.ladder.name
+        new_ladder_name = instance.ladder.name
+        ladder_change_text = f"تغییر لدر کاربر\nلدر کاربر از {old_ladder_name} به {new_ladder_name} تغییر کرد."
+        
+        print(f"DEBUG: Creating LADDER_CHANGED event: {ladder_change_text}")
+        _create_timeline_event(
+            user=instance.note.owner,
+            event_type=EventType.LADDER_CHANGED,
+            summary_text=ladder_change_text,
+            effective_date=effective_date,
+            source_obj=instance,
+            created_by=get_current_user(),
+        )
+
     # Determine proposal type
     ptype = getattr(instance.note, "proposal_type", ProposalType.PROMOTION)
     
@@ -197,7 +224,7 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
         _create_notice_event(instance, effective_date)
     elif ptype == ProposalType.MAPPING:
         _create_mapping_event(instance, effective_date)
-
+    
     # Create snapshots if needed
     if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):
         # PayBand lookup is out of scope; we still record salary change absolute value
@@ -224,7 +251,7 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                 latest_snapshot = SenioritySnapshot.objects.filter(
                     user=instance.note.owner,
                     ladder=instance.ladder
-                ).order_by('effective_date').last()
+                ).order_by('effective_date', 'date_created').last()
                 
                 # Start with existing details or create default for all aspects
                 if latest_snapshot:
@@ -235,22 +262,24 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                     aspects = LadderAspect.objects.filter(ladder=instance.ladder)
                     details = {aspect.code: 0 for aspect in aspects}  # Default level 0
                 
-                # Merge new changes
-                details.update(deltas)
+                # Add new changes to existing levels (not replace)
+                for code, new_level in deltas.items():
+                    if code in details:
+                        details[code] += new_level  # Add to existing level
+                    else:
+                        details[code] = new_level  # Set new level if aspect didn't exist before
                 
                 # Calculate overall score
                 overall = round(sum(details.values()) / len(details), 1) if details else 0
                 
-                # Create or update snapshot
-                snapshot, created = SenioritySnapshot.objects.update_or_create(
+                # Create new snapshot (don't update existing one for same date)
+                snapshot = SenioritySnapshot.objects.create(
                     user=instance.note.owner,
                     ladder=instance.ladder,
                     effective_date=effective_date,
-                    defaults={
-                        'details_json': details,
-                        'overall_score': overall,
-                        'title': instance.performance_label if instance.performance_label else ''
-                    }
+                    details_json=details,
+                    overall_score=overall,
+                    title=instance.performance_label if instance.performance_label else ''
                 )
 
 
@@ -288,20 +317,21 @@ def _create_promotion_evaluation_events(instance: Summary, effective_date):
         latest_snapshot = SenioritySnapshot.objects.filter(
             user=member,
             ladder=instance.ladder
-        ).order_by('effective_date').last()
+        ).order_by('effective_date', 'date_created').last()
         
         # Build seniority change text
         aspect_changes = []
         for code, data in instance.aspect_changes.items():
             if data.get("changed") and data.get("new_level"):
                 aspect_name = aspect_names.get(code, code)
-                old_level = latest_snapshot.details_json.get(code, 1) if latest_snapshot else 1
-                new_level = data.get("new_level")
+                old_level = latest_snapshot.details_json.get(code, 0) if latest_snapshot else 0
+                change_amount = data.get("new_level")
+                new_level = old_level + change_amount  # Add to existing level
                 
-                if old_level == new_level:
-                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {new_level}")
+                if change_amount == 0:
+                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {old_level}")
                 else:
-                    aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level}")
+                    aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount})")
         
         if aspect_changes:
             # Calculate overall level change using ALL aspects of the ladder
@@ -318,9 +348,11 @@ def _create_promotion_evaluation_events(instance: Summary, effective_date):
             # Calculate new overall using all aspects
             new_details = {}
             for aspect in all_aspects:
-                # Use new_level if aspect was changed, otherwise use old level
+                # Add new_level to existing level if aspect was changed, otherwise use old level
                 if aspect.code in instance.aspect_changes and instance.aspect_changes[aspect.code].get("changed"):
-                    new_details[aspect.code] = instance.aspect_changes[aspect.code].get("new_level", old_details.get(aspect.code, 0))
+                    old_level = old_details.get(aspect.code, 0)
+                    change_amount = instance.aspect_changes[aspect.code].get("new_level", 0)
+                    new_details[aspect.code] = old_level + change_amount
                 else:
                     new_details[aspect.code] = old_details.get(aspect.code, 0)
             
@@ -384,11 +416,8 @@ def _create_notice_event(instance: Summary, effective_date):
     # Get the current user who created the summary
     created_by_user = get_current_user()
     
-    # For now, use the content as notice description
-    # In the future, this should be linked to the Notice model
-    notice_text = instance.content or "نوتیس"
-    # Clean HTML tags
-    notice_text = re.sub(r'<[^>]+>', '', notice_text)
+    # Use static text for notice events
+    notice_text = "نوتیس عملکردی ثبت شد."
     
     _create_timeline_event(
         user=member,
@@ -408,6 +437,17 @@ def _create_mapping_event(instance: Summary, effective_date):
     # Get the current user who created the summary
     created_by_user = get_current_user()
     
+    # Salary change event for MAPPING proposals
+    if instance.salary_change and instance.salary_change > 0:
+        _create_timeline_event(
+            user=member,
+            event_type=EventType.PAY_CHANGE,
+            summary_text=f"افزایش پله‌ی حقوقی: {instance.salary_change}",
+            effective_date=effective_date,
+            source_obj=instance,
+            created_by=created_by_user,
+        )
+    
     if instance.ladder and instance.aspect_changes:
         # Calculate overall level the same way as snapshot creation
         # Get all aspects for this ladder
@@ -424,7 +464,7 @@ def _create_mapping_event(instance: Summary, effective_date):
         # Calculate overall level using ALL aspects (same as snapshot creation)
         overall_level = round(sum(details.values()) / len(details), 1) if details else 0
         
-        mapping_text = f"مپ به لدر {instance.ladder.name} - سطح: {overall_level}"
+        mapping_text = f"مپ به لدر {instance.ladder.name if instance.ladder else 'نامشخص'} - سطح: {overall_level}"
     else:
         mapping_text = "مپ به لدر - سطح: مشخص نشد."
     

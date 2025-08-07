@@ -151,24 +151,34 @@ def test_regular_user_denied(settings, api_client, member, leader):
 
 
 @pytest.mark.parametrize(
-    "proposal_type, ladder, salary, expected",
+    "proposal_type, ladder, salary, bonus, expected",
     [
-        (ProposalType.EVALUATION, True, True, [EventType.EVALUATION]),
-        (ProposalType.PROMOTION, True, False, [EventType.SENIORITY_CHANGE]),
-        (ProposalType.PROMOTION, False, True, [EventType.PAY_CHANGE]),
-        (ProposalType.PROMOTION, True, True, [EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE]),
-        (ProposalType.MAPPING, False, False, [EventType.MAPPING]),
-        (ProposalType.NOTICE, False, False, [EventType.NOTICE]),
+        (ProposalType.EVALUATION, True, True, True, [EventType.EVALUATION, EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE, EventType.BONUS_PAYOUT]),
+        (ProposalType.EVALUATION, True, False, False, [EventType.EVALUATION, EventType.SENIORITY_CHANGE]),
+        (ProposalType.EVALUATION, False, False, False, [EventType.EVALUATION]),
+        (ProposalType.PROMOTION, True, False, False, [EventType.SENIORITY_CHANGE]),
+        (ProposalType.PROMOTION, False, True, False, [EventType.PAY_CHANGE]),
+        (ProposalType.PROMOTION, True, True, True, [EventType.SENIORITY_CHANGE, EventType.PAY_CHANGE, EventType.BONUS_PAYOUT]),
+        (ProposalType.MAPPING, True, True, False, [EventType.MAPPING, EventType.PAY_CHANGE]),
+        (ProposalType.MAPPING, True, False, False, [EventType.MAPPING]),
+        (ProposalType.NOTICE, False, False, False, [EventType.NOTICE]),
     ],
 )
 @pytest.mark.django_db
-def test_summary_generates_correct_events(settings, proposal_type, ladder, salary, expected, member):
+def test_summary_generates_correct_events(settings, proposal_type, ladder, salary, bonus, expected, member):
     """Summary DONE emits correct TimelineEvent(s) per committee type and data fields."""
     settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
 
     committee = Committee.objects.create(name="C")
     member.committee = committee
     member.save()
+
+    # Create ladder with aspects for testing
+    ladder_obj = None
+    if ladder:
+        ladder_obj = Ladder.objects.create(code="TEST", name="Test Ladder")
+        LadderAspect.objects.create(ladder=ladder_obj, code="DES", name="Design", order=1)
+        LadderAspect.objects.create(ladder=ladder_obj, code="IMP", name="Implementation", order=2)
 
     note = Note.objects.create(
         owner=member,
@@ -178,11 +188,18 @@ def test_summary_generates_correct_events(settings, proposal_type, ladder, salar
         type=NoteType.GOAL,
         proposal_type=proposal_type,
     )
+    
+    aspect_changes = {}
+    if ladder:
+        aspect_changes = {"DES": {"changed": True, "new_level": 2}}
+    
     Summary.objects.create(
         note=note,
         content="x",
-        ladder_change="LvUp" if ladder else "",
+        ladder=ladder_obj,
+        aspect_changes=aspect_changes,
         salary_change=1 if salary else 0,
+        bonus=10 if bonus else 0,
         submit_status=SummarySubmitStatus.DONE,
     )
 
@@ -459,13 +476,13 @@ def test_summary_done_creates_snapshot(api_client, member):
 
     snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).first()
     assert snap is not None
-    # Should have all 5 aspects, with DES at level 4 and others at default level 3
-    assert snap.details_json.get("DES") == 4
+    # Should have all 5 aspects, with DES at level 4 (0+4) and others at default level 0
+    assert snap.details_json.get("DES") == 4  # 0 + 4
     assert len(snap.details_json) == 5  # All 5 aspects should be present
-    assert snap.details_json.get("IMP") == 3  # Other aspects should be at default level
-    assert snap.details_json.get("BUS") == 3
-    assert snap.details_json.get("COM") == 3
-    assert snap.details_json.get("TL") == 3
+    assert snap.details_json.get("IMP") == 0  # Other aspects should be at default level 0
+    assert snap.details_json.get("BUS") == 0
+    assert snap.details_json.get("COM") == 0
+    assert snap.details_json.get("TL") == 0
 
 
 @pytest.mark.django_db
@@ -504,11 +521,426 @@ def test_summary_merge_snapshot(api_client, member):
         cycle=cycle,
     )
 
-    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).latest("effective_date")
-    # Should preserve all 5 aspects, only DES changed to 4
-    assert snap.details_json == {"DES": 4, "IMP": 3, "BUS": 3, "COM": 3, "TL": 3}
-    # Overall score should be (4+3+3+3+3)/5 = 3.2
-    assert snap.overall_score == 3.2
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).order_by("effective_date", "date_created").last()
+    # Should preserve all 5 aspects, DES changed to 7 (3+4) and others remain at 3
+    assert snap.details_json == {"DES": 7, "IMP": 3, "BUS": 3, "COM": 3, "TL": 3}
+    # Overall score should be (7+3+3+3+3)/5 = 3.8
+    assert snap.overall_score == 3.8
+
+
+# ---------------------------------------------------------------------------
+# Level Addition Logic Tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_level_addition_logic(api_client, member):
+    """Test that level changes are added to existing levels, not replaced."""
+    ladder = _create_ladder_with_aspects()
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    # First summary: set DES to level 3
+    note1 = Note.objects.create(
+        owner=member,
+        title="First Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note1,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 3}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Second summary: add 2 more to DES (should become 5)
+    note2 = Note.objects.create(
+        owner=member,
+        title="Second Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note2,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 2}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).order_by("effective_date", "date_created").last()
+    # DES should be 3 + 2 = 5, others should remain at 0
+    assert snap.details_json.get("DES") == 5
+    assert snap.details_json.get("IMP") == 0
+    assert snap.overall_score == 1.0  # (5+0+0+0+0)/5 = 1.0
+
+
+@pytest.mark.django_db
+def test_timeline_text_with_change_amounts(api_client, member):
+    """Test that timeline text shows change amounts correctly."""
+    ladder = _create_ladder_with_aspects()
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    note = Note.objects.create(
+        owner=member,
+        title="Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 3}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    event = TimelineEvent.objects.filter(user=member, event_type=EventType.SENIORITY_CHANGE).first()
+    assert event is not None
+    # Should show the change amount in the text
+    assert "(+3)" in event.summary_text
+
+
+@pytest.mark.django_db
+def test_mapping_with_salary_change(api_client, member):
+    """Test that MAPPING proposals can trigger salary change events."""
+    ladder = _create_ladder_with_aspects()
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    note = Note.objects.create(
+        owner=member,
+        title="Mapping Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.MAPPING,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 2}},
+        salary_change=5,
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    events = TimelineEvent.objects.filter(user=member)
+    event_types = [event.event_type for event in events]
+    
+    # Should have both MAPPING and PAY_CHANGE events
+    assert EventType.MAPPING in event_types
+    assert EventType.PAY_CHANGE in event_types
+
+
+@pytest.mark.django_db
+def test_ladder_change_detection(api_client, member):
+    """Test that ladder changes create LADDER_CHANGED timeline events."""
+    # Create two different ladders with unique codes
+    ladder1 = Ladder.objects.create(code="TEST1", name="Test Ladder 1")
+    LadderAspect.objects.create(ladder=ladder1, code="DES", name="Design", order=1)
+    LadderAspect.objects.create(ladder=ladder1, code="IMP", name="Implementation", order=2)
+    
+    ladder2 = Ladder.objects.create(code="TEST2", name="Test Ladder 2")
+    LadderAspect.objects.create(ladder=ladder2, code="STR", name="Strategy", order=1)
+    LadderAspect.objects.create(ladder=ladder2, code="EXE", name="Execution", order=2)
+    
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    # Create first summary with ladder1 - this creates the first snapshot
+    note1 = Note.objects.create(
+        owner=member,
+        title="First Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note1,
+        ladder=ladder1,
+        aspect_changes={"DES": {"changed": True, "new_level": 2}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Verify first snapshot was created with ladder1
+    first_snapshot = SenioritySnapshot.objects.filter(user=member).first()
+    assert first_snapshot is not None
+    assert first_snapshot.ladder == ladder1
+    
+    # Create second summary with ladder2 (different ladder) - this should trigger LADDER_CHANGED
+    note2 = Note.objects.create(
+        owner=member,
+        title="Second Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note2,
+        ladder=ladder2,
+        aspect_changes={"STR": {"changed": True, "new_level": 1}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Check that LADDER_CHANGED event was created
+    ladder_change_event = TimelineEvent.objects.filter(
+        user=member, 
+        event_type=EventType.LADDER_CHANGED
+    ).first()
+    
+    assert ladder_change_event is not None
+    assert "Test Ladder 1" in ladder_change_event.summary_text
+    assert "Test Ladder 2" in ladder_change_event.summary_text
+    assert "تغییر لدر کاربر" in ladder_change_event.summary_text
+    
+    # Verify second snapshot was created with ladder2
+    second_snapshot = SenioritySnapshot.objects.filter(user=member).order_by('effective_date', 'date_created').last()
+    assert second_snapshot.ladder == ladder2
+
+
+@pytest.mark.django_db
+def test_no_ladder_change_event_for_same_ladder(api_client, member):
+    """Test that LADDER_CHANGED event is not created when ladder doesn't change."""
+    ladder = _create_ladder_with_aspects()
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    # Create first summary
+    note1 = Note.objects.create(
+        owner=member,
+        title="First Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note1,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 2}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Create second summary with same ladder
+    note2 = Note.objects.create(
+        owner=member,
+        title="Second Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note2,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 1}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Check that no LADDER_CHANGED event was created
+    ladder_change_events = TimelineEvent.objects.filter(
+        user=member, 
+        event_type=EventType.LADDER_CHANGED
+    )
+    
+    assert ladder_change_events.count() == 0
+
+
+@pytest.mark.django_db
+def test_ladder_change_event_with_no_previous_snapshot(api_client, member):
+    """Test that LADDER_CHANGED event is not created when there's no previous snapshot."""
+    ladder = _create_ladder_with_aspects()
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    # Create first summary (no previous snapshot exists)
+    note = Note.objects.create(
+        owner=member,
+        title="First Proposal",
+        content="…",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note,
+        ladder=ladder,
+        aspect_changes={"DES": {"changed": True, "new_level": 2}},
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Check that no LADDER_CHANGED event was created (no previous snapshot to compare against)
+    ladder_change_events = TimelineEvent.objects.filter(
+        user=member, 
+        event_type=EventType.LADDER_CHANGED
+    )
+    
+    assert ladder_change_events.count() == 0
+
+
+@pytest.mark.django_db
+def test_ladder_switching_with_level_preservation(api_client, member):
+    """Test ladder switching scenario with level preservation and restoration."""
+    # Create two different ladders with different aspects
+    ladder1 = Ladder.objects.create(code="SWITCH1", name="Switch Ladder 1")
+    LadderAspect.objects.create(ladder=ladder1, code="ASP1", name="Aspect 1", order=1)
+    LadderAspect.objects.create(ladder=ladder1, code="ASP2", name="Aspect 2", order=2)
+    LadderAspect.objects.create(ladder=ladder1, code="ASP3", name="Aspect 3", order=3)
+    LadderAspect.objects.create(ladder=ladder1, code="ASP4", name="Aspect 4", order=4)
+    
+    ladder2 = Ladder.objects.create(code="SWITCH2", name="Switch Ladder 2")
+    LadderAspect.objects.create(ladder=ladder2, code="STR", name="Strategy", order=1)
+    LadderAspect.objects.create(ladder=ladder2, code="EXE", name="Execution", order=2)
+    LadderAspect.objects.create(ladder=ladder2, code="USR", name="User Research", order=3)
+    
+    cycle = Cycle.objects.create(name="Test", start_date=timezone.now(), end_date=timezone.now())
+    
+    # Step 1: Create initial levels on Ladder 1
+    note1 = Note.objects.create(
+        owner=member,
+        title="Initial Ladder 1 Proposal",
+        content="Setting initial levels on Ladder 1",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note1,
+        ladder=ladder1,
+        aspect_changes={
+            "ASP1": {"changed": True, "new_level": 1},
+            "ASP2": {"changed": True, "new_level": 2},
+            "ASP3": {"changed": True, "new_level": 1},
+            "ASP4": {"changed": True, "new_level": 2},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Verify initial snapshot on Ladder 1
+    snapshot1 = SenioritySnapshot.objects.filter(user=member, ladder=ladder1).first()
+    assert snapshot1 is not None
+    assert snapshot1.details_json == {"ASP1": 1, "ASP2": 2, "ASP3": 1, "ASP4": 2}
+    assert snapshot1.overall_score == 1.5  # (1+2+1+2)/4 = 1.5
+    
+    # Step 2: Switch to Ladder 2 and set new levels
+    note2 = Note.objects.create(
+        owner=member,
+        title="Switch to Ladder 2",
+        content="Switching to Product Ladder",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note2,
+        ladder=ladder2,
+        aspect_changes={
+            "STR": {"changed": True, "new_level": 3},
+            "EXE": {"changed": True, "new_level": 2},
+            "USR": {"changed": True, "new_level": 1},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+        # Verify LADDER_CHANGED event was created
+    ladder_change_event = TimelineEvent.objects.filter(
+        user=member,
+        event_type=EventType.LADDER_CHANGED
+    ).first()
+    assert ladder_change_event is not None
+    assert "Switch Ladder 1" in ladder_change_event.summary_text
+    assert "Switch Ladder 2" in ladder_change_event.summary_text
+    
+    # Verify new snapshot on Ladder 2
+    snapshot2 = SenioritySnapshot.objects.filter(user=member, ladder=ladder2).first()
+    assert snapshot2 is not None
+    assert snapshot2.details_json == {"STR": 3, "EXE": 2, "USR": 1}
+    assert snapshot2.overall_score == 2.0  # (3+2+1)/3 = 2.0
+    
+    # Verify Ladder 1 snapshot still exists and unchanged
+    snapshot1_after = SenioritySnapshot.objects.filter(user=member, ladder=ladder1).first()
+    assert snapshot1_after.details_json == {"ASP1": 1, "ASP2": 2, "ASP3": 1, "ASP4": 2}
+    
+    # Step 3: Switch back to Ladder 1 and add 1 point to all aspects
+    note3 = Note.objects.create(
+        owner=member,
+        title="Back to Ladder 1",
+        content="Returning to Software Ladder and adding 1 to all aspects",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note3,
+        ladder=ladder1,
+        aspect_changes={
+            "ASP1": {"changed": True, "new_level": 1},  # 1 + 1 = 2
+            "ASP2": {"changed": True, "new_level": 1},  # 2 + 1 = 3
+            "ASP3": {"changed": True, "new_level": 1},  # 1 + 1 = 2
+            "ASP4": {"changed": True, "new_level": 1},  # 2 + 1 = 3
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        cycle=cycle,
+    )
+    
+    # Verify second LADDER_CHANGED event was created
+    ladder_change_events = TimelineEvent.objects.filter(
+        user=member, 
+        event_type=EventType.LADDER_CHANGED
+    )
+    assert ladder_change_events.count() == 2
+    
+    # Verify updated snapshot on Ladder 1 (levels should be added to previous levels)
+    snapshot1_updated = SenioritySnapshot.objects.filter(user=member, ladder=ladder1).order_by("effective_date", "date_created").last()
+    assert snapshot1_updated.details_json == {"ASP1": 2, "ASP2": 3, "ASP3": 2, "ASP4": 3}
+    assert snapshot1_updated.overall_score == 2.5  # (2+3+2+3)/4 = 2.5
+    
+    # Verify Ladder 2 snapshot still exists and unchanged
+    snapshot2_after = SenioritySnapshot.objects.filter(user=member, ladder=ladder2).first()
+    assert snapshot2_after.details_json == {"STR": 3, "EXE": 2, "USR": 1}
+    
+    # Verify timeline events show the correct ladder information
+    seniority_events = TimelineEvent.objects.filter(
+        user=member, 
+        event_type=EventType.SENIORITY_CHANGE
+    ).order_by('effective_date')
+    
+    # First seniority event should show Ladder 1 aspects
+    assert len(seniority_events) >= 2
+    first_seniority_event = seniority_events[0]
+    assert "Aspect 1" in first_seniority_event.summary_text or "ASP1" in first_seniority_event.summary_text
+    
+    # Second seniority event should show Ladder 2 aspects
+    second_seniority_event = seniority_events[1]
+    assert "Strategy" in second_seniority_event.summary_text or "STR" in second_seniority_event.summary_text
+    
+    # Third seniority event should show Ladder 1 aspects again
+    third_seniority_event = seniority_events[2]
+    assert "Aspect 1" in third_seniority_event.summary_text or "ASP1" in third_seniority_event.summary_text
 
 
 # ---------------------------------------------------------------------------
