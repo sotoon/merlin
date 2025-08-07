@@ -4,7 +4,7 @@
       <i class="text-h1 text-primary" :class="NOTE_TYPE_ICON[noteType]" />
 
       <PHeading level="h1" responsive>
-        {{ t('note.createNewX', [noteTypeLabels[noteType]]) }}
+        {{ t('note.createNewX', [noteTypeLabel]) }}
       </PHeading>
     </div>
 
@@ -25,10 +25,12 @@ definePageMeta({ name: 'note-create' });
 const props = defineProps<{ noteType: NoteType }>();
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
 const { mutate: createNote, isPending } = useCreateNote();
 
 const noteTypeLabels = computed(() => getNoteTypeLabels(t));
+const proposalTypeLabels = computed(() => getProposalTypeLabels(t));
 
 const handleSubmit = (
   values: NoteFormValues,
@@ -55,4 +57,10 @@ const handleSubmit = (
 const handleCancel = () => {
   router.back();
 };
+
+const noteTypeLabel = computed(() =>
+  props.noteType === NOTE_TYPE.proposal
+    ? proposalTypeLabels.value[route.query.proposal_type as ProposalType]
+    : noteTypeLabels.value[props.noteType],
+);
 </script>

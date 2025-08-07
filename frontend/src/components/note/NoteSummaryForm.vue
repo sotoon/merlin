@@ -99,12 +99,11 @@
           <VeeField
             v-slot="{ componentField }"
             name="performance_label"
-            :rules="isEvaluation ? '' : 'required'"
+            rules="required"
           >
             <PListbox
               v-bind="componentField"
               :label="t('note.performanceLabel')"
-              :required="!isEvaluation"
             >
               <PListboxOption
                 v-for="item in PERFORMANCE_LABELS"
@@ -171,7 +170,11 @@
 
       <div class="flex flex-col md:flex-row">
         <div>
-          <VeeField v-slot="{ componentField }" name="committee_date">
+          <VeeField
+            v-slot="{ componentField }"
+            name="committee_date"
+            rules="required"
+          >
             <PDatePickerInput
               v-bind="componentField"
               :label="t('note.committeeDate')"

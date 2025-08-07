@@ -2006,6 +2006,7 @@ components:
       - TITLE_CHANGE
       - STOCK_GRANT
       - NOTICE
+      - LADDER_CHANGED
       type: string
       description: |-
         * `SENIORITY_CHANGE` - تغییر سطح لدر
@@ -2016,6 +2017,7 @@ components:
         * `TITLE_CHANGE` - تغییر عنوان شغلی
         * `STOCK_GRANT` - اعطای سهام
         * `NOTICE` - نوتیس
+        * `LADDER_CHANGED` - تغییر لدر
     Feedback:
       type: object
       description: |-

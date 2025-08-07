@@ -860,6 +860,7 @@ export interface components {
      *     * `TITLE_CHANGE` - تغییر عنوان شغلی
      *     * `STOCK_GRANT` - اعطای سهام
      *     * `NOTICE` - نوتیس
+     *     * `LADDER_CHANGED` - تغییر لدر
      * @enum {string}
      */
     EventTypeEnum:
@@ -870,7 +871,8 @@ export interface components {
       | 'MAPPING'
       | 'TITLE_CHANGE'
       | 'STOCK_GRANT'
-      | 'NOTICE';
+      | 'NOTICE'
+      | 'LADDER_CHANGED';
     /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
      *
      *     • `receiver_ids`   - list of UUIDs (required)
