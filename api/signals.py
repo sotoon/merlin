@@ -224,7 +224,7 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
         _create_notice_event(instance, effective_date)
     elif ptype == ProposalType.MAPPING:
         _create_mapping_event(instance, effective_date)
-    
+
     # Create snapshots if needed
     if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):
         # PayBand lookup is out of scope; we still record salary change absolute value
@@ -475,7 +475,7 @@ def _create_mapping_event(instance: Summary, effective_date):
         effective_date=effective_date,
         source_obj=instance,
         created_by=created_by_user,
-    )
+                )
 
 
 # ────────────────────────────────────────────────────────────────
