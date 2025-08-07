@@ -74,7 +74,10 @@
                     </PText>
                   </div>
 
-                  <PText class="text-gray-80 whitespace-pre-line" variant="body">
+                  <PText
+                    class="whitespace-pre-line text-gray-80"
+                    variant="body"
+                  >
                     {{ event.summary_text }}
                   </PText>
 
@@ -181,6 +184,8 @@ const getEventIcon = (eventType?: string) => {
       return 'i-mdi-chart-line';
     case 'NOTICE':
       return 'i-mdi-bell';
+    case 'LADDER_CHANGED':
+      return 'i-mdi-account-arrow-up';
     default:
       return 'i-mdi-circle';
   }
@@ -204,6 +209,8 @@ const getEventTitle = (eventType?: string) => {
       return t('timeline.stockGrant');
     case 'NOTICE':
       return t('timeline.notice');
+    case 'LADDER_CHANGED':
+      return t('timeline.ladderChanged');
     default:
       return t('timeline.unknownEvent');
   }
