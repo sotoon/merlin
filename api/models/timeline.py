@@ -31,6 +31,7 @@ class EventType(models.TextChoices):
     TITLE_CHANGE = "TITLE_CHANGE", "تغییر عنوان شغلی"
     STOCK_GRANT = "STOCK_GRANT", "اعطای سهام"
     NOTICE = "NOTICE", "نوتیس"
+    LADDER_CHANGED = "LADDER_CHANGED", "تغییر لدر"
 
     @classmethod
     def default(cls):
