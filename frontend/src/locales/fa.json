@@ -166,10 +166,10 @@
     "feedback": "فیدبک"
   },
   "proposalType": {
-    "promotion": "ارتقا",
+    "promotion": "پروپوزال ارتقا",
     "notice": "نوتیس",
-    "mapping": "مپینگ اولیه",
-    "evaluation": "ارزیابی"
+    "mapping": "پروپوزال مپینگ",
+    "evaluation": "خودارزیابی"
   },
   "profile": {
     "chapter": "چپتر",
