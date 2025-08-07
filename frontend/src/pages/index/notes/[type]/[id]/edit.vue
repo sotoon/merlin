@@ -4,7 +4,7 @@
       <i class="text-h1 text-primary" :class="NOTE_TYPE_ICON[note.type]" />
 
       <PHeading level="h1" responsive>
-        {{ t('note.editX', [noteTypeLabels[note.type]]) }}
+        {{ t('note.editX', [noteTypeLabel]) }}
       </PHeading>
     </div>
 
@@ -29,6 +29,7 @@ const { t } = useI18n();
 const { mutate: updateNote, isPending } = useUpdateNote(props.note.uuid);
 
 const noteTypeLabels = computed(() => getNoteTypeLabels(t));
+const proposalTypeLabels = computed(() => getProposalTypeLabels(t));
 
 const handleSubmit = (
   values: NoteFormValues,
@@ -55,4 +56,10 @@ const handleSubmit = (
 const handleCancel = () => {
   navigateTo({ name: 'note' });
 };
+
+const noteTypeLabel = computed(() =>
+  props.note.type === NOTE_TYPE.proposal
+    ? proposalTypeLabels.value[props.note.proposal_type as ProposalType]
+    : noteTypeLabels.value[props.note.type],
+);
 </script>
