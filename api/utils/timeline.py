@@ -53,6 +53,7 @@ def get_current_level(user: User) -> Optional[Dict]:
         "overall": snapshot.overall_score,
         "details": details_with_names,
         "stages": stages_with_names,
+        "max_level": snapshot.ladder.get_max_level() if snapshot.ladder else 0,
     }
 
 
