@@ -104,6 +104,7 @@
             <PListbox
               v-bind="componentField"
               :label="t('note.performanceLabel')"
+              :required="isEvaluation"
             >
               <PListboxOption
                 v-for="item in PERFORMANCE_LABELS"

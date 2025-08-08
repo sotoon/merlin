@@ -37,14 +37,6 @@
                 {{ skill }}
               </PText>
               <div class="flex items-center gap-2">
-                <div class="flex gap-1">
-                  <div
-                    v-for="i in 5"
-                    :key="i"
-                    class="h-2 w-2 rounded-full"
-                    :class="i <= score ? 'bg-primary' : 'bg-gray-20'"
-                  />
-                </div>
                 <PText class="font-medium text-gray-90" variant="caption1">
                   {{ score }}
                 </PText>
