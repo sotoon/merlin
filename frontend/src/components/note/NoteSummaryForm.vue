@@ -53,16 +53,16 @@
               :name="`aspect_changes.${aspect.code}.new_level`"
               :rules="
                 isAspectChanged(aspect.code) && !isEvaluation
-                  ? 'required|min_value:1|max_value:10'
-                  : 'min_value:1|max_value:10'
+                  ? `required|min_value:1|max_value:${selectedLadder?.max_level || 10}`
+                  : `min_value:1|max_value:${selectedLadder?.max_level || 10}`
               "
             >
               <PInput
                 v-bind="componentField"
                 :label="aspect.name"
                 type="number"
-                min="1"
-                max="10"
+                :min="1"
+                :max="selectedLadder?.max_level || 10"
                 hide-details
                 :required="isAspectChanged(aspect.code) && !isEvaluation"
                 :disabled="!isAspectChanged(aspect.code)"

@@ -39,7 +39,7 @@
               <div class="flex items-center gap-2">
                 <div class="flex gap-1">
                   <div
-                    v-for="i in 7"
+                    v-for="i in level.max_level || 7"
                     :key="i"
                     class="h-2 w-2 rounded-full"
                     :class="i <= score ? 'bg-primary' : 'bg-gray-20'"
@@ -68,6 +68,7 @@ interface LevelDetails {
 interface UserLevel {
   overall: number;
   details: LevelDetails;
+  max_level?: number;
 }
 
 defineProps<{
