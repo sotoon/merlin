@@ -185,7 +185,7 @@ const getEventIcon = (eventType?: string) => {
     case 'NOTICE':
       return 'i-mdi-bell';
     case 'LADDER_CHANGED':
-      return 'i-mdi-account-arrow-up';
+      return 'i-mdi-ladder';
     default:
       return 'i-mdi-circle';
   }
