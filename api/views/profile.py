@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
+from django.db import models
 
 from api.services.timeline_access import can_view_timeline
 from api.models import User, Cycle, Ladder, SenioritySnapshot
@@ -112,7 +113,7 @@ class CurrentLadderView(APIView):
         ladder = snapshot.ladder if snapshot else Ladder.objects.first()
         aspects = ladder.aspects.order_by("order").values("code", "name")
 
-        data = {"ladder": ladder.code, "aspects": list(aspects)}
+        data = {"ladder": ladder.code, "max_level": ladder.get_max_level(), "aspects": list(aspects)}
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
         return Response(serializer.validated_data)
@@ -134,6 +135,7 @@ class LadderListView(ListAPIView):
                 "code": ladder.code,
                 "name": ladder.name,
                 "description": ladder.description,
+                "max_level": ladder.get_max_level(),
                 "aspects": list(aspects)
             })
             data.append(serializer.data)
