@@ -1988,14 +1988,26 @@ components:
         ladder:
           type: string
           description: Ladder code (e.g., 'SW', 'DEVOPS')
+        max_level:
+          type: integer
+          description: Maximum level for this ladder
         aspects:
           type: array
           items:
             $ref: '#/components/schemas/Aspect'
           description: List of ladder aspects with their codes and names
+        stages:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: List of available stages as [{value,label}]
       required:
       - aspects
       - ladder
+      - max_level
+      - stages
     EventTypeEnum:
       enum:
       - SENIORITY_CHANGE
@@ -2411,16 +2423,28 @@ components:
         description:
           type: string
           description: Ladder description
+        max_level:
+          type: integer
+          description: Maximum level for this ladder
         aspects:
           type: array
           items:
             $ref: '#/components/schemas/Aspect'
           description: List of ladder aspects with their codes and names
+        stages:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: List of available stages as [{value,label}]
       required:
       - aspects
       - code
       - description
+      - max_level
       - name
+      - stages
     LeaderVibeEnum:
       enum:
       - :)
