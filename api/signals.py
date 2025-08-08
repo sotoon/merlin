@@ -2,6 +2,7 @@ import re
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
 
 from .models import (
     Committee,
@@ -18,6 +19,8 @@ from .models import (
     ValueTag,
     ProposalType,
     Notice,
+    LadderStage,
+    LadderAspect,
 )
 
 from api.models.timeline import (
@@ -29,7 +32,6 @@ from api.models.timeline import (
     SenioritySnapshot,
     PayBand,
 )
-from api.models.ladder import Ladder
 from api.serializers.note import get_current_user
 
 
@@ -155,7 +157,6 @@ def _create_timeline_event(*, user, event_type, summary_text, effective_date, so
     content_type = None
     object_id = None
     if source_obj is not None:
-        from django.contrib.contenttypes.models import ContentType
         content_type = ContentType.objects.get_for_model(source_obj.__class__)
         object_id = source_obj.pk
 
@@ -202,7 +203,7 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
         # Ladder has changed, create LADDER_CHANGED event FIRST
         old_ladder_name = latest_snapshot.ladder.name
         new_ladder_name = instance.ladder.name
-        ladder_change_text = f"تغییر لدر کاربر\nلدر کاربر از {old_ladder_name} به {new_ladder_name} تغییر کرد."
+        ladder_change_text = f"لدر کاربر از {old_ladder_name} به {new_ladder_name} تغییر کرد."
         
         print(f"DEBUG: Creating LADDER_CHANGED event: {ladder_change_text}")
         _create_timeline_event(
@@ -243,6 +244,11 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                 for code, data in instance.aspect_changes.items()
                 if data.get("changed") and data.get("new_level") is not None
             }
+            stages = {
+                code: data.get("stage")
+                for code, data in instance.aspect_changes.items()
+                if data.get("changed") and data.get("stage") is not None
+            }
 
             from django.db import transaction
 
@@ -256,11 +262,12 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                 # Start with existing details or create default for all aspects
                 if latest_snapshot:
                     details = latest_snapshot.details_json.copy()
+                    stages_json = latest_snapshot.stages_json.copy()
                 else:
                     # If no existing snapshot, create default for all aspects
-                    from api.models import LadderAspect
                     aspects = LadderAspect.objects.filter(ladder=instance.ladder)
                     details = {aspect.code: 0 for aspect in aspects}  # Default level 0
+                    stages_json = {aspect.code: LadderStage.default() for aspect in aspects}
                 
                 # Add new changes to existing levels (not replace)
                 for code, new_level in deltas.items():
@@ -268,6 +275,10 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                         details[code] += new_level  # Add to existing level
                     else:
                         details[code] = new_level  # Set new level if aspect didn't exist before
+                
+                # Update stages if provided
+                for code, stage in stages.items():
+                    stages_json[code] = stage
                 
                 # Calculate overall score
                 overall = round(sum(details.values()) / len(details), 1) if details else 0
@@ -278,6 +289,7 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                     ladder=instance.ladder,
                     effective_date=effective_date,
                     details_json=details,
+                    stages_json=stages_json,
                     overall_score=overall,
                     title=instance.performance_label if instance.performance_label else ''
                 )
@@ -308,7 +320,6 @@ def _create_promotion_evaluation_events(instance: Summary, effective_date):
     # Seniority change event (if there are aspect changes)
     if instance.ladder and instance.aspect_changes:
         # Get aspect names
-        from api.models import LadderAspect
         aspect_names = {}
         for aspect in LadderAspect.objects.filter(ladder=instance.ladder):
             aspect_names[aspect.code] = aspect.name
@@ -322,21 +333,49 @@ def _create_promotion_evaluation_events(instance: Summary, effective_date):
         # Build seniority change text
         aspect_changes = []
         for code, data in instance.aspect_changes.items():
-            if data.get("changed") and data.get("new_level"):
+            if data.get("changed"):
                 aspect_name = aspect_names.get(code, code)
                 old_level = latest_snapshot.details_json.get(code, 0) if latest_snapshot else 0
-                change_amount = data.get("new_level")
+                change_amount = data.get("new_level", 0)
                 new_level = old_level + change_amount  # Add to existing level
                 
-                if change_amount == 0:
-                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {old_level}")
+                stage_label = data.get('stage')
+                stage_label_clean = stage_label.replace('\u200c', '') if stage_label else None
+                stage_text = f" - محدوده: {stage_label_clean}" if stage_label_clean else ""
+                
+                # Check if there's a stage change
+                old_stage = latest_snapshot.stages_json.get(code) if latest_snapshot else None
+                stage_changed = stage_label and stage_label != old_stage
+                
+                if change_amount == 0 and not stage_changed:
+                    # No change at all
+                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {old_level}{stage_text}")
+                elif change_amount == 0 and stage_changed:
+                    # Only stage changed
+                    # Convert stages to desired short/long forms
+                    def _short(label):
+                        if not label:
+                            return None
+                        s = label.replace('\u200c', '').split()[0]
+                        return s[:-1] if s.endswith('ی') else s
+                    old_short = _short(old_stage) or 'نامشخص'
+                    new_short = _short(stage_label_clean) or ''
+                    new_phrase = stage_label_clean
+                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {old_level} - تغییر محدوده از {old_short} به {new_phrase}")
+                elif change_amount > 0 and stage_changed:
+                    # Both level and stage changed → use suffix form for stage
+                    aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount}) - محدوده: {stage_label}")
                 else:
-                    aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount})")
+                    # Only level changed
+                    # If stage present, append in short suffix form
+                    if stage_label:
+                        aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount}) - محدوده: {stage_label}")
+                    else:
+                        aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount})")
         
         if aspect_changes:
             # Calculate overall level change using ALL aspects of the ladder
             # Get all aspects for this ladder
-            from api.models import LadderAspect
             all_aspects = LadderAspect.objects.filter(ladder=instance.ladder)
             
             # Calculate old overall using all aspects
@@ -451,7 +490,6 @@ def _create_mapping_event(instance: Summary, effective_date):
     if instance.ladder and instance.aspect_changes:
         # Calculate overall level the same way as snapshot creation
         # Get all aspects for this ladder
-        from api.models import LadderAspect
         aspects = LadderAspect.objects.filter(ladder=instance.ladder)
         
         # Build the complete details dictionary with all aspects

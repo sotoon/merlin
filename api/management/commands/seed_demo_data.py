@@ -21,6 +21,11 @@ from api.models import (
     NoticeType,
     StockGrant,
     TitleChange,
+    Note,
+    NoteType,
+    Summary,
+    ProposalType,
+    SummarySubmitStatus,
 )
 
 
@@ -95,6 +100,9 @@ class Command(BaseCommand):
         # Add timeline events for leader as well
         self._seed_timeline_events(leader, leader)
         self._seed_leader_timeline_events(leader, leader)
+
+        # Seed scenario: stages on aspect changes + ladder change
+        self._seed_stages_and_ladder_change(member, leader)
 
         self.stdout.write(self.style.SUCCESS("Demo data successfully seeded ✔"))
 
@@ -464,4 +472,129 @@ class Command(BaseCommand):
                 "overall_score": overall,
                 "details_json": details,
             },
+        )
+
+    def _seed_stages_and_ladder_change(self, user: User, created_by: User):
+        """Seed a scenario where a user gets stageful seniority changes and switches ladders."""
+        # Active cycle
+        from api.models import Cycle
+        cycle = Cycle.objects.filter(is_active=True).first()
+        today = timezone.now().date()
+
+        # Ensure ladders exist with aspects
+        sw = Ladder.objects.get(code="SW")
+        pd = Ladder.objects.get(code="PD")
+
+        # 1) First summary on Software ladder with stages
+        sw_note = Note.objects.create(
+            owner=user,
+            title="SW Committee",
+            content="...",
+            date=today,
+            type=NoteType.Proposal,
+            proposal_type=ProposalType.PROMOTION,
+            cycle=cycle,
+        )
+        Summary.objects.create(
+            note=sw_note,
+            ladder=sw,
+            aspect_changes={
+                "DES": {"changed": True, "new_level": 2, "stage": LadderStage.EARLY},
+                "IMP": {"changed": True, "new_level": 1, "stage": LadderStage.EARLY},
+            },
+            performance_label="SW evaluation",
+            salary_change=1,
+            bonus=5,
+            committee_date=today,
+            submit_status=SummarySubmitStatus.DONE,
+            cycle=cycle,
+        )
+
+        # 2) Switch to Product ladder – ladder change event first, with stages
+        pd_note = Note.objects.create(
+            owner=user,
+            title="PD Committee",
+            content="...",
+            date=today,
+            type=NoteType.Proposal,
+            proposal_type=ProposalType.PROMOTION,
+            cycle=cycle,
+        )
+        Summary.objects.create(
+            note=pd_note,
+            ladder=pd,
+            aspect_changes={
+                "STR": {"changed": True, "new_level": 3, "stage": LadderStage.LATE},
+                "EXE": {"changed": True, "new_level": 2, "stage": LadderStage.MID},
+            },
+            performance_label="PD evaluation",
+            committee_date=today,
+            submit_status=SummarySubmitStatus.DONE,
+            cycle=cycle,
+        )
+
+        # 3) Switch back to Software ladder, preserving/restoring levels; include only level change, no stage override
+        sw_back_note = Note.objects.create(
+            owner=user,
+            title="Back to SW",
+            content="...",
+            date=today,
+            type=NoteType.Proposal,
+            proposal_type=ProposalType.EVALUATION,
+            cycle=cycle,
+        )
+        Summary.objects.create(
+            note=sw_back_note,
+            ladder=sw,
+            aspect_changes={
+                "DES": {"changed": True, "new_level": 1},  # no stage specified → keep previous/default
+            },
+            performance_label="Back on SW",
+            committee_date=today,
+            submit_status=SummarySubmitStatus.DONE,
+            cycle=cycle,
+        )
+
+        # 4) Stage-only change on Software ladder (no level change)
+        sw_stage_only_note = Note.objects.create(
+            owner=user,
+            title="SW Stage Only",
+            content="...",
+            date=today,
+            type=NoteType.Proposal,
+            proposal_type=ProposalType.EVALUATION,
+            cycle=cycle,
+        )
+        Summary.objects.create(
+            note=sw_stage_only_note,
+            ladder=sw,
+            aspect_changes={
+                "DES": {"changed": True, "new_level": 0, "stage": LadderStage.MID},  # only stage change
+            },
+            performance_label="SW stage-only change",
+            committee_date=today,
+            submit_status=SummarySubmitStatus.DONE,
+            cycle=cycle,
+        )
+
+        # 5) Another stage-only change on Software ladder (MID -> LATE)
+        sw_stage_only_note2 = Note.objects.create(
+            owner=user,
+            title="SW Stage Only 2",
+            content="...",
+            date=today,
+            type=NoteType.Proposal,
+            proposal_type=ProposalType.EVALUATION,
+            cycle=cycle,
+        )
+        Summary.objects.create(
+            note=sw_stage_only_note2,
+            ladder=sw,
+            aspect_changes={
+                "DES": {"changed": True, "new_level": 0, "stage": LadderStage.LATE},  # only stage change
+            },
+            performance_label="SW stage-only change 2",
+            committee_date=today,
+            submit_status=SummarySubmitStatus.DONE,
+            cycle=cycle,
         )

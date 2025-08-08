@@ -132,6 +132,7 @@ class SenioritySnapshot(MerlinBaseModel):
     title = models.CharField(max_length=256)
     overall_score = models.FloatField(default=0)
     details_json = models.JSONField(default=dict, blank=True)
+    stages_json = models.JSONField(default=dict, blank=True)
     effective_date = models.DateField()
     source_event = models.ForeignKey(TimelineEvent, null=True, blank=True, on_delete=models.SET_NULL)
     is_redacted = models.BooleanField(default=False)
