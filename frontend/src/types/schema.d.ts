@@ -848,8 +848,14 @@ export interface components {
     CurrentLadder: {
       /** @description Ladder code (e.g., 'SW', 'DEVOPS') */
       ladder: string;
+      /** @description Maximum level for this ladder */
+      max_level: number;
       /** @description List of ladder aspects with their codes and names */
       aspects: components['schemas']['Aspect'][];
+      /** @description List of available stages as [{value,label}] */
+      stages: {
+        [key: string]: string;
+      }[];
     };
     /**
      * @description * `SENIORITY_CHANGE` - تغییر سطح لدر
@@ -1028,8 +1034,14 @@ export interface components {
       name: string;
       /** @description Ladder description */
       description: string;
+      /** @description Maximum level for this ladder */
+      max_level: number;
       /** @description List of ladder aspects with their codes and names */
       aspects: components['schemas']['Aspect'][];
+      /** @description List of available stages as [{value,label}] */
+      stages: {
+        [key: string]: string;
+      }[];
     };
     /**
      * @description * `:)` - 😊
