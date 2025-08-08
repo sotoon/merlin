@@ -152,7 +152,11 @@
     "aspectChanges": "تغییرات ابعاد لدر",
     "hasChanged": "تغییر کرده",
     "selectLadder": "انتخاب لدر",
-    "selectLadderPlaceholder": "لدر مورد نظر را انتخاب کنید"
+    "selectLadderPlaceholder": "لدر مورد نظر را انتخاب کنید",
+    "selectLadderStage": "انتخاب مرحله لدر",
+    "selectLadderStagePlaceholder": "مرحله لدر مورد نظر را انتخاب کنید",
+    "selectedLadder": "لدر انتخاب شده",
+    "ladderStage": "مرحله لدر"
   },
   "noteType": {
     "goal": "هدف",
@@ -212,7 +216,8 @@
     "notice": "نوتیس",
     "ladderChanged": "تغییر لدر",
     "unknownEvent": "رویداد ناشناخته",
-    "filterByEventType": "فیلتر بر اساس نوع رویداد"
+    "filterByEventType": "فیلتر بر اساس نوع رویداد",
+    "userStage": "مرحله کاربر"
   },
   "oneOnOne": {
     "individualDimension": "بعد فردی",
