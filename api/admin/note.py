@@ -120,6 +120,8 @@ class SummaryAdmin(BaseModelAdmin):
         "note",
         "content",
         "performance_label",
+        "ladder",
+        "ladder_stage",
         "ladder_change",
         "bonus",
         "salary_change",

@@ -37,6 +37,27 @@
         </PListbox>
       </VeeField>
 
+      <VeeField
+        v-if="selectedLadder?.stages?.length"
+        v-slot="{ componentField }"
+        name="ladder_stage"
+        :rules="isEvaluation ? '' : 'required'"
+      >
+        <PListbox
+          v-bind="componentField"
+          :required="!isEvaluation"
+          :label="t('note.selectLadderStage')"
+          :placeholder="t('note.selectLadderStagePlaceholder')"
+        >
+          <PListboxOption
+            v-for="stage in selectedLadder.stages"
+            :key="stage.value"
+            :label="stage.label"
+            :value="stage.value"
+          />
+        </PListbox>
+      </VeeField>
+
       <template v-if="currentAspects.length">
         <h3 class="text-gray-900 font-medium">
           {{ t('note.aspectChanges') }}
@@ -53,16 +74,16 @@
               :name="`aspect_changes.${aspect.code}.new_level`"
               :rules="
                 isAspectChanged(aspect.code) && !isEvaluation
-                  ? 'required|min_value:1|max_value:10'
-                  : 'min_value:1|max_value:10'
+                  ? `required|min_value:1|max_value:${selectedLadder?.max_level || 10}`
+                  : `min_value:1|max_value:${selectedLadder?.max_level || 10}`
               "
             >
               <PInput
                 v-bind="componentField"
                 :label="aspect.name"
                 type="number"
-                min="1"
-                max="10"
+                :min="1"
+                :max="selectedLadder?.max_level || 10"
                 hide-details
                 :required="isAspectChanged(aspect.code) && !isEvaluation"
                 :disabled="!isAspectChanged(aspect.code)"
@@ -245,6 +266,7 @@ const { meta, handleSubmit, values, setValues } = useForm<
     content: props.summary?.content || '',
     aspect_changes: props.summary?.aspect_changes || {},
     ladder: props.summary?.ladder || '',
+    ladder_stage: props.summary?.ladder_stage || undefined,
     performance_label: props.summary?.performance_label || undefined,
     ladder_change: props.summary?.ladder_change || '',
     bonus: props.summary?.bonus || undefined,
