@@ -1421,6 +1421,10 @@ def test_ladder_max_level_calculation(api_client, leader):
     data = resp.json()
     assert "max_level" in data
     assert data["max_level"] == 6  # Should return Software ladder's max_level
+    # New: stages list should be present and well-formed
+    assert "stages" in data
+    assert isinstance(data["stages"], list) and len(data["stages"]) >= 3
+    assert all(isinstance(it.get("value"), str) and isinstance(it.get("label"), str) for it in data["stages"])
     
     # Test ladder list API includes max_level
     resp = api_client.get("/api/ladders/")
@@ -1435,6 +1439,11 @@ def test_ladder_max_level_calculation(api_client, leader):
     assert pd_ladder_data is not None
     assert sw_ladder_data["max_level"] == 6
     assert pd_ladder_data["max_level"] == 7
+    # New: stages list should be present and well-formed for each ladder
+    for ladder_data in (sw_ladder_data, pd_ladder_data):
+        assert "stages" in ladder_data
+        assert isinstance(ladder_data["stages"], list) and len(ladder_data["stages"]) >= 3
+        assert all(isinstance(it.get("value"), str) and isinstance(it.get("label"), str) for it in ladder_data["stages"])
 
 
 @pytest.mark.django_db
