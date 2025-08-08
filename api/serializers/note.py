@@ -237,7 +237,7 @@ class SummarySerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
-    aspect_changes = AspectChangesField(required=False, default=dict)
+    aspect_changes = AspectChangesField(required=False, default=dict, help_text="{'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}}")
 
     class Meta:
         model = Summary

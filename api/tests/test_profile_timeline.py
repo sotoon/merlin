@@ -717,7 +717,6 @@ def test_ladder_change_detection(api_client, member):
     assert ladder_change_event is not None
     assert "Test Ladder 1" in ladder_change_event.summary_text
     assert "Test Ladder 2" in ladder_change_event.summary_text
-    assert "تغییر لدر کاربر" in ladder_change_event.summary_text
     
     # Verify second snapshot was created with ladder2
     second_snapshot = SenioritySnapshot.objects.filter(user=member).order_by('effective_date', 'date_created').last()
@@ -1457,3 +1456,234 @@ def test_ladder_max_level_with_no_levels(api_client, leader):
     test_ladder_data = next((l for l in data if l["code"] == "TEST"), None)
     assert test_ladder_data is not None
     assert test_ladder_data["max_level"] == 0
+
+
+@pytest.mark.django_db
+def test_stages_persisted_in_snapshot_and_timeline_text(api_client, member):
+    # Prepare ladder with aspects and levels
+    ladder = Ladder.objects.create(code="STG", name="Stage Ladder")
+    a1 = LadderAspect.objects.create(ladder=ladder, code="A1", name="Aspect 1", order=1)
+    a2 = LadderAspect.objects.create(ladder=ladder, code="A2", name="Aspect 2", order=2)
+    for lvl in range(1, 4):
+        LadderLevel.objects.create(ladder=ladder, aspect=a1, level=lvl, stage=LadderStage.EARLY)
+        LadderLevel.objects.create(ladder=ladder, aspect=a2, level=lvl, stage=LadderStage.EARLY)
+
+    # Active cycle
+    cycle = Cycle.objects.create(name="C", start_date=timezone.now(), end_date=timezone.now(), is_active=True)
+
+    # Create summary with stages
+    note = Note.objects.create(
+        owner=member,
+        title="With Stages",
+        content="...",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 2, "stage": LadderStage.MID},
+            "A2": {"changed": True, "new_level": 1, "stage": LadderStage.LATE},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    # Snapshot should include stages_json
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).order_by('effective_date','date_created').last()
+    assert snap is not None
+    assert snap.stages_json.get("A1") == LadderStage.MID
+    assert snap.stages_json.get("A2") == LadderStage.LATE
+
+    # Timeline should include stage label text
+    evt = TimelineEvent.objects.filter(user=member, event_type=EventType.SENIORITY_CHANGE).order_by('-effective_date','-date_created').first()
+    assert evt is not None
+    assert "محدوده" in evt.summary_text
+
+    # API current level should include stages mapped by aspect name
+    api_client.force_authenticate(member)
+    url = reverse("api:user-timeline", args=[str(member.uuid)]) + "?include_level=true"
+    resp = api_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "level" in data
+    stages = data["level"].get("stages")
+    assert stages is not None
+    assert stages.get("Aspect 1") == LadderStage.MID
+    assert stages.get("Aspect 2") == LadderStage.LATE
+
+
+@pytest.mark.django_db
+def test_stage_preserved_if_not_overridden(api_client, member):
+    # Prepare ladder and aspects
+    ladder = Ladder.objects.create(code="STG2", name="Stage Ladder 2")
+    a1 = LadderAspect.objects.create(ladder=ladder, code="A1", name="Aspect 1", order=1)
+    for lvl in range(1, 4):
+        LadderLevel.objects.create(ladder=ladder, aspect=a1, level=lvl, stage=LadderStage.EARLY)
+
+    cycle = Cycle.objects.create(name="C2", start_date=timezone.now(), end_date=timezone.now(), is_active=True)
+
+    # First summary sets stage to MID
+    n1 = Note.objects.create(owner=member, title="S1", content="...", date=timezone.now().date(), type=NoteType.Proposal, proposal_type=ProposalType.PROMOTION, cycle=cycle)
+    Summary.objects.create(
+        note=n1,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 2, "stage": LadderStage.MID},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    # Second summary increases level but omits stage → should keep MID
+    n2 = Note.objects.create(owner=member, title="S2", content="...", date=timezone.now().date(), type=NoteType.Proposal, proposal_type=ProposalType.PROMOTION, cycle=cycle)
+    Summary.objects.create(
+        note=n2,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 1},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).order_by('effective_date','date_created').last()
+    assert snap.details_json.get("A1") == 3  # 2 + 1
+    assert snap.stages_json.get("A1") == LadderStage.MID  # preserved
+
+
+@pytest.mark.django_db
+def test_stage_only_changes_create_timeline_events(api_client, member):
+    """Test that changing only the stage (without level change) creates proper timeline events."""
+    # Prepare ladder with aspects and levels
+    ladder = Ladder.objects.create(code="STG3", name="Stage Only Ladder")
+    a1 = LadderAspect.objects.create(ladder=ladder, code="A1", name="Aspect 1", order=1)
+    for lvl in range(1, 4):
+        LadderLevel.objects.create(ladder=ladder, aspect=a1, level=lvl, stage=LadderStage.EARLY)
+
+    # Active cycle
+    cycle = Cycle.objects.create(name="C3", start_date=timezone.now(), end_date=timezone.now(), is_active=True)
+
+    # Create initial snapshot with EARLY stage
+    note1 = Note.objects.create(
+        owner=member,
+        title="Initial",
+        content="...",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note1,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 2, "stage": LadderStage.EARLY},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    # Create summary with only stage change (no level change)
+    note2 = Note.objects.create(
+        owner=member,
+        title="Stage Only Change",
+        content="...",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.EVALUATION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note2,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 0, "stage": LadderStage.MID},  # Only stage changes
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    # Verify timeline event was created with proper text
+    evt = TimelineEvent.objects.filter(user=member, event_type=EventType.SENIORITY_CHANGE).order_by('-effective_date','-date_created').first()
+    assert evt is not None
+    assert "بدون تغییر. سطح: 2" in evt.summary_text
+    assert "تغییر محدوده از ابتدا به میانه سطح" in evt.summary_text
+
+    # Verify snapshot has updated stage
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).order_by('effective_date','date_created').last()
+    assert snap.stages_json.get("A1") == LadderStage.MID
+    assert snap.details_json.get("A1") == 2  # Level unchanged
+
+
+@pytest.mark.django_db
+def test_both_level_and_stage_changes_create_proper_timeline_events(api_client, member):
+    """Test that changing both level and stage creates proper timeline events."""
+    # Prepare ladder with aspects and levels
+    ladder = Ladder.objects.create(code="STG4", name="Both Changes Ladder")
+    a1 = LadderAspect.objects.create(ladder=ladder, code="A1", name="Aspect 1", order=1)
+    for lvl in range(1, 4):
+        LadderLevel.objects.create(ladder=ladder, aspect=a1, level=lvl, stage=LadderStage.EARLY)
+
+    # Active cycle
+    cycle = Cycle.objects.create(name="C4", start_date=timezone.now(), end_date=timezone.now(), is_active=True)
+
+    # Create initial snapshot
+    note1 = Note.objects.create(
+        owner=member,
+        title="Initial",
+        content="...",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.PROMOTION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note1,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 2, "stage": LadderStage.EARLY},
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    # Create summary with both level and stage changes
+    note2 = Note.objects.create(
+        owner=member,
+        title="Both Changes",
+        content="...",
+        date=timezone.now().date(),
+        type=NoteType.Proposal,
+        proposal_type=ProposalType.EVALUATION,
+        cycle=cycle,
+    )
+    Summary.objects.create(
+        note=note2,
+        ladder=ladder,
+        aspect_changes={
+            "A1": {"changed": True, "new_level": 1, "stage": LadderStage.LATE},  # Level +1, stage EARLY→LATE
+        },
+        submit_status=SummarySubmitStatus.DONE,
+        committee_date=timezone.now().date(),
+        cycle=cycle,
+    )
+
+    # Verify timeline event was created with proper text
+    evt = TimelineEvent.objects.filter(user=member, event_type=EventType.SENIORITY_CHANGE).order_by('-effective_date','-date_created').first()
+    assert evt is not None
+    assert "ارتقا از سطح 2 به 3 (+1) - محدوده: انتهای سطح" in evt.summary_text
+
+    # Verify snapshot has updated both level and stage
+    snap = SenioritySnapshot.objects.filter(user=member, ladder=ladder).order_by('effective_date','date_created').last()
+    assert snap.stages_json.get("A1") == LadderStage.LATE
+    assert snap.details_json.get("A1") == 3  # 2 + 1

@@ -49,9 +49,9 @@ class LadderAspect(MerlinBaseModel):
     
 
 class LadderStage(models.TextChoices):
-    EARLY = "EARLY", "ابتدای سطح"
-    MID = "MID", "میانه سطح"
-    LATE = "LATE", "انتهای سطح"
+    EARLY = "ابتدای سطح", "ابتدای سطح"
+    MID = "میانه‌ سطح", "میانه سطح"
+    LATE = "انتهای سطح", "انتهای سطح"
 
     @classmethod
     def default(cls):
@@ -64,7 +64,7 @@ class LadderLevel(MerlinBaseModel):
     ladder = models.ForeignKey(Ladder, on_delete=models.CASCADE, related_name="steps", default=None)
     aspect = models.ForeignKey(LadderAspect, on_delete=models.CASCADE, related_name="steps", default=None)
     level = models.PositiveIntegerField(default=1)
-    stage = models.CharField(max_length=8, choices=LadderStage.choices, default=LadderStage.default())
+    stage = models.CharField(max_length=16, choices=LadderStage.choices, default=LadderStage.default())
     weight = models.FloatField(default=1.0, help_text="Optional weighting when averaging across aspects.")
 
     class Meta:
