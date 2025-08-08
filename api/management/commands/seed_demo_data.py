@@ -160,8 +160,9 @@ class Command(BaseCommand):
                     code=asp_code,
                     defaults={"name": asp_name, "order": order},
                 )
-                # Levels 1-6, stage EARLY
-                for lvl in range(1, 7):
+                # Create levels: 6 for Software ladder, 7 for Product ladder
+                max_levels = 7 if code == "PD" else 6
+                for lvl in range(1, max_levels + 1):
                     LadderLevel.objects.get_or_create(
                         ladder=ladder,
                         aspect=aspect,

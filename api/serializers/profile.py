@@ -85,6 +85,7 @@ class CurrentLadderSerializer(serializers.Serializer):
     """Serializer for current ladder and aspects response."""
 
     ladder = serializers.CharField(help_text="Ladder code (e.g., 'SW', 'DEVOPS')")
+    max_level = serializers.IntegerField(help_text="Maximum level for this ladder")
     aspects = AspectSerializer(
         many=True, help_text="List of ladder aspects with their codes and names"
     )
@@ -94,11 +95,15 @@ class LadderSerializer(serializers.ModelSerializer):
     """Serializer for a single ladder with its aspects."""
     
     aspects = AspectSerializer(many=True, read_only=True)
+    max_level = serializers.SerializerMethodField(help_text="Maximum level for this ladder")
     
     class Meta:
         model = Ladder
-        fields = ("code", "name", "description", "aspects")
-        read_only_fields = ("code", "name", "description", "aspects")
+        fields = ("code", "name", "description", "aspects", "max_level")
+        read_only_fields = ("code", "name", "description", "aspects", "max_level")
+    
+    def get_max_level(self, obj):
+        return obj.get_max_level()
 
 
 class LadderListSerializer(serializers.Serializer):
@@ -107,4 +112,5 @@ class LadderListSerializer(serializers.Serializer):
     code = serializers.CharField(help_text="Ladder code (e.g., 'SW', 'DEVOPS')")
     name = serializers.CharField(help_text="Ladder name")
     description = serializers.CharField(help_text="Ladder description")
+    max_level = serializers.IntegerField(help_text="Maximum level for this ladder")
     aspects = AspectSerializer(many=True, help_text="List of ladder aspects with their codes and names")

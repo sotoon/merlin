@@ -24,6 +24,10 @@ class Ladder(MerlinBaseModel):
 
     def __str__(self):
         return self.name
+    
+    def get_max_level(self) -> int:
+        """Get the maximum level for this ladder by checking LadderLevel objects."""
+        return self.steps.aggregate(max_level=models.Max('level'))['max_level'] or 0
 
 
 class LadderAspect(MerlinBaseModel):
@@ -42,7 +46,7 @@ class LadderAspect(MerlinBaseModel):
 
     def __str__(self):
         return f"{self.ladder} • {self.name}"
-
+    
 
 class LadderStage(models.TextChoices):
     EARLY = "EARLY", "ابتدای سطح"

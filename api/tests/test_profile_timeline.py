@@ -20,7 +20,9 @@ from api.models import (
     ProposalType,
     Cycle,
     Ladder,
-    LadderAspect
+    LadderAspect,
+    LadderLevel,
+    LadderStage
 )
 
 
@@ -1369,3 +1371,89 @@ def test_object_url_with_exception_handling(api_client, member):
     # Should handle exception gracefully and return a URL (even for non-existent objects)
     assert data['object_url'] is not None
     assert '/api/notes/' in data['object_url']
+
+
+@pytest.mark.django_db
+def test_ladder_max_level_calculation(api_client, leader):
+    """Test that ladder max_level is correctly calculated from LadderLevel objects."""
+    # Create Software ladder with 6 levels
+    sw_ladder = Ladder.objects.create(code="SW", name="Software")
+    sw_aspect = LadderAspect.objects.create(ladder=sw_ladder, code="DES", name="Design", order=1)
+    
+    # Create levels 1-6 for Software ladder
+    for level in range(1, 7):
+        LadderLevel.objects.create(
+            ladder=sw_ladder,
+            aspect=sw_aspect,
+            level=level,
+            stage=LadderStage.EARLY
+        )
+    
+    # Create Product ladder with 7 levels
+    pd_ladder = Ladder.objects.create(code="PD", name="Product")
+    pd_aspect = LadderAspect.objects.create(ladder=pd_ladder, code="STR", name="Strategy", order=1)
+    
+    # Create levels 1-7 for Product ladder
+    for level in range(1, 8):
+        LadderLevel.objects.create(
+            ladder=pd_ladder,
+            aspect=pd_aspect,
+            level=level,
+            stage=LadderStage.EARLY
+        )
+    
+    # Test get_max_level method
+    assert sw_ladder.get_max_level() == 6
+    assert pd_ladder.get_max_level() == 7
+    
+    # Create a snapshot for the leader with Software ladder so the API returns the correct ladder
+    SenioritySnapshot.objects.create(
+        user=leader,
+        ladder=sw_ladder,
+        overall_score=3.0,
+        details_json={"DES": 3},
+        effective_date=timezone.now().date(),
+    )
+    
+    # Test current ladder API includes max_level
+    api_client.force_authenticate(leader)
+    resp = api_client.get("/api/profile/current-ladder/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "max_level" in data
+    assert data["max_level"] == 6  # Should return Software ladder's max_level
+    
+    # Test ladder list API includes max_level
+    resp = api_client.get("/api/ladders/")
+    assert resp.status_code == 200
+    data = resp.json()
+    
+    # Find Software and Product ladders in response
+    sw_ladder_data = next((l for l in data if l["code"] == "SW"), None)
+    pd_ladder_data = next((l for l in data if l["code"] == "PD"), None)
+    
+    assert sw_ladder_data is not None
+    assert pd_ladder_data is not None
+    assert sw_ladder_data["max_level"] == 6
+    assert pd_ladder_data["max_level"] == 7
+
+
+@pytest.mark.django_db
+def test_ladder_max_level_with_no_levels(api_client, leader):
+    """Test that ladder max_level returns 0 when no levels exist."""
+    # Create ladder without any levels
+    ladder = Ladder.objects.create(code="TEST", name="Test Ladder")
+    LadderAspect.objects.create(ladder=ladder, code="ASP", name="Aspect", order=1)
+    
+    # Test get_max_level returns 0
+    assert ladder.get_max_level() == 0
+    
+    # Test API includes max_level as 0
+    api_client.force_authenticate(leader)
+    resp = api_client.get("/api/ladders/")
+    assert resp.status_code == 200
+    data = resp.json()
+    
+    test_ladder_data = next((l for l in data if l["code"] == "TEST"), None)
+    assert test_ladder_data is not None
+    assert test_ladder_data["max_level"] == 0
