@@ -89,6 +89,10 @@ class CurrentLadderSerializer(serializers.Serializer):
     aspects = AspectSerializer(
         many=True, help_text="List of ladder aspects with their codes and names"
     )
+    stages = serializers.ListField(
+        child=serializers.DictField(child=serializers.CharField()),
+        help_text="List of available stages as [{value,label}]",
+    )
 
 
 class LadderSerializer(serializers.ModelSerializer):
@@ -114,3 +118,7 @@ class LadderListSerializer(serializers.Serializer):
     description = serializers.CharField(help_text="Ladder description")
     max_level = serializers.IntegerField(help_text="Maximum level for this ladder")
     aspects = AspectSerializer(many=True, help_text="List of ladder aspects with their codes and names")
+    stages = serializers.ListField(
+        child=serializers.DictField(child=serializers.CharField()),
+        help_text="List of available stages as [{value,label}]",
+    )

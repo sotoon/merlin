@@ -16,6 +16,7 @@ from api.serializers.profile import (
     CurrentLadderSerializer,
     LadderListSerializer,
 )
+from api.models.ladder import LadderStage
 
 
 __all__ = [
@@ -112,8 +113,9 @@ class CurrentLadderView(APIView):
         )
         ladder = snapshot.ladder if snapshot else Ladder.objects.first()
         aspects = ladder.aspects.order_by("order").values("code", "name")
+        stages = [{"value": v, "label": l} for v, l in LadderStage.choices]
 
-        data = {"ladder": ladder.code, "max_level": ladder.get_max_level(), "aspects": list(aspects)}
+        data = {"ladder": ladder.code, "max_level": ladder.get_max_level(), "aspects": list(aspects), "stages": stages}
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
         return Response(serializer.validated_data)
@@ -131,12 +133,14 @@ class LadderListView(ListAPIView):
         
         for ladder in queryset:
             aspects = ladder.aspects.order_by("order").values("code", "name")
+            stages = [{"value": v, "label": l} for v, l in LadderStage.choices]
             serializer = self.get_serializer({
                 "code": ladder.code,
                 "name": ladder.name,
                 "description": ladder.description,
                 "max_level": ladder.get_max_level(),
-                "aspects": list(aspects)
+                "aspects": list(aspects),
+                "stages": stages,
             })
             data.append(serializer.data)
         
