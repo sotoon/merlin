@@ -39,7 +39,7 @@
               <div class="flex items-center gap-2">
                 <div class="flex gap-1">
                   <div
-                    v-for="i in level.max_level || 7"
+                    v-for="i in 7"
                     :key="i"
                     class="h-2 w-2 rounded-full"
                     :class="i <= score ? 'bg-primary' : 'bg-gray-20'"
@@ -50,12 +50,6 @@
                 </PText>
               </div>
             </div>
-          </div>
-
-          <div v-if="level.user_stage" class="bg-blue-50 mt-4 rounded-md p-3">
-            <PText class="text-blue-80" variant="caption1">
-              {{ t('timeline.userStage') }}: {{ level.user_stage }}
-            </PText>
           </div>
         </div>
       </template>
@@ -74,8 +68,6 @@ interface LevelDetails {
 interface UserLevel {
   overall: number;
   details: LevelDetails;
-  max_level?: number;
-  user_stage?: string;
 }
 
 defineProps<{

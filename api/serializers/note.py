@@ -245,7 +245,6 @@ class SummarySerializer(serializers.ModelSerializer):
             "uuid",
             "note",
             "ladder",
-            "ladder_stage",
             "aspect_changes",
             "content",
             "performance_label",
