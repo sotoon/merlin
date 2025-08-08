@@ -1988,14 +1988,26 @@ components:
         ladder:
           type: string
           description: Ladder code (e.g., 'SW', 'DEVOPS')
+        max_level:
+          type: integer
+          description: Maximum level for this ladder
         aspects:
           type: array
           items:
             $ref: '#/components/schemas/Aspect'
           description: List of ladder aspects with their codes and names
+        stages:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: List of available stages as [{value,label}]
       required:
       - aspects
       - ladder
+      - max_level
+      - stages
     EventTypeEnum:
       enum:
       - SENIORITY_CHANGE
@@ -2411,16 +2423,38 @@ components:
         description:
           type: string
           description: Ladder description
+        max_level:
+          type: integer
+          description: Maximum level for this ladder
         aspects:
           type: array
           items:
             $ref: '#/components/schemas/Aspect'
           description: List of ladder aspects with their codes and names
+        stages:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: List of available stages as [{value,label}]
       required:
       - aspects
       - code
       - description
+      - max_level
       - name
+      - stages
+    LadderStageEnum:
+      enum:
+      - ابتدای سطح
+      - میانه‌ سطح
+      - انتهای سطح
+      type: string
+      description: |-
+        * `ابتدای سطح` - ابتدای سطح
+        * `میانه‌ سطح` - میانه سطح
+        * `انتهای سطح` - انتهای سطح
     LeaderVibeEnum:
       enum:
       - :)
@@ -3128,6 +3162,11 @@ components:
           type: string
           minLength: 1
           nullable: true
+        ladder_stage:
+          allOf:
+          - $ref: '#/components/schemas/LadderStageEnum'
+          nullable: true
+          title: مرحله لدر
         aspect_changes:
           type: object
           description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
@@ -3320,6 +3359,11 @@ components:
         ladder:
           type: string
           nullable: true
+        ladder_stage:
+          allOf:
+          - $ref: '#/components/schemas/LadderStageEnum'
+          nullable: true
+          title: مرحله لدر
         aspect_changes:
           type: object
           description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
@@ -3382,6 +3426,11 @@ components:
           type: string
           minLength: 1
           nullable: true
+        ladder_stage:
+          allOf:
+          - $ref: '#/components/schemas/LadderStageEnum'
+          nullable: true
+          title: مرحله لدر
         aspect_changes:
           type: object
           description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
