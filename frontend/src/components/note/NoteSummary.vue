@@ -93,18 +93,6 @@
         <PropertyTable>
           <template v-if="note.proposal_type !== PROPOSAL_TYPE.notice">
             <PropertyTableRow
-              v-if="summaries[0].ladder"
-              :label="t('note.selectedLadder')"
-              :value="getLadderName(summaries[0].ladder)"
-            />
-
-            <PropertyTableRow
-              v-if="summaries[0].ladder_stage"
-              :label="t('note.ladderStage')"
-              :value="summaries[0].ladder_stage"
-            />
-
-            <PropertyTableRow
               :label="t('note.performanceLabel')"
               :value="summaries[0].performance_label"
             />
@@ -230,12 +218,6 @@ const aspectDict = computed(() => {
     ) || {}
   );
 });
-
-const getLadderName = (ladderCode: string) => {
-  if (!ladderData.value) return ladderCode;
-  const ladder = ladderData.value.find((l) => l.code === ladderCode);
-  return ladder?.name || ladderCode;
-};
 
 const finalizeSummarySubmission = () => {
   if (!summaries.value?.length) return;

@@ -7,7 +7,6 @@ from api.models import (Cycle,
                         ValueTag,
                         ValueSection,
                         )
-from api.models.ladder import LadderStage
 
 __all__ = ['NoteType', 'ProposalType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
            'OneOnOne', 'OneOnOneTagLink', 'leader_permissions', 'committee_roles_permissions']
@@ -173,14 +172,6 @@ class Summary(MerlinBaseModel):
     )
     ladder = models.ForeignKey(
         "api.Ladder", null=True, blank=True, on_delete=models.PROTECT, verbose_name="لدر"
-    )
-    ladder_stage = models.CharField(
-        max_length=16,
-        choices=LadderStage.choices,
-        default=LadderStage.default(),
-        blank=True,
-        null=True,
-        verbose_name="مرحله لدر",
     )
     aspect_changes = models.JSONField(default=dict, blank=True, verbose_name="تغییرات ابعاد لدر")
     ladder_change = models.CharField(
