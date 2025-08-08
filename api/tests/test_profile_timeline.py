@@ -301,16 +301,25 @@ def test_superuser_can_create_title_change(settings, api_client, member):
 @pytest.fixture
 def member_snapshot(member):
     """Latest SenioritySnapshot for the member user."""
+    # Create a ladder with aspects for proper testing
+    ladder = Ladder.objects.create(code="SW", name="Software")
+    LadderAspect.objects.create(ladder=ladder, code="DES", name="Design", order=1)
+    LadderAspect.objects.create(ladder=ladder, code="IMP", name="Implementation", order=2)
+    LadderAspect.objects.create(ladder=ladder, code="BUS", name="Business Acumen", order=3)
+    LadderAspect.objects.create(ladder=ladder, code="COM", name="Communication", order=4)
+    LadderAspect.objects.create(ladder=ladder, code="TL", name="Technical Leadership", order=5)
+    
     return SenioritySnapshot.objects.create(
         user=member,
+        ladder=ladder,
         title="",
         overall_score=2.4,
         details_json={
-            "Design": 3,
-            "Implementation": 3,
-            "Business Acumen": 2,
-            "Communication": 2,
-            "Technical Lead": 2,
+            "DES": 3,
+            "IMP": 3,
+            "BUS": 2,
+            "COM": 2,
+            "TL": 2,
         },
         effective_date=timezone.now().date(),
     )
