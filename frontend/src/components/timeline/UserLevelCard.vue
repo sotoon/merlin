@@ -38,7 +38,7 @@
                 <PChip
                   v-if="level.stages[key]"
                   size="small"
-                  color="warning"
+                  color="primary"
                   :label="level.stages[key]"
                 />
               </PText>
