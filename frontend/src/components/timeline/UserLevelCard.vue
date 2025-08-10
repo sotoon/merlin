@@ -29,12 +29,18 @@
         <div class="space-y-3">
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div
-              v-for="(score, skill) in level.details"
-              :key="skill"
+              v-for="[key, score] in Object.entries(level.details)"
+              :key="key"
               class="bg-gray-5 flex items-center justify-between rounded-md px-3 py-2"
             >
               <PText class="text-gray-80" variant="caption1">
-                {{ skill }}
+                {{ key }}
+                <PChip
+                  v-if="level.stages[key]"
+                  size="small"
+                  color="warning"
+                  :label="level.stages[key]"
+                />
               </PText>
               <div class="flex items-center gap-2">
                 <div class="flex gap-1">
@@ -58,17 +64,22 @@
 </template>
 
 <script lang="ts" setup>
-import { PText } from '@pey/core';
+import { PText, PChip } from '@pey/core';
 import Accordion from '~/components/shared/Accordion.vue';
 
 interface LevelDetails {
   [key: string]: number;
 }
 
+interface LevelStages {
+  [key: string]: string;
+}
+
 interface UserLevel {
   overall: number;
   details: LevelDetails;
   max_level?: number;
+  stages: LevelStages;
 }
 
 defineProps<{

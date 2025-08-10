@@ -216,6 +216,11 @@ class CommentSerializer(serializers.ModelSerializer):
                     "maximum": 10,
                     "description": "New level for the aspect (1-10)",
                 },
+                "stage": {
+                    "type": "string",
+                    "enum": ["EARLY", "MID", "LATE"],
+                    "description": "Stage of the aspect",
+                },
             },
             "required": ["changed", "new_level"],
         },
@@ -226,7 +231,7 @@ class AspectChangesField(serializers.JSONField):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.help_text = "Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}}"
+        self.help_text = "Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}}"
 
 
 class SummarySerializer(serializers.ModelSerializer):

@@ -3155,7 +3155,7 @@ components:
         aspect_changes:
           type: object
           description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
-            bool, ''new_level'': int}}'
+            bool, ''new_level'': int, ''stage'': ''EARLY|MID|LATE''}}'
           additionalProperties:
             type: object
             properties:
@@ -3167,6 +3167,13 @@ components:
                 minimum: 1
                 maximum: 10
                 description: New level for the aspect (1-10)
+              stage:
+                type: string
+                enum:
+                - EARLY
+                - MID
+                - LATE
+                description: Stage of the aspect
             required:
             - changed
             - new_level
@@ -3347,7 +3354,7 @@ components:
         aspect_changes:
           type: object
           description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
-            bool, ''new_level'': int}}'
+            bool, ''new_level'': int, ''stage'': ''EARLY|MID|LATE''}}'
           additionalProperties:
             type: object
             properties:
@@ -3359,6 +3366,13 @@ components:
                 minimum: 1
                 maximum: 10
                 description: New level for the aspect (1-10)
+              stage:
+                type: string
+                enum:
+                - EARLY
+                - MID
+                - LATE
+                description: Stage of the aspect
             required:
             - changed
             - new_level
@@ -3409,7 +3423,7 @@ components:
         aspect_changes:
           type: object
           description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
-            bool, ''new_level'': int}}'
+            bool, ''new_level'': int, ''stage'': ''EARLY|MID|LATE''}}'
           additionalProperties:
             type: object
             properties:
@@ -3421,6 +3435,13 @@ components:
                 minimum: 1
                 maximum: 10
                 description: New level for the aspect (1-10)
+              stage:
+                type: string
+                enum:
+                - EARLY
+                - MID
+                - LATE
+                description: Stage of the aspect
             required:
             - changed
             - new_level
