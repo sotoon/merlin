@@ -19,6 +19,7 @@
           :required="!isEvaluation"
           :label="t('note.selectLadder')"
           :placeholder="t('note.selectLadderPlaceholder')"
+          hide-details
           @update:model-value="onLadderChange"
         >
           <PListboxOption
@@ -38,6 +39,8 @@
       </VeeField>
 
       <template v-if="currentAspects.length">
+        <PAlert :title="t('note.aspectChangesAlertTitle')" variant="caution" />
+
         <h3 class="text-gray-900 font-medium">
           {{ t('note.aspectChanges') }}
         </h3>
@@ -47,7 +50,7 @@
           :key="aspect.code"
           class="flex flex-wrap items-end gap-6 md:flex-row"
         >
-          <div class="grow">
+          <div class="flex gap-2">
             <VeeField
               v-slot="{ componentField }"
               :name="`aspect_changes.${aspect.code}.new_level`"
@@ -64,11 +67,31 @@
                 :min="1"
                 :max="selectedLadder?.max_level || 10"
                 hide-details
+                class="w-32"
                 :required="isAspectChanged(aspect.code) && !isEvaluation"
                 :disabled="!isAspectChanged(aspect.code)"
                 :placeholder="isAspectChanged(aspect.code) ? undefined : ''"
                 :model-value="getAspectDisplayValue(aspect.code)"
               />
+            </VeeField>
+
+            <VeeField
+              v-slot="{ componentField }"
+              :name="`aspect_changes.${aspect.code}.stage`"
+            >
+              <PListbox
+                v-bind="componentField"
+                :label="t('note.stage')"
+                hide-details
+                :disabled="!isAspectChanged(aspect.code)"
+              >
+                <PListboxOption
+                  v-for="stage in selectedLadder?.stages || []"
+                  :key="stage.value"
+                  :label="stage.label"
+                  :value="stage.value"
+                />
+              </PListbox>
             </VeeField>
           </div>
 
@@ -218,6 +241,7 @@ import {
   PInput,
   PListbox,
   PListboxOption,
+  PAlert,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
@@ -290,6 +314,7 @@ const toggleAspectChanged = (aspectCode: string, value: boolean) => {
     aspectChanges[aspectCode] = {
       changed: false,
       new_level: 1,
+      stage: undefined,
     };
   }
 
@@ -297,6 +322,7 @@ const toggleAspectChanged = (aspectCode: string, value: boolean) => {
     ...aspectChanges[aspectCode],
     changed: value,
     new_level: value ? aspectChanges[aspectCode].new_level || 1 : 1,
+    stage: value ? aspectChanges[aspectCode].stage || undefined : undefined,
   };
 
   setValues({ aspect_changes: aspectChanges });
@@ -314,6 +340,7 @@ function onLadderChange(ladderCode: string) {
         allAspectChanges[aspect.code] = {
           changed: summaryAspect?.changed || false,
           new_level: summaryAspect?.new_level || 1,
+          stage: summaryAspect?.stage || undefined,
         };
       });
 
@@ -323,6 +350,7 @@ function onLadderChange(ladderCode: string) {
           allAspectChanges[aspectCode] = {
             changed: false,
             new_level: 1,
+            stage: undefined,
           };
         }
       });
@@ -334,6 +362,7 @@ function onLadderChange(ladderCode: string) {
           allAspectChanges[aspectCode] = {
             changed: false,
             new_level: 1,
+            stage: undefined,
           };
         }
       });

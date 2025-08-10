@@ -1377,13 +1377,18 @@ export interface components {
     };
     PatchedSummaryRequest: {
       ladder?: string | null;
-      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}} */
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}} */
       aspect_changes?: {
         [key: string]: {
           /** @description Whether the aspect has changed */
           changed: boolean;
           /** @description New level for the aspect (1-10) */
           new_level: number;
+          /**
+           * @description Stage of the aspect
+           * @enum {string}
+           */
+          stage?: 'EARLY' | 'MID' | 'LATE';
         };
       };
       /** محتوا */
@@ -1475,13 +1480,18 @@ export interface components {
       /** Format: uuid */
       readonly note: string;
       ladder?: string | null;
-      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}} */
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}} */
       aspect_changes?: {
         [key: string]: {
           /** @description Whether the aspect has changed */
           changed: boolean;
           /** @description New level for the aspect (1-10) */
           new_level: number;
+          /**
+           * @description Stage of the aspect
+           * @enum {string}
+           */
+          stage?: 'EARLY' | 'MID' | 'LATE';
         };
       };
       /** محتوا */
@@ -1507,13 +1517,18 @@ export interface components {
     };
     SummaryRequest: {
       ladder?: string | null;
-      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int}} */
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}} */
       aspect_changes?: {
         [key: string]: {
           /** @description Whether the aspect has changed */
           changed: boolean;
           /** @description New level for the aspect (1-10) */
           new_level: number;
+          /**
+           * @description Stage of the aspect
+           * @enum {string}
+           */
+          stage?: 'EARLY' | 'MID' | 'LATE';
         };
       };
       /** محتوا */

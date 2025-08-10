@@ -145,7 +145,13 @@
               v-show="aspectChange.changed"
               :key="aspectCode"
               :label="aspectDict[aspectCode]"
-              :value="aspectChange.new_level"
+              :value="
+                aspectChange.new_level
+                  ? `${aspectChange.new_level} ${
+                      aspectChange.stage ? `(${aspectChange.stage})` : ''
+                    }`
+                  : '-'
+              "
             />
           </template>
         </PropertyTable>
