@@ -4,7 +4,7 @@ from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from api import views
-from api.views import UserTimelineView
+from api.views import UserTimelineView, PersonnelPerformanceTableView
 
 # ─── Top-level router ────────────────────────────────────────────────────────────
 router = routers.DefaultRouter()
@@ -63,6 +63,7 @@ urlpatterns = [
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
     path("users/<uuid:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
+    path("personnel/performance-table", PersonnelPerformanceTableView.as_view(), name="personnel-performance-table"),
     path("", include(router.urls)),
     path("", include(comments_router.urls)),
     path("", include(summaries_router.urls)),

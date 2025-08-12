@@ -1,8 +1,9 @@
 import re
-from django.db.models.signals import m2m_changed, post_save
+from django.db.models.signals import m2m_changed, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
+from decimal import Decimal
 
 from .models import (
     Committee,
@@ -21,7 +22,10 @@ from .models import (
     Notice,
     LadderStage,
     LadderAspect,
+    Team,
 )
+
+from api.models import OrgAssignmentSnapshot
 
 from api.models.timeline import (
     TimelineEvent,
@@ -228,11 +232,29 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
 
     # Create snapshots if needed
     if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):
-        # PayBand lookup is out of scope; we still record salary change absolute value
+        # Compensation snapshot: compute new pay band from latest pay band + salary_change (supports 0.5)
         if instance.salary_change or instance.bonus:
+            # Validate increment granularity
+            if instance.salary_change and round(instance.salary_change * 2) != instance.salary_change * 2:
+                # Non 0.5 step – ignore or round; choose to round to nearest .5 to avoid crash
+                instance.salary_change = round(instance.salary_change * 2) / 2.0
+
+            # Find latest compensation snapshot for baseline pay band
+            latest_comp = CompensationSnapshot.objects.filter(user=instance.note.owner).order_by("-effective_date", "-date_created").first()
+            current_band = getattr(latest_comp, "pay_band", None)
+
+            new_band = current_band
+            if current_band is not None and instance.salary_change:
+                # Create or get a PayBand with incremented number
+                target_number = float(current_band.number) + float(instance.salary_change)
+                # Enforce 0.5 rounding
+                target_number = round(target_number * 2) / 2.0
+                new_band, _ = PayBand.objects.get_or_create(number=target_number)
+
             CompensationSnapshot.objects.create(
                 user=instance.note.owner,
-                pay_band=PayBand.objects.first() if PayBand.objects.exists() else None,
+                pay_band=new_band or current_band,
+                salary_change=float(instance.salary_change or 0.0),
                 bonus_percentage=instance.bonus or 0,
                 effective_date=effective_date,
             )
@@ -258,41 +280,8 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                     user=instance.note.owner,
                     ladder=instance.ladder
                 ).order_by('effective_date', 'date_created').last()
-                
-                # Start with existing details or create default for all aspects
-                if latest_snapshot:
-                    details = latest_snapshot.details_json.copy()
-                    stages_json = latest_snapshot.stages_json.copy()
-                else:
-                    # If no existing snapshot, create default for all aspects
-                    aspects = LadderAspect.objects.filter(ladder=instance.ladder)
-                    details = {aspect.code: 0 for aspect in aspects}  # Default level 0
-                    stages_json = {aspect.code: LadderStage.default() for aspect in aspects}
-                
-                # Add new changes to existing levels (not replace)
-                for code, new_level in deltas.items():
-                    if code in details:
-                        details[code] += new_level  # Add to existing level
-                    else:
-                        details[code] = new_level  # Set new level if aspect didn't exist before
-                
-                # Update stages if provided
-                for code, stage in stages.items():
-                    stages_json[code] = stage
-                
-                # Calculate overall score
-                overall = round(sum(details.values()) / len(details), 1) if details else 0
-                
-                # Create new snapshot (don't update existing one for same date)
-                snapshot = SenioritySnapshot.objects.create(
-                    user=instance.note.owner,
-                    ladder=instance.ladder,
-                    effective_date=effective_date,
-                    details_json=details,
-                    stages_json=stages_json,
-                    overall_score=overall,
-                    title=instance.performance_label if instance.performance_label else ''
-                )
+                # Compute overall score and persist snapshot
+                _persist_seniority_snapshot(instance, latest_snapshot, deltas, stages, effective_date)
 
 
 def _create_promotion_evaluation_events(instance: Summary, effective_date):
@@ -561,3 +550,103 @@ def titlechange_to_timeline(sender, instance: TitleChangeModel, created, **kwarg
         source_obj=instance,
         created_by=instance.created_by,
     )
+
+
+def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stages, effective_date):
+    """Persist a new SenioritySnapshot merging changes with previous snapshot and compute overall.
+    This assumes deltas contains per-aspect additive level changes and stages contains stage updates.
+    """
+    # Start with existing details or create default for all aspects
+    if latest_snapshot:
+        details = latest_snapshot.details_json.copy()
+        stages_json = (latest_snapshot.stages_json or {}).copy()
+    else:
+        # If no existing snapshot, create default for all aspects
+        aspects = LadderAspect.objects.filter(ladder=instance.ladder)
+        details = {aspect.code: 0 for aspect in aspects}  # Default level 0
+        stages_json = {aspect.code: LadderStage.default() for aspect in aspects}
+
+    # Add new changes to existing levels (not replace)
+    for code, new_level in deltas.items():
+        if code in details:
+            details[code] += new_level  # Add to existing level
+        else:
+            details[code] = new_level  # Set new level if aspect didn't exist before
+
+    # Update stages if provided
+    for code, stage in stages.items():
+        stages_json[code] = stage
+
+    # Calculate overall score
+    overall = round(sum(details.values()) / len(details), 1) if details else 0
+
+    # Create new snapshot (don't update existing one for same date)
+    SenioritySnapshot.objects.create(
+        user=instance.note.owner,
+        ladder=instance.ladder,
+        effective_date=effective_date,
+        details_json=details,
+        stages_json=stages_json,
+        overall_score=overall,
+        title=instance.performance_label if getattr(instance, "performance_label", None) else "",
+    )
+
+
+@receiver(pre_save, sender=User)
+def capture_org_assignment_on_user_change(sender, instance: User, **kwargs):
+    """Create an OrgAssignmentSnapshot if a User's org fields change."""
+    if not instance.pk:
+        return
+    try:
+        prev = User.objects.get(pk=instance.pk)
+    except User.DoesNotExist:
+        return
+
+    org_fields_changed = any(
+        getattr(prev, fname) != getattr(instance, fname)
+        for fname in ("leader", "team", "chapter", "department")
+    )
+    if not org_fields_changed:
+        return
+
+    effective_date = timezone.now().date()
+    OrgAssignmentSnapshot.objects.create(
+        user=instance,
+        leader=instance.leader,
+        team=instance.team,
+        tribe=getattr(instance.team, "tribe", None),
+        chapter=instance.chapter,
+        department=instance.department,
+        effective_date=effective_date,
+    )
+
+
+@receiver(pre_save, sender=Team)
+def capture_org_assignment_on_team_tribe_change(sender, instance: Team, **kwargs):
+    """Create OrgAssignmentSnapshots for all team members if the team's tribe changes."""
+    if not instance.pk:
+        return
+    try:
+        prev = Team.objects.get(pk=instance.pk)
+    except Team.DoesNotExist:
+        return
+
+    if prev.tribe_id == instance.tribe_id:
+        return
+
+    effective_date = timezone.now().date()
+    members = User.objects.filter(team=instance)
+    snapshots = [
+        OrgAssignmentSnapshot(
+            user=m,
+            leader=m.leader,
+            team=instance,
+            tribe=instance.tribe,
+            chapter=m.chapter,
+            department=m.department,
+            effective_date=effective_date,
+        )
+        for m in members
+    ]
+    if snapshots:
+        OrgAssignmentSnapshot.objects.bulk_create(snapshots)

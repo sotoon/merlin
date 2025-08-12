@@ -5,14 +5,33 @@ from typing import Set, TYPE_CHECKING
 if TYPE_CHECKING:
     from api.models import User, RoleType
 
+# Centralized ladder category codes (must match Ladder.code values)
 TECH_LADDERS: Set[str] = {
+    # Engineering/Technical families
     "Software",
+    "Software Engineering",
+    "Frontend",
+    "Frontend Engineering",
     "DevOps",
+    "DevOps Engineering",
+    "Network",
+    "Network Engineering",
+    "Hardware",
+    "Hardware Engineering",
+    "Security",
+    "Security Engineering",
     "NOC",
+    "Data Center",
+    "Back Office",
+}
+
+PRODUCT_LADDERS: Set[str] = {
+    "Product",
+    "Product Management",
 }
 
 
-__all__ = ["can_view_timeline", "has_role"]
+__all__ = ["can_view_timeline", "has_role", "TECH_LADDERS", "PRODUCT_LADDERS"]
 
 
 # -----------------------------------------------------------------------------
@@ -28,8 +47,9 @@ def can_view_timeline(viewer: "User", target: "User") -> bool:
       • Leadership chain – viewer is direct / indirect manager of target
       • EXEC fine-grained rules:
           – CEO  → all users
-          – CTO  → only users considered *technical*
+          – CTO/VP  → only users considered *technical*
           – CFO  → only users under the Finance tribe
+          – CPO  → only users considered *product* (by ladder)
       • Fallback: False
     """
 
@@ -68,11 +88,9 @@ def can_view_timeline(viewer: "User", target: "User") -> bool:
         if viewer_tribe and viewer_tribe == target_tribe:
             return True
 
-    # Grant CPO access to all users in the Product tribe
+    # CPO → all product managers (by ladder), org-wide
     if has_role(viewer, {RoleType.CPO}):
-        target_tribe_name = getattr(getattr(target.team, "tribe", None), "name", "")
-        if target_tribe_name == "Product":
-            return True
+        return _is_product(target)
 
     # 4) Default deny
     return False
@@ -133,9 +151,22 @@ def _is_technical(user: "User") -> bool:
     if latest_snap and latest_snap.ladder and latest_snap.ladder.code in TECH_LADDERS:
         return True
 
-    # fallback: chapter, department, or team names
+    # fallback: chapter name
     chapter_name = getattr(user.chapter, "name", "")
     if chapter_name in TECH_LADDERS:
+        return True
+
+    return False
+
+
+def _is_product(user: "User") -> bool:
+    """Heuristic: user has latest SenioritySnapshot ladder in PRODUCT_LADDERS."""
+    from api.models import SenioritySnapshot
+
+    latest_snap = (
+        SenioritySnapshot.objects.filter(user=user).order_by("-effective_date", "-date_created").first()
+    )
+    if latest_snap and latest_snap.ladder and latest_snap.ladder.code in PRODUCT_LADDERS:
         return True
 
     return False

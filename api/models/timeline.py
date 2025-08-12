@@ -4,6 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from api.models.base import MerlinBaseModel
 from api.models.ladder import Ladder
+from api.models.performance_tables import CompensationSnapshot, SenioritySnapshot
+from api.models.organization import PayBand
 
 __all__ = [
     "EventType",
@@ -58,23 +60,6 @@ class GrantType(models.TextChoices):
 
 
 # ───────────────────────────────────────────────────────────────
-# Lookup tables
-# ----------------------------------------------------------------
-
-
-class PayBand(MerlinBaseModel):
-    number = models.PositiveIntegerField(unique=True, verbose_name="شماره پله")
-
-    class Meta:
-        verbose_name = "پله حقوقی"
-        verbose_name_plural = "پله‌های حقوقی"
-        ordering = ("number",)
-
-    def __str__(self):
-        return f"پله {self.number}"
-
-
-# ───────────────────────────────────────────────────────────────
 # Core tables
 # ----------------------------------------------------------------
 
@@ -107,43 +92,6 @@ class TimelineEvent(MerlinBaseModel):
 
     def __str__(self):
         return f"{self.user} • {self.get_event_type_display()} • {self.effective_date}"
-
-
-class CompensationSnapshot(MerlinBaseModel):
-    user = models.ForeignKey("api.User", on_delete=models.PROTECT, related_name="comp_snapshots")
-    pay_band = models.ForeignKey(PayBand, on_delete=models.PROTECT, null=True, blank=True)
-    bonus_percentage = models.FloatField(default=0, help_text="Bonus as percentage of annual salary")
-    effective_date = models.DateField()
-    source_event = models.ForeignKey(TimelineEvent, null=True, blank=True, on_delete=models.SET_NULL)
-    is_redacted = models.BooleanField(default=False)
-
-    class Meta:
-        verbose_name = "اسنپ‌شات جبران خدمات"
-        verbose_name_plural = "اسنپ‌شات‌های جبران خدمات"
-        ordering = ("-effective_date",)
-
-    def __str__(self):
-        return f"{self.user} • PayBand {self.pay_band_id or '-'} • Bonus {self.bonus_percentage}%"
-
-
-class SenioritySnapshot(MerlinBaseModel):
-    user = models.ForeignKey("api.User", on_delete=models.CASCADE, related_name="seniority_snapshots")
-    ladder = models.ForeignKey(Ladder, on_delete=models.PROTECT, null=True, blank=True)
-    title = models.CharField(max_length=256)
-    overall_score = models.FloatField(default=0)
-    details_json = models.JSONField(default=dict, blank=True)
-    stages_json = models.JSONField(default=dict, blank=True)
-    effective_date = models.DateField()
-    source_event = models.ForeignKey(TimelineEvent, null=True, blank=True, on_delete=models.SET_NULL)
-    is_redacted = models.BooleanField(default=False)
-
-    class Meta:
-        verbose_name = "اسنپ‌شات سطح فنی"
-        verbose_name_plural = "اسنپ‌شات‌های سطح فنی"
-        ordering = ("-effective_date",)
-
-    def __str__(self):
-        return f"{self.user} • {self.ladder} • {self.overall_score}"
 
 
 # ───────────────────────────────────────────────────────────────
@@ -195,4 +143,4 @@ class TitleChange(MerlinBaseModel):
         ordering = ("-effective_date",)
 
     def __str__(self):
-        return f"{self.user} • {self.old_title} → {self.new_title}" 
+        return f"{self.user} • {self.old_title} → {self.new_title}"

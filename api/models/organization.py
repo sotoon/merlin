@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from api.models.base import MerlinBaseModel
 from api.models.user import User
 
-__all__ = ['Organization', 'Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag']
+__all__ = ['Organization', 'Department', 'Chapter', 'Tribe', 'Team', 'Committee', 'ValueSection', 'ValueTag', 'OrgValueTag', 'PayBand']
 
 
 class Organization(MerlinBaseModel):
@@ -296,3 +296,20 @@ class CommitteeType(models.TextChoices):
     @classmethod
     def default(cls):
         return cls.PROMOTION
+
+
+class PayBand(MerlinBaseModel):
+    number = models.FloatField(unique=True, verbose_name="شماره پله")
+
+    def clean(self):
+        # enforce 0.5 increments
+        if round(self.number * 2) != self.number * 2:
+            raise ValidationError({"number": _("Pay band must be in 0.5 increments (e.g., 24, 24.5)")})
+
+    class Meta:
+        verbose_name = "پله حقوقی"
+        verbose_name_plural = "پله‌های حقوقی"
+        ordering = ("number",)
+
+    def __str__(self):
+        return f"پله {self.number}"
