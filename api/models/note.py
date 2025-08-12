@@ -197,6 +197,10 @@ class Summary(MerlinBaseModel):
     class Meta:
         verbose_name = "جمع‌بندی"
         verbose_name_plural = "جمع‌بندی‌ها"
+        indexes = [
+            models.Index(fields=["committee_date"]),
+            models.Index(fields=["note", "committee_date"]),
+        ]
 
     def __str__(self):
         return "جمع‌بندیِ " + str(self.note)

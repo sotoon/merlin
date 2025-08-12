@@ -10,6 +10,7 @@ from .role import *
 from .activity import *
 from .timeline import *
 from .ladder import *
+from .performance_tables import *
 
 # Not aggregating __all__ to avoid circular imports issues; wildcard import covers public symbols.
 __all__ = []

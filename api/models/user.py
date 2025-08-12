@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 import logging
 
 from api.models.base import MerlinBaseModel
-from api.services import ensure_leader_note_accesses
 
 
 __all__ = ['User']
@@ -107,6 +106,8 @@ class User(MerlinBaseModel, AbstractUser):
         super().save(*args, **kwargs)
         
         if original_leader != self.leader:
+            # Local import to avoid circular import at module load time
+            from api.services import ensure_leader_note_accesses
             ensure_leader_note_accesses(self, self.leader)
 
     class Meta:
@@ -114,13 +115,16 @@ class User(MerlinBaseModel, AbstractUser):
         verbose_name_plural = "کاربران"
 
     def get_leaders(self):
-        leader = self.leader
         leaders = []
-        count = 0
-        max_count = 10
-        while leader:
-            leaders.append(leader)
-            count += 1
-            if max_count > count:
+        visited_ids = set()
+        current = self.leader
+        depth = 0
+        max_depth = 10
+        while current and depth < max_depth:
+            if current.pk in visited_ids:
                 break
+            leaders.append(current)
+            visited_ids.add(current.pk)
+            current = current.leader
+            depth += 1
         return leaders
