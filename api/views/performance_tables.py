@@ -32,6 +32,9 @@ class PersonnelPerformanceTableView(APIView):
                 return Response({"detail": "Invalid as_of date. Use YYYY-MM-DD."}, status=400)
 
         format_ = request.query_params.get("format", "json")
+        # Support alternative trigger to avoid DRF format override conflicts
+        if format_ != "csv" and request.query_params.get("csv") in ("1", "true", "True", 1, True):
+            format_ = "csv"
 
         # Build base queryset with annotations
         qs = build_personnel_performance_queryset(request.user, as_of)
