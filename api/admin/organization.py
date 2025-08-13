@@ -2,9 +2,10 @@ from django.contrib import admin
 
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
 from api.models.organization import Organization, Department, Tribe, Chapter, Team, Committee, ValueTag, OrgValueTag, PayBand
+from api.models.ladder import Ladder
 
 
-__all__ = ['OrganizationAdmin', 'DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin', 'OrgValueTagAdmin', 'PayBandAdmin']
+__all__ = ['OrganizationAdmin', 'DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin', 'OrgValueTagAdmin', 'PayBandAdmin', 'LadderAdmin']
 
 
 @admin.register(Organization)
@@ -128,3 +129,12 @@ class PayBandAdmin(BaseModelAdmin):
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("number",)
     search_fields = ["number"]
+
+
+@admin.register(Ladder)
+class LadderAdmin(BaseModelAdmin):
+    list_display = ("code", "name", "date_created", "date_updated")
+    fields = ("uuid", "code", "name", "description", ("date_created", "date_updated"))
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("code",)
+    search_fields = ["code", "name"]
