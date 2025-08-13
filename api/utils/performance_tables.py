@@ -16,8 +16,8 @@ def get_persian_year_bounds_gregorian(ref_date: date) -> Tuple[date, date]:
     """Return (start_greg, end_greg) dates bounding the Persian year containing ref_date.
     Uses persiantools for reliable Jalali conversions.
     """
-    jy, jm, jd = JalaliDate.from_gregorian(ref_date.year, ref_date.month, ref_date.day).tuple()
-    start_greg = JalaliDate(jy, 1, 1).to_gregorian()
-    end_greg_exclusive = JalaliDate(jy + 1, 1, 1).to_gregorian()
+    j = JalaliDate.to_jalali(ref_date)
+    start_greg = JalaliDate(j.year, 1, 1).to_gregorian()
+    end_greg_exclusive = JalaliDate(j.year + 1, 1, 1).to_gregorian()
     end_greg_inclusive = end_greg_exclusive - timedelta(days=1)
     return start_greg, end_greg_inclusive 
