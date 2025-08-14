@@ -626,6 +626,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/personnel/performance-table/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['personnel_performance_table_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile/': {
     parameters: {
       query?: never;
@@ -688,6 +704,23 @@ export interface paths {
     put?: never;
     /** @description API endpoint for creating a new user. */
     post: operations['signup_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/teams/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Catalog endpoint for all teams. */
+    get: operations['teams_list'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1412,6 +1445,12 @@ export interface components {
       /** وضعیت */
       submit_status?: components['schemas']['SummarySubmitStatusEnum'];
     };
+    PerformanceTableResponse: {
+      count: number;
+      page: number;
+      page_size: number;
+      results: components['schemas']['UserPerformanceData'][];
+    };
     Profile: {
       readonly id: number;
       /** Format: uuid */
@@ -1571,6 +1610,11 @@ export interface components {
       name_fa: string;
       section: components['schemas']['SectionEnum'];
     };
+    Team: {
+      readonly id: number;
+      /** نام */
+      name: string;
+    };
     TimelineEventLite: {
       readonly id: number;
       event_type?: components['schemas']['EventTypeEnum'];
@@ -1648,6 +1692,35 @@ export interface components {
       email: string;
       /** گذرواژه */
       password: string;
+    };
+    UserPerformanceData: {
+      uuid: string;
+      name: string;
+      /** Format: date */
+      last_committee_date: string | null;
+      /** @default 0 */
+      committees_current_year: number;
+      /** @default 0 */
+      committees_last_year: number;
+      /** Format: double */
+      pay_band: number | null;
+      /** Format: double */
+      salary_change: number | null;
+      /** @default false */
+      is_mapped: boolean;
+      /** Format: date */
+      last_bonus_date: string | null;
+      /** Format: double */
+      last_bonus_percentage: number | null;
+      ladder: string | null;
+      ladder_levels?: {
+        [key: string]: unknown;
+      };
+      /** Format: double */
+      overall_level: number | null;
+      leader: string | null;
+      team: string | null;
+      tribe: string | null;
     };
     UserRequest: {
       /** نام */
@@ -3098,6 +3171,34 @@ export interface operations {
       };
     };
   };
+  personnel_performance_table_retrieve: {
+    parameters: {
+      query?: {
+        as_of?: string;
+        csv?: string;
+        format?: 'csv' | 'json';
+        ladder?: string;
+        ordering?: string;
+        page?: number;
+        page_size?: number;
+        team?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PerformanceTableResponse'];
+        };
+      };
+    };
+  };
   profile_retrieve: {
     parameters: {
       query?: never;
@@ -3240,6 +3341,25 @@ export interface operations {
               access?: string;
             };
           };
+        };
+      };
+    };
+  };
+  teams_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Team'][];
         };
       };
     };

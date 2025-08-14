@@ -39,6 +39,7 @@
     "back": "بازگشت",
     "organization": "سازمان",
     "users": "کاربران",
+    "performanceTable": "جدول عملکرد",
     "details": "جزئیات",
     "timeline": "تاریخچه",
     "changeJobTitle": "تغییر عنوان شغلی",
@@ -50,7 +51,23 @@
     "maintainerOnly": "فقط مدیران سیستم می‌توانند عنوان شغلی را تغییر دهند",
     "errorLoadingData": "خطا در بارگذاری اطلاعات",
     "clear": "پاک کردن",
-    "apply": "اعمال"
+    "apply": "اعمال",
+    "noData": "داده‌ای برای نمایش وجود ندارد",
+    "team": "تیم",
+    "ladder": "لدر",
+    "allTeams": "همه تیم‌ها",
+    "allLadders": "همه لدرها",
+    "overallLevel": "سطح کلی",
+    "payBand": "پله حقوقی",
+    "lastBonus": "آخرین پاداش",
+    "selectDate": "انتخاب تاریخ",
+    "exportCSV": "خروجی CSV",
+    "name": "نام",
+    "ascending": "صعودی",
+    "descending": "نزولی",
+    "leader": "لیدر",
+    "lastCommitteeDate": "آخرین تاریخ کمیته",
+    "committeesCurrentYear": "کمیته‌های سال جاری"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -287,5 +304,8 @@
   },
   "messages": {
     "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
+  },
+  "performance": {
+    "getPerformanceTableError": "خطا در دریافت جدول عملکرد"
   }
 }

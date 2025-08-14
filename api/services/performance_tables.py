@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 from typing import Iterable, Optional
 
-from django.db.models import OuterRef, Subquery, Max, Q, Exists, Count
+from django.db.models import OuterRef, Subquery, Max, Q, Exists, Count, F
 
 from api.models import (
     User,
@@ -278,6 +278,7 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
         "leader": "_leader_name",
         "tribe": "_tribe_name",
         "ladder": "_ladder_code",
+        "last_bonus_percentage": "_last_bonus_percentage",
     }
 
     order_by_clauses = []
@@ -290,7 +291,18 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
         field = ordering_map.get(key)
         if not field:
             continue
-        order_by_clauses.append(("-" if desc else "") + field)
+        
+        # Handle NULL values to come last for numeric fields
+        if field in ["_pay_band_number", "_last_bonus_percentage", "_overall_score"]:
+            # For numeric fields, use F() expression with nulls_last
+            from django.db.models import F
+            if desc:
+                order_by_clauses.append(F(field).desc(nulls_last=True))
+            else:
+                order_by_clauses.append(F(field).asc(nulls_last=True))
+        else:
+            # For non-numeric fields, use regular ordering
+            order_by_clauses.append(("-" if desc else "") + field)
 
     if not order_by_clauses:
         return qs

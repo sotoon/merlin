@@ -25,6 +25,7 @@ from api.models import (
     Notice,
     StockGrant,
     TitleChange,
+    OrgValueTag,
 )
 from api.services.timeline_access import TECH_LADDERS, PRODUCT_LADDERS
 from api.utils.performance_tables import get_persian_year_bounds_gregorian
@@ -100,6 +101,7 @@ class Command(BaseCommand):
         SenioritySnapshot.objects.all().delete()
         OrgAssignmentSnapshot.objects.all().delete()
         # Org structure next
+        OrgValueTag.objects.all().delete()
         Team.objects.all().delete()
         Tribe.objects.all().delete()
         Chapter.objects.all().delete()

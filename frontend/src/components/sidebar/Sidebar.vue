@@ -149,6 +149,14 @@
                   :to="{ name: 'templates' }"
                 />
               </li>
+
+              <li>
+                <SidebarLink
+                  icon="i-mdi-chart-line"
+                  :label="t('common.performanceTable')"
+                  :to="{ name: 'performance-list' }"
+                />
+              </li>
             </SidebarLinkGroup>
           </li>
 

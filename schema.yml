@@ -1607,6 +1607,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/Notice'
           description: ''
+  /api/personnel/performance-table/:
+    get:
+      operationId: personnel_performance_table_retrieve
+      parameters:
+      - in: query
+        name: as_of
+        schema:
+          type: string
+      - in: query
+        name: csv
+        schema:
+          type: string
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - csv
+          - json
+      - in: query
+        name: ladder
+        schema:
+          type: string
+      - in: query
+        name: ordering
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: team
+        schema:
+          type: string
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceTableResponse'
+          description: ''
   /api/profile/:
     get:
       operationId: profile_retrieve
@@ -1751,6 +1801,23 @@ paths:
                         type: string
                         description: Access token
           description: Successfully Signed Up!
+  /api/teams/:
+    get:
+      operationId: teams_list
+      description: Catalog endpoint for all teams.
+      tags:
+      - teams
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+          description: ''
   /api/templates/:
     get:
       operationId: templates_list
@@ -3211,6 +3278,24 @@ components:
           title: وضعیت
           minimum: -2147483648
           maximum: 2147483647
+    PerformanceTableResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPerformanceData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
     Profile:
       type: object
       properties:
@@ -3529,6 +3614,19 @@ components:
       - name_en
       - name_fa
       - section
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: نام
+          maxLength: 256
+      required:
+      - id
+      - name
     TimelineEventLite:
       type: object
       properties:
@@ -3689,6 +3787,74 @@ components:
       required:
       - email
       - password
+      - uuid
+    UserPerformanceData:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        last_committee_date:
+          type: string
+          format: date
+          nullable: true
+        committees_current_year:
+          type: integer
+          default: 0
+        committees_last_year:
+          type: integer
+          default: 0
+        pay_band:
+          type: number
+          format: double
+          nullable: true
+        salary_change:
+          type: number
+          format: double
+          nullable: true
+        is_mapped:
+          type: boolean
+          default: false
+        last_bonus_date:
+          type: string
+          format: date
+          nullable: true
+        last_bonus_percentage:
+          type: number
+          format: double
+          nullable: true
+        ladder:
+          type: string
+          nullable: true
+        ladder_levels:
+          type: object
+          additionalProperties: {}
+        overall_level:
+          type: number
+          format: double
+          nullable: true
+        leader:
+          type: string
+          nullable: true
+        team:
+          type: string
+          nullable: true
+        tribe:
+          type: string
+          nullable: true
+      required:
+      - ladder
+      - last_bonus_date
+      - last_bonus_percentage
+      - last_committee_date
+      - leader
+      - name
+      - overall_level
+      - pay_band
+      - salary_change
+      - team
+      - tribe
       - uuid
     UserRequest:
       type: object
