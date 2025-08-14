@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/vue-query';
 import { computed, toValue, type Ref } from 'vue';
 
 export const useGetPerformanceList = (
-  params?: Ref<
-    Operation<'personnel_performance_table_retrieve'>['parameters']['query']
-  >,
+  params?: any,
+  // params?: Ref<
+  //   Operation<'personnel_performance_table_retrieve'>['parameters']['query']
+  // >,
 ) => {
   const { $api } = useNuxtApp();
   const queryKey = computed(() => [
@@ -18,6 +19,7 @@ export const useGetPerformanceList = (
     toValue(params)?.page,
     toValue(params)?.page_size,
     toValue(params)?.team,
+    toValue(params)?.name,
   ]);
 
   return useQuery<Schema<'PerformanceTableResponse'>>({
