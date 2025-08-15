@@ -95,7 +95,7 @@ def api_client(db):
 @pytest.mark.django_db
 def test_requires_auth(api_client):
 	"""Un-authenticated access to performance table must be rejected with 401."""
-	resp = api_client.get("/api/personnel/performance-table")
+	resp = api_client.get("/api/personnel/performance-table/")
 	assert resp.status_code == 401
 
 
@@ -117,7 +117,7 @@ def test_baseline_json_fields_and_values(api_client):
 	_orgsnap(u, team_a, when)
 
 	api_client.force_authenticate(hrm)
-	resp = api_client.get("/api/personnel/performance-table?page_size=5")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=5")
 	assert resp.status_code == 200
 	body = resp.json()
 	assert body["count"] >= 1
@@ -145,7 +145,7 @@ def test_as_of_picks_latest_snapshot_before_date(api_client):
 	_comp(u, 0, 5.0, before)
 	_comp(u, 0, 10.0, after)
 	api_client.force_authenticate(viewer)
-	resp = api_client.get(f"/api/personnel/performance-table?as_of={mid.isoformat()}&page_size=50")
+	resp = api_client.get(f"/api/personnel/performance-table/?as_of={mid.isoformat()}&page_size=50")
 	assert resp.status_code == 200
 	row = next(r for r in resp.json()["results"] if r["name"] == "e@example.com")
 	# last_bonus_percentage must reflect the 'before' snapshot
@@ -165,7 +165,7 @@ def test_committee_counts_current_and_last_year(api_client):
 	_committee(u, cur_start + timezone.timedelta(days=10))
 	_committee(u, last_start + timezone.timedelta(days=10))
 	api_client.force_authenticate(viewer)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	row = next(r for r in resp.json()["results"] if r["name"] == "e@example.com") 
 	assert row["committees_current_year"] >= 1
 	assert row["committees_last_year"] >= 1
@@ -190,11 +190,11 @@ def test_filters_by_team_and_ladder(api_client):
 	_orgsnap(ub, team_b, timezone.now().date())
 	api_client.force_authenticate(viewer)
 	# filter by team
-	resp = api_client.get(f"/api/personnel/performance-table?team={team_a.id}&page_size=50")
+	resp = api_client.get(f"/api/personnel/performance-table/?team={team_a.id}&page_size=50")
 	names = {r["name"] for r in resp.json()["results"]}
 	assert "ua@example.com" in names and "ub@example.com" not in names
 	# filter by ladder
-	resp = api_client.get(f"/api/personnel/performance-table?ladder=Software&page_size=50")
+	resp = api_client.get(f"/api/personnel/performance-table/?ladder=Software&page_size=50")
 	names = {r["name"] for r in resp.json()["results"]}
 	assert "ua@example.com" in names and "ub@example.com" not in names
 
@@ -213,10 +213,10 @@ def test_ordering_by_pay_band_and_name(api_client):
 	_orgsnap(u2, team_a, timezone.now().date())
 	api_client.force_authenticate(viewer)
 	# restrict dataset to team to avoid unrelated names
-	resp = api_client.get(f"/api/personnel/performance-table?team={team_a.id}&ordering=name&page_size=10")
+	resp = api_client.get(f"/api/personnel/performance-table/?team={team_a.id}&ordering=name&page_size=10")
 	names = [r["name"] for r in resp.json()["results"] if r["name"] in {"A","B"}]
 	assert names == sorted(names)
-	resp = api_client.get("/api/personnel/performance-table?ordering=-committees_current_year,invalid&page_size=10")
+	resp = api_client.get("/api/personnel/performance-table/?ordering=-committees_current_year,invalid&page_size=10")
 	assert resp.status_code == 200  # invalid key ignored
 
 
@@ -248,9 +248,9 @@ def test_invalid_params_return_400(api_client):
 	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
 	viewer = User.objects.create(email="hrm@example.com"); org.hr_manager = viewer; org.save(update_fields=["hr_manager"])
 	api_client.force_authenticate(viewer)
-	assert api_client.get("/api/personnel/performance-table?as_of=2025-99-99").status_code == 400
-	assert api_client.get("/api/personnel/performance-table?page=abc").status_code == 400
-	assert api_client.get("/api/personnel/performance-table?page_size=abc").status_code == 400
+	assert api_client.get("/api/personnel/performance-table/?as_of=2025-99-99").status_code == 400
+	assert api_client.get("/api/personnel/performance-table/?page=abc").status_code == 400
+	assert api_client.get("/api/personnel/performance-table/?page_size=abc").status_code == 400
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +270,7 @@ def test_cto_sees_only_tech_category(api_client):
 	_orgsnap(tech, team_a, timezone.now().date())
 	_orgsnap(prod, team_b, timezone.now().date())
 	api_client.force_authenticate(cto)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	assert resp.status_code == 200
 	ladders = {r["ladder"] for r in resp.json()["results"]}
 	assert all(ld in TECH_LADDERS or ld is None for ld in ladders)
@@ -289,7 +289,7 @@ def test_cpo_sees_only_product_category(api_client):
 	_orgsnap(tech, team_a, timezone.now().date())
 	_orgsnap(prod, team_b, timezone.now().date())
 	api_client.force_authenticate(cpo)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	ladders = {r["ladder"] for r in resp.json()["results"]}
 	assert all(ld in PRODUCT_LADDERS or ld is None for ld in ladders)
 	assert "Software" not in ladders
@@ -306,7 +306,7 @@ def test_team_leader_scope(api_client):
 	_orgsnap(ua, team_a, timezone.now().date())
 	_orgsnap(ub, team_b, timezone.now().date())
 	api_client.force_authenticate(leader)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	names = {r["name"] for r in resp.json()["results"]}
 	assert "ua@example.com" in names and "ub@example.com" not in names
 
@@ -325,13 +325,13 @@ def test_data_access_override_scopes(api_client):
 	# TECH override
 	DataAccessOverride.objects.create(user=viewer, granted_by=viewer, scope=DataAccessOverride.Scope.TECH, is_active=True)
 	api_client.force_authenticate(viewer)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	ladders = {r["ladder"] for r in resp.json()["results"]}
 	assert "Product" not in ladders
 	# switch to PRODUCT override
 	DataAccessOverride.objects.all().delete()
 	DataAccessOverride.objects.create(user=viewer, granted_by=viewer, scope=DataAccessOverride.Scope.PRODUCT, is_active=True)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	ladders = {r["ladder"] for r in resp.json()["results"]}
 	assert "Software" not in ladders
 
@@ -348,7 +348,7 @@ def test_no_snapshots_yield_nulls_and_defaults(api_client):
 	hrm = User.objects.create(email="hrm@example.com"); org.hr_manager = hrm; org.save(update_fields=["hr_manager"])
 	u = User.objects.create(email="plain@example.com", team=team_a)
 	api_client.force_authenticate(hrm)
-	resp = api_client.get("/api/personnel/performance-table?page_size=50")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
 	row = next(r for r in resp.json()["results"] if r["name"] == "plain@example.com")
 	assert row["ladder"] is None
 	assert row["last_bonus_percentage"] is None
@@ -361,6 +361,6 @@ def test_page_size_capped(api_client):
 	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
 	hrm = User.objects.create(email="hrm@example.com"); org.hr_manager = hrm; org.save(update_fields=["hr_manager"])
 	api_client.force_authenticate(hrm)
-	resp = api_client.get("/api/personnel/performance-table?page_size=9999")
+	resp = api_client.get("/api/personnel/performance-table/?page_size=9999")
 	assert resp.status_code == 200
 	assert resp.json()["page_size"] <= 500 
