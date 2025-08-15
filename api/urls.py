@@ -66,10 +66,10 @@ urlpatterns = [
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
     path("users/<uuid:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
-    path("personnel/performance-table/", PersonnelPerformanceTableView.as_view()),
+    path("personnel/performance-table/", PersonnelPerformanceTableView.as_view(), name="personnel-performance-table"),
     # Permission endpoints
     path("profile/permissions/", user_permissions, name="user-permissions"),
-    path("users/<int:target_id>/timeline/permissions/", timeline_permissions, name="timeline-permissions"),
+    path("users/<uuid:target_id>/timeline/permissions/", timeline_permissions, name="timeline-permissions"),
     path("personnel/performance-table/accessible-users/", accessible_users, name="accessible-users"),
     path("", include(router.urls)),
     path("", include(comments_router.urls)),

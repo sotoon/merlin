@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/vue-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/vue-query';
 
 export const useGetUserTimeline = (userId: MaybeRef<string>) => {
   const { $api } = useNuxtApp();
@@ -21,5 +21,14 @@ export const useGetUserTimeline = (userId: MaybeRef<string>) => {
       return undefined;
     },
     initialPageParam: 1,
+  });
+};
+
+export const useGetUserTimelinePermissions = (userId: MaybeRef<string>) => {
+  const { $api } = useNuxtApp();
+
+  return useQuery<Schema<'TimelinePermissions'>>({
+    queryKey: ['user-timeline-permissions', userId],
+    queryFn: () => $api.fetch(`/users/${unref(userId)}/timeline/permissions/`),
   });
 };
