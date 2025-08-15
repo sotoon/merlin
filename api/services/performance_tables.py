@@ -254,6 +254,20 @@ def apply_personnel_filters(qs, params: dict):
         field_name = parts[0]
         lookup = parts[1] if len(parts) > 1 else "exact"
 
+        if field_name.startswith("aspect_"):
+            aspect_code = field_name.split("_", 1)[1]
+            if lookup in ["gt", "lt", "eq"]:
+                try:
+                    numeric_value = float(value)
+                except (ValueError, TypeError):
+                    continue
+
+                orm_lookup = "exact" if lookup == "eq" else lookup
+                qs = qs.filter(
+                    **{f"_details_json__{aspect_code}__{orm_lookup}": numeric_value}
+                )
+            continue
+
         if field_name not in filter_map:
             continue
 
@@ -318,10 +332,20 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
             continue
         desc = token.startswith("-")
         key = token[1:] if desc else token
+
+        if key.startswith("aspect_"):
+            aspect_code = key.split("_", 1)[1]
+            field_expression = F(f"_details_json__{aspect_code}")
+            if desc:
+                order_by_clauses.append(field_expression.desc(nulls_last=True))
+            else:
+                order_by_clauses.append(field_expression.asc(nulls_last=True))
+            continue
+
         field = ordering_map.get(key)
         if not field:
             continue
-        
+
         # Handle NULL values to come last for numeric fields
         if field in [
             "_pay_band_number",
@@ -331,8 +355,6 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
             "_committees_current_year",
             "_committees_last_year",
         ]:
-            # For numeric fields, use F() expression with nulls_last
-            from django.db.models import F
             if desc:
                 order_by_clauses.append(F(field).desc(nulls_last=True))
             else:

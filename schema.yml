@@ -1607,9 +1607,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Notice'
           description: ''
-  /api/personnel/performance-table/:
+  /api/personnel/performance-table:
     get:
       operationId: personnel_performance_table_retrieve
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceTableResponse'
+          description: ''
+  /api/personnel/performance-table/:
+    get:
+      operationId: personnel_performance_table_retrieve_2
       tags:
       - personnel
       security:
