@@ -134,7 +134,7 @@
 <script lang="ts" setup>
 import { PButton, PLoading, PText, PBox } from '@pey/core';
 import { PeyRetryIcon, PeyFilterIcon } from '@pey/icons';
-import { useGetUserTimeline } from '~/composables/users/useGetUserTimeline';
+import { useGetUserTimeline } from '~/composables/services/useUserTimelineServices';
 import UserLevelCard from './UserLevelCard.vue';
 import TimelineEventTypeFilter from './TimelineEventTypeFilter.vue';
 

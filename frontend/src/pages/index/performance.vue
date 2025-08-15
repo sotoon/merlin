@@ -25,10 +25,11 @@ interface SortBy {
 definePageMeta({ name: 'performance-list' });
 
 const { t } = useI18n();
-const route = useRoute();
 const { data: teams } = useGetTeams();
 const { data: ladders } = useGetLadders();
 const { data: tribes } = useGetTribes();
+const { data: accessibleUsers } = useGetAccessibleUsers();
+// const { data: profilePermissions } = useGetProfilePermissions();
 
 const activeFilters = ref<Record<string, any>>({});
 
@@ -76,13 +77,7 @@ const params = computed(() => {
 });
 
 watch(
-  () => [
-    route.query.team,
-    route.query.ladder,
-    ordering.value,
-    route.query.as_of,
-    activeFilters.value,
-  ],
+  () => [ordering.value, activeFilters.value],
   () => {
     currentPage.value = 1;
   },
@@ -106,7 +101,7 @@ useHead({
   title: t('common.performanceTable'),
 });
 
-const columns = ref([
+const staticColumns = ref([
   {
     key: 'index',
     label: '#',
@@ -216,6 +211,40 @@ const columns = ref([
   },
 ]);
 
+const dynamicColumns = computed(() => {
+  if (!ladders.value || ladders.value.length === 0) return [];
+  const selectedLadderCode = activeFilters.value.ladder?.value;
+  if (!selectedLadderCode) return [];
+
+  const selectedLadder = ladders.value.find(
+    (l) => l.code === selectedLadderCode,
+  );
+  if (!selectedLadder) return [];
+
+  return selectedLadder.aspects.map((aspect) => ({
+    key: `aspect_${aspect.code}`,
+    label: aspect.name,
+    sortable: true,
+    filterable: true,
+    filter: { type: 'numeric' as const },
+  }));
+});
+
+const columns = computed(() => {
+  const overallLevelIndex = staticColumns.value.findIndex(
+    (col) => col.key === 'overall_level',
+  );
+
+  if (overallLevelIndex === -1) {
+    return [...staticColumns.value, ...dynamicColumns.value];
+  }
+
+  const firstPart = staticColumns.value.slice(0, overallLevelIndex + 1);
+  const secondPart = staticColumns.value.slice(overallLevelIndex + 1);
+
+  return [...firstPart, ...dynamicColumns.value, ...secondPart];
+});
+
 const handleFilterChanged = (filters: Record<string, any>) => {
   activeFilters.value = filters;
 };
@@ -232,7 +261,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
         </PHeading>
       </div>
 
-      <PerformanceExportButton />
+      <PerformanceExportButton :filters="params" />
     </div>
 
     <div v-if="error" class="flex flex-col items-center gap-4 py-8">
@@ -260,6 +289,15 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           >
             {{ index + 1 }}
           </span>
+        </template>
+        <template
+          v-for="col in dynamicColumns"
+          :key="col.key"
+          #[`cell-${col.key}`]="{ row }"
+        >
+          <PText variant="caption1">
+            {{ row.ladder_levels[col.key.replace('aspect_', '')] }}
+          </PText>
         </template>
         <template #cell-last_committee_date="{ row }">
           <PText v-if="row.last_committee_date" variant="caption1">
@@ -289,6 +327,8 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <PListbox
             v-model="filter.value"
             hide-details
+            searchable
+            multiple
             :label="t('common.allTeams')"
           >
             <PListboxOption
@@ -303,6 +343,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <PListbox
             v-model="filter.value"
             hide-details
+            searchable
             :label="t('common.allLadders')"
           >
             <PListboxOption
@@ -317,6 +358,8 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <PListbox
             v-model="filter.value"
             hide-details
+            searchable
+            multiple
             :label="t('common.allTribes')"
           >
             <PListboxOption
@@ -324,6 +367,22 @@ const handleFilterChanged = (filters: Record<string, any>) => {
               :key="tribe.id"
               :label="tribe.name"
               :value="tribe.id"
+            />
+          </PListbox>
+        </template>
+        <template #filter-name="{ filter }">
+          <PListbox
+            v-model="filter.value"
+            hide-details
+            searchable
+            multiple
+            :label="t('common.allUsers')"
+          >
+            <PListboxOption
+              v-for="user in accessibleUsers?.accessible_users"
+              :key="user.id"
+              :label="user.name || ''"
+              :value="user.id"
             />
           </PListbox>
         </template>

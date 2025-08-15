@@ -642,6 +642,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/personnel/performance-table/accessible-users/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Get list of users accessible to current user for performance table. */
+    get: operations['personnel_performance_table_accessible_users_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile/': {
     parameters: {
       query?: never;
@@ -685,6 +702,23 @@ export interface paths {
       cookie?: never;
     };
     get: operations['profile_current_ladder_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/profile/permissions/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Get current user's permissions and accessible data for UI configuration. */
+    get: operations['profile_permissions_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -792,6 +826,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/users/{target_id}/timeline/permissions/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Check if current user can view a specific user's timeline. */
+    get: operations['users_timeline_permissions_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/users/{user_id}/timeline/': {
     parameters: {
       query?: never;
@@ -863,6 +914,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    AccessibleUser: {
+      readonly id: number;
+      /**
+       * ایمیل سازمانی
+       * Format: email
+       */
+      email: string;
+      /** نام */
+      name?: string | null;
+      ladder: string | null;
+      tribe: string | null;
+      team: string | null;
+    };
+    AccessibleUsersResponse: {
+      accessible_users: components['schemas']['AccessibleUser'][];
+      total_count: number;
+      scope: string;
+    };
     /** @description Serializer for ladder aspect with code and name. */
     Aspect: {
       /** @description Aspect code (e.g., 'DES', 'IMP', 'BUS') */
@@ -1030,6 +1099,11 @@ export interface components {
       /** Format: uuid */
       readonly uuid: string;
       readonly name: string;
+    };
+    FilterOptions: {
+      ladders: string[];
+      tribes: string[];
+      teams: string[];
     };
     /** @description Serializer for listing forms, along with its cycle metadata,
      *     and assignment completion status. */
@@ -1467,6 +1541,15 @@ export interface components {
       page_size: number;
       results: components['schemas']['UserPerformanceData'][];
     };
+    PermissionsField: {
+      can_view_all_users: boolean;
+      can_view_technical_users: boolean;
+      can_view_product_users: boolean;
+      accessible_ladders: string[];
+      accessible_tribes: string[];
+      accessible_teams: string[];
+      scope: string;
+    };
     Profile: {
       readonly id: number;
       /** Format: uuid */
@@ -1626,6 +1709,13 @@ export interface components {
       name_fa: string;
       section: components['schemas']['SectionEnum'];
     };
+    TargetInfo: {
+      ladder: string | null;
+      tribe: string | null;
+      team: string | null;
+      is_technical: boolean;
+      is_product: boolean;
+    };
     Team: {
       readonly id: number;
       /** نام */
@@ -1640,6 +1730,11 @@ export interface components {
       readonly object_url: string;
       readonly model: string;
       readonly object_id: string;
+    };
+    TimelinePermissions: {
+      can_view: boolean;
+      reason: string;
+      target_info: components['schemas']['TargetInfo'];
     };
     TitleChange: {
       readonly id: number;
@@ -1701,6 +1796,13 @@ export interface components {
       | 'OneOnOne'
       | 'FeedbackRequest'
       | 'Feedback';
+    UIHintsField: {
+      /** @default true */
+      show_timeline_section: boolean;
+      /** @default true */
+      show_performance_table: boolean;
+      filter_options: components['schemas']['FilterOptions'];
+    };
     User: {
       /** Format: uuid */
       readonly uuid: string;
@@ -1713,6 +1815,18 @@ export interface components {
       email: string;
       /** گذرواژه */
       password: string;
+    };
+    UserField: {
+      readonly id: number;
+      /**
+       * ایمیل سازمانی
+       * Format: email
+       */
+      email: string;
+      /** نام */
+      name?: string | null;
+      roles: string[];
+      organization: string;
     };
     UserPerformanceData: {
       uuid: string;
@@ -1742,6 +1856,11 @@ export interface components {
       leader: string | null;
       team: string | null;
       tribe: string | null;
+    };
+    UserPermissions: {
+      user: components['schemas']['UserField'];
+      permissions: components['schemas']['PermissionsField'];
+      ui_hints: components['schemas']['UIHintsField'];
     };
     UserRequest: {
       /** نام */
@@ -3211,6 +3330,25 @@ export interface operations {
       };
     };
   };
+  personnel_performance_table_accessible_users_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AccessibleUsersResponse'];
+        };
+      };
+    };
+  };
   profile_retrieve: {
     parameters: {
       query?: never;
@@ -3316,6 +3454,25 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['CurrentLadder'];
+        };
+      };
+    };
+  };
+  profile_permissions_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserPermissions'];
         };
       };
     };
@@ -3473,6 +3630,27 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ProfileList'][];
+        };
+      };
+    };
+  };
+  users_timeline_permissions_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        target_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TimelinePermissions'];
         };
       };
     };

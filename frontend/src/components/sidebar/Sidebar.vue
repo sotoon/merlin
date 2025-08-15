@@ -150,7 +150,7 @@
                 />
               </li>
 
-              <li>
+              <li v-if="profilePermissions?.ui_hints.show_performance_table">
                 <SidebarLink
                   icon="i-mdi-chart-line"
                   :label="t('common.performanceTable')"
@@ -220,6 +220,7 @@ const route = useRoute();
 const { data: messages } = useGetNotes({ retrieveMentions: true });
 const isTeamLeader = useIsTeamLeader();
 const { data: profile } = useGetProfile();
+const { data: profilePermissions } = useGetProfilePermissions();
 
 const isProposalActive = (proposalType: ProposalType) => {
   return (
