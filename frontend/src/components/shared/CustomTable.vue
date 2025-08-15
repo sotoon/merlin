@@ -12,7 +12,7 @@
           >
             <div class="flex items-center">
               <span
-                class="text-md font-bold"
+                class="select-none text-md font-bold"
                 :class="{ 'cursor-pointer': column.sortable }"
                 @click="column.sortable && toggleSort(column.key)"
               >
@@ -20,12 +20,13 @@
               </span>
               <span
                 v-if="column.sortable"
-                class="ms-1 inline-flex flex-col"
+                class="ms-1 inline-flex cursor-pointer flex-col"
                 :class="[
                   sortBy?.prop === column.key && sortBy.order
                     ? 'text-primary'
                     : 'text-gray-40',
                 ]"
+                @click="toggleSort(column.key)"
               >
                 <PeyArrowDownFillIcon
                   class="-mb-3.5 h-5 w-5 rotate-180"
@@ -160,7 +161,7 @@
             v-for="(column, colIndex) in columns"
             :key="column.key || colIndex"
             tabindex="0"
-            class="p-4"
+            class="whitespace-nowrap p-4"
             :class="column.cellClass"
           >
             <slot :name="`cell-${column.key}`" :row="row" :index="rowIndex">

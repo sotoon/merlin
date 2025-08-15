@@ -76,13 +76,7 @@ const params = computed(() => {
 });
 
 watch(
-  () => [
-    route.query.team,
-    route.query.ladder,
-    ordering.value,
-    route.query.as_of,
-    activeFilters.value,
-  ],
+  () => [ordering.value, route.query.as_of, activeFilters.value],
   () => {
     currentPage.value = 1;
   },
@@ -106,7 +100,7 @@ useHead({
   title: t('common.performanceTable'),
 });
 
-const columns = ref([
+const staticColumns = ref([
   {
     key: 'index',
     label: '#',
@@ -216,6 +210,40 @@ const columns = ref([
   },
 ]);
 
+const dynamicColumns = computed(() => {
+  if (!ladders.value || ladders.value.length === 0) return [];
+  const selectedLadderCode = activeFilters.value.ladder?.value;
+  if (!selectedLadderCode) return [];
+
+  const selectedLadder = ladders.value.find(
+    (l) => l.code === selectedLadderCode,
+  );
+  if (!selectedLadder) return [];
+
+  return selectedLadder.aspects.map((aspect) => ({
+    key: `aspect_${aspect.code}`,
+    label: aspect.name,
+    sortable: true,
+    filterable: true,
+    filter: { type: 'numeric' as const },
+  }));
+});
+
+const columns = computed(() => {
+  const overallLevelIndex = staticColumns.value.findIndex(
+    (col) => col.key === 'overall_level',
+  );
+
+  if (overallLevelIndex === -1) {
+    return [...staticColumns.value, ...dynamicColumns.value];
+  }
+
+  const firstPart = staticColumns.value.slice(0, overallLevelIndex + 1);
+  const secondPart = staticColumns.value.slice(overallLevelIndex + 1);
+
+  return [...firstPart, ...dynamicColumns.value, ...secondPart];
+});
+
 const handleFilterChanged = (filters: Record<string, any>) => {
   activeFilters.value = filters;
 };
@@ -260,6 +288,15 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           >
             {{ index + 1 }}
           </span>
+        </template>
+        <template
+          v-for="col in dynamicColumns"
+          :key="col.key"
+          #[`cell-${col.key}`]="{ row }"
+        >
+          <PText variant="caption1">
+            {{ row.ladder_levels[col.key.replace('aspect_', '')] }}
+          </PText>
         </template>
         <template #cell-last_committee_date="{ row }">
           <PText v-if="row.last_committee_date" variant="caption1">
