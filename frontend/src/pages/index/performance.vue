@@ -261,7 +261,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
         </PHeading>
       </div>
 
-      <PerformanceExportButton />
+      <PerformanceExportButton :filters="params" />
     </div>
 
     <div v-if="error" class="flex flex-col items-center gap-4 py-8">
