@@ -28,6 +28,7 @@ from api.models import (
     OrgValueTag,
 )
 from api.models.ladder import LadderAspect
+from api.models.timeline import EventType
 from api.services.timeline_access import TECH_LADDERS, PRODUCT_LADDERS
 from api.utils.performance_tables import get_persian_year_bounds_gregorian
 
@@ -443,6 +444,55 @@ class Command(BaseCommand):
 
         Note.objects.bulk_create(notes, batch_size=1000)
         Summary.objects.bulk_create(summaries, batch_size=1000)
+
+        # Create timeline events for snapshots (since bulk_create doesn't trigger signals)
+        self.stdout.write("Creating timeline events for snapshots…")
+        from django.contrib.contenttypes.models import ContentType
+        
+        timeline_events = []
+        
+        # Create events for SenioritySnapshots
+        for snapshot in SenioritySnapshot.objects.all():
+            summary_text = f"سطح ارشدیت کاربر به {snapshot.overall_score} تغییر کرد."
+            if snapshot.ladder:
+                summary_text += f" لدر: {snapshot.ladder.name}"
+            
+            content_type = ContentType.objects.get_for_model(SenioritySnapshot)
+            timeline_events.append(
+                TimelineEvent(
+                    user=snapshot.user,
+                    event_type=EventType.SENIORITY_CHANGE,
+                    summary_text=summary_text,
+                    effective_date=snapshot.effective_date,
+                    content_type=content_type,
+                    object_id=snapshot.pk,
+                    visibility_mask=1,
+                )
+            )
+        
+        # Create events for CompensationSnapshots
+        for snapshot in CompensationSnapshot.objects.all():
+            summary_text = f"پله حقوقی کاربر به {snapshot.pay_band.number} تغییر کرد."
+            if snapshot.salary_change:
+                summary_text += f" تغییر: {snapshot.salary_change:+g}"
+            if snapshot.bonus_percentage:
+                summary_text += f" پاداش: {snapshot.bonus_percentage}%"
+            
+            content_type = ContentType.objects.get_for_model(CompensationSnapshot)
+            timeline_events.append(
+                TimelineEvent(
+                    user=snapshot.user,
+                    event_type=EventType.PAY_CHANGE,
+                    summary_text=summary_text,
+                    effective_date=snapshot.effective_date,
+                    content_type=content_type,
+                    object_id=snapshot.pk,
+                    visibility_mask=1,
+                )
+            )
+        
+        TimelineEvent.objects.bulk_create(timeline_events, batch_size=500)
+        self.stdout.write(f"Created {len(timeline_events)} timeline events")
 
         # Attach team leaders from created leaders as user.leader if missing
         for u in users:

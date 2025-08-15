@@ -3,7 +3,7 @@ Aggregator module for view classes and functions.
 It collects public names from submodules.
 """
 
-from . import note, auth, form, profile, organization, feedback, timeline, performance_tables
+from . import note, auth, form, profile, organization, feedback, timeline, performance_tables, user_access
 
 # Import everything from each submodule into this package's namespace.
 from .note import *
