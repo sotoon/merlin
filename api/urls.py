@@ -4,7 +4,7 @@ from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from api import views
-from api.views import UserTimelineView, PersonnelPerformanceTableView
+from api.views import UserTimelineView, PersonnelPerformanceTableView, PersonnelPerformanceCSVView
 from api.views.user_access import user_permissions, timeline_permissions, accessible_users
 
 # ─── Top-level router ────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ urlpatterns = [
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
     path("users/<uuid:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
     path("personnel/performance-table/", PersonnelPerformanceTableView.as_view(), name="personnel-performance-table"),
-    # Permission endpoints
+    path("personnel/performance-table/csv/", PersonnelPerformanceCSVView.as_view(), name="personnel-performance-csv"),
     path("profile/permissions/", user_permissions, name="user-permissions"),
     path("users/<uuid:target_id>/timeline/permissions/", timeline_permissions, name="timeline-permissions"),
     path("personnel/performance-table/accessible-users/", accessible_users, name="accessible-users"),

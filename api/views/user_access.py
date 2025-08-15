@@ -84,7 +84,7 @@ def user_permissions(request):
     if can_view_all_users:
         # HR and CEO can see all teams
         accessible_teams = list(Team.objects.values_list('name', flat=True))
-    elif has_role(user, {RoleType.TEAM_LEADER}):
+    elif Team.objects.filter(leader=user).exists():
         # Team leaders can see their own team
         accessible_teams = list(Team.objects.filter(leader=user).values_list('name', flat=True))
     elif accessible_tribes:
@@ -92,7 +92,16 @@ def user_permissions(request):
         accessible_teams = list(Team.objects.filter(tribe__name__in=accessible_tribes).values_list('name', flat=True))
     
     # Determine scope
-    scope = "all_users" if can_view_all_users else "technical_only" if can_view_technical_users else "product_only" if can_view_product_users else "team_only"
+    if can_view_all_users:
+        scope = "all_users"
+    elif can_view_technical_users:
+        scope = "technical_only"
+    elif can_view_product_users:
+        scope = "product_only"
+    elif Team.objects.filter(leader=user).exists():
+        scope = "team_only"
+    else:
+        scope = "none"
     
     # UI hints
     ui_hints = {
