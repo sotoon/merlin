@@ -25,10 +25,11 @@ interface SortBy {
 definePageMeta({ name: 'performance-list' });
 
 const { t } = useI18n();
-const route = useRoute();
 const { data: teams } = useGetTeams();
 const { data: ladders } = useGetLadders();
 const { data: tribes } = useGetTribes();
+const { data: accessibleUsers } = useGetAccessibleUsers();
+// const { data: profilePermissions } = useGetProfilePermissions();
 
 const activeFilters = ref<Record<string, any>>({});
 
@@ -76,7 +77,7 @@ const params = computed(() => {
 });
 
 watch(
-  () => [ordering.value, route.query.as_of, activeFilters.value],
+  () => [ordering.value, activeFilters.value],
   () => {
     currentPage.value = 1;
   },
@@ -326,6 +327,8 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <PListbox
             v-model="filter.value"
             hide-details
+            searchable
+            multiple
             :label="t('common.allTeams')"
           >
             <PListboxOption
@@ -340,6 +343,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <PListbox
             v-model="filter.value"
             hide-details
+            searchable
             :label="t('common.allLadders')"
           >
             <PListboxOption
@@ -354,6 +358,8 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <PListbox
             v-model="filter.value"
             hide-details
+            searchable
+            multiple
             :label="t('common.allTribes')"
           >
             <PListboxOption
@@ -361,6 +367,22 @@ const handleFilterChanged = (filters: Record<string, any>) => {
               :key="tribe.id"
               :label="tribe.name"
               :value="tribe.id"
+            />
+          </PListbox>
+        </template>
+        <template #filter-name="{ filter }">
+          <PListbox
+            v-model="filter.value"
+            hide-details
+            searchable
+            multiple
+            :label="t('common.allUsers')"
+          >
+            <PListboxOption
+              v-for="user in accessibleUsers?.accessible_users"
+              :key="user.id"
+              :label="user.name || ''"
+              :value="user.id"
             />
           </PListbox>
         </template>

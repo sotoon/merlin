@@ -12,7 +12,7 @@
       </div>
 
       <PButton
-        v-if="isManager"
+        v-if="timelinePermissions?.can_view"
         class="shrink-0"
         tabindex="-1"
         @click="titleChangeDialogOpen = true"
@@ -36,7 +36,7 @@
     </div>
 
     <div v-else-if="user">
-      <PTabs v-if="isManager" class="pt-4">
+      <PTabs v-if="timelinePermissions?.can_view" class="pt-4">
         <PTab :title="t('common.details')">
           <PBox
             class="mx-auto max-w-3xl bg-white px-2 py-8 sm:px-4 lg:px-8 lg:pt-10"
@@ -94,14 +94,7 @@ const route = useRoute();
 const userId = computed(() => route.params.id as string);
 
 const { data: user, isPending, error, refetch } = useGetUser(userId);
-const { data: currentUserProfile } = useGetProfile();
-
-const isManager = computed(() => {
-  if (!currentUserProfile.value || !user.value?.leader) {
-    return false;
-  }
-  return currentUserProfile.value.name === user.value.leader;
-});
+const { data: timelinePermissions } = useGetUserTimelinePermissions(userId);
 
 const titleChangeDialogOpen = ref(false);
 

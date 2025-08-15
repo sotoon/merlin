@@ -244,7 +244,7 @@ def apply_personnel_filters(qs, params: dict):
         "committees_last_year": "_committees_last_year",
         "last_bonus_percentage": "_last_bonus_percentage",
     }
-    string_fields = ["name", "leader", "ladder"]
+    string_fields = ["name", "leader"]
 
     for key, value in params.items():
         if not value:
@@ -274,6 +274,8 @@ def apply_personnel_filters(qs, params: dict):
         db_field = filter_map[field_name]
 
         if lookup == "in":
+            if field_name == "name":
+                db_field = "id"
             qs = qs.filter(**{f"{db_field}__in": value.split(",")})
         elif lookup in ["gt", "lt", "eq"]:
             try:
