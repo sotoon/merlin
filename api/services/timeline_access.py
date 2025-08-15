@@ -88,7 +88,7 @@ def can_view_timeline(viewer: "User", target: "User") -> bool:
         if viewer_tribe and viewer_tribe == target_tribe:
             return True
 
-    # CPO → all product managers (by ladder), org-wide
+    # CPO to view all product managers (by ladder), org-wide
     if has_role(viewer, {RoleType.CPO}):
         return _is_product(target)
 

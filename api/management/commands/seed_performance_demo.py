@@ -27,6 +27,7 @@ from api.models import (
     TitleChange,
     OrgValueTag,
 )
+from api.models.ladder import LadderAspect
 from api.services.timeline_access import TECH_LADDERS, PRODUCT_LADDERS
 from api.utils.performance_tables import get_persian_year_bounds_gregorian
 
@@ -142,6 +143,57 @@ class Command(BaseCommand):
         for code in ladder_codes:
             ladder, _ = Ladder.objects.get_or_create(code=code, defaults={"name": code})
             code_to_ladder[code] = ladder
+
+        # Define aspects for different ladder types
+        
+        # Technical ladder aspects (similar for all tech ladders)
+        tech_aspects = [
+            ("technical", "مهارت‌های فنی", 1),
+            ("leadership", "رهبری", 2),
+            ("communication", "ارتباطات", 3),
+            ("delivery", "تحویل و تأثیر", 4),
+            ("collaboration", "همکاری", 5),
+        ]
+        
+        # Product ladder aspects
+        product_aspects = [
+            ("product_strategy", "استراتژی محصول", 1),
+            ("execution", "اجرا", 2),
+            ("leadership", "رهبری", 3),
+            ("communication", "ارتباطات", 4),
+            ("data_analysis", "تحلیل داده", 5),
+            ("user_research", "تحقیق کاربر", 6),
+        ]
+        
+        # Non-technical ladder aspects
+        nontech_aspects = [
+            ("domain_expertise", "تخصص حوزه", 1),
+            ("execution", "اجرا", 2),
+            ("leadership", "رهبری", 3),
+            ("communication", "ارتباطات", 4),
+            ("collaboration", "همکاری", 5),
+        ]
+        
+        self.stdout.write("Creating ladder aspects…")
+        for code, ladder in code_to_ladder.items():
+            # Choose aspects based on ladder type
+            if code in TECH_LADDERS:
+                aspects = tech_aspects
+            elif code in PRODUCT_LADDERS:
+                aspects = product_aspects
+            else:  # HR Ladder, Administration Ladder
+                aspects = nontech_aspects
+            
+            # Create aspects for this ladder
+            for aspect_code, aspect_name, order in aspects:
+                LadderAspect.objects.get_or_create(
+                    ladder=ladder,
+                    code=aspect_code,
+                    defaults={
+                        "name": aspect_name,
+                        "order": order,
+                    }
+                )
 
         self.stdout.write("Creating pay bands…")
         for n in [x / 2.0 for x in range(40, 81)]:  # 20.0 .. 40.0
@@ -266,15 +318,40 @@ class Command(BaseCommand):
                 ladder_code = random.choice(["HR Ladder", "Administration Ladder"])  # non-tech
             ladder = code_to_ladder.get(ladder_code)
 
-            # Seniority snapshot (details kept minimal)
+            # Seniority snapshot with realistic aspect data
+            if ladder:
+                # Get aspects for this ladder
+                aspects = list(ladder.aspects.all())
+                if aspects:
+                    # Create realistic aspect scores and stages
+                    details_json = {}
+                    stages_json = {}
+                    for aspect in aspects:
+                        level = random.randint(1, 5)
+                        stage = random.choice(["EARLY", "MID", "LATE"])
+                        details_json[aspect.code] = level
+                        stages_json[aspect.code] = stage
+                    
+                    overall_score = round(sum(details_json.values()) / len(details_json), 1)
+                else:
+                    # Fallback if no aspects defined
+                    details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                    stages_json = {"core": "MID", "comm": "EARLY"}
+                    overall_score = round(random.uniform(1.0, 5.0), 1)
+            else:
+                # Fallback if no ladder assigned
+                details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                stages_json = {"core": "MID", "comm": "EARLY"}
+                overall_score = round(random.uniform(1.0, 5.0), 1)
+            
             sen_rows.append(
                 SenioritySnapshot(
                     user=u,
                     ladder=ladder,
-                    title=f"{ladder_code} IC",
-                    overall_score=round(random.uniform(1.0, 5.0), 1),
-                    details_json={"core": random.randint(1, 5), "comm": random.randint(1, 5)},
-                    stages_json={"core": "MID", "comm": "EARLY"},
+                    title=f"{ladder_code} IC" if ladder_code else "IC",
+                    overall_score=overall_score,
+                    details_json=details_json,
+                    stages_json=stages_json,
                     effective_date=today - timedelta(days=random.randint(60, 400)),
                 )
             )
