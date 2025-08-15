@@ -1,30 +1,15 @@
 import { useNuxtApp } from '#app';
 import { useQuery } from '@tanstack/vue-query';
-import { computed, toValue, type Ref } from 'vue';
 
-export const useGetPerformanceList = (
-  params?: any,
-  // params?: Ref<
-  //   Operation<'personnel_performance_table_retrieve'>['parameters']['query']
-  // >,
-) => {
+export function useGetPerformanceList(
+  params: MaybeRef<Record<string, string | number | undefined>>,
+) {
   const { $api } = useNuxtApp();
-  const queryKey = computed(() => [
-    'personnel-performance-list',
-    toValue(params)?.as_of,
-    toValue(params)?.csv,
-    toValue(params)?.format,
-    toValue(params)?.ladder,
-    toValue(params)?.ordering,
-    toValue(params)?.page,
-    toValue(params)?.page_size,
-    toValue(params)?.team,
-    toValue(params)?.name,
-  ]);
+  const queryKey = computed(() => ['personnel-performance-list', params]);
 
   return useQuery<Schema<'PerformanceTableResponse'>>({
     queryKey,
     queryFn: () =>
       $api.fetch('/personnel/performance-table/', { params: toValue(params) }),
   });
-};
+}

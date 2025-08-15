@@ -7,7 +7,6 @@ from django.db.models import OuterRef, Subquery, Max, Q, Exists, Count, F
 
 from api.models import (
     User,
-    TimelineEvent,
     CompensationSnapshot,
     SenioritySnapshot,
     OrgAssignmentSnapshot,
@@ -194,7 +193,9 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
 
     leader_name = Subquery(latest_org_qs.values("leader__name")[:1])
     team_name = Subquery(latest_org_qs.values("team__name")[:1])
+    team_id = Subquery(latest_org_qs.values("team_id")[:1])
     tribe_name = Subquery(latest_org_qs.values("team__tribe__name")[:1])
+    tribe_id = Subquery(latest_org_qs.values("team__tribe_id")[:1])
 
     is_mapped = Exists(SenioritySnapshot.objects.filter(user=OuterRef("pk")))
 
@@ -214,7 +215,9 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
             _details_json=details_json,
             _leader_name=leader_name,
             _team_name=team_name,
+            _team_id=team_id,
             _tribe_name=tribe_name,
+            _tribe_id=tribe_id,
             _is_mapped=is_mapped,
         )
         .select_related("team", "leader", "team__tribe")
@@ -225,37 +228,61 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
 
 def apply_personnel_filters(qs, params: dict):
     """Apply common filters on the annotated queryset using query params."""
-    team_id = params.get("team")
-    tribe_id = params.get("tribe")
-    leader_id = params.get("leader")
-    ladder = params.get("ladder")
-    pay_band_min = params.get("pay_band_min")
-    pay_band_max = params.get("pay_band_max")
-    mapped = params.get("mapped")
-    evaluated_after = params.get("evaluated_after")  # YYYY-MM-DD
-    evaluated_before = params.get("evaluated_before")
+    filter_map = {
+        "name": "name",
+        "team": "_team_id",
+        "tribe": "_tribe_id",
+        "leader": "_leader_name",
+        "ladder": "_ladder_code",
+        "pay_band": "_pay_band_number",
+        "is_mapped": "_is_mapped",
+        "last_committee_date": "_last_committee_date",
+        "last_bonus_date": "_last_bonus_date",
+        "overall_level": "_overall_score",
+        "salary_change": "_salary_change",
+        "committees_current_year": "_committees_current_year",
+        "committees_last_year": "_committees_last_year",
+        "last_bonus_percentage": "_last_bonus_percentage",
+    }
+    string_fields = ["name", "leader", "ladder"]
 
-    if team_id:
-        qs = qs.filter(_team_name__isnull=False, team_id=team_id)
-    if tribe_id:
-        qs = qs.filter(team__tribe_id=tribe_id)
-    if leader_id:
-        qs = qs.filter(leader_id=leader_id)
-    if ladder:
-        qs = qs.filter(_ladder_code=ladder)
-    if pay_band_min:
-        qs = qs.filter(_pay_band_number__gte=pay_band_min)
-    if pay_band_max:
-        qs = qs.filter(_pay_band_number__lte=pay_band_max)
-    if mapped is not None:
-        if mapped in ("1", "true", "True", True):
-            qs = qs.filter(_is_mapped=True)
-        elif mapped in ("0", "false", "False", False):
-            qs = qs.filter(_is_mapped=False)
-    if evaluated_after:
-        qs = qs.filter(_last_committee_date__gte=evaluated_after)
-    if evaluated_before:
-        qs = qs.filter(_last_committee_date__lte=evaluated_before)
+    for key, value in params.items():
+        if not value:
+            continue
+
+        parts = key.split("__")
+        field_name = parts[0]
+        lookup = parts[1] if len(parts) > 1 else "exact"
+
+        if field_name not in filter_map:
+            continue
+
+        db_field = filter_map[field_name]
+
+        if lookup == "in":
+            qs = qs.filter(**{f"{db_field}__in": value.split(",")})
+        elif lookup in ["gt", "lt", "eq"]:
+            try:
+                if "date" in field_name:
+                    value = datetime.strptime(value, "%Y-%m-%d").date()
+                else:
+                    value = float(value)
+            except (ValueError, TypeError):
+                continue
+
+            if lookup == "gt":
+                qs = qs.filter(**{f"{db_field}__gt": value})
+            elif lookup == "lt":
+                qs = qs.filter(**{f"{db_field}__lt": value})
+            elif lookup == "eq":
+                qs = qs.filter(**{f"{db_field}__exact": value})
+        elif field_name in string_fields and lookup == "exact":
+            qs = qs.filter(**{f"{db_field}__icontains": value})
+        elif field_name == "is_mapped" and lookup == "exact":
+            bool_value = str(value).lower() in ["true", "1"]
+            qs = qs.filter(**{f"{db_field}__exact": bool_value})
+        else:
+            qs = qs.filter(**{f"{db_field}__{lookup}": value})
 
     return qs
 
@@ -265,7 +292,7 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
     Supports comma-separated fields with optional '-' prefix for descending.
     """
     if not ordering_param:
-        return qs
+        return qs.order_by("name")
 
     ordering_map = {
         "name": "name",
@@ -279,6 +306,9 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
         "tribe": "_tribe_name",
         "ladder": "_ladder_code",
         "last_bonus_percentage": "_last_bonus_percentage",
+        "is_mapped": "_is_mapped",
+        "last_bonus_date": "_last_bonus_date",
+        "salary_change": "_salary_change",
     }
 
     order_by_clauses = []
@@ -293,7 +323,14 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
             continue
         
         # Handle NULL values to come last for numeric fields
-        if field in ["_pay_band_number", "_last_bonus_percentage", "_overall_score"]:
+        if field in [
+            "_pay_band_number",
+            "_last_bonus_percentage",
+            "_overall_score",
+            "_salary_change",
+            "_committees_current_year",
+            "_committees_last_year",
+        ]:
             # For numeric fields, use F() expression with nulls_last
             from django.db.models import F
             if desc:
@@ -305,6 +342,6 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
             order_by_clauses.append(("-" if desc else "") + field)
 
     if not order_by_clauses:
-        return qs
+        return qs.order_by("name")
 
     return qs.order_by(*order_by_clauses) 

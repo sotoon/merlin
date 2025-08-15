@@ -1,10 +1,15 @@
 from rest_framework import generics, permissions
+from rest_framework.permissions import IsAuthenticated
 
-from api.models import ValueTag, Team
-from api.serializers import TagReadSerializer, TeamSerializer
+from api.models import ValueTag, Team, Tribe
+from api.serializers import TagReadSerializer
+from api.serializers.organization import (
+    TeamSerializer,
+    TribeSerializer,
+)
 
 
-__all__ = ['ValueTagListView', 'TeamListView']
+__all__ = ['ValueTagListView', 'TeamListView', 'TribeListView']
 
 
 class ValueTagListView(generics.ListAPIView):
@@ -19,4 +24,10 @@ class TeamListView(generics.ListAPIView):
     queryset = Team.objects.all().order_by('name')
     serializer_class = TeamSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+
+class TribeListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TribeSerializer
+    queryset = Tribe.objects.all()
     

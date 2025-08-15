@@ -59,6 +59,7 @@ urlpatterns = [
     ),
     path("ladders/", views.LadderListView.as_view(), name="ladders"),
     path("teams/", views.TeamListView.as_view(), name="teams"),
+    path("tribes/", views.TribeListView.as_view(), name="tribes"),
     path("users/", views.UserListView.as_view(), name="user-list"),
     path("users/<uuid:uuid>/", views.UserDetailView.as_view(), name="user-detail"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
