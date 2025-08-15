@@ -143,4 +143,4 @@ class TitleChange(MerlinBaseModel):
         ordering = ("-effective_date",)
 
     def __str__(self):
-        return f"{self.user} • {self.old_title} → {self.new_title}"
+        return f"{self.user} • {self.old_title} → {self.new_title}" 
