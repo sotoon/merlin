@@ -234,7 +234,7 @@ def test_csv_export_headers_and_filename(api_client):
 	as_of = (timezone.now().date()).isoformat()
 	# ensure at least one row exists
 	viewer2 = User.objects.create(email="m@example.com"); _seniority(viewer2, "Software", timezone.now().date()); _orgsnap(viewer2, team_a, timezone.now().date())
-	url = reverse("api:personnel-performance-table") + f"?csv=1&as_of={as_of}"
+	url = reverse("api:personnel-performance-csv") + f"?as_of={as_of}"
 	resp = api_client.get(url)
 	assert resp.status_code == 200
 	cd = resp.get("Content-Disposition", "")
