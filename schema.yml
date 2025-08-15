@@ -1621,6 +1621,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/PerformanceTableResponse'
           description: ''
+  /api/personnel/performance-table/accessible-users/:
+    get:
+      operationId: personnel_performance_table_accessible_users_retrieve
+      description: Get list of users accessible to current user for performance table.
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessibleUsersResponse'
+          description: ''
   /api/profile/:
     get:
       operationId: profile_retrieve
@@ -1720,6 +1735,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CurrentLadder'
+          description: ''
+  /api/profile/permissions/:
+    get:
+      operationId: profile_permissions_retrieve
+      description: Get current user's permissions and accessible data for UI configuration.
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPermissions'
           description: ''
   /api/signup/:
     post:
@@ -1872,6 +1902,28 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProfileList'
           description: ''
+  /api/users/{target_id}/timeline/permissions/:
+    get:
+      operationId: users_timeline_permissions_retrieve
+      description: Check if current user can view a specific user's timeline.
+      parameters:
+      - in: path
+        name: target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelinePermissions'
+          description: ''
   /api/users/{user_id}/timeline/:
     get:
       operationId: users_timeline_list
@@ -1975,6 +2027,52 @@ paths:
           description: Verified Successfully
 components:
   schemas:
+    AccessibleUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          maxLength: 254
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        ladder:
+          type: string
+          nullable: true
+        tribe:
+          type: string
+          nullable: true
+        team:
+          type: string
+          nullable: true
+      required:
+      - email
+      - id
+      - ladder
+      - team
+      - tribe
+    AccessibleUsersResponse:
+      type: object
+      properties:
+        accessible_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessibleUser'
+        total_count:
+          type: integer
+        scope:
+          type: string
+      required:
+      - accessible_users
+      - scope
+      - total_count
     Aspect:
       type: object
       description: Serializer for ladder aspect with code and name.
@@ -2354,6 +2452,25 @@ components:
       required:
       - name
       - uuid
+    FilterOptions:
+      type: object
+      properties:
+        ladders:
+          type: array
+          items:
+            type: string
+        tribes:
+          type: array
+          items:
+            type: string
+        teams:
+          type: array
+          items:
+            type: string
+      required:
+      - ladders
+      - teams
+      - tribes
     Form:
       type: object
       description: |-
@@ -3276,6 +3393,37 @@ components:
       - page
       - page_size
       - results
+    PermissionsField:
+      type: object
+      properties:
+        can_view_all_users:
+          type: boolean
+        can_view_technical_users:
+          type: boolean
+        can_view_product_users:
+          type: boolean
+        accessible_ladders:
+          type: array
+          items:
+            type: string
+        accessible_tribes:
+          type: array
+          items:
+            type: string
+        accessible_teams:
+          type: array
+          items:
+            type: string
+        scope:
+          type: string
+      required:
+      - accessible_ladders
+      - accessible_teams
+      - accessible_tribes
+      - can_view_all_users
+      - can_view_product_users
+      - can_view_technical_users
+      - scope
     Profile:
       type: object
       properties:
@@ -3594,6 +3742,28 @@ components:
       - name_en
       - name_fa
       - section
+    TargetInfo:
+      type: object
+      properties:
+        ladder:
+          type: string
+          nullable: true
+        tribe:
+          type: string
+          nullable: true
+        team:
+          type: string
+          nullable: true
+        is_technical:
+          type: boolean
+        is_product:
+          type: boolean
+      required:
+      - is_product
+      - is_technical
+      - ladder
+      - team
+      - tribe
     Team:
       type: object
       properties:
@@ -3637,6 +3807,19 @@ components:
       - object_id
       - object_url
       - summary_text
+    TimelinePermissions:
+      type: object
+      properties:
+        can_view:
+          type: boolean
+        reason:
+          type: string
+        target_info:
+          $ref: '#/components/schemas/TargetInfo'
+      required:
+      - can_view
+      - reason
+      - target_info
     TitleChange:
       type: object
       properties:
@@ -3756,6 +3939,19 @@ components:
         * `OneOnOne` - یک‌به‌یک
         * `FeedbackRequest` - درخواست بازخورد
         * `Feedback` - بازخورد
+    UIHintsField:
+      type: object
+      properties:
+        show_timeline_section:
+          type: boolean
+          default: true
+        show_performance_table:
+          type: boolean
+          default: true
+        filter_options:
+          $ref: '#/components/schemas/FilterOptions'
+      required:
+      - filter_options
     User:
       type: object
       properties:
@@ -3781,6 +3977,33 @@ components:
       - email
       - password
       - uuid
+    UserField:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          maxLength: 254
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        roles:
+          type: array
+          items:
+            type: string
+        organization:
+          type: string
+      required:
+      - email
+      - id
+      - organization
+      - roles
     UserPerformanceData:
       type: object
       properties:
@@ -3849,6 +4072,19 @@ components:
       - team
       - tribe
       - uuid
+    UserPermissions:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserField'
+        permissions:
+          $ref: '#/components/schemas/PermissionsField'
+        ui_hints:
+          $ref: '#/components/schemas/UIHintsField'
+      required:
+      - permissions
+      - ui_hints
+      - user
     UserRequest:
       type: object
       properties:

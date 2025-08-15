@@ -13,3 +13,11 @@ export function useGetPerformanceList(
       $api.fetch('/personnel/performance-table/', { params: toValue(params) }),
   });
 }
+
+export function useGetAccessibleUsers() {
+  const { $api } = useNuxtApp();
+  return useQuery<Schema<'AccessibleUsersResponse'>>({
+    queryKey: ['accessible-users'],
+    queryFn: () => $api.fetch('/personnel/performance-table/accessible-users/'),
+  });
+}

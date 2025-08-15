@@ -1,10 +1,14 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-
-from api.models import User, Organization, Tribe, Team
+from api.models import User, Team, Tribe
+from api.serializers.user_access import (
+    UserPermissionsSerializer,
+    AccessibleUsersResponseSerializer,
+    TimelinePermissionsSerializer,
+)
 from api.services.timeline_access import (
     can_view_timeline, 
     has_role, 
@@ -16,6 +20,7 @@ from api.services.timeline_access import (
 from api.models import RoleType
 
 
+@extend_schema(responses={200: UserPermissionsSerializer})
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_permissions(request):
@@ -121,12 +126,13 @@ def user_permissions(request):
     })
 
 
+@extend_schema(responses={200: TimelinePermissionsSerializer})
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def timeline_permissions(request, target_id):
     """Check if current user can view a specific user's timeline."""
     viewer = request.user
-    target = get_object_or_404(User, id=target_id)
+    target = get_object_or_404(User, uuid=target_id)
     
     can_view = can_view_timeline(viewer, target)
     
@@ -149,10 +155,13 @@ def timeline_permissions(request, target_id):
     elif has_role(viewer, {RoleType.PRODUCT_DIRECTOR}) and _is_product(target):
         reason = "product_director_product"
     
+    latest_snapshot = target.seniority_snapshots.order_by("-effective_date").first()
     target_info = {
-        "ladder": getattr(target.seniority_snapshots.order_by('-effective_date').first(), 'ladder', None),
-        "tribe": getattr(getattr(target.team, 'tribe', None), 'name', None),
-        "team": getattr(target.team, 'name', None),
+        "ladder": getattr(latest_snapshot.ladder, "code", None)
+        if latest_snapshot
+        else None,
+        "tribe": getattr(getattr(target.team, "tribe", None), "name", None),
+        "team": getattr(target.team, "name", None),
         "is_technical": _is_technical(target),
         "is_product": _is_product(target),
     }
@@ -164,6 +173,7 @@ def timeline_permissions(request, target_id):
     })
 
 
+@extend_schema(responses={200: AccessibleUsersResponseSerializer})
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def accessible_users(request):

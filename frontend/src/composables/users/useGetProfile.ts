@@ -8,3 +8,12 @@ export const useGetProfile = () => {
     queryFn: () => $api.fetch('/profile/'),
   });
 };
+
+export const useGetProfilePermissions = () => {
+  const { $api } = useNuxtApp();
+
+  return useQuery<Schema<'UserPermissions'>>({
+    queryKey: ['profile-permissions'],
+    queryFn: () => $api.fetch('/profile/permissions/'),
+  });
+};
