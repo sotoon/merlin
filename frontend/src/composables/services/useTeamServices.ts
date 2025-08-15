@@ -7,3 +7,11 @@ export const useGetTeams = () => {
     queryFn: () => $api.fetch('/teams/'),
   });
 };
+
+export const useGetTribes = () => {
+  const { $api } = useNuxtApp();
+  return useQuery<Schema<'Tribe'>[]>({
+    queryKey: ['tribes'],
+    queryFn: () => $api.fetch('/tribes/'),
+  });
+};

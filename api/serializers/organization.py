@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import ValueTag, Team
+from api.models import ValueTag, Team, Tribe
 
 
 __all__ = ['TagReadSerializer', 'TeamSerializer']
@@ -17,4 +17,10 @@ class TagReadSerializer(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ['id', 'name']
+        fields = ["id", "name"]
+
+
+class TribeSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Tribe
+    fields = ["id", "name"]

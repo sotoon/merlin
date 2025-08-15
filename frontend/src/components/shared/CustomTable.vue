@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-auto">
+  <div class="min-h-[500px] overflow-auto">
     <table class="w-full text-left text-sm rtl:text-right">
       <thead>
         <tr class="text-md text-gray-80">
@@ -262,11 +262,18 @@ const toggleFilterPopover = (key: string) => {
 
     if (existingFilter) {
       stagedFilter.value = JSON.parse(JSON.stringify(existingFilter));
+      if (
+        column?.filter?.type === 'date' &&
+        stagedFilter.value.value &&
+        typeof stagedFilter.value.value === 'string'
+      ) {
+        stagedFilter.value.value = new Date(stagedFilter.value.value);
+      }
     } else {
       if (column?.filter?.type === 'numeric') {
-        stagedFilter.value = { value: '', condition: 'Equal' };
+        stagedFilter.value = { value: '', condition: 'eq' };
       } else if (column?.filter?.type === 'date') {
-        stagedFilter.value = { value: null, condition: 'Equal' };
+        stagedFilter.value = { value: null, condition: 'eq' };
       } else if (column?.filter?.type === 'boolean') {
         stagedFilter.value = { value: false };
       } else {

@@ -1,10 +1,10 @@
-from datetime import datetime, date
+from datetime import datetime
 
 from django.http import StreamingHttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.utils import extend_schema
 
 from api.services.performance_tables import (
     build_personnel_performance_queryset,
@@ -21,24 +21,7 @@ __all__ = [
 
 
 @extend_schema(
-    parameters=[
-        OpenApiParameter(name="as_of", type=str, location=OpenApiParameter.QUERY),
-        OpenApiParameter(name="page", type=int, location=OpenApiParameter.QUERY),
-        OpenApiParameter(name="page_size", type=int, location=OpenApiParameter.QUERY),
-        OpenApiParameter(name="team", type=str, location=OpenApiParameter.QUERY),
-        OpenApiParameter(name="ladder", type=str, location=OpenApiParameter.QUERY),
-        OpenApiParameter(name="ordering", type=str, location=OpenApiParameter.QUERY),
-        OpenApiParameter(
-            name="format",
-            type=str,
-            enum=["json", "csv"],
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(name="csv", type=str, location=OpenApiParameter.QUERY),
-    ],
-    responses={
-        200: PerformanceTableResponseSerializer,
-    },
+    responses={200: PerformanceTableResponseSerializer},
 )
 class PersonnelPerformanceTableView(APIView):
     permission_classes = [IsAuthenticated]
