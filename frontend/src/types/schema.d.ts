@@ -760,6 +760,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/tribes/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['tribes_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/users/': {
     parameters: {
       query?: never;
@@ -1655,6 +1671,11 @@ export interface components {
     };
     TokenRequest: {
       token: string;
+    };
+    Tribe: {
+      readonly id: number;
+      /** نام */
+      name: string;
     };
     /**
      * @description * `Goal` - هدف
@@ -3173,16 +3194,7 @@ export interface operations {
   };
   personnel_performance_table_retrieve: {
     parameters: {
-      query?: {
-        as_of?: string;
-        csv?: string;
-        format?: 'csv' | 'json';
-        ladder?: string;
-        ordering?: string;
-        page?: number;
-        page_size?: number;
-        team?: string;
-      };
+      query?: never;
       header?: never;
       path?: never;
       cookie?: never;
@@ -3423,6 +3435,25 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['TitleChange'];
+        };
+      };
+    };
+  };
+  tribes_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Tribe'][];
         };
       };
     };

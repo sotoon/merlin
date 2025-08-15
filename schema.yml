@@ -1610,42 +1610,6 @@ paths:
   /api/personnel/performance-table/:
     get:
       operationId: personnel_performance_table_retrieve
-      parameters:
-      - in: query
-        name: as_of
-        schema:
-          type: string
-      - in: query
-        name: csv
-        schema:
-          type: string
-      - in: query
-        name: format
-        schema:
-          type: string
-          enum:
-          - csv
-          - json
-      - in: query
-        name: ladder
-        schema:
-          type: string
-      - in: query
-        name: ordering
-        schema:
-          type: string
-      - in: query
-        name: page
-        schema:
-          type: integer
-      - in: query
-        name: page_size
-        schema:
-          type: integer
-      - in: query
-        name: team
-        schema:
-          type: string
       tags:
       - personnel
       security:
@@ -1875,6 +1839,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TitleChange'
+          description: ''
+  /api/tribes/:
+    get:
+      operationId: tribes_list
+      tags:
+      - tribes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tribe'
           description: ''
   /api/users/:
     get:
@@ -3739,6 +3719,19 @@ components:
           minLength: 1
       required:
       - token
+    Tribe:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: نام
+          maxLength: 256
+      required:
+      - id
+      - name
     TypeEnum:
       enum:
       - Goal

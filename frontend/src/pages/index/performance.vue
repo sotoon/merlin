@@ -28,6 +28,7 @@ const { t } = useI18n();
 const route = useRoute();
 const { data: teams } = useGetTeams();
 const { data: ladders } = useGetLadders();
+const { data: tribes } = useGetTribes();
 
 const activeFilters = ref<Record<string, any>>({});
 
@@ -42,20 +43,30 @@ const params = computed(() => {
   const filters: Record<string, string> = {};
   for (const key in activeFilters.value) {
     const filter = activeFilters.value[key];
+    const column = columns.value.find((c) => c.key === key);
+
+    if (
+      filter.value === null ||
+      filter.value === undefined ||
+      filter.value === ''
+    )
+      continue;
+
     if (Array.isArray(filter.value)) {
+      if (filter.value.length === 0) continue;
       filters[`${key}__in`] = filter.value.join(',');
     } else if (filter.condition) {
-      filters[`${key}__${filter.condition.toLowerCase()}`] = filter.value;
-    } else if (filter.value instanceof Date) {
-      filters[key] = dayjs(filter.value).format('YYYY-MM-DD');
+      let value = filter.value;
+      if (column?.filter?.type === 'date') {
+        value = dayjs(value).format('YYYY-MM-DD');
+      }
+      filters[`${key}__${filter.condition.toLowerCase()}`] = value;
     } else if (typeof filter.value === 'boolean') {
       filters[key] = filter.value ? 'true' : 'false';
     } else {
       filters[key] = filter.value;
     }
   }
-
-  console.log({ ...filters });
 
   return {
     page: currentPage.value,
@@ -299,6 +310,20 @@ const handleFilterChanged = (filters: Record<string, any>) => {
               :key="ladder.code"
               :label="ladder.name"
               :value="ladder.code"
+            />
+          </PListbox>
+        </template>
+        <template #filter-tribe="{ filter }">
+          <PListbox
+            v-model="filter.value"
+            hide-details
+            :label="t('common.allTribes')"
+          >
+            <PListboxOption
+              v-for="tribe in tribes"
+              :key="tribe.id"
+              :label="tribe.name"
+              :value="tribe.id"
             />
           </PListbox>
         </template>
