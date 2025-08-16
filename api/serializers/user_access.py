@@ -19,6 +19,7 @@ class PermissionsFieldSerializer(serializers.Serializer):
     accessible_ladders = serializers.ListField(child=serializers.CharField())
     accessible_tribes = serializers.ListField(child=serializers.CharField())
     accessible_teams = serializers.ListField(child=serializers.CharField())
+    accessible_leaders = serializers.ListField(child=serializers.CharField())
     scope = serializers.CharField()
 
 
@@ -26,6 +27,7 @@ class FilterOptionsSerializer(serializers.Serializer):
     ladders = serializers.ListField(child=serializers.CharField())
     tribes = serializers.ListField(child=serializers.CharField())
     teams = serializers.ListField(child=serializers.CharField())
+    leaders = serializers.ListField(child=serializers.CharField())
 
 
 class UIHintsFieldSerializer(serializers.Serializer):
