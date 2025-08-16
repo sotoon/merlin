@@ -364,3 +364,77 @@ def test_page_size_capped(api_client):
 	resp = api_client.get("/api/personnel/performance-table/?page_size=9999")
 	assert resp.status_code == 200
 	assert resp.json()["page_size"] <= 500 
+
+
+@pytest.mark.django_db
+def test_accessible_leaders_permissions(api_client):
+    """Test that accessible leaders are correctly determined based on user roles."""
+    org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+    
+    # Create test users with different roles
+    ceo = User.objects.create(email="ceo@example.com"); org.ceo = ceo; org.save(update_fields=["ceo"])
+    hr_manager = User.objects.create(email="hr@example.com"); org.hr_manager = hr_manager; org.save(update_fields=["hr_manager"])
+    cto = User.objects.create(email="cto@example.com"); org.cto = cto; org.save(update_fields=["cto"])
+    cpo = User.objects.create(email="cpo@example.com"); org.cpo = cpo; org.save(update_fields=["cpo"])
+    
+    # Create team leaders
+    leader_a = User.objects.create(email="leader_a@example.com"); team_a.leader = leader_a; team_a.save(update_fields=["leader"])
+    leader_b = User.objects.create(email="leader_b@example.com"); team_b.leader = leader_b; team_b.save(update_fields=["leader"])
+    
+    # Create regular users
+    user_a = User.objects.create(email="user_a@example.com", team=team_a, leader=leader_a)
+    user_b = User.objects.create(email="user_b@example.com", team=team_b, leader=leader_b)
+    
+    # Debug: Check what users exist
+    print(f"All users: {list(User.objects.values_list('email', 'name'))}")
+    print(f"Teams with leaders: {list(Team.objects.values_list('name', 'leader__email'))}")
+    print(f"Users with teams that have leaders: {list(User.objects.filter(team__leader__isnull=False).values_list('email', 'name'))}")
+    
+    # Test CEO access - should see all leaders
+    api_client.force_authenticate(ceo)
+    resp = api_client.get("/api/profile/permissions/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "accessible_leaders" in data["permissions"]
+    assert "leaders" in data["ui_hints"]["filter_options"]
+    print(f"CEO accessible_leaders: {data['permissions']['accessible_leaders']}")
+    print(f"CEO accessible_leaders length: {len(data['permissions']['accessible_leaders'])}")
+    # CEO should see all leaders
+    assert len(data["permissions"]["accessible_leaders"]) >= 2  # At least leader_a and leader_b
+    
+    # Test HR Manager access - should see all leaders
+    api_client.force_authenticate(hr_manager)
+    resp = api_client.get("/api/profile/permissions/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["permissions"]["accessible_leaders"]) >= 2  # At least leader_a and leader_b
+    
+    # Test CTO access - should see technical leaders
+    api_client.force_authenticate(cto)
+    resp = api_client.get("/api/profile/permissions/")
+    assert resp.status_code == 200
+    data = resp.json()
+    # CTO should see technical leaders (if any exist in TECH_LADDERS)
+    assert "accessible_leaders" in data["permissions"]
+    
+    # Test CPO access - should see product leaders
+    api_client.force_authenticate(cpo)
+    resp = api_client.get("/api/profile/permissions/")
+    assert resp.status_code == 200
+    data = resp.json()
+    # CPO should see product leaders (if any exist in PRODUCT_LADDERS)
+    assert "accessible_leaders" in data["permissions"]
+    
+    # Test team leader access - should see their team members
+    api_client.force_authenticate(leader_a)
+    resp = api_client.get("/api/profile/permissions/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "accessible_leaders" in data["permissions"]
+    # Team leader should see their team members
+    assert len(data["permissions"]["accessible_leaders"]) >= 1  # At least user_a
+    
+    # Verify the structure is correct
+    assert isinstance(data["permissions"]["accessible_leaders"], list)
+    assert isinstance(data["ui_hints"]["filter_options"]["leaders"], list)
+    assert data["permissions"]["accessible_leaders"] == data["ui_hints"]["filter_options"]["leaders"] 

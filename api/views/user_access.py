@@ -91,6 +91,40 @@ def user_permissions(request):
         # Directors can see teams in their accessible tribes
         accessible_teams = list(Team.objects.filter(tribe__name__in=accessible_tribes).values_list('name', flat=True))
     
+    # Determine accessible leaders
+    accessible_leaders = []
+    leaders_qs = User.objects.none()
+
+    if can_view_all_users:
+        # HR and CEO – all leaders across the org
+        leaders_qs = User.objects.filter(team_leader__isnull=False)
+    elif accessible_tribes:
+        # Directors – leaders inside viewer's tribe(s)
+        leaders_qs = User.objects.filter(team_leader__tribe__name__in=accessible_tribes)
+    elif can_view_technical_users:
+        # CTO / VP – technical leaders only
+        leaders_qs = User.objects.filter(
+            team_leader__isnull=False,
+            seniority_snapshots__ladder__code__in=TECH_LADDERS,
+        )
+    elif can_view_product_users:
+        # CPO – product leaders only
+        leaders_qs = User.objects.filter(
+            team_leader__isnull=False,
+            seniority_snapshots__ladder__code__in=PRODUCT_LADDERS,
+        )
+    elif Team.objects.filter(leader=user).exists():
+        # Team leaders – only themselves (single-option dropdown)
+        leaders_qs = User.objects.filter(pk=user.pk)
+
+    # Build final string list (fallback to email when name is missing)
+    accessible_leaders = list(
+        {
+            (l.name or l.email) for l in leaders_qs.distinct()
+            if (l.name or l.email)
+        }
+    )
+    
     # Determine scope
     if can_view_all_users:
         scope = "all_users"
@@ -111,6 +145,7 @@ def user_permissions(request):
             "ladders": accessible_ladders,
             "tribes": accessible_tribes,
             "teams": accessible_teams,
+            "leaders": accessible_leaders,
         }
     }
     
@@ -129,6 +164,7 @@ def user_permissions(request):
             "accessible_ladders": accessible_ladders,
             "accessible_tribes": accessible_tribes,
             "accessible_teams": accessible_teams,
+            "accessible_leaders": accessible_leaders,
             "scope": scope,
         },
         "ui_hints": ui_hints,
