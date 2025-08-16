@@ -189,8 +189,8 @@ def test_filters_by_team_and_ladder(api_client):
 	_orgsnap(ua, team_a, timezone.now().date())
 	_orgsnap(ub, team_b, timezone.now().date())
 	api_client.force_authenticate(viewer)
-	# filter by team
-	resp = api_client.get(f"/api/personnel/performance-table/?team={team_a.id}&page_size=50")
+	# filter by team (by name, not ID)
+	resp = api_client.get(f"/api/personnel/performance-table/?team={team_a.name}&page_size=50")
 	names = {r["name"] for r in resp.json()["results"]}
 	assert "ua@example.com" in names and "ub@example.com" not in names
 	# filter by ladder
@@ -368,73 +368,98 @@ def test_page_size_capped(api_client):
 
 @pytest.mark.django_db
 def test_accessible_leaders_permissions(api_client):
-    """Test that accessible leaders are correctly determined based on user roles."""
+    """Accessible leaders list respects role, tribe scoping, category, and unmapped subordinates.
+
+    - CEO/HR: see all leaders (anyone with subordinates)
+    - CTO: only leaders with ≥1 TECH subordinate OR unmapped subordinate
+    - CPO: only leaders with ≥1 PRODUCT subordinate OR unmapped subordinate
+    - Directors: tribe-scoped leaders (including unmapped subordinates in their tribe)
+    - Team leader: only themselves
+    - Deduplication: same leader of multiple teams appears once
+    """
     org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
-    
-    # Create test users with different roles
-    ceo = User.objects.create(email="ceo@example.com"); org.ceo = ceo; org.save(update_fields=["ceo"])
-    hr_manager = User.objects.create(email="hr@example.com"); org.hr_manager = hr_manager; org.save(update_fields=["hr_manager"])
-    cto = User.objects.create(email="cto@example.com"); org.cto = cto; org.save(update_fields=["cto"])
-    cpo = User.objects.create(email="cpo@example.com"); org.cpo = cpo; org.save(update_fields=["cpo"])
-    
-    # Create team leaders
-    leader_a = User.objects.create(email="leader_a@example.com"); team_a.leader = leader_a; team_a.save(update_fields=["leader"])
-    leader_b = User.objects.create(email="leader_b@example.com"); team_b.leader = leader_b; team_b.save(update_fields=["leader"])
-    
-    # Create regular users
+
+    # Role holders
+    ceo = User.objects.create(email="ceo@example.com"); org.ceo = ceo
+    hrm = User.objects.create(email="hr@example.com"); org.hr_manager = hrm
+    cto = User.objects.create(email="cto@example.com"); org.cto = cto
+    cpo = User.objects.create(email="cpo@example.com"); org.cpo = cpo
+    org.save(update_fields=["ceo", "hr_manager", "cto", "cpo"])
+
+    # Leaders and teams
+    leader_a = User.objects.create(email="leader_a@example.com")  # tribe_app / TECH
+    leader_b = User.objects.create(email="leader_b@example.com")  # tribe_growth / PRODUCT
+    team_a.leader = leader_a; team_a.save(update_fields=["leader"])  # tribe_app
+    team_b.leader = leader_b; team_b.save(update_fields=["leader"])  # tribe_growth
+
+    # Subordinates
     user_a = User.objects.create(email="user_a@example.com", team=team_a, leader=leader_a)
     user_b = User.objects.create(email="user_b@example.com", team=team_b, leader=leader_b)
-    
-    # Debug: Check what users exist
-    print(f"All users: {list(User.objects.values_list('email', 'name'))}")
-    print(f"Teams with leaders: {list(Team.objects.values_list('name', 'leader__email'))}")
-    print(f"Users with teams that have leaders: {list(User.objects.filter(team__leader__isnull=False).values_list('email', 'name'))}")
-    
-    # Test CEO access - should see all leaders
+
+    # Ladder categories: TECH for user_a, PRODUCT for user_b
+    _seniority(user_a, "Software", timezone.now().date())
+    _seniority(user_b, "Product", timezone.now().date())
+
+    # Unmapped subordinate under a third leader in tribe_app
+    leader_c = User.objects.create(email="leader_c@example.com")
+    team_c = Team.objects.create(name="Team C", department=dep_eng, tribe=tribe_app, leader=leader_c)
+    user_c = User.objects.create(email="user_c@example.com", team=team_c, leader=leader_c)  # no seniority snapshot
+
+    # Directors (tribe-scoped)
+    eng_dir = User.objects.create(email="engdir@example.com", team=team_a)  # ensure their own team points to tribe_app
+    tribe_app.engineering_director = eng_dir; tribe_app.save(update_fields=["engineering_director"])
+    prod_dir = User.objects.create(email="proddir@example.com", team=team_b)
+    tribe_growth.product_director = prod_dir; tribe_growth.save(update_fields=["product_director"])
+
+    # CEO → all leaders
     api_client.force_authenticate(ceo)
-    resp = api_client.get("/api/profile/permissions/")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "accessible_leaders" in data["permissions"]
-    assert "leaders" in data["ui_hints"]["filter_options"]
-    print(f"CEO accessible_leaders: {data['permissions']['accessible_leaders']}")
-    print(f"CEO accessible_leaders length: {len(data['permissions']['accessible_leaders'])}")
-    # CEO should see all leaders
-    assert len(data["permissions"]["accessible_leaders"]) >= 2  # At least leader_a and leader_b
-    
-    # Test HR Manager access - should see all leaders
-    api_client.force_authenticate(hr_manager)
-    resp = api_client.get("/api/profile/permissions/")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert len(data["permissions"]["accessible_leaders"]) >= 2  # At least leader_a and leader_b
-    
-    # Test CTO access - should see technical leaders
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert (leader_a.email in leaders) and (leader_b.email in leaders) and (leader_c.email in leaders)
+
+    # HR → all leaders
+    api_client.force_authenticate(hrm)
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert (leader_a.email in leaders) and (leader_b.email in leaders) and (leader_c.email in leaders)
+
+    # CTO → TECH leaders + unmapped
     api_client.force_authenticate(cto)
-    resp = api_client.get("/api/profile/permissions/")
-    assert resp.status_code == 200
-    data = resp.json()
-    # CTO should see technical leaders (if any exist in TECH_LADDERS)
-    assert "accessible_leaders" in data["permissions"]
-    
-    # Test CPO access - should see product leaders
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert leader_a.email in leaders  # TECH subordinate
+    assert leader_b.email not in leaders  # PRODUCT subordinate
+    assert leader_c.email in leaders  # unmapped subordinate allowed
+
+    # CPO → PRODUCT leaders + unmapped
     api_client.force_authenticate(cpo)
-    resp = api_client.get("/api/profile/permissions/")
-    assert resp.status_code == 200
-    data = resp.json()
-    # CPO should see product leaders (if any exist in PRODUCT_LADDERS)
-    assert "accessible_leaders" in data["permissions"]
-    
-    # Test team leader access - should see their team members
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert leader_b.email in leaders  # PRODUCT subordinate
+    assert leader_a.email not in leaders  # TECH subordinate
+    assert leader_c.email in leaders  # unmapped subordinate allowed
+
+    # Engineering Director (tribe_app) → leaders in tribe_app only (including unmapped)
+    api_client.force_authenticate(eng_dir)
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert leader_a.email in leaders
+    assert leader_c.email in leaders
+    assert leader_b.email not in leaders
+
+    # Product Director (tribe_growth) → leaders in tribe_growth only
+    api_client.force_authenticate(prod_dir)
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert leader_b.email in leaders
+    assert leader_a.email not in leaders
+    assert leader_c.email not in leaders
+
+    # Team leader → only themselves
     api_client.force_authenticate(leader_a)
-    resp = api_client.get("/api/profile/permissions/")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "accessible_leaders" in data["permissions"]
-    # Team leader should see their team members
-    assert len(data["permissions"]["accessible_leaders"]) >= 1  # At least user_a
-    
-    # Verify the structure is correct
-    assert isinstance(data["permissions"]["accessible_leaders"], list)
-    assert isinstance(data["ui_hints"]["filter_options"]["leaders"], list)
+    data = api_client.get("/api/profile/permissions/").json()
+    leaders = set(data["permissions"]["accessible_leaders"])
+    assert leaders == {leader_a.email}
+
+    # Structure consistency
     assert data["permissions"]["accessible_leaders"] == data["ui_hints"]["filter_options"]["leaders"] 

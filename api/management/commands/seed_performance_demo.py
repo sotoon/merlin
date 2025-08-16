@@ -219,6 +219,89 @@ class Command(BaseCommand):
             t.leader = random.choice(leaders)
             t.save(update_fields=["leader"])
 
+        # Ensure leaders have baseline snapshots (seniority/compensation/org)
+        self.stdout.write("Creating baseline snapshots for leaders…")
+        leader_sen_rows = []
+        leader_comp_rows = []
+        leader_org_rows = []
+        for leader in leaders:
+            team = leader.team
+            tribe = getattr(team, "tribe", None)
+
+            # Pick ladder category based on team/tribe context (tech/product vs non-tech)
+            if team and team.department == dep_eng:
+                ladder_code = random.choice(list(TECH_LADDERS))
+            elif team and team.department == dep_prod:
+                ladder_code = random.choice(list(PRODUCT_LADDERS))
+            else:
+                ladder_code = random.choice(["HR Ladder", "Administration Ladder"])  # non-tech
+            ladder = code_to_ladder.get(ladder_code)
+
+            # Build aspect scores similar to regular users
+            if ladder:
+                aspects = list(ladder.aspects.all())
+                if aspects:
+                    details_json = {}
+                    stages_json = {}
+                    for aspect in aspects:
+                        level = random.randint(1, 5)
+                        stage = random.choice(["EARLY", "MID", "LATE"])
+                        details_json[aspect.code] = level
+                        stages_json[aspect.code] = stage
+                    overall_score = round(sum(details_json.values()) / max(1, len(details_json)), 1)
+                else:
+                    details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                    stages_json = {"core": "MID", "comm": "EARLY"}
+                    overall_score = round(random.uniform(1.0, 5.0), 1)
+            else:
+                details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                stages_json = {"core": "MID", "comm": "EARLY"}
+                overall_score = round(random.uniform(1.0, 5.0), 1)
+
+            leader_sen_rows.append(
+                SenioritySnapshot(
+                    user=leader,
+                    ladder=ladder,
+                    title=f"{ladder_code} IC" if ladder_code else "IC",
+                    overall_score=overall_score,
+                    details_json=details_json,
+                    stages_json=stages_json,
+                    effective_date=today - timedelta(days=random.randint(60, 400)),
+                )
+            )
+
+            # Compensation baseline for leader
+            pay_band = PayBand.objects.filter(number__isnull=False).order_by("?").first()
+            leader_comp_rows.append(
+                CompensationSnapshot(
+                    user=leader,
+                    pay_band=pay_band,
+                    salary_change=0.0,
+                    bonus_percentage=random.choice([0, 5, 10, 0, 0, 15]),
+                    effective_date=today - timedelta(days=random.randint(60, 400)),
+                )
+            )
+
+            # Org snapshot for leader
+            leader_org_rows.append(
+                OrgAssignmentSnapshot(
+                    user=leader,
+                    leader=leader.leader,
+                    team=leader.team,
+                    tribe=tribe,
+                    chapter=leader.chapter,
+                    department=leader.department,
+                    effective_date=today - timedelta(days=random.randint(60, 400)),
+                )
+            )
+
+        if leader_sen_rows:
+            SenioritySnapshot.objects.bulk_create(leader_sen_rows, batch_size=500)
+        if leader_comp_rows:
+            CompensationSnapshot.objects.bulk_create(leader_comp_rows, batch_size=500)
+        if leader_org_rows:
+            OrgAssignmentSnapshot.objects.bulk_create(leader_org_rows, batch_size=500)
+
         self.stdout.write(f"Creating {cfg.user_count} users…")
         users: List[User] = []
         for i in range(cfg.user_count):

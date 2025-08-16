@@ -18,6 +18,7 @@ from api.services.timeline_access import (
     _is_product
 )
 from api.models import RoleType
+from django.db.models import Q
 
 
 @extend_schema(responses={200: UserPermissionsSerializer})
@@ -91,39 +92,35 @@ def user_permissions(request):
         # Directors can see teams in their accessible tribes
         accessible_teams = list(Team.objects.filter(tribe__name__in=accessible_tribes).values_list('name', flat=True))
     
-    # Determine accessible leaders
+    # Determine accessible leaders via 'has subordinates' (consistent with MyTeamViewSet)
     accessible_leaders = []
     leaders_qs = User.objects.none()
 
     if can_view_all_users:
-        # HR and CEO – all leaders across the org
-        leaders_qs = User.objects.filter(team_leader__isnull=False)
+        # Any user who has at least one direct report
+        leaders_qs = User.objects.filter(user__isnull=False).distinct()
     elif accessible_tribes:
-        # Directors – leaders inside viewer's tribe(s)
-        leaders_qs = User.objects.filter(team_leader__tribe__name__in=accessible_tribes)
+        # Leaders who have subordinates inside the accessible tribes
+        leaders_qs = User.objects.filter(user__team__tribe__name__in=accessible_tribes).distinct()
     elif can_view_technical_users:
-        # CTO / VP – technical leaders only
+        # Leaders with at least one subordinate whose latest ladder is tech OR no snapshot
         leaders_qs = User.objects.filter(
-            team_leader__isnull=False,
-            seniority_snapshots__ladder__code__in=TECH_LADDERS,
-        )
+            user__isnull=False
+        ).filter(
+            Q(user__seniority_snapshots__ladder__code__in=TECH_LADDERS) | Q(user__seniority_snapshots__isnull=True)
+        ).distinct()
     elif can_view_product_users:
-        # CPO – product leaders only
+        # Leaders with at least one subordinate whose latest ladder is product OR no snapshot
         leaders_qs = User.objects.filter(
-            team_leader__isnull=False,
-            seniority_snapshots__ladder__code__in=PRODUCT_LADDERS,
-        )
+            user__isnull=False
+        ).filter(
+            Q(user__seniority_snapshots__ladder__code__in=PRODUCT_LADDERS) | Q(user__seniority_snapshots__isnull=True)
+        ).distinct()
     elif Team.objects.filter(leader=user).exists():
-        # Team leaders – only themselves (single-option dropdown)
         leaders_qs = User.objects.filter(pk=user.pk)
 
     # Build final string list (fallback to email when name is missing)
-    accessible_leaders = list(
-        {
-            (l.name or l.email) for l in leaders_qs.distinct()
-            if (l.name or l.email)
-        }
-    )
+    accessible_leaders = list({(l.name or l.email) for l in leaders_qs if (l.name or l.email)})
     
     # Determine scope
     if can_view_all_users:

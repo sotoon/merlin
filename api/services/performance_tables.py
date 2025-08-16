@@ -69,11 +69,15 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
 
     # CTO/VP: all technical users
     if has_role(viewer, {RoleType.CTO, RoleType.VP}):
-        return qs.annotate(_ladder_code=latest_sen_ladder_code).filter(_ladder_code__in=TECH_LADDERS)
+        return qs.annotate(_ladder_code=latest_sen_ladder_code).filter(
+            Q(_ladder_code__in=TECH_LADDERS) | Q(_ladder_code__isnull=True)
+        )
 
     # CPO: all product managers
     if has_role(viewer, {RoleType.CPO}):
-        return qs.annotate(_ladder_code=latest_sen_ladder_code).filter(_ladder_code__in=PRODUCT_LADDERS)
+        return qs.annotate(_ladder_code=latest_sen_ladder_code).filter(
+            Q(_ladder_code__in=PRODUCT_LADDERS) | Q(_ladder_code__isnull=True)
+        )
 
     # Directors/Principals (treat principals as directors): tribe-scoped + ladder category
     if has_role(viewer, {RoleType.PRODUCT_DIRECTOR, RoleType.ENGINEERING_DIRECTOR}):
@@ -81,13 +85,13 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
         if not viewer_tribe_id:
             return qs.none()
 
-        tribe_scoped = qs.filter(team__tribe_id=viewer_tribe_id)
+        tribe_scoped = qs.filter(team__tribe_id=viewer_tribe_id).annotate(_ladder_code=latest_sen_ladder_code)
 
         if has_role(viewer, {RoleType.ENGINEERING_DIRECTOR}):
-            return tribe_scoped.annotate(_ladder_code=latest_sen_ladder_code).filter(_ladder_code__in=TECH_LADDERS)
+            return tribe_scoped.filter(Q(_ladder_code__in=TECH_LADDERS) | Q(_ladder_code__isnull=True))
 
         # Product director
-        return tribe_scoped.annotate(_ladder_code=latest_sen_ladder_code).filter(_ladder_code__in=PRODUCT_LADDERS)
+        return tribe_scoped.filter(Q(_ladder_code__in=PRODUCT_LADDERS) | Q(_ladder_code__isnull=True))
 
     # Team leaders: team-scoped
     if qs.filter(team__leader=viewer).exists():
@@ -299,7 +303,13 @@ def apply_personnel_filters(qs, params: dict):
         elif (
             field_name in ["team", "tribe", "ladder"] and lookup == "exact"
         ):
-            qs = qs.filter(**{f"{db_field}__iexact": value})
+            # Name-based filtering only (UI does not provide IDs)
+            if field_name == "team":
+                qs = qs.filter(_team_name__iexact=value)
+            elif field_name == "tribe":
+                qs = qs.filter(_tribe_name__iexact=value)
+            else:  # ladder by name
+                qs = qs.filter(_ladder_name__iexact=value)
         elif field_name == "is_mapped" and lookup == "exact":
             bool_value = str(value).lower() in ["true", "1"]
             qs = qs.filter(**{f"{db_field}__exact": bool_value})
