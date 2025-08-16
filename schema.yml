@@ -1636,6 +1636,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccessibleUsersResponse'
           description: ''
+  /api/personnel/performance-table/csv/:
+    get:
+      operationId: personnel_performance_table_csv_retrieve
+      description: Handle CSV export specifically
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/profile/:
     get:
       operationId: profile_retrieve
