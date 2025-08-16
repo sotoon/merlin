@@ -188,6 +188,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
     salary_change = Subquery(latest_comp_qs.values("salary_change")[:1])
 
     ladder_code = Subquery(latest_sen_qs.values("ladder__code")[:1])
+    ladder_name = Subquery(latest_sen_qs.values("ladder__name")[:1])
     overall_score = Subquery(latest_sen_qs.values("overall_score")[:1])
     details_json = Subquery(latest_sen_qs.values("details_json")[:1])
 
@@ -211,6 +212,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
             _pay_band_number=pay_band_number,
             _salary_change=salary_change,
             _ladder_code=ladder_code,
+            _ladder_name=ladder_name,
             _overall_score=overall_score,
             _details_json=details_json,
             _leader_name=leader_name,
@@ -230,10 +232,10 @@ def apply_personnel_filters(qs, params: dict):
     """Apply common filters on the annotated queryset using query params."""
     filter_map = {
         "name": "name",
-        "team": "_team_id",
-        "tribe": "_tribe_id",
+        "team": "_team_name",
+        "tribe": "_tribe_name",
         "leader": "_leader_name",
-        "ladder": "_ladder_code",
+        "ladder": "_ladder_name",
         "pay_band": "_pay_band_number",
         "is_mapped": "_is_mapped",
         "last_committee_date": "_last_committee_date",
@@ -294,6 +296,10 @@ def apply_personnel_filters(qs, params: dict):
                 qs = qs.filter(**{f"{db_field}__exact": value})
         elif field_name in string_fields and lookup == "exact":
             qs = qs.filter(**{f"{db_field}__icontains": value})
+        elif (
+            field_name in ["team", "tribe", "ladder"] and lookup == "exact"
+        ):
+            qs = qs.filter(**{f"{db_field}__iexact": value})
         elif field_name == "is_mapped" and lookup == "exact":
             bool_value = str(value).lower() in ["true", "1"]
             qs = qs.filter(**{f"{db_field}__exact": bool_value})
@@ -320,7 +326,7 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
         "team": "_team_name",
         "leader": "_leader_name",
         "tribe": "_tribe_name",
-        "ladder": "_ladder_code",
+        "ladder": "_ladder_name",
         "last_bonus_percentage": "_last_bonus_percentage",
         "is_mapped": "_is_mapped",
         "last_bonus_date": "_last_bonus_date",
