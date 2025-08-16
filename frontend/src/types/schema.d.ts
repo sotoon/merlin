@@ -659,6 +659,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/personnel/performance-table/csv/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Handle CSV export specifically */
+    get: operations['personnel_performance_table_csv_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile/': {
     parameters: {
       query?: never;
@@ -3346,6 +3363,24 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AccessibleUsersResponse'];
         };
+      };
+    };
+  };
+  personnel_performance_table_csv_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

@@ -13,6 +13,7 @@ import {
   PeyRetryIcon,
   PeyCircleTickFilledIcon,
   PeyCircleCloseIcon,
+  PeyCloudDownloadIcon,
 } from '@pey/icons';
 import CustomTable from '~/components/shared/CustomTable.vue';
 import dayjs from '~/utils/dayjs';
@@ -25,11 +26,10 @@ interface SortBy {
 definePageMeta({ name: 'performance-list' });
 
 const { t } = useI18n();
-const { data: teams } = useGetTeams();
+const { $api } = useNuxtApp();
 const { data: ladders } = useGetLadders();
-const { data: tribes } = useGetTribes();
 const { data: accessibleUsers } = useGetAccessibleUsers();
-// const { data: profilePermissions } = useGetProfilePermissions();
+const { data: profilePermissions } = useGetProfilePermissions();
 
 const activeFilters = ref<Record<string, any>>({});
 
@@ -96,6 +96,38 @@ watch(
   },
   { immediate: true },
 );
+
+const isExporting = ref(false);
+const handleExport = async () => {
+  isExporting.value = true;
+  try {
+    const response = await $api.fetch.raw('/personnel/performance-table/csv/', {
+      params: toValue(params.value),
+    });
+
+    const blob = new Blob([response._data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    const contentDisposition = response.headers.get('content-disposition');
+    let filename = 'performance-export.csv';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+      if (filenameMatch && filenameMatch.length > 1) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } finally {
+    isExporting.value = false;
+  }
+};
 
 useHead({
   title: t('common.performanceTable'),
@@ -211,13 +243,28 @@ const staticColumns = ref([
   },
 ]);
 
-const dynamicColumns = computed(() => {
-  if (!ladders.value || ladders.value.length === 0) return [];
-  const selectedLadderCode = activeFilters.value.ladder?.value;
-  if (!selectedLadderCode) return [];
+const accessibleLadders = computed(() => {
+  return profilePermissions.value?.permissions.accessible_ladders;
+});
+const accessibleTribes = computed(() => {
+  return profilePermissions.value?.permissions.accessible_tribes;
+});
+const accessibleTeams = computed(() => {
+  return profilePermissions.value?.permissions.accessible_teams;
+});
 
-  const selectedLadder = ladders.value.find(
-    (l) => l.code === selectedLadderCode,
+const dynamicColumns = computed(() => {
+  if (
+    !profilePermissions.value?.permissions.accessible_ladders ||
+    profilePermissions.value?.permissions.accessible_ladders.length === 0
+  )
+    return [];
+
+  const selectedLadderName = activeFilters.value.ladder?.value;
+  if (!selectedLadderName) return [];
+
+  const selectedLadder = ladders.value?.find(
+    (l) => l.name === selectedLadderName,
   );
   if (!selectedLadder) return [];
 
@@ -261,7 +308,15 @@ const handleFilterChanged = (filters: Record<string, any>) => {
         </PHeading>
       </div>
 
-      <PerformanceExportButton :filters="params" />
+      <PButton
+        variant="light"
+        size="small"
+        :icon-start="PeyCloudDownloadIcon"
+        :loading="isExporting"
+        @click="handleExport"
+      >
+        {{ t('common.exportCSV') }}
+      </PButton>
     </div>
 
     <div v-if="error" class="flex flex-col items-center gap-4 py-8">
@@ -332,10 +387,10 @@ const handleFilterChanged = (filters: Record<string, any>) => {
             :label="t('common.allTeams')"
           >
             <PListboxOption
-              v-for="team in teams"
-              :key="team.id"
-              :label="team.name"
-              :value="team.id"
+              v-for="team in accessibleTeams"
+              :key="team"
+              :label="team"
+              :value="team"
             />
           </PListbox>
         </template>
@@ -347,10 +402,10 @@ const handleFilterChanged = (filters: Record<string, any>) => {
             :label="t('common.allLadders')"
           >
             <PListboxOption
-              v-for="ladder in ladders"
-              :key="ladder.code"
-              :label="ladder.name"
-              :value="ladder.code"
+              v-for="ladder in accessibleLadders"
+              :key="ladder"
+              :label="ladder"
+              :value="ladder"
             />
           </PListbox>
         </template>
@@ -363,10 +418,10 @@ const handleFilterChanged = (filters: Record<string, any>) => {
             :label="t('common.allTribes')"
           >
             <PListboxOption
-              v-for="tribe in tribes"
-              :key="tribe.id"
-              :label="tribe.name"
-              :value="tribe.id"
+              v-for="tribe in accessibleTribes"
+              :key="tribe"
+              :label="tribe"
+              :value="tribe"
             />
           </PListbox>
         </template>
