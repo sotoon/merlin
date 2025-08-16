@@ -252,6 +252,9 @@ const accessibleTribes = computed(() => {
 const accessibleTeams = computed(() => {
   return profilePermissions.value?.permissions.accessible_teams;
 });
+const accessibleLeaders = computed(() => {
+  return profilePermissions.value?.permissions.accessible_leaders;
+});
 
 const dynamicColumns = computed(() => {
   if (
@@ -422,6 +425,22 @@ const handleFilterChanged = (filters: Record<string, any>) => {
               :key="tribe"
               :label="tribe"
               :value="tribe"
+            />
+          </PListbox>
+        </template>
+        <template #filter-leader="{ filter }">
+          <PListbox
+            v-model="filter.value"
+            hide-details
+            searchable
+            multiple
+            :label="t('common.allLeaders')"
+          >
+            <PListboxOption
+              v-for="leader in accessibleLeaders"
+              :key="leader"
+              :label="leader"
+              :value="leader"
             />
           </PListbox>
         </template>
