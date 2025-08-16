@@ -1121,6 +1121,7 @@ export interface components {
       ladders: string[];
       tribes: string[];
       teams: string[];
+      leaders: string[];
     };
     /** @description Serializer for listing forms, along with its cycle metadata,
      *     and assignment completion status. */
@@ -1565,6 +1566,7 @@ export interface components {
       accessible_ladders: string[];
       accessible_tribes: string[];
       accessible_teams: string[];
+      accessible_leaders: string[];
       scope: string;
     };
     Profile: {

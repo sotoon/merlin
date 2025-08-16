@@ -69,7 +69,8 @@
     "lastCommitteeDate": "آخرین تاریخ کمیته",
     "committeesCurrentYear": "کمیته‌های سال جاری",
     "allTribes": "همه قبیله‌ها",
-    "allUsers": "همه کاربران"
+    "allUsers": "همه کاربران",
+    "allLeaders": "همه لیدرها"
   },
   "form": {
     "assignForm": "ارسال فرم",

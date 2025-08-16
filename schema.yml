@@ -2478,8 +2478,13 @@ components:
           type: array
           items:
             type: string
+        leaders:
+          type: array
+          items:
+            type: string
       required:
       - ladders
+      - leaders
       - teams
       - tribes
     Form:
@@ -3425,10 +3430,15 @@ components:
           type: array
           items:
             type: string
+        accessible_leaders:
+          type: array
+          items:
+            type: string
         scope:
           type: string
       required:
       - accessible_ladders
+      - accessible_leaders
       - accessible_teams
       - accessible_tribes
       - can_view_all_users
