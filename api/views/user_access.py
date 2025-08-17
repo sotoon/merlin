@@ -17,8 +17,8 @@ from api.services.timeline_access import (
     _is_technical,
     _is_product
 )
-from api.models import RoleType
-from django.db.models import Q
+from api.models import RoleType, SenioritySnapshot
+from django.db.models import Q, Subquery, OuterRef, Exists
 
 
 @extend_schema(responses={200: UserPermissionsSerializer})
@@ -46,26 +46,56 @@ def user_permissions(request):
         roles.append("ENGINEERING_DIRECTOR")
     if has_role(user, {RoleType.PRODUCT_DIRECTOR}):
         roles.append("PRODUCT_DIRECTOR")
+    if has_role(user, {RoleType.MAINTAINER}):
+        roles.append("MAINTAINER")
+    if has_role(user, {RoleType.SALES_MANAGER}):
+        roles.append("SALES_MANAGER")
     
     # Check if user is a team leader
     if Team.objects.filter(leader=user).exists():
         roles.append("TEAM_LEADER")
     
     # Determine permissions
-    can_view_all_users = has_role(user, {RoleType.CEO, RoleType.HR_MANAGER})
+    can_view_all_users = has_role(user, {RoleType.CEO, RoleType.HR_MANAGER, RoleType.MAINTAINER})
     can_view_technical_users = has_role(user, {RoleType.CTO, RoleType.VP}) or has_role(user, {RoleType.ENGINEERING_DIRECTOR})
     can_view_product_users = has_role(user, {RoleType.CPO}) or has_role(user, {RoleType.PRODUCT_DIRECTOR})
+
+    # Visibility of performance table (Team Leaders and above + Agile Coaches)
+    is_team_leader = Team.objects.filter(leader=user).exists()
+    is_agile_coach = User.objects.filter(agile_coach=user).exists()
+    can_view_performance_table = (
+        is_team_leader
+        or has_role(user, {RoleType.ENGINEERING_DIRECTOR, RoleType.PRODUCT_DIRECTOR, RoleType.CTO, RoleType.CFO, RoleType.CEO, RoleType.HR_MANAGER, RoleType.SALES_MANAGER, RoleType.VP, RoleType.MAINTAINER})
+        or is_agile_coach
+    )
     
-    # Determine accessible ladders
+    # Determine accessible ladders (names)
     accessible_ladders = []
+    from api.models import Ladder
     if can_view_all_users:
-        # HR and CEO can see all ladders
-        accessible_ladders = list(TECH_LADDERS) + list(PRODUCT_LADDERS) + ["HR Ladder", "Administration Ladder"]
-    elif can_view_technical_users:
-        accessible_ladders = list(TECH_LADDERS)
-    elif can_view_product_users:
-        accessible_ladders = list(PRODUCT_LADDERS)
-    
+        accessible_ladders = list(Ladder.objects.values_list("name", flat=True))
+    elif has_role(user, {RoleType.CTO, RoleType.VP}):
+        accessible_ladders = list(Ladder.objects.filter(code__in=TECH_LADDERS).values_list("name", flat=True))
+    elif has_role(user, {RoleType.ENGINEERING_DIRECTOR}):
+        tribe = getattr(getattr(user.team, "tribe", None), "pk", None)
+        if tribe:
+            names = (
+                SenioritySnapshot.objects
+                .filter(user__team__tribe_id=tribe, ladder__code__in=TECH_LADDERS)
+                .values_list("ladder__name", flat=True)
+                .distinct()
+            )
+            accessible_ladders = list(names)
+    elif has_role(user, {RoleType.PRODUCT_DIRECTOR}) or has_role(user, {RoleType.CPO}):
+        accessible_ladders = list(Ladder.objects.filter(code__in=PRODUCT_LADDERS).values_list("name", flat=True))
+    elif has_role(user, {RoleType.CFO}):
+        # Finance + general non-tech if present
+        candidates = ["Finance Ladder", "General Ladder"]
+        accessible_ladders = list(Ladder.objects.filter(name__in=candidates).values_list("name", flat=True))
+    elif has_role(user, {RoleType.SALES_MANAGER}):
+        candidates = ["Sales Ladder", "General Ladder"]
+        accessible_ladders = list(Ladder.objects.filter(name__in=candidates).values_list("name", flat=True))
+
     # Determine accessible tribes
     accessible_tribes = []
     if can_view_all_users:
@@ -79,11 +109,55 @@ def user_permissions(request):
         # Product directors can see their own tribe
         if user.team and user.team.tribe:
             accessible_tribes = [user.team.tribe.name]
+    elif has_role(user, {RoleType.CTO, RoleType.VP}):
+        # CTO/VP: tribes with (any TECH user by latest ladder) OR (unmapped users in TECH tribe/team)
+        latest_ladder_code = Subquery(
+            SenioritySnapshot.objects
+            .filter(user=OuterRef("pk"))
+            .order_by("-effective_date", "-date_created")
+            .values("ladder__code")[:1]
+        )
+        tech_tribe_ids_from_ladder = User.objects.annotate(_ladder_code=latest_ladder_code).filter(
+            _ladder_code__in=TECH_LADDERS
+        ).values("team__tribe_id")
+        unmapped_tech_tribe_ids = User.objects.filter(
+            seniority_snapshots__isnull=True
+        ).filter(
+            Q(team__tribe__category="TECH") | Q(team__category="TECH")
+        ).values("team__tribe_id")
+        accessible_tribes = list(
+            Tribe.objects.filter(
+                Q(pk__in=Subquery(tech_tribe_ids_from_ladder)) | Q(pk__in=Subquery(unmapped_tech_tribe_ids))
+            ).values_list('name', flat=True).distinct()
+        )
+    elif has_role(user, {RoleType.CPO}):
+        # CPO: tribes with at least one user whose latest ladder is PRODUCT OR belongs to Product chapter
+        latest_ladder_code = Subquery(
+            SenioritySnapshot.objects
+            .filter(user=OuterRef("pk"))
+            .order_by("-effective_date", "-date_created")
+            .values("ladder__code")[:1]
+        )
+        product_tribe_ids_from_ladder = User.objects.annotate(_ladder_code=latest_ladder_code).filter(
+            _ladder_code__in=PRODUCT_LADDERS
+        ).values("team__tribe_id")
+        product_tribe_ids_from_chapter = User.objects.filter(chapter__name__iexact="Product").values("team__tribe_id")
+        accessible_tribes = list(
+            Tribe.objects.filter(
+                Q(pk__in=Subquery(product_tribe_ids_from_ladder)) | Q(pk__in=Subquery(product_tribe_ids_from_chapter))
+            ).values_list('name', flat=True).distinct()
+        )
+    elif has_role(user, {RoleType.CFO}):
+        # CFO: finance tribe only
+        accessible_tribes = list(Tribe.objects.filter(name="Finance").values_list('name', flat=True))
+    elif has_role(user, {RoleType.SALES_MANAGER}):
+        # Sales manager: tribes under Sales department
+        accessible_tribes = list(Tribe.objects.filter(department__name="Sales").values_list('name', flat=True))
     
     # Determine accessible teams
     accessible_teams = []
     if can_view_all_users:
-        # HR and CEO can see all teams
+        # HR, CEO, Maintainer can see all teams
         accessible_teams = list(Team.objects.values_list('name', flat=True))
     elif Team.objects.filter(leader=user).exists():
         # Team leaders can see their own team
@@ -91,35 +165,103 @@ def user_permissions(request):
     elif accessible_tribes:
         # Directors can see teams in their accessible tribes
         accessible_teams = list(Team.objects.filter(tribe__name__in=accessible_tribes).values_list('name', flat=True))
+    elif has_role(user, {RoleType.CTO, RoleType.VP}):
+        # CTO/VP: teams with (any TECH user by latest ladder) OR (unmapped users AND team/tribe categorized as TECH)
+        latest_ladder_code = Subquery(
+            SenioritySnapshot.objects
+            .filter(user=OuterRef("pk"))
+            .order_by("-effective_date", "-date_created")
+            .values("ladder__code")[:1]
+        )
+        tech_team_ids = User.objects.annotate(_ladder_code=latest_ladder_code).filter(
+            _ladder_code__in=TECH_LADDERS
+        ).values("team_id")
+        accessible_teams = list(
+            Team.objects.filter(
+                Q(pk__in=Subquery(tech_team_ids))
+                | (
+                    Q(user__seniority_snapshots__isnull=True)
+                    & (Q(category="TECH") | Q(tribe__category="TECH"))
+                )
+            ).values_list('name', flat=True).distinct()
+        )
+    elif has_role(user, {RoleType.CPO}):
+        # CPO: teams with at least one user whose latest ladder is PRODUCT OR belongs to Product chapter
+        latest_ladder_code = Subquery(
+            SenioritySnapshot.objects
+            .filter(user=OuterRef("pk"))
+            .order_by("-effective_date", "-date_created")
+            .values("ladder__code")[:1]
+        )
+        product_team_ids_from_ladder = User.objects.annotate(_ladder_code=latest_ladder_code).filter(
+            _ladder_code__in=PRODUCT_LADDERS
+        ).values("team_id")
+        product_team_ids_from_chapter = User.objects.filter(chapter__name__iexact="Product").values("team_id")
+        accessible_teams = list(
+            Team.objects.filter(
+                Q(pk__in=Subquery(product_team_ids_from_ladder)) | Q(pk__in=Subquery(product_team_ids_from_chapter))
+            ).values_list('name', flat=True).distinct()
+        )
+    elif has_role(user, {RoleType.CFO}):
+        # CFO: finance tribe teams only
+        accessible_teams = list(Team.objects.filter(tribe__name__in=["Finance"]).values_list('name', flat=True))
+    elif has_role(user, {RoleType.SALES_MANAGER}):
+        # Sales manager: teams under Sales department
+        accessible_teams = list(Team.objects.filter(department__name="Sales").values_list('name', flat=True))
     
     # Determine accessible leaders via 'has subordinates' (consistent with MyTeamViewSet)
     accessible_leaders = []
     leaders_qs = User.objects.none()
 
     if can_view_all_users:
-        # Any user who has at least one direct report
         leaders_qs = User.objects.filter(user__isnull=False).distinct()
+    elif has_role(user, {RoleType.CTO, RoleType.VP}):
+        # Leaders with (any TECH subordinate by LATEST ladder) OR (unmapped subordinate AND subordinate categorized TECH)
+        latest_ladder_code = Subquery(
+            SenioritySnapshot.objects
+            .filter(user=OuterRef("pk"))
+            .order_by("-effective_date", "-date_created")
+            .values("ladder__code")[:1]
+        )
+        tech_sub_exists = Exists(
+            User.objects
+            .filter(leader=OuterRef("pk"))
+            .annotate(_ladder_code=latest_ladder_code)
+            .filter(_ladder_code__in=TECH_LADDERS)
+        )
+        unmapped_tech_sub_exists = Exists(
+            User.objects
+            .filter(leader=OuterRef("pk"), seniority_snapshots__isnull=True)
+            .filter(Q(team__category="TECH") | Q(team__tribe__category="TECH"))
+        )
+        leaders_qs = User.objects.filter(tech_sub_exists | unmapped_tech_sub_exists).distinct()
+    elif has_role(user, {RoleType.CPO}):
+        # Leaders with (any PRODUCT subordinate by LATEST ladder) OR (subordinate in Product chapter)
+        latest_ladder_code = Subquery(
+            SenioritySnapshot.objects
+            .filter(user=OuterRef("pk"))
+            .order_by("-effective_date", "-date_created")
+            .values("ladder__code")[:1]
+        )
+        product_sub_exists = Exists(
+            User.objects
+            .filter(leader=OuterRef("pk"))
+            .annotate(_ladder_code=latest_ladder_code)
+            .filter(_ladder_code__in=PRODUCT_LADDERS)
+        )
+        product_chapter_sub_exists = Exists(
+            User.objects.filter(leader=OuterRef("pk"), chapter__name__iexact="Product")
+        )
+        leaders_qs = User.objects.filter(product_sub_exists | product_chapter_sub_exists).distinct()
+    elif has_role(user, {RoleType.CFO}):
+        leaders_qs = User.objects.filter(user__team__tribe__name="Finance").distinct()
+    elif has_role(user, {RoleType.SALES_MANAGER}):
+        leaders_qs = User.objects.filter(user__department__name="Sales").distinct()
     elif accessible_tribes:
-        # Leaders who have subordinates inside the accessible tribes
         leaders_qs = User.objects.filter(user__team__tribe__name__in=accessible_tribes).distinct()
-    elif can_view_technical_users:
-        # Leaders with at least one subordinate whose latest ladder is tech OR no snapshot
-        leaders_qs = User.objects.filter(
-            user__isnull=False
-        ).filter(
-            Q(user__seniority_snapshots__ladder__code__in=TECH_LADDERS) | Q(user__seniority_snapshots__isnull=True)
-        ).distinct()
-    elif can_view_product_users:
-        # Leaders with at least one subordinate whose latest ladder is product OR no snapshot
-        leaders_qs = User.objects.filter(
-            user__isnull=False
-        ).filter(
-            Q(user__seniority_snapshots__ladder__code__in=PRODUCT_LADDERS) | Q(user__seniority_snapshots__isnull=True)
-        ).distinct()
     elif Team.objects.filter(leader=user).exists():
         leaders_qs = User.objects.filter(pk=user.pk)
 
-    # Build final string list (fallback to email when name is missing)
     accessible_leaders = list({(l.name or l.email) for l in leaders_qs if (l.name or l.email)})
     
     # Determine scope
@@ -137,7 +279,7 @@ def user_permissions(request):
     # UI hints
     ui_hints = {
         "show_timeline_section": True,  # All authenticated users can see timeline section
-        "show_performance_table": True,  # All authenticated users can see performance table
+        "show_performance_table": can_view_performance_table,
         "filter_options": {
             "ladders": accessible_ladders,
             "tribes": accessible_tribes,
@@ -248,6 +390,10 @@ def accessible_users(request):
         scope = "engineering_director"
     elif has_role(viewer, {RoleType.PRODUCT_DIRECTOR}):
         scope = "product_director"
+    elif has_role(viewer, {RoleType.MAINTAINER}):
+        scope = "maintainer"
+    elif has_role(viewer, {RoleType.SALES_MANAGER}):
+        scope = "sales_manager"
     elif Team.objects.filter(leader=viewer).exists():
         scope = "team_only"
     

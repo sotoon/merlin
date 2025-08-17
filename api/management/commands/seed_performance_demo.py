@@ -128,6 +128,9 @@ class Command(BaseCommand):
         tribe_app, _ = Tribe.objects.get_or_create(name="App", department=dep_eng)
         tribe_platform, _ = Tribe.objects.get_or_create(name="Platform", department=dep_eng)
         tribe_growth, _ = Tribe.objects.get_or_create(name="Growth", department=dep_prod)
+        # Non-technical tribes
+        tribe_finance, _ = Tribe.objects.get_or_create(name="Finance", department=dep_admin)
+        tribe_ops_hr, _ = Tribe.objects.get_or_create(name="Operations", department=dep_admin)
 
         teams = [
             Team.objects.get_or_create(name="App Core", department=dep_eng, tribe=tribe_app)[0],
@@ -136,6 +139,10 @@ class Command(BaseCommand):
             Team.objects.get_or_create(name="Platform DevEx", department=dep_eng, tribe=tribe_platform)[0],
             Team.objects.get_or_create(name="Growth Insights", department=dep_prod, tribe=tribe_growth)[0],
             Team.objects.get_or_create(name="Growth Monetization", department=dep_prod, tribe=tribe_growth)[0],
+            # Non-tech teams
+            Team.objects.get_or_create(name="Accounting", department=dep_admin, tribe=tribe_finance)[0],
+            Team.objects.get_or_create(name="Payroll", department=dep_admin, tribe=tribe_finance)[0],
+            Team.objects.get_or_create(name="Office Ops", department=dep_admin, tribe=tribe_ops_hr)[0],
         ]
 
         self.stdout.write("Ensuring ladders exist…")
@@ -589,3 +596,20 @@ class Command(BaseCommand):
             admin_user.save(update_fields=["organization"])
 
         self.stdout.write(self.style.SUCCESS(f"Seeded performance demo with {len(users)} users.")) 
+
+        # Set categories for tribes
+        tribe_app.category = "TECH"; tribe_app.save(update_fields=["category"])
+        tribe_platform.category = "TECH"; tribe_platform.save(update_fields=["category"])
+        tribe_growth.category = "TECH"; tribe_growth.save(update_fields=["category"])
+        tribe_finance.category = "NON_TECH"; tribe_finance.save(update_fields=["category"])
+        tribe_ops_hr.category = "NON_TECH"; tribe_ops_hr.save(update_fields=["category"])
+
+        # Set categories for teams (override if needed)
+        for t in teams:
+            if t.tribe == tribe_app or t.tribe == tribe_platform:
+                t.category = "TECH"
+            elif t.tribe == tribe_growth:
+                t.category = "TECH"
+            else:
+                t.category = "NON_TECH"
+            t.save(update_fields=["category"]) 
