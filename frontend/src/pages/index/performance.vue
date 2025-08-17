@@ -256,6 +256,11 @@ const accessibleLeaders = computed(() => {
   return profilePermissions.value?.permissions.accessible_leaders;
 });
 
+const selectedLadderName = computed(() => activeFilters.value.ladder?.value);
+const selectedLadder = computed(() => {
+  return ladders.value?.find((l) => l.name === selectedLadderName.value);
+});
+
 const dynamicColumns = computed(() => {
   if (
     !profilePermissions.value?.permissions.accessible_ladders ||
@@ -263,15 +268,9 @@ const dynamicColumns = computed(() => {
   )
     return [];
 
-  const selectedLadderName = activeFilters.value.ladder?.value;
-  if (!selectedLadderName) return [];
+  if (!selectedLadder.value) return [];
 
-  const selectedLadder = ladders.value?.find(
-    (l) => l.name === selectedLadderName,
-  );
-  if (!selectedLadder) return [];
-
-  return selectedLadder.aspects.map((aspect) => ({
+  return selectedLadder.value.aspects.map((aspect) => ({
     key: `aspect_${aspect.code}`,
     label: aspect.name,
     sortable: true,
@@ -457,6 +456,26 @@ const handleFilterChanged = (filters: Record<string, any>) => {
               :key="user.id"
               :label="user.name || ''"
               :value="user.id"
+            />
+          </PListbox>
+        </template>
+        <template
+          v-for="col in dynamicColumns"
+          :key="col.key"
+          #[`filter-${col.key}`]="{ filter }"
+        >
+          <PListbox
+            v-model="filter.value"
+            hide-details
+            searchable
+            multiple
+            :label="col.label"
+          >
+            <PListboxOption
+              v-for="level in selectedLadder?.max_level"
+              :key="level"
+              :label="String(level)"
+              :value="level"
             />
           </PListbox>
         </template>
