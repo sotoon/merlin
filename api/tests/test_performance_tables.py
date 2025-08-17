@@ -16,6 +16,7 @@ from api.models import (
 	Summary,
 	ProposalType,
 	DataAccessOverride,
+	Chapter,
 )
 from api.utils.performance_tables import get_persian_year_bounds_gregorian
 from api.services.timeline_access import TECH_LADDERS, PRODUCT_LADDERS
@@ -404,6 +405,14 @@ def test_accessible_leaders_permissions(api_client):
     leader_c = User.objects.create(email="leader_c@example.com")
     team_c = Team.objects.create(name="Team C", department=dep_eng, tribe=tribe_app, leader=leader_c)
     user_c = User.objects.create(email="user_c@example.com", team=team_c, leader=leader_c)  # no seniority snapshot
+    # Ensure CTO logic treats unmapped subordinate as TECH via tribe category
+    tribe_app.category = "TECH"
+    tribe_app.save(update_fields=["category"])
+
+    # Assign Product chapter so CPO includes leader_c via unmapped subordinate in Product chapter
+    product_chapter, _ = Chapter.objects.get_or_create(name="Product", department=dep_prod)
+    user_c.chapter = product_chapter
+    user_c.save(update_fields=["chapter"])
 
     # Directors (tribe-scoped)
     eng_dir = User.objects.create(email="engdir@example.com", team=team_a)  # ensure their own team points to tribe_app

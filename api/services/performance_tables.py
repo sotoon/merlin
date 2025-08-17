@@ -67,19 +67,37 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
     if has_role(viewer, {RoleType.HR_MANAGER, RoleType.CEO, RoleType.MAINTAINER}):
         return qs
 
-    # CTO/VP: all technical users
+    # CTO/VP: all technical users (by ladder or org category)
     if has_role(viewer, {RoleType.CTO, RoleType.VP}):
-        return qs.annotate(_ladder_code=latest_sen_ladder_code).filter(
-            Q(_ladder_code__in=TECH_LADDERS) | Q(_ladder_code__isnull=True)
+        return (
+            qs.annotate(_ladder_code=latest_sen_ladder_code)
+            .filter(
+                Q(_ladder_code__in=TECH_LADDERS)
+                | Q(team__category="TECH")
+                | Q(team__tribe__category="TECH")
+            )
         )
 
-    # CPO: all product managers
+    # CPO: all product managers (by ladder or org category)
     if has_role(viewer, {RoleType.CPO}):
-        return qs.annotate(_ladder_code=latest_sen_ladder_code).filter(
-            Q(_ladder_code__in=PRODUCT_LADDERS) | Q(_ladder_code__isnull=True)
+        return (
+            qs.annotate(_ladder_code=latest_sen_ladder_code)
+            .filter(
+                Q(_ladder_code__in=PRODUCT_LADDERS)
+                | Q(team__category="PRODUCT")
+                | Q(team__tribe__category="PRODUCT")
+            )
         )
 
-    # Directors/Principals (treat principals as directors): tribe-scoped + ladder category
+    # CFO: Finance tribe only
+    if has_role(viewer, {RoleType.CFO}):
+        return qs.filter(team__tribe__name="Finance")
+
+    # Sales Manager: users in Sales department
+    if has_role(viewer, {RoleType.SALES_MANAGER}):
+        return qs.filter(team__name="Sales")
+
+    # Directors/Principals (treat principals as directors): tribe-scoped + ladder/category
     if has_role(viewer, {RoleType.PRODUCT_DIRECTOR, RoleType.ENGINEERING_DIRECTOR}):
         viewer_tribe_id = getattr(getattr(viewer.team, "tribe", None), "pk", None)
         if not viewer_tribe_id:
@@ -88,10 +106,18 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
         tribe_scoped = qs.filter(team__tribe_id=viewer_tribe_id).annotate(_ladder_code=latest_sen_ladder_code)
 
         if has_role(viewer, {RoleType.ENGINEERING_DIRECTOR}):
-            return tribe_scoped.filter(Q(_ladder_code__in=TECH_LADDERS) | Q(_ladder_code__isnull=True))
+            return tribe_scoped.filter(
+                Q(_ladder_code__in=TECH_LADDERS)
+                | Q(team__category="TECH")
+                | Q(team__tribe__category="TECH")
+            )
 
         # Product director
-        return tribe_scoped.filter(Q(_ladder_code__in=PRODUCT_LADDERS) | Q(_ladder_code__isnull=True))
+        return tribe_scoped.filter(
+            Q(_ladder_code__in=PRODUCT_LADDERS)
+            | Q(team__category="PRODUCT")
+            | Q(team__tribe__category="PRODUCT")
+        )
 
     # Team leaders: team-scoped
     if qs.filter(team__leader=viewer).exists():
