@@ -26,6 +26,8 @@ from api.models import (
     StockGrant,
     TitleChange,
     OrgValueTag,
+    LadderLevel,
+    LadderStage,
 )
 from api.models.ladder import LadderAspect
 from api.models.timeline import EventType
@@ -111,6 +113,7 @@ class Command(BaseCommand):
         Organization.objects.all().delete()
         # Reference data / pay bands
         PayBand.objects.all().delete()
+        LadderLevel.objects.all().delete() # Added for idempotency
         # Users (keep superusers like admin)
         User.objects.filter(is_superuser=False).delete()
 
@@ -202,6 +205,22 @@ class Command(BaseCommand):
                         "order": order,
                     }
                 )
+
+        self.stdout.write("Creating ladder levels…")
+        for ladder in code_to_ladder.values():
+            aspects = ladder.aspects.all()
+            if not aspects:
+                continue
+
+            for aspect in aspects:
+                for level in range(1, 6):
+                    for stage in LadderStage.choices:
+                        LadderLevel.objects.get_or_create(
+                            ladder=ladder,
+                            aspect=aspect,
+                            level=level,
+                            stage=stage[0],
+                        )
 
         self.stdout.write("Creating pay bands…")
         for n in [x / 2.0 for x in range(40, 81)]:  # 20.0 .. 40.0
