@@ -12,6 +12,7 @@ class UserPerformanceDataSerializer(serializers.Serializer):
     is_mapped = serializers.BooleanField(default=False)
     last_bonus_date = serializers.DateField(allow_null=True)
     last_bonus_percentage = serializers.FloatField(allow_null=True)
+    last_salary_change_date = serializers.DateField(allow_null=True)
     ladder = serializers.CharField(allow_null=True)
     ladder_levels = serializers.DictField(default=dict)
     overall_level = serializers.FloatField(allow_null=True)
