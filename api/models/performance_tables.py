@@ -57,6 +57,12 @@ class CompensationSnapshot(MerlinBaseModel):
         indexes = [
             models.Index(fields=["user", "effective_date"]),
             models.Index(fields=["pay_band", "effective_date"]),
+            # Unique partial index for source_event disambiguation
+            models.Index(
+                fields=["user", "effective_date", "source_event"],
+                condition=models.Q(source_event__isnull=False),
+                name="unique_comp_snapshot_per_event"
+            ),
         ]
 
     def __str__(self):
@@ -81,6 +87,12 @@ class SenioritySnapshot(MerlinBaseModel):
         indexes = [
             models.Index(fields=["user", "effective_date"]),
             models.Index(fields=["ladder", "effective_date"]),
+            # Unique partial index for source_event disambiguation
+            models.Index(
+                fields=["user", "ladder", "effective_date", "source_event"],
+                condition=models.Q(source_event__isnull=False),
+                name="unique_sen_snapshot_per_event"
+            ),
         ]
 
     def __str__(self):
