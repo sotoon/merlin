@@ -227,6 +227,14 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
         if not event_exists:
             _create_mapping_event(instance, effective_date)
 
+    # Select a canonical timeline event for this summary to tag snapshots with
+    canonical_event = (
+        TimelineEvent.objects
+        .filter(content_type__model="summary", object_id=instance.pk)
+        .order_by("id")
+        .first()
+    )
+
     # Create snapshots if needed
     if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):
         # Compensation snapshot: compute new pay band from latest pay band + salary_change (supports 0.5)
@@ -236,8 +244,11 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                 # Non 0.5 step – ignore or round; choose to round to nearest .5 to avoid crash
                 instance.salary_change = round(instance.salary_change * 2) / 2.0
 
-            # Find latest compensation snapshot for baseline pay band
-            latest_comp = CompensationSnapshot.objects.filter(user=instance.note.owner).order_by("-effective_date", "-date_created").first()
+            # Find latest compensation snapshot for baseline pay band before or at effective_date
+            latest_comp = CompensationSnapshot.objects.filter(
+                user=instance.note.owner,
+                effective_date__lte=effective_date,
+            ).order_by("-effective_date", "-date_created").first()
             current_band = getattr(latest_comp, "pay_band", None)
 
             new_band = current_band
@@ -248,13 +259,31 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
                 target_number = round(target_number * 2) / 2.0
                 new_band, _ = PayBand.objects.get_or_create(number=target_number)
 
-            CompensationSnapshot.objects.create(
+            # Upsert compensation snapshot at this effective_date (disambiguate by source_event if present)
+            comp_qs = CompensationSnapshot.objects.filter(
                 user=instance.note.owner,
-                pay_band=new_band or current_band,
-                salary_change=float(instance.salary_change or 0.0),
-                bonus_percentage=instance.bonus or 0,
                 effective_date=effective_date,
             )
+            # If a canonical timeline event exists, filter compensation snapshots by this event to ensure updates are tied to the correct event instance
+            if canonical_event:
+                comp_qs = comp_qs.filter(source_event=canonical_event)
+            existing_comp = comp_qs.order_by("-date_created").first()
+            if existing_comp:
+                existing_comp.pay_band = new_band or current_band
+                existing_comp.salary_change = float(instance.salary_change or 0.0)
+                existing_comp.bonus_percentage = instance.bonus or 0
+                if canonical_event and existing_comp.source_event_id != canonical_event.id:
+                    existing_comp.source_event = canonical_event
+                existing_comp.save(update_fields=["pay_band", "salary_change", "bonus_percentage", "source_event"]) 
+            else:
+                CompensationSnapshot.objects.create(
+                    user=instance.note.owner,
+                    pay_band=new_band or current_band,
+                    salary_change=float(instance.salary_change or 0.0),
+                    bonus_percentage=instance.bonus or 0,
+                    effective_date=effective_date,
+                    source_event=canonical_event,
+                )
         # Persist new seniority snapshot when ladder & aspect changes present
         if instance.ladder and instance.aspect_changes:
             # Extract changed aspects from the summary
@@ -272,13 +301,18 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
             from django.db import transaction
 
             with transaction.atomic():
-                # Get the latest snapshot for this user and ladder
-                latest_snapshot = SenioritySnapshot.objects.filter(
+                # Baseline snapshot BEFORE or at this effective date (include same-day),
+                # but exclude the snapshot tied to this summary's own timeline event (if present)
+                baseline_qs = SenioritySnapshot.objects.filter(
                     user=instance.note.owner,
-                    ladder=instance.ladder
-                ).order_by('effective_date', 'date_created').last()
-                # Compute overall score and persist snapshot
-                _persist_seniority_snapshot(instance, latest_snapshot, deltas, stages, effective_date)
+                    ladder=instance.ladder,
+                    effective_date__lte=effective_date,
+                )
+                if canonical_event:
+                    baseline_qs = baseline_qs.exclude(source_event=canonical_event)
+                baseline_snapshot = baseline_qs.order_by("effective_date", "date_created").last()
+                # Compute overall score and upsert snapshot at effective_date
+                _persist_seniority_snapshot(instance, baseline_snapshot, deltas, stages, effective_date, canonical_event)
 
 
 def _create_promotion_evaluation_events(instance: Summary, effective_date):
@@ -549,7 +583,7 @@ def titlechange_to_timeline(sender, instance: TitleChangeModel, created, **kwarg
     )
 
 
-def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stages, effective_date):
+def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stages, effective_date, canonical_event):
     """Persist a new SenioritySnapshot merging changes with previous snapshot and compute overall.
     This assumes deltas contains per-aspect additive level changes and stages contains stage updates.
     """
@@ -577,16 +611,31 @@ def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stag
     # Calculate overall score
     overall = round(sum(details.values()) / len(details), 1) if details else 0
 
-    # Create new snapshot (don't update existing one for same date)
-    SenioritySnapshot.objects.create(
+    # Upsert: update existing snapshot at the same effective_date, otherwise create
+    existing_sen = SenioritySnapshot.objects.filter(
         user=instance.note.owner,
         ladder=instance.ladder,
         effective_date=effective_date,
-        details_json=details,
-        stages_json=stages_json,
-        overall_score=overall,
-        title=instance.performance_label if getattr(instance, "performance_label", None) else "",
-    )
+    ).order_by("-date_created").first()
+    if existing_sen:
+        existing_sen.details_json = details
+        existing_sen.stages_json = stages_json
+        existing_sen.overall_score = overall
+        existing_sen.title = instance.performance_label if getattr(instance, "performance_label", None) else existing_sen.title
+        if canonical_event and existing_sen.source_event_id != canonical_event.id:
+            existing_sen.source_event = canonical_event
+        existing_sen.save(update_fields=["details_json", "stages_json", "overall_score", "title", "source_event"])
+    else:
+        SenioritySnapshot.objects.create(
+            user=instance.note.owner,
+            ladder=instance.ladder,
+            effective_date=effective_date,
+            details_json=details,
+            stages_json=stages_json,
+            overall_score=overall,
+            title=instance.performance_label if getattr(instance, "performance_label", None) else "",
+            source_event=canonical_event,
+        )
 
 
 @receiver(pre_save, sender=User)
