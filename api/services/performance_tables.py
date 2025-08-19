@@ -215,6 +215,14 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
         ).order_by("-effective_date", "-date_created").values("bonus_percentage")[:1]
     )
 
+    # Last salary change date as-of (non-zero salary_change)
+    last_salary_change_date = Subquery(
+        CompensationSnapshot.objects.filter(
+            user=OuterRef("pk"), effective_date__lte=as_of
+        ).exclude(salary_change=0)
+         .order_by("-effective_date", "-date_created").values("effective_date")[:1]
+    )
+
     # As-of fields
     pay_band_number = Subquery(latest_comp_qs.values("pay_band__number")[:1])
     salary_change = Subquery(latest_comp_qs.values("salary_change")[:1])
@@ -240,6 +248,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
         .annotate(_last_committee_date=last_committee_date)
         .annotate(_committees_current_year=committees_current_year, _committees_last_year=committees_last_year)
         .annotate(_last_bonus_date=last_bonus_date, _last_bonus_percentage=last_bonus_percentage)
+        .annotate(_last_salary_change_date=last_salary_change_date)
         .annotate(
             _pay_band_number=pay_band_number,
             _salary_change=salary_change,

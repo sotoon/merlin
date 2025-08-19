@@ -123,7 +123,7 @@ def test_baseline_json_fields_and_values(api_client):
 	body = resp.json()
 	assert body["count"] >= 1
 	row = next((r for r in body["results"] if r["uuid"]), None)
-	assert set(["uuid","name","last_committee_date","committees_current_year","committees_last_year","pay_band","salary_change","is_mapped","last_bonus_date","last_bonus_percentage","ladder","ladder_levels","overall_level","leader","team","tribe"]).issubset(row.keys())
+	assert set(["uuid","name","last_committee_date","committees_current_year","committees_last_year","pay_band","salary_change","is_mapped","last_bonus_date","last_bonus_percentage","last_salary_change_date","ladder","ladder_levels","overall_level","leader","team","tribe"]).issubset(row.keys())
 	assert row["is_mapped"] in (True, False)
 
 
@@ -510,9 +510,10 @@ def test_as_of_controls_seniority_compensation_and_committee_date(api_client):
 		stages_json={},
 	)
 
-	# Compensation: before bonus 5.0, after bonus 15.0
-	_comp(u, 0, 5.0, before)
-	_comp(u, 0, 15.0, after)
+	# Compensation: before bonus 5.0 (+ salary_change), after bonus 15.0 (+ salary_change)
+	# We simulate salary_change by creating snapshots with salary_change values
+	CompensationSnapshot.objects.create(user=u, pay_band=None, salary_change=0.5, bonus_percentage=5.0, effective_date=before)
+	CompensationSnapshot.objects.create(user=u, pay_band=None, salary_change=1.0, bonus_percentage=15.0, effective_date=after)
 
 	# Committees: one before, one after
 	n1 = Note.objects.create(owner=u, title="C1", content="", date=before, type="Proposal", proposal_type=ProposalType.EVALUATION)
@@ -526,6 +527,7 @@ def test_as_of_controls_seniority_compensation_and_committee_date(api_client):
 	row = next(r for r in resp.json()["results"] if r["name"] == "cut@example.com")
 	assert row["overall_level"] == 2.0
 	assert row["last_bonus_percentage"] == 5.0
+	assert row["last_salary_change_date"] == before.isoformat()
 	assert row["last_committee_date"] == before.isoformat()
 
 	# as_of after → pick after values
@@ -534,4 +536,5 @@ def test_as_of_controls_seniority_compensation_and_committee_date(api_client):
 	row = next(r for r in resp.json()["results"] if r["name"] == "cut@example.com")
 	assert row["overall_level"] == 4.0
 	assert row["last_bonus_percentage"] == 15.0
+	assert row["last_salary_change_date"] == after.isoformat()
 	assert row["last_committee_date"] == after.isoformat() 
