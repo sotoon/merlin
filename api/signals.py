@@ -186,9 +186,9 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
     if instance.submit_status != SummarySubmitStatus.DONE:
         return
 
-    # Check if an event already exists to avoid duplicates
-    if TimelineEvent.objects.filter(content_type__model="summary", object_id=instance.pk).exists():
-        return
+    # Check if an event already exists to avoid duplicate timeline events,
+    # but do NOT return early so that snapshots can still be created.
+    event_exists = TimelineEvent.objects.filter(content_type__model="summary", object_id=instance.pk).exists()
 
     effective_date = instance.committee_date or instance.date_created.date()
 
@@ -198,18 +198,12 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
         user=instance.note.owner
     ).order_by('effective_date', 'date_created').last()
     
-    # Debug: Print ladder change detection info
-    print(f"DEBUG: Latest snapshot ladder: {latest_snapshot.ladder.name if latest_snapshot else 'None'}")
-    print(f"DEBUG: Summary ladder: {instance.ladder.name if instance.ladder else 'None'}")
-    print(f"DEBUG: Ladder changed: {latest_snapshot.ladder != instance.ladder if latest_snapshot and instance.ladder else 'No comparison'}")
-    
-    if latest_snapshot and instance.ladder and latest_snapshot.ladder != instance.ladder:
+    if (not event_exists) and latest_snapshot and instance.ladder and latest_snapshot.ladder != instance.ladder:
         # Ladder has changed, create LADDER_CHANGED event FIRST
         old_ladder_name = latest_snapshot.ladder.name
         new_ladder_name = instance.ladder.name
         ladder_change_text = f"لدر کاربر از {old_ladder_name} به {new_ladder_name} تغییر کرد."
         
-        print(f"DEBUG: Creating LADDER_CHANGED event: {ladder_change_text}")
         _create_timeline_event(
             user=instance.note.owner,
             event_type=EventType.LADDER_CHANGED,
@@ -224,11 +218,14 @@ def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwa
     
     # Generate timeline events based on proposal type
     if ptype in [ProposalType.PROMOTION, ProposalType.EVALUATION]:
-        _create_promotion_evaluation_events(instance, effective_date)
+        if not event_exists:
+            _create_promotion_evaluation_events(instance, effective_date)
     elif ptype == ProposalType.NOTICE:
-        _create_notice_event(instance, effective_date)
+        if not event_exists:
+            _create_notice_event(instance, effective_date)
     elif ptype == ProposalType.MAPPING:
-        _create_mapping_event(instance, effective_date)
+        if not event_exists:
+            _create_mapping_event(instance, effective_date)
 
     # Create snapshots if needed
     if instance.salary_change or instance.bonus or instance.ladder_change or (instance.ladder and instance.aspect_changes):

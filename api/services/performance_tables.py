@@ -17,6 +17,7 @@ from api.models import (
 from api.services.timeline_access import can_view_timeline, has_role, TECH_LADDERS, PRODUCT_LADDERS
 from api.models import RoleType
 from api.utils.performance_tables import get_persian_year_bounds_gregorian
+from django.db.models.functions import TruncDate, Coalesce
 
 __all__ = [
     "get_visible_users_for_viewer",
@@ -163,15 +164,16 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
     )
     latest_org_ids = Subquery(latest_org_qs.values("pk")[:1])
 
-    # Last committee date: from Summary of specific proposal types
+    # Last committee date: prefer committee_date; if null, fall back to date_created
     last_committee_date = Subquery(
         Summary.objects.filter(
             note__owner=OuterRef("pk"),
-            committee_date__lte=as_of,
             note__proposal_type__in=["PROMOTION", "EVALUATION", "MAPPING"],
         )
-        .order_by("-committee_date")
-        .values("committee_date")[:1]
+        .annotate(_effective=Coalesce("committee_date", TruncDate("date_created")))
+        .filter(_effective__lte=as_of)
+        .order_by("-_effective")
+        .values("_effective")[:1]
     )
 
     # Counts of committees in current and last Persian years
