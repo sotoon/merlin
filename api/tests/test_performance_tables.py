@@ -472,3 +472,66 @@ def test_accessible_leaders_permissions(api_client):
 
     # Structure consistency
     assert data["permissions"]["accessible_leaders"] == data["ui_hints"]["filter_options"]["leaders"] 
+
+
+@pytest.mark.django_db
+def test_as_of_controls_seniority_compensation_and_committee_date(api_client):
+	"""as_of parameter gates which snapshots/committee date are chosen.
+	Creates before/after SenioritySnapshot, CompensationSnapshot, and committee Summaries,
+	then asserts the table reflects the 'before' values at mid, and 'after' values when as_of moves past after.
+	"""
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	viewer = User.objects.create(email="hrm@example.com"); org.hr_manager = viewer; org.save(update_fields=["hr_manager"])
+	u = User.objects.create(email="cut@example.com", team=team_a)
+	api_client.force_authenticate(viewer)
+
+	mid = timezone.now().date()
+	before = mid - timezone.timedelta(days=5)
+	after = mid + timezone.timedelta(days=5)
+
+	# Seniority: before (overall 2.0) and after (overall 4.0)
+	lad = Ladder.objects.create(code="Software", name="Software")
+	_sen_before = SenioritySnapshot.objects.create(
+		user=u,
+		ladder=lad,
+		title="",
+		overall_score=2.0,
+		effective_date=before,
+		details_json={"DES": 1},
+		stages_json={},
+	)
+	_sen_after = SenioritySnapshot.objects.create(
+		user=u,
+		ladder=lad,
+		title="",
+		overall_score=4.0,
+		effective_date=after,
+		details_json={"DES": 3},
+		stages_json={},
+	)
+
+	# Compensation: before bonus 5.0, after bonus 15.0
+	_comp(u, 0, 5.0, before)
+	_comp(u, 0, 15.0, after)
+
+	# Committees: one before, one after
+	n1 = Note.objects.create(owner=u, title="C1", content="", date=before, type="Proposal", proposal_type=ProposalType.EVALUATION)
+	Summary.objects.create(note=n1, content="", committee_date=before, salary_change=0, bonus=0)
+	n2 = Note.objects.create(owner=u, title="C2", content="", date=after, type="Proposal", proposal_type=ProposalType.EVALUATION)
+	Summary.objects.create(note=n2, content="", committee_date=after, salary_change=0, bonus=0)
+
+	# as_of at mid → pick before values
+	resp = api_client.get(f"/api/personnel/performance-table/?as_of={mid.isoformat()}&page_size=100")
+	assert resp.status_code == 200
+	row = next(r for r in resp.json()["results"] if r["name"] == "cut@example.com")
+	assert row["overall_level"] == 2.0
+	assert row["last_bonus_percentage"] == 5.0
+	assert row["last_committee_date"] == before.isoformat()
+
+	# as_of after → pick after values
+	resp = api_client.get(f"/api/personnel/performance-table/?as_of={(after + timezone.timedelta(days=1)).isoformat()}&page_size=100")
+	assert resp.status_code == 200
+	row = next(r for r in resp.json()["results"] if r["name"] == "cut@example.com")
+	assert row["overall_level"] == 4.0
+	assert row["last_bonus_percentage"] == 15.0
+	assert row["last_committee_date"] == after.isoformat() 

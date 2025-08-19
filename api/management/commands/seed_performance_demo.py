@@ -348,6 +348,55 @@ class Command(BaseCommand):
             )
             users.append(u)
 
+        # Create member and leader users (similar to seed_demo_data.py)
+        self.stdout.write("Creating member and leader users…")
+        
+        # Find a technical team for the member and leader
+        technical_teams = [t for t in teams if t.department in [dep_eng, dep_prod]]
+        if not technical_teams:
+            technical_teams = teams  # fallback to any team
+        
+        member_team = random.choice(technical_teams)
+        
+        # Create leader user
+        leader_user, _ = User.objects.get_or_create(
+            email="leader@example.com",
+            defaults={
+                "name": "Team Leader",
+                "department": member_team.department,
+                "chapter": chap_sw,
+                "team": member_team,
+                "organization": org,
+            },
+        )
+        leader_user.set_password("pw")
+        leader_user.save(update_fields=["password"])
+        
+        # Set the leader as the team leader
+        member_team.leader = leader_user
+        member_team.save(update_fields=["leader"])
+        
+        # Create member user
+        member_user, _ = User.objects.get_or_create(
+            email="member@example.com",
+            defaults={
+                "name": "Team Member",
+                "department": member_team.department,
+                "chapter": chap_sw,
+                "team": member_team,
+                "leader": leader_user,
+                "organization": org,
+                "is_active": True,
+            },
+        )
+        # Always set the password to ensure it's correct
+        member_user.set_password("pw")
+        member_user.is_active = True
+        member_user.save(update_fields=["password", "is_active"])
+        
+        # Add them to the users list
+        users.extend([leader_user, member_user])
+
         # Assign organization-wide executive roles
         self.stdout.write("Assigning executive roles (CEO, CTO, CPO, HR Manager)…")
         admin_user = User.objects.filter(is_superuser=True).order_by("id").first()
@@ -631,4 +680,216 @@ class Command(BaseCommand):
                 t.category = "TECH"
             else:
                 t.category = "NON_TECH"
-            t.save(update_fields=["category"]) 
+            t.save(update_fields=["category"])
+
+        # Create comprehensive timeline events for HR manager (similar to seed_demo_data.py member events)
+        if org.hr_manager:
+            self.stdout.write("Creating comprehensive timeline events for HR manager...")
+            self._seed_hr_manager_timeline_events(org.hr_manager, org.hr_manager)
+
+        # Create comprehensive timeline events for leader user (similar to seed_demo_data.py)
+        self.stdout.write("Creating comprehensive timeline events for leader user...")
+        leader_user = User.objects.filter(email="leader@example.com").first()
+        
+        if leader_user:
+            self._seed_leader_timeline_events(leader_user, leader_user)
+
+    def _seed_hr_manager_timeline_events(self, user: User, created_by: User):
+        """Create comprehensive timeline events for HR manager similar to seed_demo_data.py member events."""
+        from datetime import timedelta
+        today = date.today()
+
+        # Timeline events with different dates (going back in time) - HR manager specific
+        timeline_events = [
+            {
+                "event_type": EventType.TITLE_CHANGE,
+                "summary_text": "HR Specialist → HR Coordinator",
+                "effective_date": today - timedelta(days=365),  # 1 year ago
+            },
+            {
+                "event_type": EventType.EVALUATION,
+                "summary_text": "نتیجه کمیته – ارزیابی عملکرد HR / پاداش ۱۰٪ / پله حقوقی ↑",
+                "effective_date": today - timedelta(days=300),  # 10 months ago
+            },
+            {
+                "event_type": EventType.STOCK_GRANT,
+                "summary_text": "۷۵ سهم RSU اعطا شد - برنامه واگذاری ۴ ساله",
+                "effective_date": today - timedelta(days=280),  # 9 months ago
+            },
+            {
+                "event_type": EventType.PAY_CHANGE,
+                "summary_text": "افزایش پله‌ی حقوقی از ۴ به ۵",
+                "effective_date": today - timedelta(days=250),  # 8 months ago
+            },
+            {
+                "event_type": EventType.BONUS_PAYOUT,
+                "summary_text": "پرداخت پاداش سالانه - ۱۲٪ از حقوق",
+                "effective_date": today - timedelta(days=200),  # 6.5 months ago
+            },
+            {
+                "event_type": EventType.NOTICE,
+                "summary_text": "نوتیس عملکردی - بهبود فرآیندهای استخدام و onboarding",
+                "effective_date": today - timedelta(days=150),  # 5 months ago
+            },
+            {
+                "event_type": EventType.SENIORITY_CHANGE,
+                "summary_text": "افزایش سطح ارشدیت - مهارت‌های مدیریت منابع انسانی +۲",
+                "effective_date": today - timedelta(days=120),  # 4 months ago
+            },
+            {
+                "event_type": EventType.MAPPING,
+                "summary_text": "مپ به لدر مدیریت منابع انسانی - سطح ۴",
+                "effective_date": today - timedelta(days=90),  # 3 months ago
+            },
+            {
+                "event_type": EventType.EVALUATION,
+                "summary_text": "نتیجه کمیته – ارزیابی عملکرد HR / پاداش ۱۵٪ / پله حقوقی ↑",
+                "effective_date": today - timedelta(days=60),  # 2 months ago
+            },
+            {
+                "event_type": EventType.STOCK_GRANT,
+                "summary_text": "۵۰ سهم RSU اضافی - پاداش عملکرد برجسته",
+                "effective_date": today - timedelta(days=45),  # 1.5 months ago
+            },
+            {
+                "event_type": EventType.TITLE_CHANGE,
+                "summary_text": "HR Coordinator → HR Manager",
+                "effective_date": today - timedelta(days=30),  # 1 month ago
+            },
+            {
+                "event_type": EventType.PAY_CHANGE,
+                "summary_text": "افزایش پله‌ی حقوقی از ۵ به ۶ - ارتقای مدیریتی",
+                "effective_date": today - timedelta(days=15),  # 2 weeks ago
+            },
+            {
+                "event_type": EventType.NOTICE,
+                "summary_text": "نوتیس عملکردی - رهبری برجسته در مدیریت منابع انسانی سازمان",
+                "effective_date": today - timedelta(days=7),  # 1 week ago
+            },
+        ]
+
+        # Create timeline events
+        for event_data in timeline_events:
+            TimelineEvent.objects.get_or_create(
+                user=user,
+                event_type=event_data["event_type"],
+                summary_text=event_data["summary_text"],
+                effective_date=event_data["effective_date"],
+                defaults={
+                    "created_by": created_by,
+                },
+            )
+
+        # Create additional HR-specific events
+        hr_specific_events = [
+            {
+                "event_type": EventType.NOTICE,
+                "summary_text": "نوتیس عملکردی - بهبود فرآیند ارزیابی عملکرد کارکنان",
+                "effective_date": today - timedelta(days=180),  # 6 months ago
+            },
+            {
+                "event_type": EventType.STOCK_GRANT,
+                "summary_text": "۲۵ سهم RSU اضافی - پاداش بهبود فرآیندهای HR",
+                "effective_date": today - timedelta(days=160),  # 5.5 months ago
+            },
+            {
+                "event_type": EventType.BONUS_PAYOUT,
+                "summary_text": "پرداخت پاداش ویژه - ۸٪ از حقوق",
+                "effective_date": today - timedelta(days=140),  # 4.5 months ago
+            },
+            {
+                "event_type": EventType.NOTICE,
+                "summary_text": "نوتیس عملکردی - موفقیت در پیاده‌سازی سیستم مدیریت عملکرد",
+                "effective_date": today - timedelta(days=100),  # 3.5 months ago
+            },
+        ]
+
+        # Create HR-specific timeline events
+        for event_data in hr_specific_events:
+            TimelineEvent.objects.get_or_create(
+                user=user,
+                event_type=event_data["event_type"],
+                summary_text=event_data["summary_text"],
+                effective_date=event_data["effective_date"],
+                defaults={
+                    "created_by": created_by,
+                },
+            )
+
+
+
+    def _seed_leader_timeline_events(self, user: User, created_by: User):
+        """Create comprehensive timeline events for leader user similar to seed_demo_data.py leader events."""
+        from datetime import timedelta
+        today = date.today()
+
+        # Leader-specific timeline events
+        leader_events = [
+            {
+                "event_type": EventType.TITLE_CHANGE,
+                "summary_text": "Senior Developer → Team Lead",
+                "effective_date": today - timedelta(days=400),  # 13 months ago
+            },
+            {
+                "event_type": EventType.EVALUATION,
+                "summary_text": "نتیجه کمیته – ارزیابی رهبری / پاداش ۱۲٪ / پله حقوقی ↑",
+                "effective_date": today - timedelta(days=350),  # 11.5 months ago
+            },
+            {
+                "event_type": EventType.STOCK_GRANT,
+                "summary_text": "۱۰۰ سهم RSU اعطا شد - جبران نقش رهبری",
+                "effective_date": today - timedelta(days=320),  # 10.5 months ago
+            },
+            {
+                "event_type": EventType.PAY_CHANGE,
+                "summary_text": "افزایش پله‌ی حقوقی از ۵ به ۶ - ارتقای رهبری",
+                "effective_date": today - timedelta(days=300),  # 10 months ago
+            },
+            {
+                "event_type": EventType.NOTICE,
+                "summary_text": "نوتیس عملکردی - رهبری و منتورینگ ضعیف تیم",
+                "effective_date": today - timedelta(days=180),  # 6 months ago
+            },
+            {
+                "event_type": EventType.SENIORITY_CHANGE,
+                "summary_text": "افزایش سطح ارشدیت - مهارت‌های رهبری +۲",
+                "effective_date": today - timedelta(days=150),  # 5 months ago
+            },
+            {
+                "event_type": EventType.BONUS_PAYOUT,
+                "summary_text": "پرداخت پاداش رهبری - ۱۵٪ از حقوق",
+                "effective_date": today - timedelta(days=120),  # 4 months ago
+            },
+            {
+                "event_type": EventType.MAPPING,
+                "summary_text": "مپ به لدر رهبری - سطح ۴",
+                "effective_date": today - timedelta(days=90),  # 3 months ago
+            },
+            {
+                "event_type": EventType.EVALUATION,
+                "summary_text": "نتیجه کمیته – ارزیابی عملکرد تیم / پاداش ۱۵٪ / پله حقوقی ↑",
+                "effective_date": today - timedelta(days=60),  # 2 months ago
+            },
+            {
+                "event_type": EventType.STOCK_GRANT,
+                "summary_text": "۵۰ سهم RSU اضافی - پاداش موفقیت تیم",
+                "effective_date": today - timedelta(days=30),  # 1 month ago
+            },
+            {
+                "event_type": EventType.NOTICE,
+                "summary_text": "نوتیس عملکردی - مدیریت تیم و تحویل پروژه غیر قابل قبول",
+                "effective_date": today - timedelta(days=10),  # 1.5 weeks ago
+            },
+        ]
+
+        # Create leader timeline events
+        for event_data in leader_events:
+            TimelineEvent.objects.get_or_create(
+                user=user,
+                event_type=event_data["event_type"],
+                summary_text=event_data["summary_text"],
+                effective_date=event_data["effective_date"],
+                defaults={
+                    "created_by": created_by,
+                },
+            )
