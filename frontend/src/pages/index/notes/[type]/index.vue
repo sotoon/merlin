@@ -4,10 +4,7 @@
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
-        <i
-          class="text-h1 text-primary"
-          :class="noteType ? NOTE_TYPE_ICON[noteType] : 'i-mdi-note-text'"
-        />
+        <i class="text-h1 text-primary" :class="noteTypeIcon" />
 
         <PHeading level="h1" responsive>
           {{ noteTitle }}
@@ -131,6 +128,12 @@ const noteTitle = computed(() =>
       ? t('user.userNotes', { name: props.user.name })
       : t('common.notes'),
 );
+const noteTypeIcon = computed(() => {
+  if (props.noteType === NOTE_TYPE.proposal) {
+    return PROPOSAL_TYPE_ICON[route.query.proposal_type as ProposalType];
+  }
+  return props.noteType ? NOTE_TYPE_ICON[props.noteType] : 'i-mdi-note-text';
+});
 
 useHead({
   title: noteTitle,

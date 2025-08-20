@@ -93,6 +93,11 @@ class CurrentLadderSerializer(serializers.Serializer):
         child=serializers.DictField(child=serializers.CharField()),
         help_text="List of available stages as [{value,label}]",
     )
+    current_aspects = serializers.DictField(
+        child=serializers.FloatField(),
+        required=False,
+        help_text="Dict of current aspect values for the user.",
+    )
 
 
 class LadderSerializer(serializers.ModelSerializer):
