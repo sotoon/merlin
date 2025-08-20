@@ -147,7 +147,7 @@
               :label="aspectDict[aspectCode]"
               :value="
                 aspectChange.new_level
-                  ? `${aspectChange.new_level} ${
+                  ? `${aspectChange.new_level.toLocaleString('fa-IR')} ${
                       aspectChange.stage ? `(${aspectChange.stage})` : ''
                     }`
                   : '-'

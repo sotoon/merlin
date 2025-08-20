@@ -7,3 +7,11 @@ export const useGetLadders = () => {
     queryFn: () => $api.fetch('/ladders/'),
   });
 };
+
+export const useGetLadderByUuid = (uuid: string) => {
+  const { $api } = useNuxtApp();
+  return useQuery<Schema<'CurrentLadder'>>({
+    queryKey: ['ladder', uuid],
+    queryFn: () => $api.fetch(`/profile/${uuid}/current-ladder/`),
+  });
+};

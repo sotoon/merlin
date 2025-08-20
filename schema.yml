@@ -2159,6 +2159,12 @@ components:
             additionalProperties:
               type: string
           description: List of available stages as [{value,label}]
+        current_aspects:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+          description: Dict of current aspect values for the user.
       required:
       - aspects
       - ladder
@@ -4061,6 +4067,10 @@ components:
           type: number
           format: double
           nullable: true
+        last_salary_change_date:
+          type: string
+          format: date
+          nullable: true
         ladder:
           type: string
           nullable: true
@@ -4085,6 +4095,7 @@ components:
       - last_bonus_date
       - last_bonus_percentage
       - last_committee_date
+      - last_salary_change_date
       - leader
       - name
       - overall_level

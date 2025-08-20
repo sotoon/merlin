@@ -281,6 +281,7 @@ def apply_personnel_filters(qs, params: dict):
         "is_mapped": "_is_mapped",
         "last_committee_date": "_last_committee_date",
         "last_bonus_date": "_last_bonus_date",
+        "last_salary_change_date": "_last_salary_change_date",
         "overall_level": "_overall_score",
         "salary_change": "_salary_change",
         "committees_current_year": "_committees_current_year",
@@ -288,6 +289,9 @@ def apply_personnel_filters(qs, params: dict):
         "last_bonus_percentage": "_last_bonus_percentage",
     }
     string_fields = ["name", "leader"]
+
+    if 'name_search' in params and params['name_search']:
+        qs = qs.filter(name__icontains=params['name_search'])
 
     for key, value in params.items():
         if not value:
@@ -320,7 +324,7 @@ def apply_personnel_filters(qs, params: dict):
             if field_name == "name":
                 db_field = "id"
             qs = qs.filter(**{f"{db_field}__in": value.split(",")})
-        elif lookup in ["gt", "lt", "eq"]:
+        elif lookup in ["gt", "lt", "eq", "gte", "lte"]:
             try:
                 if "date" in field_name:
                     value = datetime.strptime(value, "%Y-%m-%d").date()
@@ -329,12 +333,8 @@ def apply_personnel_filters(qs, params: dict):
             except (ValueError, TypeError):
                 continue
 
-            if lookup == "gt":
-                qs = qs.filter(**{f"{db_field}__gt": value})
-            elif lookup == "lt":
-                qs = qs.filter(**{f"{db_field}__lt": value})
-            elif lookup == "eq":
-                qs = qs.filter(**{f"{db_field}__exact": value})
+            orm_lookup = "exact" if lookup == "eq" else lookup
+            qs = qs.filter(**{f"{db_field}__{orm_lookup}": value})
         elif field_name in string_fields and lookup == "exact":
             qs = qs.filter(**{f"{db_field}__icontains": value})
         elif (
@@ -377,6 +377,7 @@ def apply_personnel_ordering(qs, ordering_param: Optional[str]):
         "last_bonus_percentage": "_last_bonus_percentage",
         "is_mapped": "_is_mapped",
         "last_bonus_date": "_last_bonus_date",
+        "last_salary_change_date": "_last_salary_change_date",
         "salary_change": "_salary_change",
     }
 

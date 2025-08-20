@@ -1,7 +1,7 @@
 <template>
   <PBox class="mx-auto max-w-3xl bg-white px-4 py-8 lg:px-8 lg:pt-10">
     <div class="mb-4 flex items-center gap-4 border-b border-gray-10 pb-4">
-      <i class="text-h1 text-primary" :class="NOTE_TYPE_ICON[noteType]" />
+      <i class="text-h1 text-primary" :class="noteTypeIcon" />
 
       <PHeading level="h1" responsive>
         {{ t('note.createNewX', [noteTypeLabel]) }}
@@ -63,4 +63,11 @@ const noteTypeLabel = computed(() =>
     ? proposalTypeLabels.value[route.query.proposal_type as ProposalType]
     : noteTypeLabels.value[props.noteType],
 );
+const noteTypeIcon = computed(() => {
+  return props.noteType === NOTE_TYPE.proposal
+    ? PROPOSAL_TYPE_ICON[route.query.proposal_type as ProposalType]
+    : props.noteType
+      ? NOTE_TYPE_ICON[props.noteType]
+      : 'i-mdi-note-text';
+});
 </script>

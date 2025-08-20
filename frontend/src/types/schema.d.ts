@@ -991,6 +991,10 @@ export interface components {
       stages: {
         [key: string]: string;
       }[];
+      /** @description Dict of current aspect values for the user. */
+      current_aspects?: {
+        [key: string]: number;
+      };
     };
     /**
      * @description * `SENIORITY_CHANGE` - تغییر سطح لدر
@@ -1866,6 +1870,8 @@ export interface components {
       last_bonus_date: string | null;
       /** Format: double */
       last_bonus_percentage: number | null;
+      /** Format: date */
+      last_salary_change_date: string | null;
       ladder: string | null;
       ladder_levels?: {
         [key: string]: unknown;

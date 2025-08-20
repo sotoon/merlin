@@ -115,7 +115,13 @@ class CurrentLadderView(APIView):
         aspects = ladder.aspects.order_by("order").values("code", "name")
         stages = [{"value": v, "label": l} for v, l in LadderStage.choices]
 
-        data = {"ladder": ladder.code, "max_level": ladder.get_max_level(), "aspects": list(aspects), "stages": stages}
+        data = {
+            "ladder": ladder.code,
+            "max_level": ladder.get_max_level(),
+            "aspects": list(aspects),
+            "stages": stages,
+            "current_aspects": snapshot.details_json if snapshot else {},
+        }
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
         return Response(serializer.validated_data)

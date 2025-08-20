@@ -22,7 +22,7 @@ const currentTab = useRouteQuery<'owned' | 'invited'>('tab', 'owned');
       ]"
     >
       <div class="flex items-center gap-4">
-        <i class="i-mdi-account-supervisor text-h1 text-primary" />
+        <i class="i-mdi-comment-check text-h1 text-primary" />
 
         <PHeading level="h1" responsive>
           {{ t('common.feedbackRequest') }}
