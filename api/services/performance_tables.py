@@ -313,6 +313,14 @@ def apply_personnel_filters(qs, params: dict):
                 qs = qs.filter(
                     **{f"_details_json__{aspect_code}__{orm_lookup}": numeric_value}
                 )
+            elif lookup == "in":
+                # Handle multiple aspect values (e.g., aspect_technical__in=1,2,3,4,5)
+                try:
+                    numeric_values = [float(v.strip()) for v in value.split(",") if v.strip()]
+                    if numeric_values:
+                        qs = qs.filter(**{f"_details_json__{aspect_code}__in": numeric_values})
+                except (ValueError, TypeError):
+                    continue
             continue
 
         if field_name not in filter_map:

@@ -1008,3 +1008,58 @@ def test_refinalizing_summary_updates_snapshots_not_duplicates(api_client):
 	assert s2 == s1  # updated in-place
 	row2 = next(r for r in api_client.get("/api/personnel/performance-table/?page_size=50").json()["results"] if r["name"] == u.email)
 	assert row2["last_bonus_percentage"] == 15.0 
+
+
+@pytest.mark.django_db
+def test_aspect_filtering_with_multiple_values(api_client):
+	"""Aspect filtering should work with multiple values using the 'in' lookup."""
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	viewer = User.objects.create(email="hrm@example.com"); org.hr_manager = viewer; org.save(update_fields=["hr_manager"])
+	
+	# Create users with different aspect levels
+	u1 = User.objects.create(email="user1@example.com", team=team_a)
+	u2 = User.objects.create(email="user2@example.com", team=team_a)
+	u3 = User.objects.create(email="user3@example.com", team=team_a)
+	u4 = User.objects.create(email="user4@example.com", team=team_a)
+	
+	# Create ladder with aspects
+	lad = Ladder.objects.create(code="TEST", name="Test Ladder")
+	LadderAspect.objects.create(ladder=lad, code="TECH", name="Technical", order=1)
+	
+	# Create snapshots with different aspect levels
+	_seniority(u1, "TEST", timezone.now().date())
+	_seniority(u2, "TEST", timezone.now().date())
+	_seniority(u3, "TEST", timezone.now().date())
+	_seniority(u4, "TEST", timezone.now().date())
+	
+	# Update the snapshots with specific aspect levels
+	SenioritySnapshot.objects.filter(user=u1).update(details_json={"TECH": 1})
+	SenioritySnapshot.objects.filter(user=u2).update(details_json={"TECH": 2})
+	SenioritySnapshot.objects.filter(user=u3).update(details_json={"TECH": 3})
+	SenioritySnapshot.objects.filter(user=u4).update(details_json={"TECH": 4})
+	
+	api_client.force_authenticate(viewer)
+	
+	# Test filtering for levels 1, 2, 3 (should return 3 users)
+	resp = api_client.get("/api/personnel/performance-table/?aspect_TECH__in=1,2,3&page_size=50")
+	assert resp.status_code == 200
+	results = resp.json()["results"]
+	assert len(results) == 3
+	user_emails = [r["name"] for r in results]
+	assert "user1@example.com" in user_emails
+	assert "user2@example.com" in user_emails
+	assert "user3@example.com" in user_emails
+	assert "user4@example.com" not in user_emails
+	
+	# Test filtering for single level (should return 1 user)
+	resp = api_client.get("/api/personnel/performance-table/?aspect_TECH__in=2&page_size=50")
+	assert resp.status_code == 200
+	results = resp.json()["results"]
+	assert len(results) == 1
+	assert results[0]["name"] == "user2@example.com"
+	
+	# Test filtering for non-existent levels (should return 0 users)
+	resp = api_client.get("/api/personnel/performance-table/?aspect_TECH__in=10,20&page_size=50")
+	assert resp.status_code == 200
+	results = resp.json()["results"]
+	assert len(results) == 0 
