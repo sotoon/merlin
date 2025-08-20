@@ -19,7 +19,7 @@ const showHeader = computed(() => route.name === 'adhoc-feedback');
       ]"
     >
       <div class="flex items-center gap-4">
-        <i class="i-mdi-account-supervisor text-h1 text-primary" />
+        <i class="i-mdi-comment-quote-outline text-h1 text-primary" />
 
         <PHeading level="h1" responsive>
           {{ t('feedback.adhocFeedback') }}

@@ -28,13 +28,6 @@ export const NOTE_TYPE_ROUTE_PARAM = {
   [NOTE_TYPE.feedback]: 'feedback',
 } as const;
 
-export const PROPOSAL_TYPE_ROUTE_PARAM = {
-  [PROPOSAL_TYPE.promotion]: 'promotion',
-  [PROPOSAL_TYPE.notice]: 'notice',
-  [PROPOSAL_TYPE.mapping]: 'mapping',
-  [PROPOSAL_TYPE.evaluation]: 'evaluation',
-} as const;
-
 export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.goal]: 'i-mdi-target-arrow',
   [NOTE_TYPE.oneOnOne]: 'i-mdi-calendar',
@@ -43,8 +36,8 @@ export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.proposal]: 'i-mdi-chart-line',
   [NOTE_TYPE.template]: 'i-mdi-clipboard-text',
   [NOTE_TYPE.forms]: 'i-mdi-form',
-  [NOTE_TYPE.feedbackRequest]: 'i-mdi-feedback',
-  [NOTE_TYPE.feedback]: 'i-mdi-feedback',
+  [NOTE_TYPE.feedbackRequest]: 'i-mdi-comment-check',
+  [NOTE_TYPE.feedback]: 'i-mdi-comment-quote-outline',
 };
 
 export const PROPOSAL_TYPE_ICON = {

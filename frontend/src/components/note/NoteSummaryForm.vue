@@ -95,23 +95,31 @@
             </VeeField>
           </div>
 
-          <label class="mb-2 flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              :checked="isAspectChanged(aspect.code)"
-              class="text-primary-600 border-gray-300 focus:ring-primary-500 h-4 w-4 rounded bg-gray-100 focus:ring-2"
-              @change="
-                (e) =>
-                  toggleAspectChanged(
-                    aspect.code,
-                    (e.target as HTMLInputElement).checked,
-                  )
-              "
-            />
-            <span class="text-gray-700 text-sm font-medium"
-              >{{ t('note.hasChanged') }}
-            </span>
-          </label>
+          <PTooltip :disabled="!isAspectReachedMaxLevel(aspect.code)">
+            <label class="mb-2 flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                :checked="isAspectChanged(aspect.code)"
+                :disabled="isAspectReachedMaxLevel(aspect.code)"
+                class="text-primary-600 border-gray-300 focus:ring-primary-500 h-4 w-4 rounded bg-gray-100 focus:ring-2"
+                @change="
+                  (e) =>
+                    toggleAspectChanged(
+                      aspect.code,
+                      (e.target as HTMLInputElement).checked,
+                    )
+                "
+              />
+              <span class="text-gray-700 text-sm font-medium">
+                {{ t('note.hasChanged') }}
+              </span>
+            </label>
+            <template #content>
+              <PText variant="caption2">
+                {{ t('note.aspectReachedMaxLevel') }}
+              </PText>
+            </template>
+          </PTooltip>
         </div>
       </template>
     </div>
@@ -242,6 +250,7 @@ import {
   PListbox,
   PListboxOption,
   PAlert,
+  PTooltip,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
@@ -261,6 +270,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { data: ladders } = useGetLadders();
+const { data: currentLadder } = useGetLadderByUuid(props.note.owner_uuid);
 
 const { meta, handleSubmit, values, setValues } = useForm<
   Schema<'SummaryRequest'>
@@ -279,6 +289,12 @@ const { meta, handleSubmit, values, setValues } = useForm<
   },
 });
 
+watch(currentLadder, (newLadder) => {
+  if (newLadder) {
+    setValues({ ladder: newLadder.ladder });
+  }
+});
+
 const isEditing = computed(() => Boolean(props.summary));
 useUnsavedChangesGuard({
   disabled: () => !meta.value.dirty || !isEditing.value,
@@ -294,20 +310,20 @@ const currentAspects = computed(() => {
 });
 
 // Helper function to check if an aspect is changed
-const isAspectChanged = (aspectCode: string) => {
+function isAspectChanged(aspectCode: string) {
   return values.aspect_changes?.[aspectCode]?.changed || false;
-};
+}
 
 // Helper function to get display value for aspect inputs
-const getAspectDisplayValue = (aspectCode: string) => {
+function getAspectDisplayValue(aspectCode: string) {
   if (isAspectChanged(aspectCode)) {
     return values.aspect_changes?.[aspectCode]?.new_level || '';
   }
   return '';
-};
+}
 
 // Function to toggle aspect changed state
-const toggleAspectChanged = (aspectCode: string, value: boolean) => {
+function toggleAspectChanged(aspectCode: string, value: boolean) {
   const aspectChanges = { ...values.aspect_changes };
 
   if (!aspectChanges[aspectCode]) {
@@ -326,7 +342,7 @@ const toggleAspectChanged = (aspectCode: string, value: boolean) => {
   };
 
   setValues({ aspect_changes: aspectChanges });
-};
+}
 
 // Handle ladder selection change
 function onLadderChange(ladderCode: string) {
@@ -378,6 +394,13 @@ const isEvaluation = computed(
 const isNotice = computed(
   () => props.note.proposal_type === PROPOSAL_TYPE.notice,
 );
+
+function isAspectReachedMaxLevel(aspectCode: string) {
+  return (
+    (currentLadder.value?.current_aspects?.[aspectCode] || 0) >=
+    (selectedLadder.value?.max_level || 0)
+  );
+}
 
 const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', values, ctx);

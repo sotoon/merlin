@@ -8,15 +8,18 @@ import {
   PText,
   PListbox,
   PListboxOption,
+  PInput,
 } from '@pey/core';
 import {
   PeyRetryIcon,
   PeyCircleTickFilledIcon,
   PeyCircleCloseIcon,
   PeyCloudDownloadIcon,
+  PeySearchIcon,
 } from '@pey/icons';
 import CustomTable from '~/components/shared/CustomTable.vue';
 import dayjs from '~/utils/dayjs';
+import { useDebounce } from '@vueuse/core';
 
 interface SortBy {
   prop: string;
@@ -32,6 +35,8 @@ const { data: accessibleUsers } = useGetAccessibleUsers();
 const { data: profilePermissions } = useGetProfilePermissions();
 
 const activeFilters = ref<Record<string, any>>({});
+const nameSearch = ref('');
+const debouncedNameSearch = useDebounce(nameSearch, 300);
 
 const sortBy = ref<SortBy>({ prop: '', order: null });
 const ordering = computed(() => {
@@ -56,12 +61,17 @@ const params = computed(() => {
     if (Array.isArray(filter.value)) {
       if (filter.value.length === 0) continue;
       filters[`${key}__in`] = filter.value.join(',');
-    } else if (filter.condition) {
-      let value = filter.value;
-      if (column?.filter?.type === 'date') {
-        value = dayjs(value).format('YYYY-MM-DD');
+    } else if (column?.filter?.type === 'date-range') {
+      if (filter.value && filter.value.from && filter.value.to) {
+        filters[`${key}__gte`] = dayjs(filter.value.from)
+          .startOf('day')
+          .format('YYYY-MM-DD');
+        filters[`${key}__lte`] = dayjs(filter.value.to)
+          .endOf('day')
+          .format('YYYY-MM-DD');
       }
-      filters[`${key}__${filter.condition.toLowerCase()}`] = value;
+    } else if (filter.condition) {
+      filters[`${key}__${filter.condition.toLowerCase()}`] = filter.value;
     } else if (typeof filter.value === 'boolean') {
       filters[key] = filter.value ? 'true' : 'false';
     } else {
@@ -72,6 +82,7 @@ const params = computed(() => {
   return {
     page: currentPage.value,
     ordering: ordering.value,
+    name_search: debouncedNameSearch.value,
     ...filters,
   };
 });
@@ -166,6 +177,7 @@ const staticColumns = ref([
     sortable: true,
     filterable: true,
     filter: { type: 'boolean' as const },
+    description: 'وضعیت مپینگ کاربرها (مپ شده یا نشده)',
   },
   {
     key: 'leader',
@@ -196,18 +208,12 @@ const staticColumns = ref([
     filter: { type: 'numeric' as const },
   },
   {
-    key: 'salary_change',
-    label: 'تغییر حقوق',
-    sortable: true,
-    filterable: true,
-    filter: { type: 'numeric' as const },
-  },
-  {
     key: 'committees_current_year',
     label: 'کمیته‌های سال جاری',
     sortable: true,
     filterable: true,
     filter: { type: 'numeric' as const },
+    description: 'تعداد کمیته‌ها از انواع مپینگ، ارتقا یا ارزیابی',
   },
   {
     key: 'committees_last_year',
@@ -215,6 +221,7 @@ const staticColumns = ref([
     sortable: true,
     filterable: true,
     filter: { type: 'numeric' as const },
+    description: 'تعداد کمیته‌ها از انواع مپینگ، ارتقا و ارزیابی',
   },
   {
     key: 'last_bonus_percentage',
@@ -222,20 +229,38 @@ const staticColumns = ref([
     sortable: true,
     filterable: true,
     filter: { type: 'numeric' as const },
+    description: 'درصد آخرین پاداش دریافتی',
+  },
+  {
+    key: 'salary_change',
+    label: 'تغییر حقوق',
+    sortable: true,
+    filterable: true,
+    filter: { type: 'numeric' as const },
+    description: 'میزان تغییر حقوق در آخرین کمیته‌ی فرد',
   },
   {
     key: 'last_bonus_date',
     label: 'آخرین تاریخ پاداش',
     sortable: true,
     filterable: true,
-    filter: { type: 'date' as const },
+    filter: { type: 'date-range' as const },
+  },
+  {
+    key: 'last_salary_change_date',
+    label: 'آخرین تاریخ تغییر حقوق',
+    sortable: true,
+    filterable: true,
+    filter: { type: 'date-range' as const },
   },
   {
     key: 'last_committee_date',
     label: 'آخرین تاریخ کمیته',
     sortable: true,
     filterable: true,
-    filter: { type: 'date' as const },
+    filter: { type: 'date-range' as const },
+    description:
+      'تاریخ آخرین کمیته‌ی برگزارشده از انواع: مپینگ، ارتقا یا ارزیابی',
   },
   {
     key: 'details',
@@ -305,6 +330,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
+        <i class="i-mdi-chart-line text-h1 text-primary" />
         <PHeading level="h1" responsive>
           {{ t('common.performanceTable') }}
         </PHeading>
@@ -332,6 +358,17 @@ const handleFilterChanged = (filters: Record<string, any>) => {
     </div>
 
     <PBox v-else class="bg-white p-4">
+      <PInput
+        v-model="nameSearch"
+        size="small"
+        class="w-full lg:w-1/4"
+        placeholder="جستجوی نام"
+      >
+        <template #iconStart>
+          <PeySearchIcon class="text-gray-50" :size="20" />
+        </template>
+      </PInput>
+
       <CustomTable
         v-model:sort-by="sortBy"
         :columns="columns"
@@ -344,7 +381,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <span
             class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-10 text-sm font-bold"
           >
-            {{ index + 1 }}
+            {{ (index + 1).toLocaleString('fa-IR') }}
           </span>
         </template>
         <template
@@ -353,22 +390,31 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           #[`cell-${col.key}`]="{ row }"
         >
           <PText variant="caption1">
-            {{ row.ladder_levels[col.key.replace('aspect_', '')] }}
+            {{
+              row.ladder_levels[col.key.replace('aspect_', '')].toLocaleString(
+                'fa-IR',
+              )
+            }}
           </PText>
         </template>
-        <template #cell-last_committee_date="{ row }">
-          <PText v-if="row.last_committee_date" variant="caption1">
-            {{ new Date(row.last_committee_date).toLocaleDateString('fa-IR') }}
+        <template #cell-last_committee_date="{ value }">
+          <PText v-if="value" variant="caption1">
+            {{ new Date(value).toLocaleDateString('fa-IR') }}
           </PText>
         </template>
-        <template #cell-last_bonus_date="{ row }">
-          <PText v-if="row.last_bonus_date" variant="caption1">
-            {{ new Date(row.last_bonus_date).toLocaleDateString('fa-IR') }}
+        <template #cell-last_bonus_date="{ value }">
+          <PText v-if="value" variant="caption1">
+            {{ new Date(value).toLocaleDateString('fa-IR') }}
           </PText>
         </template>
-        <template #cell-is_mapped="{ row }">
+        <template #cell-last_salary_change_date="{ value }">
+          <PText v-if="value" variant="caption1">
+            {{ new Date(value).toLocaleDateString('fa-IR') }}
+          </PText>
+        </template>
+        <template #cell-is_mapped="{ value }">
           <PeyCircleTickFilledIcon
-            v-if="row.is_mapped"
+            v-if="value"
             class="mx-auto h-5 w-5 text-success"
           />
           <PeyCircleCloseIcon v-else class="mx-auto h-5 w-5 text-warning" />
@@ -474,7 +520,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
             <PListboxOption
               v-for="level in selectedLadder?.max_level"
               :key="level"
-              :label="String(level)"
+              :label="level.toLocaleString('fa-IR')"
               :value="level"
             />
           </PListbox>

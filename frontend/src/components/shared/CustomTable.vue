@@ -18,6 +18,12 @@
               >
                 {{ column.label }}
               </span>
+              <PTooltip v-if="column.description">
+                <PeyInfoFilledIcon class="mr-1 h-4 w-4 text-gray-40" />
+                <template #content>
+                  {{ column.description }}
+                </template>
+              </PTooltip>
               <span
                 v-if="column.sortable"
                 class="ms-1 inline-flex cursor-pointer flex-col"
@@ -114,6 +120,21 @@
                         />
                       </div>
                       <div
+                        v-if="
+                          column.filter?.type === 'date-range' && stagedFilter
+                        "
+                        class="space-y-2"
+                      >
+                        <PRangePickerInput
+                          v-model="stagedFilter.value"
+                          type="jalali"
+                          hide-details
+                          size="small"
+                          :placeholder="t('common.selectDateRange')"
+                          @keydown.enter="applyFilter"
+                        />
+                      </div>
+                      <div
                         v-if="column.filter?.type === 'boolean' && stagedFilter"
                         class="space-y-2"
                       >
@@ -164,8 +185,17 @@
             class="whitespace-nowrap p-4"
             :class="column.cellClass"
           >
-            <slot :name="`cell-${column.key}`" :row="row" :index="rowIndex">
-              {{ row[column.key] }}
+            <slot
+              :name="`cell-${column.key}`"
+              :row="row"
+              :value="row[column.key]"
+              :index="rowIndex"
+            >
+              {{
+                typeof row[column.key] === 'number'
+                  ? row[column.key].toLocaleString('fa-IR')
+                  : row[column.key]
+              }}
             </slot>
           </td>
         </tr>
@@ -184,8 +214,14 @@ import {
   PButton,
   PDatePickerInput,
   PSwitch,
+  PTooltip,
+  PRangePickerInput,
 } from '@pey/core';
-import { PeyArrowDownFillIcon, PeyFilterIcon } from '@pey/icons';
+import {
+  PeyArrowDownFillIcon,
+  PeyFilterIcon,
+  PeyInfoFilledIcon,
+} from '@pey/icons';
 
 interface Column {
   key: string;
@@ -193,9 +229,10 @@ interface Column {
   sortable?: boolean;
   filterable?: boolean;
   filter?: {
-    type: 'string' | 'numeric' | 'date' | 'boolean';
+    type: 'string' | 'numeric' | 'date' | 'boolean' | 'date-range';
   };
   cellClass?: string;
+  description?: string;
 }
 
 interface SortBy {
@@ -238,6 +275,14 @@ const isFilterActive = (key: string) => {
   if (typeof filter.value === 'boolean') {
     return true;
   }
+  if (
+    filter.value &&
+    typeof filter.value === 'object' &&
+    'from' in filter.value &&
+    'to' in filter.value
+  ) {
+    return !!(filter.value.from && filter.value.to);
+  }
   return !!filter.value;
 };
 
@@ -270,11 +315,29 @@ const toggleFilterPopover = (key: string) => {
       ) {
         stagedFilter.value.value = new Date(stagedFilter.value.value);
       }
+      if (column?.filter?.type === 'date-range' && stagedFilter.value.value) {
+        if (
+          stagedFilter.value.value.from &&
+          typeof stagedFilter.value.value.from === 'string'
+        ) {
+          stagedFilter.value.value.from = new Date(
+            stagedFilter.value.value.from,
+          );
+        }
+        if (
+          stagedFilter.value.value.to &&
+          typeof stagedFilter.value.value.to === 'string'
+        ) {
+          stagedFilter.value.value.to = new Date(stagedFilter.value.value.to);
+        }
+      }
     } else {
       if (column?.filter?.type === 'numeric') {
         stagedFilter.value = { value: '', condition: 'eq' };
       } else if (column?.filter?.type === 'date') {
         stagedFilter.value = { value: null, condition: 'eq' };
+      } else if (column?.filter?.type === 'date-range') {
+        stagedFilter.value = { value: undefined };
       } else if (column?.filter?.type === 'boolean') {
         stagedFilter.value = { value: false };
       } else {
