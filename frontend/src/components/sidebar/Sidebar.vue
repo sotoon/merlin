@@ -10,7 +10,10 @@
       <PScrollbar class="-mx-2 grow px-2 py-4">
         <ul class="space-y-2">
           <li>
-            <SidebarLinkGroup :title="t('common.notes')">
+            <SidebarLinkGroup
+              :title="t('common.notes')"
+              :is-active="isNotesGroupActive"
+            >
               <li>
                 <SidebarLink
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.goal]"
@@ -19,6 +22,7 @@
                     name: 'notes',
                     params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.goal] },
                   }"
+                  :is-active="isGoalActive"
                 />
               </li>
 
@@ -27,6 +31,7 @@
                   icon="i-mdi-form"
                   :label="t('common.forms')"
                   :to="{ name: 'forms' }"
+                  :is-active="isFormsActive"
                 />
               </li>
 
@@ -37,13 +42,17 @@
                   icon="i-mdi-chart-bar"
                   :label="t('common.results')"
                   :to="{ name: 'my-forms' }"
+                  :is-active="isMyFormsActive"
                 />
               </li>
             </SidebarLinkGroup>
           </li>
 
           <li>
-            <SidebarLinkGroup :title="t('common.promotion')">
+            <SidebarLinkGroup
+              :title="t('common.promotion')"
+              :is-active="isPromotionGroupActive"
+            >
               <li>
                 <SidebarLink
                   :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.promotion]"
@@ -99,6 +108,7 @@
             <SidebarLinkGroup
               :has-badge="!!newFeedbackCount || !!newAdhocFeedbackCount"
               :title="t('common.feedback')"
+              :is-active="isFeedbackGroupActive"
             >
               <li>
                 <SidebarLink
@@ -106,6 +116,7 @@
                   icon="i-mdi-comment-check"
                   :label="t('common.feedbackRequest')"
                   :to="{ name: 'feedback' }"
+                  :is-active="isFeedbackActive"
                 />
               </li>
               <li>
@@ -114,6 +125,7 @@
                   icon="i-mdi-comment-quote-outline"
                   :label="t('feedback.adhocFeedback')"
                   :to="{ name: 'adhoc-feedback' }"
+                  :is-active="isAdhocFeedbackActive"
                 />
               </li>
               <li>
@@ -124,13 +136,17 @@
                     name: 'notes',
                     params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message] },
                   }"
+                  :is-active="isMessageActive"
                 />
               </li>
             </SidebarLinkGroup>
           </li>
 
           <li>
-            <SidebarLinkGroup :title="t('common.personal')">
+            <SidebarLinkGroup
+              :title="t('common.personal')"
+              :is-active="isPersonalGroupActive"
+            >
               <li>
                 <SidebarLink
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.meeting]"
@@ -139,6 +155,7 @@
                     name: 'notes',
                     params: { type: NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting] },
                   }"
+                  :is-active="isMeetingActive"
                 />
               </li>
 
@@ -147,6 +164,7 @@
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.template]"
                   :label="t('common.templates')"
                   :to="{ name: 'templates' }"
+                  :is-active="isTemplatesActive"
                 />
               </li>
 
@@ -155,6 +173,7 @@
                   icon="i-mdi-chart-line"
                   :label="t('common.performanceTable')"
                   :to="{ name: 'performance-list' }"
+                  :is-active="isPerformanceTableActive"
                 />
               </li>
             </SidebarLinkGroup>
@@ -164,12 +183,14 @@
             <SidebarLinkGroup
               :has-badge="!!newOneOnOneCount"
               :title="t('common.myTeam')"
+              :is-active="isMyTeamGroupActive"
             >
               <li v-if="isTeamLeader">
                 <SidebarLink
                   icon="i-mdi-account-group"
                   :label="t('common.myTeam')"
                   :to="{ name: 'my-team' }"
+                  :is-active="isMyTeamActive"
                 />
               </li>
               <li>
@@ -178,6 +199,7 @@
                   icon="i-mdi-account-supervisor"
                   :label="t('common.oneOnOne')"
                   :to="{ name: 'one-on-one' }"
+                  :is-active="isOneOnOneActive"
                 />
               </li>
             </SidebarLinkGroup>
@@ -191,12 +213,14 @@
           icon="i-mdi-message-text"
           :label="t('common.messages')"
           :to="{ name: 'messages' }"
+          :is-active="isMessagesActive"
         />
 
         <SidebarLink
           icon="i-mdi-account-group-outline"
           :label="t('common.users')"
           :to="{ name: 'user-list' }"
+          :is-active="isUsersActive"
         />
 
         <SidebarLink
@@ -292,4 +316,102 @@ const newOneOnOneCount = computed(
       (message) => message.type === NOTE_TYPE.oneOnOne && !message.read_status,
     ).length,
 );
+
+const isNotesGroupActive = computed(() => {
+  return (
+    (route.name === 'notes' && route.params.type === 'goal') ||
+    route.name === 'forms' ||
+    route.name === 'my-forms'
+  );
+});
+
+const isPromotionGroupActive = computed(() => {
+  return (
+    route.name === 'notes' &&
+    route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.proposal]
+  );
+});
+
+const isFeedbackGroupActive = computed(() => {
+  return (
+    route.name === 'feedback' ||
+    route.name === 'adhoc-feedback' ||
+    (route.name === 'notes' &&
+      route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message])
+  );
+});
+
+const isPersonalGroupActive = computed(() => {
+  return (
+    (route.name === 'notes' &&
+      route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting]) ||
+    route.name === 'templates' ||
+    route.name === 'performance-list'
+  );
+});
+
+const isMyTeamGroupActive = computed(() => {
+  return route.name === 'my-team' || route.name === 'one-on-one';
+});
+
+const isGoalActive = computed(() => {
+  return (
+    route.name === 'notes' &&
+    route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.goal]
+  );
+});
+
+const isFormsActive = computed(() => {
+  return route.name === 'forms';
+});
+
+const isMyFormsActive = computed(() => {
+  return route.name === 'my-forms';
+});
+
+const isFeedbackActive = computed(() => {
+  return route.name === 'feedback';
+});
+
+const isAdhocFeedbackActive = computed(() => {
+  return route.name === 'adhoc-feedback';
+});
+
+const isMessageActive = computed(() => {
+  return (
+    route.name === 'notes' &&
+    route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.message]
+  );
+});
+
+const isMeetingActive = computed(() => {
+  return (
+    route.name === 'notes' &&
+    route.params.type === NOTE_TYPE_ROUTE_PARAM[NOTE_TYPE.meeting]
+  );
+});
+
+const isTemplatesActive = computed(() => {
+  return route.name === 'templates';
+});
+
+const isPerformanceTableActive = computed(() => {
+  return route.name === 'performance-list';
+});
+
+const isMyTeamActive = computed(() => {
+  return route.name === 'my-team';
+});
+
+const isOneOnOneActive = computed(() => {
+  return route.name === 'one-on-one';
+});
+
+const isMessagesActive = computed(() => {
+  return route.name === 'messages';
+});
+
+const isUsersActive = computed(() => {
+  return route.name === 'user-list';
+});
 </script>
