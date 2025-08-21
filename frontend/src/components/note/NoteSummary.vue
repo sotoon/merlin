@@ -109,6 +109,7 @@
             />
 
             <PropertyTableRow
+              v-if="summaries[0].ladder_change"
               :label="t('note.ladderChange')"
               :value="summaries[0].ladder_change"
             />
