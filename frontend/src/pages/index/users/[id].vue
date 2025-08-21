@@ -12,7 +12,7 @@
       </div>
 
       <PButton
-        v-if="timelinePermissions?.can_view"
+        v-if="userPermissions?.user.roles.includes('MAINTAINER')"
         class="shrink-0"
         tabindex="-1"
         @click="titleChangeDialogOpen = true"
@@ -95,6 +95,7 @@ const userId = computed(() => route.params.id as string);
 
 const { data: user, isPending, error, refetch } = useGetUser(userId);
 const { data: timelinePermissions } = useGetUserTimelinePermissions(userId);
+const { data: userPermissions } = useGetProfilePermissions();
 
 const titleChangeDialogOpen = ref(false);
 

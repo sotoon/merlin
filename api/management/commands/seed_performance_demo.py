@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 from typing import List, Tuple
 
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db import transaction, models
 
 from api.models import (
     Organization,
@@ -212,8 +212,11 @@ class Command(BaseCommand):
             if not aspects:
                 continue
 
+            # Random max level between 5 and 10 for each ladder
+            max_level = random.randint(5, 10)
+            
             for aspect in aspects:
-                for level in range(1, 6):
+                for level in range(1, max_level + 1):
                     for stage in LadderStage.choices:
                         LadderLevel.objects.get_or_create(
                             ladder=ladder,
@@ -269,20 +272,24 @@ class Command(BaseCommand):
                 if aspects:
                     details_json = {}
                     stages_json = {}
+                    # Get max level from ladder levels for this ladder
+                    max_level = LadderLevel.objects.filter(ladder=ladder).aggregate(max_level=models.Max('level'))['max_level'] or 5
                     for aspect in aspects:
-                        level = random.randint(1, 5)
+                        level = random.randint(1, max_level)
                         stage = random.choice(["EARLY", "MID", "LATE"])
                         details_json[aspect.code] = level
                         stages_json[aspect.code] = stage
                     overall_score = round(sum(details_json.values()) / max(1, len(details_json)), 1)
                 else:
-                    details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                    max_level = random.randint(5, 10)  # Random fallback max level
+                    details_json = {"core": random.randint(1, max_level), "comm": random.randint(1, max_level)}
                     stages_json = {"core": "MID", "comm": "EARLY"}
-                    overall_score = round(random.uniform(1.0, 5.0), 1)
+                    overall_score = round(random.uniform(1.0, max_level), 1)
             else:
-                details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                max_level = random.randint(5, 10)  # Random fallback max level
+                details_json = {"core": random.randint(1, max_level), "comm": random.randint(1, max_level)}
                 stages_json = {"core": "MID", "comm": "EARLY"}
-                overall_score = round(random.uniform(1.0, 5.0), 1)
+                overall_score = round(random.uniform(1.0, max_level), 1)
 
             leader_sen_rows.append(
                 SenioritySnapshot(
@@ -500,8 +507,10 @@ class Command(BaseCommand):
                     # Create realistic aspect scores and stages
                     details_json = {}
                     stages_json = {}
+                    # Get max level from ladder levels for this ladder
+                    max_level = LadderLevel.objects.filter(ladder=ladder).aggregate(max_level=models.Max('level'))['max_level'] or 5
                     for aspect in aspects:
-                        level = random.randint(1, 5)
+                        level = random.randint(1, max_level)
                         stage = random.choice(["EARLY", "MID", "LATE"])
                         details_json[aspect.code] = level
                         stages_json[aspect.code] = stage
@@ -509,14 +518,16 @@ class Command(BaseCommand):
                     overall_score = round(sum(details_json.values()) / len(details_json), 1)
                 else:
                     # Fallback if no aspects defined
-                    details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                    max_level = random.randint(5, 10)  # Random fallback max level
+                    details_json = {"core": random.randint(1, max_level), "comm": random.randint(1, max_level)}
                     stages_json = {"core": "MID", "comm": "EARLY"}
-                    overall_score = round(random.uniform(1.0, 5.0), 1)
+                    overall_score = round(random.uniform(1.0, max_level), 1)
             else:
                 # Fallback if no ladder assigned
-                details_json = {"core": random.randint(1, 5), "comm": random.randint(1, 5)}
+                max_level = random.randint(5, 10)  # Random fallback max level
+                details_json = {"core": random.randint(1, max_level), "comm": random.randint(1, max_level)}
                 stages_json = {"core": "MID", "comm": "EARLY"}
-                overall_score = round(random.uniform(1.0, 5.0), 1)
+                overall_score = round(random.uniform(1.0, max_level), 1)
             
             sen_rows.append(
                 SenioritySnapshot(

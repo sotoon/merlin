@@ -164,21 +164,8 @@
         </div>
       </div>
 
-      <div v-if="!isNotice" class="flex flex-col flex-wrap gap-6 md:flex-row">
-        <VeeField
-          v-slot="{ componentField }"
-          name="ladder_change"
-          :rules="isEvaluation ? '' : 'required'"
-        >
-          <PInput
-            v-bind="componentField"
-            class="grow"
-            :label="t('note.ladderChange')"
-            :required="!isEvaluation"
-          />
-        </VeeField>
-
-        <div class="md:w-36">
+      <div class="flex flex-col flex-wrap gap-6 md:flex-row">
+        <div v-if="!isNotice" class="md:w-36">
           <VeeField
             v-slot="{ componentField }"
             name="salary_change"
@@ -198,9 +185,6 @@
             </PListbox>
           </VeeField>
         </div>
-      </div>
-
-      <div class="flex flex-col md:flex-row">
         <div>
           <VeeField
             v-slot="{ componentField }"
@@ -250,6 +234,7 @@ import {
   PListbox,
   PListboxOption,
   PAlert,
+  PText,
   PTooltip,
 } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
@@ -280,7 +265,6 @@ const { meta, handleSubmit, values, setValues } = useForm<
     aspect_changes: props.summary?.aspect_changes || {},
     ladder: props.summary?.ladder || '',
     performance_label: props.summary?.performance_label || undefined,
-    ladder_change: props.summary?.ladder_change || '',
     bonus: props.summary?.bonus || undefined,
     salary_change: props.summary?.salary_change || undefined,
     committee_date: props.summary?.committee_date
@@ -398,7 +382,8 @@ const isNotice = computed(
 function isAspectReachedMaxLevel(aspectCode: string) {
   return (
     (currentLadder.value?.current_aspects?.[aspectCode] || 0) >=
-    (selectedLadder.value?.max_level || 0)
+      (selectedLadder.value?.max_level || 0) &&
+    selectedLadder.value?.code == currentLadder.value?.ladder
   );
 }
 
