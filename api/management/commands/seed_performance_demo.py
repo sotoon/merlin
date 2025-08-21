@@ -428,6 +428,21 @@ class Command(BaseCommand):
             org.hr_manager.set_password("demo1234")
             org.hr_manager.save(update_fields=["email", "name", "password"])
 
+        # Create maintainer user
+        maintainer_user, _ = User.objects.get_or_create(
+            email="maintainer@example.com",
+            defaults={
+                "name": "Maintainer",
+                "department": dep_eng,  # Assign to engineering department
+                "chapter": chap_sw,
+                "team": teams[0] if teams else None,
+                "organization": org,
+                "is_active": True,
+            },
+        )
+        maintainer_user.set_password("demo1234")
+        maintainer_user.save(update_fields=["password"])
+
         # Assign tribe directors
         self.stdout.write("Assigning tribe directors (Engineering/Product Directors)…")
         for tribe in [tribe_app, tribe_platform]:
