@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
 import {
   PButton,
   PHeading,
@@ -9,6 +8,7 @@ import {
   PListbox,
   PListboxOption,
   PInput,
+  PDatePickerInput,
 } from '@pey/core';
 import {
   PeyRetryIcon,
@@ -45,6 +45,7 @@ const ordering = computed(() => {
 });
 
 const currentPage = ref(1);
+const asOfDate = ref();
 const params = computed(() => {
   const filters: Record<string, string> = {};
   for (const key in activeFilters.value) {
@@ -83,6 +84,9 @@ const params = computed(() => {
     page: currentPage.value,
     ordering: ordering.value,
     name_search: debouncedNameSearch.value,
+    as_of: asOfDate.value
+      ? dayjs(asOfDate.value).format('YYYY-MM-DD')
+      : undefined,
     ...filters,
   };
 });
@@ -149,6 +153,7 @@ const staticColumns = ref([
     key: 'index',
     label: '#',
     cellClass: 'w-12',
+    sticky: 'left' as const,
   },
   {
     key: 'name',
@@ -156,6 +161,7 @@ const staticColumns = ref([
     sortable: true,
     filterable: true,
     filter: { type: 'string' as const },
+    sticky: 'left' as const,
   },
   {
     key: 'tribe',
@@ -265,6 +271,7 @@ const staticColumns = ref([
   {
     key: 'details',
     label: 'جزئیات',
+    sticky: 'right' as const,
   },
 ]);
 
@@ -358,16 +365,19 @@ const handleFilterChanged = (filters: Record<string, any>) => {
     </div>
 
     <PBox v-else class="bg-white p-4">
-      <PInput
-        v-model="nameSearch"
-        size="small"
-        class="w-full lg:w-1/4"
-        placeholder="جستجوی نام"
-      >
-        <template #iconStart>
-          <PeySearchIcon class="text-gray-50" :size="20" />
-        </template>
-      </PInput>
+      <div class="flex items-start justify-between gap-2">
+        <PInput
+          v-model="nameSearch"
+          class="w-full lg:w-1/4"
+          placeholder="جستجوی نام"
+        >
+          <template #iconStart>
+            <PeySearchIcon class="text-gray-50" :size="20" />
+          </template>
+        </PInput>
+
+        <PDatePickerInput v-model="asOfDate" type="jalali" hide-details />
+      </div>
 
       <CustomTable
         v-model:sort-by="sortBy"
@@ -381,7 +391,7 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           <span
             class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-10 text-sm font-bold"
           >
-            {{ (index + 1).toLocaleString('fa-IR') }}
+            {{ ((currentPage - 1) * 10 + index + 1).toLocaleString('fa-IR') }}
           </span>
         </template>
         <template
