@@ -264,6 +264,14 @@ class SummarySerializer(serializers.ModelSerializer):
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
         data["note"] = Note.objects.get(uuid=note_uuid)
+        
+        # Validate committee_date is not in the future
+        committee_date = data.get('committee_date')
+        if committee_date and committee_date > timezone.now().date():
+            raise serializers.ValidationError({
+                'committee_date': 'Committee date cannot be in the future.'
+            })
+        
         return super().validate(data)
 
     def create(self, validated_data):
