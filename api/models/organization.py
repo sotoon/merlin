@@ -74,6 +74,14 @@ class Organization(MerlinBaseModel):
 		related_name="organization_cfo",
 		verbose_name="مدیر مالی",
 	)
+	maintainer = models.ForeignKey(
+		"api.User",
+		on_delete=models.PROTECT,
+		null=True,
+		blank=True,
+		related_name="organization_maintainer",
+		verbose_name="نگهدارنده",
+	)
 	description = models.TextField(blank=True, verbose_name="توضیحات")
 
 	class Meta:

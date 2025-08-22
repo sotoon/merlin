@@ -82,7 +82,6 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--users", type=int, default=250, help="Number of users to create")
 
-    @transaction.atomic
     def handle(self, *args, **options):
         cfg = SeedConfig(user_count=int(options.get("users", 250)))
 
@@ -114,6 +113,21 @@ class Command(BaseCommand):
         # Reference data / pay bands
         PayBand.objects.all().delete()
         LadderLevel.objects.all().delete() # Added for idempotency
+        
+        # Delete specific demo users to avoid conflicts
+        User.objects.filter(email__in=[
+            "leader@example.com",
+            "member@example.com", 
+            "maintainer@example.com",
+            "cto@example.com",
+            "cpo@example.com",
+            "hrm@example.com",
+            "teamlead_app_core@example.com",
+            "engdir_app@example.com",
+            "engdir_platform@example.com",
+            "proddir_growth@example.com"
+        ]).delete()
+        
         # Users (keep superusers like admin)
         User.objects.filter(is_superuser=False).delete()
 
@@ -212,8 +226,8 @@ class Command(BaseCommand):
             if not aspects:
                 continue
 
-            # Random max level between 5 and 10 for each ladder
-            max_level = random.randint(5, 10)
+            # Random max level between 5 and 6 for each ladder
+            max_level = random.randint(5, 6)
             
             for aspect in aspects:
                 for level in range(1, max_level + 1):
@@ -449,6 +463,10 @@ class Command(BaseCommand):
         )
         maintainer_user.set_password("demo1234")
         maintainer_user.save(update_fields=["password"])
+        
+        # Assign MAINTAINER role to the organization
+        org.maintainer = maintainer_user
+        org.save(update_fields=["maintainer"])
 
         # Assign tribe directors
         self.stdout.write("Assigning tribe directors (Engineering/Product Directors)…")
@@ -481,8 +499,9 @@ class Command(BaseCommand):
         if app_core and app_core.leader:
             app_core.leader.email = "teamlead_app_core@example.com"
             app_core.leader.name = app_core.leader.name or "Team Leader (App Core)"
+            app_core.leader.username = "teamlead_app_core"  # Set explicit username to avoid conflict
             app_core.leader.set_password("demo1234")
-            app_core.leader.save(update_fields=["email", "name", "password"])
+            app_core.leader.save(update_fields=["email", "name", "username", "password"])
 
         self.stdout.write("Seeding seniority + compensation snapshots and org assignments…")
         comp_rows = []

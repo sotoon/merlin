@@ -13,14 +13,14 @@ class OrganizationAdmin(BaseModelAdmin):
     class OrganizationResource(BaseModelResource):
         class Meta:
             model = Organization
-            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", )
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "maintainer", "description", )
 
     resource_class = OrganizationResource
-    list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", ("date_created", "date_updated"),)
+    list_display = ("name", "maintainer", "date_created", "date_updated",)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "maintainer", "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
-    search_fields = ["name"]
+    search_fields = ["name", "maintainer__name", "maintainer__email"]
 
 
 @admin.register(Department)

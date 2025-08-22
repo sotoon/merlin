@@ -197,7 +197,7 @@ class Command(BaseCommand):
         leader, created_leader = User.objects.get_or_create(
             email="leader@example.com",
             defaults={
-                "username": "leader",
+                "username": "leader_demo",
                 "name": "Team Leader",
                 "is_staff": True,
             },
