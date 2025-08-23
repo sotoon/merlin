@@ -56,8 +56,8 @@
               :name="`aspect_changes.${aspect.code}.new_level`"
               :rules="
                 isAspectChanged(aspect.code) && !isEvaluation
-                  ? `required|min_value:1|max_value:${selectedLadder?.max_level || 10}`
-                  : `min_value:1|max_value:${selectedLadder?.max_level || 10}`
+                  ? `required|min_value:1|max_value:${maxAspectLevelPossible(aspect.code)}`
+                  : `min_value:1|max_value:${maxAspectLevelPossible(aspect.code)}`
               "
             >
               <PInput
@@ -65,7 +65,7 @@
                 :label="aspect.name"
                 type="number"
                 :min="1"
-                :max="selectedLadder?.max_level || 10"
+                :max="maxAspectLevelPossible(aspect.code)"
                 hide-details
                 class="w-32"
                 :required="isAspectChanged(aspect.code) && !isEvaluation"
@@ -379,12 +379,21 @@ const isNotice = computed(
   () => props.note.proposal_type === PROPOSAL_TYPE.notice,
 );
 
+function maxAspectLevelPossible(aspectCode: string) {
+  if (!currentLadder.value || !selectedLadder.value) return 0;
+
+  if (selectedLadder.value.code == currentLadder.value.ladder) {
+    return (
+      currentLadder.value.max_level -
+      (currentLadder.value.current_aspects?.[aspectCode] || 0)
+    );
+  }
+
+  return selectedLadder.value.max_level;
+}
+
 function isAspectReachedMaxLevel(aspectCode: string) {
-  return (
-    (currentLadder.value?.current_aspects?.[aspectCode] || 0) >=
-      (selectedLadder.value?.max_level || 0) &&
-    selectedLadder.value?.code == currentLadder.value?.ladder
-  );
+  return maxAspectLevelPossible(aspectCode) === 0;
 }
 
 const onSubmit = handleSubmit((values, ctx) => {
