@@ -369,54 +369,71 @@ class Command(BaseCommand):
             )
             users.append(u)
 
-        # Create member and leader users (similar to seed_demo_data.py)
-        self.stdout.write("Creating member and leader users…")
+        # Create member user (leader user is already created as team leader)
+        self.stdout.write("Creating member user…")
         
-        # Find a technical team for the member and leader
-        technical_teams = [t for t in teams if t.department in [dep_eng, dep_prod]]
-        if not technical_teams:
-            technical_teams = teams  # fallback to any team
-        
-        member_team = random.choice(technical_teams)
-        
-        # Create leader user
-        leader_user, _ = User.objects.get_or_create(
-            email="leader@example.com",
-            defaults={
-                "name": "Team Leader",
-                "department": member_team.department,
-                "chapter": chap_sw,
-                "team": member_team,
-                "organization": org,
-            },
-        )
-        leader_user.set_password("pw")
-        leader_user.save(update_fields=["password"])
-        
-        # Set the leader as the team leader
-        member_team.leader = leader_user
-        member_team.save(update_fields=["leader"])
-        
-        # Create member user
-        member_user, _ = User.objects.get_or_create(
-            email="member@example.com",
-            defaults={
-                "name": "Team Member",
-                "department": member_team.department,
-                "chapter": chap_sw,
-                "team": member_team,
-                "leader": leader_user,
-                "organization": org,
-                "is_active": True,
-            },
-        )
-        # Always set the password to ensure it's correct
-        member_user.set_password("pw")
-        member_user.is_active = True
-        member_user.save(update_fields=["password", "is_active"])
-        
-        # Add them to the users list
-        users.extend([leader_user, member_user])
+        try:
+            # Find the leader user (should be the team leader of App Core)
+            leader_user = User.objects.filter(email="leader@example.com").first()
+            if not leader_user:
+                self.stdout.write("❌ Leader user not found! Creating one...")
+                # Fallback: create leader user
+                app_core = next((t for t in teams if t.name == "App Core"), None)
+                if app_core:
+                    leader_user, _ = User.objects.get_or_create(
+                        email="leader@example.com",
+                        defaults={
+                            "name": "Team Leader",
+                            "department": app_core.department,
+                            "chapter": chap_sw,
+                            "team": app_core,
+                            "organization": org,
+                            "is_active": True,
+                        },
+                    )
+                    leader_user.set_password("pw")
+                    leader_user.save(update_fields=["password"])
+                    app_core.leader = leader_user
+                    app_core.save(update_fields=["leader"])
+            
+            # Create member user
+            member_user, created = User.objects.get_or_create(
+                email="member@example.com",
+                defaults={
+                    "name": "Team Member",
+                    "department": leader_user.department if leader_user else dep_eng,
+                    "chapter": chap_sw,
+                    "team": leader_user.team if leader_user else teams[0],
+                    "leader": leader_user,
+                    "organization": org,
+                    "is_active": True,
+                },
+            )
+            if not created:
+                # Update existing user
+                member_user.name = "Team Member"
+                member_user.department = leader_user.department if leader_user else dep_eng
+                member_user.chapter = chap_sw
+                member_user.team = leader_user.team if leader_user else teams[0]
+                member_user.leader = leader_user
+                member_user.organization = org
+                member_user.is_active = True
+                member_user.save()
+            
+            # Always set the password to ensure it's correct
+            member_user.set_password("pw")
+            member_user.is_active = True
+            member_user.save(update_fields=["password", "is_active"])
+            self.stdout.write("✅ Member user created/updated successfully")
+            
+            # Add member to the users list (leader is already in the list)
+            users.append(member_user)
+            
+        except Exception as e:
+            self.stdout.write(f"❌ Error creating member user: {e}")
+            import traceback
+            traceback.print_exc()
+            # Continue with the rest of the command
 
         # Assign organization-wide executive roles
         self.stdout.write("Assigning executive roles (CEO, CTO, CPO, HR Manager)…")
@@ -450,23 +467,41 @@ class Command(BaseCommand):
             org.hr_manager.save(update_fields=["email", "name", "password"])
 
         # Create maintainer user
-        maintainer_user, _ = User.objects.get_or_create(
-            email="maintainer@example.com",
-            defaults={
-                "name": "Maintainer",
-                "department": dep_eng,  # Assign to engineering department
-                "chapter": chap_sw,
-                "team": teams[0] if teams else None,
-                "organization": org,
-                "is_active": True,
-            },
-        )
-        maintainer_user.set_password("demo1234")
-        maintainer_user.save(update_fields=["password"])
-        
-        # Assign MAINTAINER role to the organization
-        org.maintainer = maintainer_user
-        org.save(update_fields=["maintainer"])
+        try:
+            maintainer_user, created = User.objects.get_or_create(
+                email="maintainer@example.com",
+                defaults={
+                    "name": "Maintainer",
+                    "department": dep_eng,  # Assign to engineering department
+                    "chapter": chap_sw,
+                    "team": teams[0] if teams else None,
+                    "organization": org,
+                    "is_active": True,
+                },
+            )
+            if not created:
+                # Update existing user
+                maintainer_user.name = "Maintainer"
+                maintainer_user.department = dep_eng
+                maintainer_user.chapter = chap_sw
+                maintainer_user.team = teams[0] if teams else None
+                maintainer_user.organization = org
+                maintainer_user.is_active = True
+                maintainer_user.save()
+            
+            maintainer_user.set_password("demo1234")
+            maintainer_user.save(update_fields=["password"])
+            self.stdout.write("✅ Maintainer user created/updated successfully")
+            
+            # Assign MAINTAINER role to the organization
+            org.maintainer = maintainer_user
+            org.save(update_fields=["maintainer"])
+            
+        except Exception as e:
+            self.stdout.write(f"❌ Error creating maintainer user: {e}")
+            import traceback
+            traceback.print_exc()
+            # Continue with the rest of the command
 
         # Assign tribe directors
         self.stdout.write("Assigning tribe directors (Engineering/Product Directors)…")
@@ -497,10 +532,10 @@ class Command(BaseCommand):
         # Deterministic email for one team leader (App Core) to test team-scope ACL
         app_core = next((t for t in teams if t.name == "App Core"), None)
         if app_core and app_core.leader:
-            app_core.leader.email = "teamlead_app_core@example.com"
-            app_core.leader.name = app_core.leader.name or "Team Leader (App Core)"
-            app_core.leader.username = "teamlead_app_core"  # Set explicit username to avoid conflict
-            app_core.leader.set_password("demo1234")
+            app_core.leader.email = "leader@example.com"  # Use leader@example.com instead
+            app_core.leader.name = "Team Leader"
+            app_core.leader.username = "leader@example.com"  # Set explicit username to avoid conflict
+            app_core.leader.set_password("pw")  # Use pw instead of demo1234
             app_core.leader.save(update_fields=["email", "name", "username", "password"])
 
         self.stdout.write("Seeding seniority + compensation snapshots and org assignments…")
@@ -709,7 +744,7 @@ class Command(BaseCommand):
             admin_user.save(update_fields=["organization"])
 
         self.stdout.write(self.style.SUCCESS(f"Seeded performance demo with {len(users)} users.")) 
-
+        
         # Set categories for tribes
         tribe_app.category = "TECH"; tribe_app.save(update_fields=["category"])
         tribe_platform.category = "TECH"; tribe_platform.save(update_fields=["category"])
@@ -738,6 +773,33 @@ class Command(BaseCommand):
         
         if leader_user:
             self._seed_leader_timeline_events(leader_user, leader_user)
+        
+        # Final verification of demo users
+        self.stdout.write("Verifying demo users...")
+        try:
+            from django.contrib.auth import authenticate
+            
+            demo_users = [
+                ('leader@example.com', 'pw'),
+                ('member@example.com', 'pw'),
+                ('maintainer@example.com', 'demo1234'),
+            ]
+            
+            for email, password in demo_users:
+                try:
+                    user = User.objects.get(email=email)
+                    auth_user = authenticate(username=user.username, password=password)
+                    if auth_user:
+                        self.stdout.write(f"✅ {email} - Authentication works!")
+                    else:
+                        self.stdout.write(f"❌ {email} - Authentication failed!")
+                except User.DoesNotExist:
+                    self.stdout.write(f"❌ {email} - User not found!")
+                    
+            self.stdout.write("Demo users ready for login!")
+            
+        except Exception as e:
+            self.stdout.write(f"⚠️ Warning: Could not verify demo users: {e}")
 
     def _seed_hr_manager_timeline_events(self, user: User, created_by: User):
         """Create comprehensive timeline events for HR manager similar to seed_demo_data.py member events."""
