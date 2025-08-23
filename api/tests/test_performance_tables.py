@@ -714,12 +714,16 @@ def test_summary_done_to_initial_removes_effects(api_client):
 	s.submit_status = SummarySubmitStatus.DONE
 	s.save()
 	# table shows data
-	row = api_client.get("/api/personnel/performance-table/?page_size=50").json()["results"][0]
+	results = api_client.get("/api/personnel/performance-table/?page_size=50").json()["results"]
+	row = next((r for r in results if r["uuid"] == str(u.uuid)), None)
+	assert row is not None, f"User {u.uuid} not found in performance table results"
 	assert row["last_bonus_percentage"] == 5.0
-	# switch to INITIAL_SUBMIT; subsequent query should still reflect existing latest snapshots (no removal),
+	# switch to INITIAL_SdUBMIT; subsequent query should still reflect existing latest snapshots (no removal),
 	# but no further updates should happen (functional integrity check).
 	s.submit_status = SummarySubmitStatus.INITIAL_SUBMIT; s.save()
-	row2 = api_client.get("/api/personnel/performance-table/?page_size=50").json()["results"][0]
+	results2 = api_client.get("/api/personnel/performance-table/?page_size=50").json()["results"]
+	row2 = next((r for r in results2 if r["uuid"] == str(u.uuid)), None)
+	assert row2 is not None, f"User {u.uuid} not found in performance table results after status change"
 	assert row2["last_bonus_percentage"] == 5.0
 
 
