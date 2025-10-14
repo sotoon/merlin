@@ -133,6 +133,8 @@ class Command(BaseCommand):
                                     proposal_type=ProposalType.EVALUATION,  # Use EVALUATION as default
                                     defaults={
                                         "content": rich_summary or "",
+                                        "_skip_access_grants": True,  # Skip leader access grants during import
+                                        "is_import": True,  # Mark as import-created
                                     }
                                 )
                                 
@@ -143,14 +145,22 @@ class Command(BaseCommand):
                                         "content": rich_summary or "",
                                         "committee_date": effective_date,
                                         "submit_status": SummarySubmitStatus.DONE,
+                                        "is_import": True,  # Mark as import-created to prevent signal spam
                                     }
                                 )
                                 
+                                if not note_created:
+                                    # Mark existing note as import-created to prevent leader access grants
+                                    note.is_import = True
+                                    note._skip_access_grants = True
+                                    note.save(update_fields=['is_import', '_skip_access_grants'])
+
                                 if not summary_created:
                                     # Update existing summary
                                     summary.committee_date = effective_date
                                     summary.submit_status = SummarySubmitStatus.DONE
-                                    summary.save(update_fields=['committee_date', 'submit_status'])
+                                    summary.is_import = True  # Mark as import-created to prevent signal spam
+                                    summary.save(update_fields=['committee_date', 'submit_status', 'is_import'])
                                 
                                 actions["summary"] = "created" if summary_created else "updated"
                             else:
@@ -461,6 +471,21 @@ class Command(BaseCommand):
 
         if dry_run:
             self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
+        else:
+            # Link cleanup commented out to test if is_import solution handles it
+            # self.stdout.write("Cleaning up timeline event links...")
+            # events_with_links = TimelineEvent.objects.filter(
+            #     content_type__isnull=False,
+            #     object_id__isnull=False
+            # )
+            # if events_with_links.exists():
+            #     self.stdout.write(f"Removing links from {events_with_links.count()} timeline events...")
+            #     events_with_links.update(content_type=None, object_id=None)
+            #     self.stdout.write("Timeline event links cleaned up successfully.")
+            # else:
+            #     self.stdout.write("No timeline event links to clean up.")
+            pass
+        
         self.stdout.write(self.style.SUCCESS(
             f"History import finished. events={created_events}, seniority_snaps={created_sen}, comp_snaps={created_comp}, errors={errors}"
         ))

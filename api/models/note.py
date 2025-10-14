@@ -125,6 +125,8 @@ class Note(MerlinBaseModel):
     )
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
                               blank=True, null=True, )
+    is_import = models.BooleanField(default=False, verbose_name="وارد شده از ایمپورت")
+    _skip_access_grants = models.BooleanField(default=False, verbose_name="رد دسترسی‌های خودکار")
 
     def is_sent_to_committee(self):
         return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
@@ -193,6 +195,7 @@ class Summary(MerlinBaseModel):
     )
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
                               blank=True, null=True)
+    is_import = models.BooleanField(default=False, verbose_name="وارد شده از ایمپورت")
 
     class Meta:
         verbose_name = "جمع‌بندی"
