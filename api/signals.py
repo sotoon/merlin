@@ -46,6 +46,9 @@ from api.serializers.note import get_current_user
 
 @receiver(post_save, sender=Note)
 def ensure_note_predefined_access(sender, instance, created, **kwargs):
+    # Skip access grants during import to prevent notification spam
+    if hasattr(instance, '_skip_access_grants') and instance._skip_access_grants:
+        return
     NoteUserAccess.ensure_note_predefined_accesses(instance)
 
 
@@ -184,6 +187,10 @@ def _create_timeline_event(*, user, event_type, summary_text, effective_date, so
 @receiver(post_save, sender=Summary)
 def summary_to_timeline(sender, instance: Summary, created, update_fields, **kwargs):
     if instance.submit_status != SummarySubmitStatus.DONE:
+        return
+
+    # Skip TimelineEvent creation for import-created Summaries to prevent notification spam
+    if getattr(instance, 'is_import', False):
         return
 
     # Check if an event already exists to avoid duplicate timeline events,
