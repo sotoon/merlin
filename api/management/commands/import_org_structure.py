@@ -170,7 +170,11 @@ class Command(BaseCommand):
                         # Normalize category to uppercase
                         team_category = team_category_raw.upper() if team_category_raw else None
                         if team_category and team_category not in ["TECH", "NON_TECH"]:
-                            team_category = "TECH" if "tech" in team_category_raw.lower() else "NON_TECH"
+                            # Handle "NON-TECH" -> "NON_TECH"
+                            if team_category == "NON-TECH":
+                                team_category = "NON_TECH"
+                            else:
+                                team_category = "TECH" if "tech" in team_category_raw.lower() else "NON_TECH"
                         team_leader_email = (row.get("team_leader_email") or "").strip()
 
                         if team_name:
@@ -186,16 +190,24 @@ class Command(BaseCommand):
                                 if leader and not dry_run and leader.id:
                                     users_created += 1
 
-                            # Link team to Engineering department by default (since we don't have department info in CSV)
-                            eng_dep = Department.objects.filter(name="Engineering").first()
-                            if not eng_dep:
-                                # Create Engineering department if it doesn't exist
-                                eng_dep, _ = Department.objects.get_or_create(name="Engineering")
+                            # Determine appropriate department based on tribe category or team name
+                            if t_tribe and t_tribe.category == "NON_TECH":
+                                # For non-tech tribes, use tribe name as department
+                                dep_name = t_tribe.name
+                            elif team_category == "NON_TECH":
+                                # For non-tech teams, use team name as department
+                                dep_name = team_name
+                            else:
+                                # Default to Engineering for tech teams
+                                dep_name = "Engineering"
+
+                            # Get or create the department
+                            dep, _ = Department.objects.get_or_create(name=dep_name)
 
                             team, team_created = Team.objects.update_or_create(
                                 name=team_name,
                                 defaults={
-                                    "department": eng_dep,
+                                    "department": dep,
                                     "tribe": t_tribe,
                                     "category": team_category or None,
                                     "leader": leader,
