@@ -106,10 +106,11 @@ class Command(BaseCommand):
                         else:
                             updated += 1
 
-                        # Set password for users with roles
+                        # Set password for all users
+                        user.set_password("pw")
+                        user.save(update_fields=["password"])
+                        
                         if role_name:
-                            user.set_password("pw")
-                            user.save(update_fields=["password"])
                             users_with_roles += 1
 
         # PASS 2: Set organizational assignments and relationships
