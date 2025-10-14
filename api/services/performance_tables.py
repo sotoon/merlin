@@ -13,6 +13,7 @@ from api.models import (
     Note,
     Summary,
     DataAccessOverride,
+    Tribe,
 )
 from api.services.timeline_access import can_view_timeline, has_role, TECH_LADDERS, PRODUCT_LADDERS
 from api.models import RoleType
@@ -100,7 +101,20 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
 
     # Directors/Principals (treat principals as directors): tribe-scoped + ladder/category
     if has_role(viewer, {RoleType.PRODUCT_DIRECTOR, RoleType.ENGINEERING_DIRECTOR}):
+        # Get viewer's tribe either from their team OR from tribes they direct
         viewer_tribe_id = getattr(getattr(viewer.team, "tribe", None), "pk", None)
+        
+        # If no team-based tribe, check if they're a director of any tribe
+        if not viewer_tribe_id:
+            if has_role(viewer, {RoleType.ENGINEERING_DIRECTOR}):
+                directed_tribe = Tribe.objects.filter(engineering_director=viewer).first()
+                if directed_tribe:
+                    viewer_tribe_id = directed_tribe.pk
+            elif has_role(viewer, {RoleType.PRODUCT_DIRECTOR}):
+                directed_tribe = Tribe.objects.filter(product_director=viewer).first()
+                if directed_tribe:
+                    viewer_tribe_id = directed_tribe.pk
+        
         if not viewer_tribe_id:
             return qs.none()
 
@@ -165,6 +179,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
     latest_org_ids = Subquery(latest_org_qs.values("pk")[:1])
 
     # Last committee date: prefer committee_date; if null, fall back to date_created
+    # Include NOTICE events (which use ProposalType.EVALUATION) in committee calculations
     last_committee_date = Subquery(
         Summary.objects.filter(
             note__owner=OuterRef("pk"),
@@ -177,6 +192,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
     )
 
     # Counts of committees in current and last Persian years
+    # Include NOTICE events (which use ProposalType.EVALUATION) in committee calculations
     committee_types = ["PROMOTION", "EVALUATION", "MAPPING"]
     committees_current_year = Subquery(
         Summary.objects.filter(
