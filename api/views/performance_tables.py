@@ -91,7 +91,7 @@ class PersonnelPerformanceTableView(APIView):
                 "last_bonus_date": getattr(u, "_last_bonus_date", None),
                 "last_bonus_percentage": getattr(u, "_last_bonus_percentage", None),
                 "last_salary_change_date": getattr(u, "_last_salary_change_date", None),
-                "ladder": getattr(u, "_ladder_code", None),
+                "ladder": getattr(u, "_ladder_name", None),
                 "ladder_levels": getattr(u, "_details_json", {}) if getattr(u, "_details_json", {}) is not None else {},
                 "overall_level": getattr(u, "_overall_score", None),
                 "leader": getattr(u, "_leader_name", None)

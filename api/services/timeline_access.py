@@ -23,6 +23,17 @@ TECH_LADDERS: Set[str] = {
     "NOC",
     "Data Center",
     "Back Office",
+    # Versioned ladder codes
+    "SOFT-v1",
+    "FRONT-v1",
+    "DEVOPS-v1",
+    "NET-v1",
+    "HARD-v1",
+    "SEC-v1",
+    "NOC-v1",
+    "DC-v1",
+    "BO-v1",
+    "GEN-v1",
 }
 
 PRODUCT_LADDERS: Set[str] = {
@@ -83,9 +94,29 @@ def can_view_timeline(viewer: "User", target: "User") -> bool:
 
     # Product & Engineering directors by tribe scope
     if has_role(viewer, {RoleType.PRODUCT_DIRECTOR, RoleType.ENGINEERING_DIRECTOR}):
+        # Get viewer's tribe either from their team OR from tribes they direct
         viewer_tribe = getattr(getattr(viewer.team, "tribe", None), "pk", None)
+        
+        # If no team-based tribe, check if they're a director of any tribe
+        if not viewer_tribe:
+            from api.models import Tribe
+            if has_role(viewer, {RoleType.ENGINEERING_DIRECTOR}):
+                directed_tribe = Tribe.objects.filter(engineering_director=viewer).first()
+                if directed_tribe:
+                    viewer_tribe = directed_tribe.pk
+            elif has_role(viewer, {RoleType.PRODUCT_DIRECTOR}):
+                directed_tribe = Tribe.objects.filter(product_director=viewer).first()
+                if directed_tribe:
+                    viewer_tribe = directed_tribe.pk
+        
         target_tribe = getattr(getattr(target.team, "tribe", None), "pk", None)
         if viewer_tribe and viewer_tribe == target_tribe:
+            # For engineering directors, also check if target is technical
+            if has_role(viewer, {RoleType.ENGINEERING_DIRECTOR}):
+                return _is_technical(target)
+            # For product directors, check if target is product
+            if has_role(viewer, {RoleType.PRODUCT_DIRECTOR}):
+                return _is_product(target)
             return True
 
     # CPO to view all product managers (by ladder), org-wide
@@ -142,31 +173,52 @@ def _combine_q(attr_dict):
 
 
 def _is_technical(user: "User") -> bool:
-    """Heuristic: user has latest SenioritySnapshot ladder in TECH_LADDERS or chapter name matches."""
+    """Heuristic: user has latest SenioritySnapshot ladder in TECH_LADDERS, chapter name matches, or team/tribe has TECH category.
+    Excludes product managers even if they're in TECH teams by checking for product ladder."""
     from api.models import SenioritySnapshot
 
     latest_snap = (
         SenioritySnapshot.objects.filter(user=user).order_by("-effective_date", "-date_created").first()
     )
-    if latest_snap and latest_snap.ladder and latest_snap.ladder.code in TECH_LADDERS:
-        return True
-
+    
+    # If user has ladder data, use that (most reliable)
+    if latest_snap and latest_snap.ladder:
+        if latest_snap.ladder.code in TECH_LADDERS:
+            return True
+        # If they have a product ladder, they're NOT technical (even if in TECH team)
+        if latest_snap.ladder.code in PRODUCT_LADDERS:
+            return False
+    
     # fallback: chapter name
     chapter_name = getattr(user.chapter, "name", "")
     if chapter_name in TECH_LADDERS:
         return True
+    
+    # Check team or tribe category (only if no ladder data exists)
+    # This ensures product managers with ladder data are excluded
+    if not latest_snap or not latest_snap.ladder:
+        if user.team and user.team.category == "TECH":
+            return True
+        if user.tribe and user.tribe.category == "TECH":
+            return True
 
     return False
 
 
 def _is_product(user: "User") -> bool:
-    """Heuristic: user has latest SenioritySnapshot ladder in PRODUCT_LADDERS."""
+    """Heuristic: user has latest SenioritySnapshot ladder in PRODUCT_LADDERS or team/tribe has PRODUCT category."""
     from api.models import SenioritySnapshot
 
     latest_snap = (
         SenioritySnapshot.objects.filter(user=user).order_by("-effective_date", "-date_created").first()
     )
     if latest_snap and latest_snap.ladder and latest_snap.ladder.code in PRODUCT_LADDERS:
+        return True
+
+    # Check team or tribe category
+    if user.team and user.team.category == "PRODUCT":
+        return True
+    if user.tribe and user.tribe.category == "PRODUCT":
         return True
 
     return False

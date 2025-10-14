@@ -69,7 +69,7 @@ class User(MerlinBaseModel, AbstractUser):
 
     @property
     def tribe(self):
-        return self.team.tribe
+        return self.team.tribe if self.team else None
 
     def get_committee_role_members(self):
         committee_role_members = set()
