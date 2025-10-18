@@ -189,8 +189,19 @@ def _is_technical(user: "User") -> bool:
         if latest_snap.ladder.code in PRODUCT_LADDERS:
             return False
     
-    # fallback: chapter name
+    # Enhanced chapter-based filtering (secondary check)
     chapter_name = getattr(user.chapter, "name", "")
+    if chapter_name:
+        # Technical chapters
+        tech_chapters = {"DevOps", "Front"}
+        if any(keyword in chapter_name for keyword in tech_chapters):
+            return True
+        # Product chapters (explicitly exclude)
+        product_chapters = {"Product"}
+        if any(keyword in chapter_name for keyword in product_chapters):
+            return False
+    
+    # Fallback: check if chapter name matches TECH_LADDERS
     if chapter_name in TECH_LADDERS:
         return True
     
@@ -206,16 +217,30 @@ def _is_technical(user: "User") -> bool:
 
 
 def _is_product(user: "User") -> bool:
-    """Heuristic: user has latest SenioritySnapshot ladder in PRODUCT_LADDERS or team/tribe has PRODUCT category."""
+    """Heuristic: user has latest SenioritySnapshot ladder in PRODUCT_LADDERS, chapter name matches, or team/tribe has PRODUCT category."""
     from api.models import SenioritySnapshot
 
     latest_snap = (
         SenioritySnapshot.objects.filter(user=user).order_by("-effective_date", "-date_created").first()
     )
+    
+    # If user has ladder data, use that (most reliable)
     if latest_snap and latest_snap.ladder and latest_snap.ladder.code in PRODUCT_LADDERS:
         return True
 
-    # Check team or tribe category
+    # Enhanced chapter-based filtering (prioritized for new employees)
+    chapter_name = getattr(user.chapter, "name", "")
+    if chapter_name:
+        # Product chapters (explicitly include)
+        product_chapters = {"Product"}
+        if any(keyword in chapter_name for keyword in product_chapters):
+            return True
+        # Technical chapters (explicitly exclude)
+        tech_chapters = {"DevOps", "Front"}
+        if any(keyword in chapter_name for keyword in tech_chapters):
+            return False
+
+    # Check team or tribe category (fallback)
     if user.team and user.team.category == "PRODUCT":
         return True
     if user.tribe and user.tribe.category == "PRODUCT":

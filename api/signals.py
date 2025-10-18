@@ -334,10 +334,39 @@ def _create_promotion_evaluation_events(instance: Summary, effective_date):
     
     # Salary change event
     if instance.salary_change and instance.salary_change > 0:
+        # Get current pay band to calculate former and new pay bands
+        latest_comp = CompensationSnapshot.objects.filter(
+            user=member,
+            effective_date__lte=effective_date,
+        ).order_by("-effective_date", "-date_created").first()
+        
+        current_band = getattr(latest_comp, "pay_band", None)
+        if current_band:
+            # Calculate former and new pay bands
+            former_pay_band = float(current_band.number)
+            new_pay_band = former_pay_band + float(instance.salary_change)
+            
+            # Apply the special exception: 24.5 doesn't exist, so if we would get 24.5, use 24 instead
+            if abs(former_pay_band - 24.5) < 0.001:  # Check if former_pay_band is 24.5
+                former_pay_band = 24.0
+            
+            # Format the pay bands (remove .0 if it's a whole number)
+            def format_pay_band(band):
+                if band == int(band):
+                    return str(int(band))
+                return str(band)
+            
+            former_band_str = format_pay_band(former_pay_band)
+            new_band_str = format_pay_band(new_pay_band)
+            
+            summary_text = f"افزایش پله‌ی حقوقی: {instance.salary_change} (از {former_band_str} به {new_band_str})"
+        else:
+            summary_text = f"افزایش پله‌ی حقوقی: {instance.salary_change}"
+        
         _create_timeline_event(
             user=member,
             event_type=EventType.PAY_CHANGE,
-            summary_text=f"افزایش پله‌ی حقوقی: {instance.salary_change}",
+            summary_text=summary_text,
             effective_date=effective_date,
             source_obj=instance,
             created_by=created_by_user,
@@ -505,10 +534,39 @@ def _create_mapping_event(instance: Summary, effective_date):
     
     # Salary change event for MAPPING proposals
     if instance.salary_change and instance.salary_change > 0:
+        # Get current pay band to calculate former and new pay bands
+        latest_comp = CompensationSnapshot.objects.filter(
+            user=member,
+            effective_date__lte=effective_date,
+        ).order_by("-effective_date", "-date_created").first()
+        
+        current_band = getattr(latest_comp, "pay_band", None)
+        if current_band:
+            # Calculate former and new pay bands
+            former_pay_band = float(current_band.number)
+            new_pay_band = former_pay_band + float(instance.salary_change)
+            
+            # Apply the special exception: 24.5 doesn't exist, so if we would get 24.5, use 24 instead
+            if abs(former_pay_band - 24.5) < 0.001:  # Check if former_pay_band is 24.5
+                former_pay_band = 24.0
+            
+            # Format the pay bands (remove .0 if it's a whole number)
+            def format_pay_band(band):
+                if band == int(band):
+                    return str(int(band))
+                return str(band)
+            
+            former_band_str = format_pay_band(former_pay_band)
+            new_band_str = format_pay_band(new_pay_band)
+            
+            summary_text = f"افزایش پله‌ی حقوقی: {instance.salary_change} (از {former_band_str} به {new_band_str})"
+        else:
+            summary_text = f"افزایش پله‌ی حقوقی: {instance.salary_change}"
+        
         _create_timeline_event(
             user=member,
             event_type=EventType.PAY_CHANGE,
-            summary_text=f"افزایش پله‌ی حقوقی: {instance.salary_change}",
+            summary_text=summary_text,
             effective_date=effective_date,
             source_obj=instance,
             created_by=created_by_user,
