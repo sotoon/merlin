@@ -65,7 +65,7 @@
                   :is-active="isProposalActive(PROPOSAL_TYPE.promotion)"
                 />
               </li>
-              <li>
+              <!-- <li>
                 <SidebarLink
                   :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.notice]"
                   :label="t('proposalType.notice')"
@@ -76,7 +76,7 @@
                   }"
                   :is-active="isProposalActive(PROPOSAL_TYPE.notice)"
                 />
-              </li>
+              </li> -->
               <li>
                 <SidebarLink
                   :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.mapping]"
