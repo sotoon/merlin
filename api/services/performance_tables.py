@@ -69,7 +69,7 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
     if has_role(viewer, {RoleType.HR_MANAGER, RoleType.CEO, RoleType.MAINTAINER}):
         return qs
 
-    # CTO/VP: all technical users (by ladder or org category)
+    # CTO/VP: all technical users (by ladder, chapter, or org category)
     if has_role(viewer, {RoleType.CTO, RoleType.VP}):
         return (
             qs.annotate(_ladder_code=latest_sen_ladder_code)
@@ -77,10 +77,11 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
                 Q(_ladder_code__in=TECH_LADDERS)
                 | Q(team__category="TECH")
                 | Q(team__tribe__category="TECH")
+                | Q(chapter__name__in=["DevOps", "Front"])
             )
         )
 
-    # CPO: all product managers (by ladder or org category)
+    # CPO: all product managers (by ladder, chapter, or org category) + direct reports
     if has_role(viewer, {RoleType.CPO}):
         return (
             qs.annotate(_ladder_code=latest_sen_ladder_code)
@@ -88,6 +89,8 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
                 Q(_ladder_code__in=PRODUCT_LADDERS)
                 | Q(team__category="PRODUCT")
                 | Q(team__tribe__category="PRODUCT")
+                | Q(chapter__name__in=["Product"])
+                | Q(leader=viewer)  # Include direct reports
             )
         )
 
@@ -125,6 +128,7 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
                 Q(_ladder_code__in=TECH_LADDERS)
                 | Q(team__category="TECH")
                 | Q(team__tribe__category="TECH")
+                | Q(chapter__name__in=["DevOps", "Front"])
             )
 
         # Product director
@@ -132,6 +136,7 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
             Q(_ladder_code__in=PRODUCT_LADDERS)
             | Q(team__category="PRODUCT")
             | Q(team__tribe__category="PRODUCT")
+            | Q(chapter__name__in=["Product"])
         )
 
     # Team leaders: team-scoped

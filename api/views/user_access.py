@@ -65,7 +65,7 @@ def user_permissions(request):
     is_agile_coach = User.objects.filter(agile_coach=user).exists()
     can_view_performance_table = (
         is_team_leader
-        or has_role(user, {RoleType.ENGINEERING_DIRECTOR, RoleType.PRODUCT_DIRECTOR, RoleType.CTO, RoleType.CFO, RoleType.CEO, RoleType.HR_MANAGER, RoleType.SALES_MANAGER, RoleType.VP, RoleType.MAINTAINER})
+        or has_role(user, {RoleType.ENGINEERING_DIRECTOR, RoleType.PRODUCT_DIRECTOR, RoleType.CTO, RoleType.CPO, RoleType.CFO, RoleType.CEO, RoleType.HR_MANAGER, RoleType.SALES_MANAGER, RoleType.VP, RoleType.MAINTAINER})
         or is_agile_coach
     )
     

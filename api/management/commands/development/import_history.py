@@ -496,7 +496,32 @@ class Command(BaseCommand):
         
         if event_type == "PAY_CHANGE":
             salary_change = parse_float_or_none(row.get("salary_change")) or 0.0
-            if salary_change > 0:
+            new_pay_band = parse_float_or_none(row.get("pay_band_number"))
+            
+            if new_pay_band is not None and salary_change != 0:
+                # Calculate former pay band with special exception for 24.5
+                former_pay_band = new_pay_band - salary_change
+                
+                # Apply the special exception: 24.5 doesn't exist, so if we would get 24.5, use 24 instead
+                if abs(former_pay_band - 24.5) < 0.001:  # Check if former_pay_band is 24.5
+                    former_pay_band = 24.0
+                
+                # Format the pay bands (remove .0 if it's a whole number)
+                def format_pay_band(band):
+                    if band == int(band):
+                        return str(int(band))
+                    return str(band)
+                
+                former_band_str = format_pay_band(former_pay_band)
+                new_band_str = format_pay_band(new_pay_band)
+                
+                if salary_change > 0:
+                    return f"افزایش پله‌ی حقوقی: {salary_change} (از {former_band_str} به {new_band_str})"
+                elif salary_change < 0:
+                    return f"کاهش پله‌ی حقوقی: {salary_change} (از {former_band_str} به {new_band_str})"
+                else:
+                    return f"تغییر بسته حقوقی (از {former_band_str} به {new_band_str})"
+            elif salary_change > 0:
                 return f"افزایش پله‌ی حقوقی: {salary_change}"
             elif salary_change < 0:
                 return f"کاهش پله‌ی حقوقی: {salary_change}"
