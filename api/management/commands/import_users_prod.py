@@ -96,10 +96,6 @@ class Command(BaseCommand):
                                         "user_updated",
                                         {"email": email, "name": name}
                                     )
-
-                                # Set password for all users
-                                user.set_password("pw")
-                                user.save(update_fields=["password"])
                                 
                                 if role_name:
                                     users_with_roles += 1
