@@ -120,6 +120,7 @@ class Command(BaseCommand):
                     email = (row.get("Email") or "").strip()
                     team_name = (row.get("Team") or "").strip()
                     tribe_name = (row.get("Tribe") or "").strip()
+                    chapter_name = (row.get("Chapter") or "").strip()
                     leader_email = (row.get("Leader") or "").strip()
                     agile_coach_email = (row.get("PR") or "").strip() or (row.get("Agile Coach") or "").strip()
                     role_name = (row.get("Role") or "").strip()
@@ -160,8 +161,19 @@ class Command(BaseCommand):
                             user.team = None
                             department_obj = tribe_obj.department
 
+                    # Set chapter assignment
+                    if chapter_name:
+                        chapter_obj = Chapter.objects.filter(name=chapter_name).first()
+                        if chapter_obj:
+                            user.chapter = chapter_obj
+                        else:
+                            # Create chapter if it doesn't exist
+                            chapter_obj = Chapter.objects.create(name=chapter_name)
+                            user.chapter = chapter_obj
+                    else:
+                        user.chapter = None  # Clear chapter if no chapter specified
+
                     # Set all organizational fields
-                    user.chapter = None  # Clear chapter for all users
                     user.department = department_obj  # Set department properly from team/tribe
                     user.organization = organization
                     user.save(update_fields=["team", "chapter", "department", "organization"])

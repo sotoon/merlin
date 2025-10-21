@@ -116,6 +116,7 @@ class Command(BaseCommand):
                             email = (row.get("Email") or "").strip()
                             team_name = (row.get("Team") or "").strip()
                             tribe_name = (row.get("Tribe") or "").strip()
+                            chapter_name = (row.get("Chapter") or "").strip()
                             leader_email = (row.get("Leader") or "").strip()
                             agile_coach_email = (row.get("PR") or "").strip() or (row.get("Agile Coach") or "").strip()
                             role_name = (row.get("Role") or "").strip()
@@ -185,16 +186,41 @@ class Command(BaseCommand):
                                         "warning"
                                     )
 
+                            # Set chapter assignment (PRODUCTION-SAFE: Only update, no deletion)
+                            if chapter_name:
+                                chapter_obj = Chapter.objects.filter(name=chapter_name).first()
+                                if chapter_obj:
+                                    if user.chapter != chapter_obj or force_update:
+                                        user.chapter = chapter_obj
+                                        prod_import.logger.log_operation(
+                                            "chapter_assignment_updated",
+                                            {"user": email, "chapter": chapter_name}
+                                        )
+                                else:
+                                    # Create chapter if it doesn't exist
+                                    chapter_obj = Chapter.objects.create(name=chapter_name)
+                                    user.chapter = chapter_obj
+                                    prod_import.logger.log_operation(
+                                        "chapter_created_and_assigned",
+                                        {"user": email, "chapter": chapter_name}
+                                    )
+                            else:
+                                if user.chapter is not None or force_update:
+                                    user.chapter = None  # Clear chapter if no chapter specified
+                                    prod_import.logger.log_operation(
+                                        "chapter_cleared",
+                                        {"user": email}
+                                    )
+
                             # Update organizational fields (PRODUCTION-SAFE: Only update, no deletion)
-                            if force_update or user.chapter != chapter_obj or user.department != department_obj:
-                                user.chapter = chapter_obj  # Update chapter assignment
+                            if force_update or user.department != department_obj:
                                 user.department = department_obj  # Update department assignment
                                 user.organization = organization
                                 user.save(update_fields=["team", "chapter", "department", "organization"])
                                 
                                 prod_import.logger.log_operation(
                                     "org_fields_updated",
-                                    {"user": email, "chapter": chapter_obj.name if chapter_obj else None, "department": department_obj.name if department_obj else None}
+                                    {"user": email, "chapter": user.chapter.name if user.chapter else None, "department": department_obj.name if department_obj else None}
                                 )
 
                             # Update leader relationship (PRODUCTION-SAFE: Only update, no deletion)
