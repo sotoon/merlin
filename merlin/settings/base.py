@@ -228,9 +228,3 @@ BEPA_REDIRECT_URI = os.getenv("BEPA_REDIRECT_URI", "")
 SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
 
 AUTH_USER_MODEL = "api.User"
-
-# ────────────────────────────────────────────────────────────────
-# Feature flags
-# ----------------------------------------------------------------
-
-FEATURE_CAREER_TIMELINE_ACCESS = os.getenv("FEATURE_CAREER_TIMELINE_ACCESS", "off")  # values: off, dev, hr, all

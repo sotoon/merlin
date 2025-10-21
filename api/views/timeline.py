@@ -45,19 +45,6 @@ class UserTimelineView(ListAPIView):
         target_user = get_object_or_404(User, uuid=self.kwargs["user_id"])
         request_user = self.request.user
 
-        # Feature flag – allow only when enabled
-        flag = getattr(settings, "FEATURE_CAREER_TIMELINE_ACCESS", "off")
-        if flag == "off":
-            raise PermissionDenied("Profile timeline feature is disabled.")
-        if flag == "dev" and not request_user.is_staff:
-            raise PermissionDenied("Profile timeline feature restricted to devs.")
-        if flag == "hr":
-            # Basic check: require HR role – fallback to is_staff if role system not implemented
-
-            if (not has_role(request_user, {RoleType.HR_MANAGER})
-                    and not request_user.is_staff):
-                raise PermissionDenied("Profile timeline restricted to HR.")
-
         # Fine-grained ACL check
         if not can_view_timeline(request_user, target_user) and not request_user.is_staff:
             raise PermissionDenied("You do not have permission to view this timeline.")
