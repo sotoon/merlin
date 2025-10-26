@@ -30,7 +30,7 @@ from api.models import (
 
 
 class Command(BaseCommand):
-    help = "Seed the database with demo data for manual testing of the Profile Timeline feature. Idempotent (safe to run multiple times)."
+    help = "Seed the database with demo data for manual testing of the Profile Timeline. Idempotent (safe to run multiple times)."
 
     # No arguments: command always resets demo data
 

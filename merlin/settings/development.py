@@ -3,8 +3,6 @@ from merlin.settings.base import *
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-FEATURE_CAREER_TIMELINE_ACCESS = 'all'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
