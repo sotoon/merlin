@@ -122,7 +122,6 @@ def api_client(db):
 @pytest.mark.django_db
 def test_self_can_view(settings, api_client, member):
     """A user can view their own timeline when flag is 'all'."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
     url = reverse("api:user-timeline", args=[str(member.uuid)])
     assert api_client.get(url).status_code == 200
@@ -140,7 +139,6 @@ def test_leader_can_view(settings, api_client, leader, member):
 def test_regular_user_denied(settings, api_client, member, leader):
     """Unrelated user cannot view another user's timeline."""
     stranger = User.objects.create(email="stranger@example.com", username="stranger")
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(stranger)
     url = reverse("api:user-timeline", args=[str(leader.uuid)])
     assert api_client.get(url).status_code == 403
@@ -215,7 +213,6 @@ def test_summary_generates_correct_events(settings, proposal_type, ladder, salar
 @pytest.mark.django_db
 def test_serializer_without_artefact_returns_nulls(settings, api_client, leader):
     """Manual TitleChange event returns null for object_url/model/object_id."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(leader)
 
     TitleChange.objects.create(
@@ -275,7 +272,6 @@ def test_serializer_summary_has_object_url(settings, api_client, member):
 @pytest.mark.django_db
 def test_superuser_can_create_title_change(settings, api_client, member):
     """Superuser (maintainer) can POST /title-changes/ and receive 201."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     admin = User.objects.create_superuser("admin@example.com", "pw")
     api_client.force_authenticate(admin)
 
@@ -365,7 +361,6 @@ def test_level_embedded_when_param_set(settings, api_client, member, member_snap
 @pytest.mark.django_db
 def test_level_not_embedded_without_param(settings, api_client, member, member_snapshot):
     """Timeline excludes level data when include_level parameter is not set."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
     url = reverse("api:user-timeline", args=[str(member.uuid)])

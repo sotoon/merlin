@@ -31,7 +31,7 @@ class IsMaintainer(IsAuthenticated):
 
 
 class UserTimelineView(ListAPIView):
-    """Return paginated timeline events for a given user_id respecting feature flag and basic ACL."""
+    """Return paginated timeline events for a given user_id respecting basic ACL."""
 
     serializer_class = TimelineEventLiteSerializer
     permission_classes = [IsAuthenticated]
