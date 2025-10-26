@@ -105,13 +105,13 @@ def api_client(db):
 
 
 @pytest.mark.django_db
-def test_flag_off_returns_404(settings, api_client, member):
-    """Timeline endpoint returns 403 when the feature flag is off."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "off"
-    api_client.force_authenticate(member)
-    url = reverse("api:user-timeline", args=[str(member.uuid)])
-    resp = api_client.get(url)
-    assert resp.status_code == 403
+# def test_flag_off_returns_404(settings, api_client, member):
+#     """Timeline endpoint returns 403 when the feature flag is off."""
+#     # Feature flag removed - timeline access is now controlled by access control logic
+#     # api_client.force_authenticate(member)
+#     # url = reverse("api:user-timeline", args=[str(member.uuid)])
+#     # resp = api_client.get(url)
+#     # assert resp.status_code == 403
 
 
 # ---------------------------------------------------------------------------
@@ -131,7 +131,6 @@ def test_self_can_view(settings, api_client, member):
 @pytest.mark.django_db
 def test_leader_can_view(settings, api_client, leader, member):
     """Direct leader can view subordinate timeline."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(leader)
     url = reverse("api:user-timeline", args=[str(member.uuid)])
     assert api_client.get(url).status_code == 200
@@ -169,7 +168,6 @@ def test_regular_user_denied(settings, api_client, member, leader):
 @pytest.mark.django_db
 def test_summary_generates_correct_events(settings, proposal_type, ladder, salary, bonus, expected, member):
     """Summary DONE emits correct TimelineEvent(s) per committee type and data fields."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
 
     committee = Committee.objects.create(name="C")
     member.committee = committee
@@ -243,7 +241,6 @@ def test_serializer_without_artefact_returns_nulls(settings, api_client, leader)
 @pytest.mark.django_db
 def test_serializer_summary_has_object_url(settings, api_client, member):
     """Timeline event for Summary should include proper nested URL."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
     # create note & summary
@@ -355,7 +352,6 @@ def test_get_current_level_returns_latest(member_snapshot, member):
 @pytest.mark.django_db
 def test_level_embedded_when_param_set(settings, api_client, member, member_snapshot):
     """Timeline includes level data when include_level parameter is set."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
     url = reverse("api:user-timeline", args=[str(member.uuid)]) + "?include_level=true"
@@ -380,7 +376,6 @@ def test_level_not_embedded_without_param(settings, api_client, member, member_s
 @pytest.mark.django_db
 def test_level_not_embedded_when_no_snapshot(settings, api_client, member):
     """Timeline excludes level data when user has no seniority snapshot."""
-    settings.FEATURE_CAREER_TIMELINE_ACCESS = "all"
     api_client.force_authenticate(member)
 
     url = reverse("api:user-timeline", args=[str(member.uuid)]) + "?include_level=true"
