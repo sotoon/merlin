@@ -60,7 +60,7 @@ class NoteAdmin(BaseModelAdmin):
         "title",
         "owner__name",
         "owner__email",
-        "cycle",
+        "cycle__name",
     ]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده، دوره عملکردی"
 
@@ -81,7 +81,7 @@ class CommentAdmin(BaseModelAdmin):
         "owner__name",
         "owner__email",
         "note__title",
-        "cycle",
+        "cycle__name",
     ]
     search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت، دوره عملکردی"
 
@@ -134,7 +134,7 @@ class SummaryAdmin(BaseModelAdmin):
         "note__title",
         "note__owner__name",
         "note__owner__email",
-        "cycle",
+        "cycle__name",
     ]
     search_help_text = (
         "جستجو در عنوان یادداشت، نام نویسنده، ایمیل نویسنده، دوره عملکردی"
