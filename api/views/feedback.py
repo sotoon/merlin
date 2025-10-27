@@ -114,12 +114,13 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = (
             self.queryset.select_related("note")
-            .prefetch_related("note__mentioned_users")
+            .prefetch_related("note__mentioned_users", "feedback_request__note__mentioned_users")
             .filter(
                 Q(sender=user)
                 | Q(receiver=user)
                 | Q(feedback_request__note__owner=user)  # requester sees answers
-                | (Q(feedback_request__isnull=True) & Q(note__mentioned_users=user))
+                | Q(feedback_request__note__mentioned_users=user)  # mentioned in REQUEST sees answers
+                | (Q(feedback_request__isnull=True) & Q(note__mentioned_users=user))  # mentioned in ad-hoc feedback
             )
             .distinct()
             .order_by("-date_created")

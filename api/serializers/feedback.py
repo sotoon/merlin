@@ -12,6 +12,7 @@ from django.utils import timezone
 from api.models import Cycle, User
 from drf_spectacular.utils import extend_schema_field
 from api.serializers.note import NoteSerializer
+from api.services import grant_feedback_access, grant_feedback_request_access
 
 
 class FeedbackFormSerializer(serializers.ModelSerializer):
@@ -187,15 +188,8 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
             ]
             FeedbackRequestUserLink.objects.bulk_create(bulk_links)
 
-            # ACL: invitees can view the request note
-            from api.models.note import NoteUserAccess
-
-            for u in users:
-                NoteUserAccess.objects.update_or_create(
-                    user=u,
-                    note=note,
-                    defaults={"can_view": True},
-                )
+            # Grant access to owner, requestees, and mentioned users
+            grant_feedback_request_access(note, users, mentioned_users)
         return frequest
 
     def update(self, instance, validated_data):
@@ -253,12 +247,9 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                 ]
                 FeedbackRequestUserLink.objects.bulk_create(bulk_links)
 
-                for u in users:
-                    NoteUserAccess.objects.update_or_create(
-                        user=u,
-                        note=note,
-                        defaults={"can_view": True},
-                    )
+                # Grant access to owner, requestees, and mentioned users
+                mentioned_users = validated_data.get("mentioned_users", [])
+                grant_feedback_request_access(note, users, mentioned_users)
         return instance
 
     def validate(self, attrs):
@@ -402,16 +393,9 @@ class FeedbackSerializer(serializers.Serializer):
                 )
                 created.append(fb)
 
-                # ACL for receiver
-                from api.models.note import NoteUserAccess
-                NoteUserAccess.objects.update_or_create(
-                    user=receiver,
-                    note=note,
-                    defaults={"can_view": True,
-                              "can_view_feedbacks": True,
-                              "can_write_feedback": True
-                              },
-                )
+                # Grant access to sender, receiver, and mentioned users
+                # Pass feedback_request to handle different privacy rules for request answers vs ad-hoc feedback
+                grant_feedback_access(note, receiver, mentioned_users, fq)
 
             # mark answered once per request
             if fq:
