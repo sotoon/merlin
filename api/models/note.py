@@ -257,6 +257,11 @@ class NoteUserAccess(MerlinBaseModel):
         if note.type == NoteType.ONE_ON_ONE:
             return
         
+        # FEEDBACK and FEEDBACK_REQUEST notes have explicit access control
+        # managed by dedicated service functions (grant_feedback_access, grant_feedback_request_access)
+        if note.type in [NoteType.FEEDBACK, NoteType.FEEDBACK_REQUEST]:
+            return
+        
         # Owner
         cls.objects.update_or_create(
             user=note.owner,
