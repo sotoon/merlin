@@ -139,9 +139,9 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
             | Q(chapter__name__in=["Product"])
         )
 
-    # Team leaders: team-scoped
-    if qs.filter(team__leader=viewer).exists():
-        return qs.filter(team__leader=viewer)
+    # Team leaders: users who have this viewer as their direct leader
+    if qs.filter(leader=viewer).exists():
+        return qs.filter(leader=viewer)
 
     # Fallback: start with all; final filtering via can_view_timeline in the view
     return qs
