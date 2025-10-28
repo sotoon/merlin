@@ -28,6 +28,7 @@
     "proposal": "پروپوزال ارتقا",
     "retry": "تلاش مجدد",
     "save": "ذخیره",
+    "success": "موفقیت",
     "search": "جستجو",
     "submit": "ثبت",
     "sort": "مرتب سازی",
@@ -304,7 +305,9 @@
     "sentFeedbackTo": "بازخوردی به {name} ارسال کردید",
     "from": "از",
     "received": "دریافتی",
-    "sent": "ارسالی"
+    "sent": "ارسالی",
+    "adhocFeedbackSentSuccess": "بازخورد با موفقیت ارسال شد",
+    "adhocFeedbacksSentSuccess": "{count} بازخورد با موفقیت ارسال شدند"
   },
   "messages": {
     "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
