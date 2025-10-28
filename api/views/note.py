@@ -71,7 +71,17 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
             queryset = accessible_notes.filter(owner__email=user_email)
 
         elif retrieve_mentions:
+            # Get all accessible notes user doesn't own
             queryset = accessible_notes.filter(~Q(owner=self.request.user))
+            
+            # EXCLUDE feedback answers where user is only mentioned in parent REQUEST
+            # (not the receiver). This prevents phantom notifications for "observer" mentions.
+            # User can still access these answers via /feedback-requests/{uuid}/entries/
+            queryset = queryset.exclude(
+                Q(type=NoteType.FEEDBACK) &
+                Q(feedback__feedback_request__isnull=False) &  # It's an answer (has parent request)
+                ~Q(feedback__receiver=self.request.user)  # User is NOT the receiver
+            )
 
         else:
             queryset = accessible_notes.filter(owner=self.request.user)

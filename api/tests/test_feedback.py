@@ -1191,4 +1191,73 @@ def test_service_layer_grant_feedback_request_access_function(user_factory, _cur
     assert mentioned_access.can_edit is False
 
 
-
+@pytest.mark.django_db
+def test_retrieve_mentions_excludes_observer_feedback_answers(
+    api_client, user_factory, mentioned_user
+):
+    """
+    Test that /api/notes/?retrieve_mentions=true excludes feedback answers where
+    the user is only mentioned in the parent REQUEST (observer role), preventing
+    phantom notification badges.
+    
+    Scenario:
+    - User A creates request, mentions User C
+    - User B submits answer
+    - User C should see REQUEST in retrieve_mentions (✓ notification)
+    - User C should NOT see ANSWER in retrieve_mentions (✗ no phantom badge)
+    - User C can still ACCESS the answer via detail endpoint (✓ security maintained)
+    """
+    user_a = user_factory()  # Request owner
+    user_b = user_factory()  # Requestee
+    user_c = mentioned_user  # Mentioned in REQUEST
+    
+    # Step 1: User A creates request and mentions User C
+    api_client.force_authenticate(user_a)
+    fr_response = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "Need feedback on project",
+            "content": f"Please review. cc @{user_c.email}",
+            "requestee_emails": [user_b.email],
+            "mentioned_users": [user_c.email],
+        },
+        format="json",
+    )
+    assert fr_response.status_code == status.HTTP_201_CREATED
+    fr_uuid = fr_response.data["uuid"]
+    fr_note_uuid = fr_response.data["note"]["uuid"]
+    
+    # Step 2: User B submits answer
+    api_client.force_authenticate(user_b)
+    fb_response = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_ids": [str(user_a.uuid)],
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "Great work on the backend!",
+        },
+        format="json",
+    )
+    assert fb_response.status_code == status.HTTP_201_CREATED
+    fb_uuid = fb_response.data["uuid"]
+    fb_note_uuid = fb_response.data["note"]["uuid"]
+    
+    # Step 3: Check User C's retrieve_mentions (notifications)
+    api_client.force_authenticate(user_c)
+    
+    # User C SHOULD see the REQUEST in retrieve_mentions
+    mentions_response = api_client.get(
+        reverse("api:note-list"),
+        {"retrieve_mentions": "true"}
+    )
+    assert mentions_response.status_code == status.HTTP_200_OK
+    mention_note_uuids = [note["uuid"] for note in mentions_response.data]
+    
+    assert fr_note_uuid in mention_note_uuids, "User C should see REQUEST in notifications"
+    assert fb_note_uuid not in mention_note_uuids, "User C should NOT see ANSWER in notifications (no phantom badge)"
+    
+    # Step 4: Verify User C can still ACCESS the answer directly (security maintained)
+    answer_detail_response = api_client.get(
+        reverse("api:feedback-entries-detail", kwargs={"uuid": fb_uuid})
+    )
+    assert answer_detail_response.status_code == status.HTTP_200_OK, "User C should still have access to read the answer directly"
