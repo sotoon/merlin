@@ -421,6 +421,8 @@ class FeedbackRequest(MerlinBaseModel):
     note = models.OneToOneField("Note", on_delete=models.CASCADE, related_name="feedback_request")
     deadline = models.DateField(null=True, blank=True)
     form = models.ForeignKey(FeedbackForm, null=True, blank=True, on_delete=models.SET_NULL)
+    is_public = models.BooleanField(default=False)
+    public_token = models.CharField(max_length=64, unique=True, null=True, blank=True, db_index=True)
 
     class Meta:
         verbose_name = "درخواست بازخورد"
