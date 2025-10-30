@@ -19,6 +19,8 @@ interface UseGetNotesOptions {
   user?: string;
   retrieveMentions?: boolean;
   proposalType?: ProposalType;
+  justUnread?: boolean;
+  excludeContent?: boolean;
 }
 
 export const useGetNotes = (options: MaybeRef<UseGetNotesOptions> = {}) => {
@@ -33,6 +35,8 @@ export const useGetNotes = (options: MaybeRef<UseGetNotesOptions> = {}) => {
         opts.user,
         opts.retrieveMentions,
         opts.proposalType,
+        opts.justUnread,
+        opts.excludeContent,
       ];
     }),
     queryFn: () => {
@@ -42,6 +46,8 @@ export const useGetNotes = (options: MaybeRef<UseGetNotesOptions> = {}) => {
         user: opts.user,
         retrieve_mentions: opts.retrieveMentions ? 'true' : undefined,
         proposal_type: opts.proposalType,
+        unread: opts.justUnread ? 'true' : undefined,
+        exclude_content: opts.excludeContent ? 'true' : undefined,
       };
 
       return $api.fetch('/notes/', { params });

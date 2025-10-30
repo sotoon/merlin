@@ -241,7 +241,11 @@ import { PScrollbar, PText } from '@pey/core';
 
 const { t } = useI18n();
 const route = useRoute();
-const { data: messages } = useGetNotes({ retrieveMentions: true });
+const { data: messages } = useGetNotes({
+  retrieveMentions: true,
+  justUnread: true,
+  excludeContent: true,
+});
 const isTeamLeader = useIsTeamLeader();
 const { data: profile } = useGetProfile();
 const { data: profilePermissions } = useGetProfilePermissions();
@@ -257,7 +261,6 @@ const isProposalActive = (proposalType: ProposalType) => {
 const newMessagesCount = computed(
   () =>
     (messages.value || []).filter((message) => {
-      if (message.read_status) return false;
       if (
         message.type === NOTE_TYPE.template ||
         message.type === NOTE_TYPE.oneOnOne
@@ -280,8 +283,6 @@ const newMessagesCount = computed(
 const newFeedbackCount = computed(() => {
   const uniqueFeedbackRequestUuids = new Set<string>();
   (messages.value || []).forEach((message) => {
-    if (message.read_status) return;
-
     if (
       message.type === NOTE_TYPE.feedback &&
       message.feedback_request_uuid_of_feedback
@@ -305,15 +306,14 @@ const newAdhocFeedbackCount = computed(
       (message) =>
         message.type === NOTE_TYPE.feedback &&
         !message.feedback_request_uuid_of_feedback &&
-        !message.mentioned_users?.includes(profile.value?.email || '') &&
-        !message.read_status,
+        !message.mentioned_users?.includes(profile.value?.email || ''),
     ).length,
 );
 
 const newOneOnOneCount = computed(
   () =>
     (messages.value || []).filter(
-      (message) => message.type === NOTE_TYPE.oneOnOne && !message.read_status,
+      (message) => message.type === NOTE_TYPE.oneOnOne,
     ).length,
 );
 

@@ -53,6 +53,15 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, NotePermission)
     search_fields = ["type"]
 
+    def get_serializer(self, *args, **kwargs):
+        serializer = super().get_serializer(*args, **kwargs)
+        if self.request.query_params.get("exclude_content", "false").lower() == "true":
+            if isinstance(serializer, self.serializer_class):
+                serializer.fields.pop("content")
+            elif hasattr(serializer, "child"):
+                serializer.child.fields.pop("content")
+        return serializer
+
     def get_object(self):
         uuid = self.kwargs["uuid"]
         obj = get_object_or_404(Note, uuid=uuid)
@@ -64,6 +73,7 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
         note_type_filter = self.request.query_params.get("type")
         proposal_type_filter = self.request.query_params.get("proposal_type")
+        unread_filter = self.request.query_params.get("unread")
 
         accessible_notes = get_notes_visible_to(self.request.user)
 
@@ -101,6 +111,10 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
 
         if proposal_type_filter:
             queryset = queryset.filter(proposal_type=proposal_type_filter)
+
+        if unread_filter and unread_filter.lower() == "true":
+            user = self.request.user
+            queryset = queryset.exclude(read_by=user)
 
         return queryset.distinct()
 
