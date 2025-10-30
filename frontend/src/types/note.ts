@@ -23,7 +23,7 @@ export interface Note {
   date: string;
   date_created: string;
   date_updated: string;
-  linked_notes: string[];
+  linked_notes: Schema<'LinkedNote'>[];
   mentioned_users: string[];
   owner: string;
   owner_name: string;
