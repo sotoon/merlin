@@ -22,9 +22,6 @@ definePageMeta({ name: 'one-on-one-id' });
 const props = defineProps<{ oneOnOne: Schema<'OneOnOne'>; user: User }>();
 const { t } = useI18n();
 
-const { data: myNotes } = useGetNotes();
-const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
-
 // Get all one-on-ones for navigation (sorted by creation date on backend)
 const { data: allOneOnOnes } = useGetOneOnOneList({
   userId: props.user.uuid,
@@ -52,7 +49,7 @@ const nextOneOnOne = computed(() => {
     : null;
 });
 
-function getNoteRoute(note: Note) {
+function getNoteRoute(note: Schema<'LinkedNote'>) {
   switch (note.type) {
     case NOTE_TYPE.template:
       return {
@@ -81,7 +78,9 @@ function getNoteRoute(note: Note) {
       return {
         name: 'note',
         params: {
-          type: NOTE_TYPE_ROUTE_PARAM[note.type],
+          type: NOTE_TYPE_ROUTE_PARAM[
+            note.type as keyof typeof NOTE_TYPE_ROUTE_PARAM
+          ],
           id: note.uuid,
         },
       };
@@ -89,19 +88,10 @@ function getNoteRoute(note: Note) {
 }
 
 const linkedNotes = computed(() => {
-  const allNotes = [...(myNotes.value || []), ...(mentionedNotes.value || [])];
-  const uniqueNotes = Array.from(
-    new Map(allNotes.map((n) => [n.uuid, n])).values(),
-  );
-
-  return uniqueNotes
-    .filter((note) =>
-      (props.oneOnOne.note.linked_notes || []).includes(note.uuid),
-    )
-    .map((note) => ({
-      ...note,
-      to: getNoteRoute(note),
-    }));
+  return (props.oneOnOne.note.linked_notes ?? []).map((note) => ({
+    ...note,
+    to: getNoteRoute(note),
+  }));
 });
 
 const VIBES = [':)', ':|', ':('] as Schema<'MemberVibeEnum'>[];

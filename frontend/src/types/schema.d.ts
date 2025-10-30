@@ -867,7 +867,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Return paginated timeline events for a given user_id respecting feature flag and basic ACL. */
+    /** @description Return paginated timeline events for a given user_id respecting basic ACL. */
     get: operations['users_timeline_list'];
     put?: never;
     post?: never;
@@ -1195,6 +1195,30 @@ export interface components {
      * @enum {string}
      */
     LeaderVibeEnum: ':)' | ':|' | ':(';
+    LinkedNote: {
+      /** Format: uuid */
+      readonly uuid: string;
+      /** عنوان */
+      title: string;
+      /** نوع */
+      type?: components['schemas']['TypeEnum'];
+      /** Format: uuid */
+      readonly one_on_one_member: string;
+      readonly one_on_one_id: number;
+      /** Format: uuid */
+      readonly feedback_uuid: string;
+      /** Format: uuid */
+      readonly feedback_request_uuid: string;
+      /** Format: uuid */
+      readonly feedback_request_uuid_of_feedback: string;
+      readonly read_status: string;
+    };
+    LinkedNoteRequest: {
+      /** عنوان */
+      title: string;
+      /** نوع */
+      type?: components['schemas']['TypeEnum'];
+    };
     /**
      * @description * `:)` - 😊
      *     * `:|` - 😐
@@ -1241,7 +1265,7 @@ export interface components {
       /** نوع پروپوزال */
       proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
-      linked_notes?: string[];
+      linked_notes?: components['schemas']['LinkedNote'][];
       readonly read_status: string;
       readonly access_level: components['schemas']['NoteUserAccess'] | null;
       /** وضعیت */
@@ -1275,7 +1299,7 @@ export interface components {
       /** نوع پروپوزال */
       proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
-      linked_notes?: string[];
+      linked_notes?: components['schemas']['LinkedNoteRequest'][];
       /** وضعیت */
       submit_status?: components['schemas']['NoteSubmitStatusEnum'];
     };
@@ -1355,7 +1379,7 @@ export interface components {
       actions?: string | null;
       leader_vibe: components['schemas']['LeaderVibeEnum'];
       member_vibe?: components['schemas']['MemberVibeEnum'] | null;
-      linked_notes?: string[];
+      linked_notes?: components['schemas']['LinkedNote'][];
       tags: number[];
       readonly tag_links: components['schemas']['OneOnOneTagLinkRead'][];
       extra_notes?: string | null;
@@ -1389,7 +1413,7 @@ export interface components {
       actions?: string | null;
       leader_vibe: components['schemas']['LeaderVibeEnum'];
       member_vibe?: components['schemas']['MemberVibeEnum'] | null;
-      linked_notes?: string[];
+      linked_notes?: components['schemas']['LinkedNoteRequest'][];
       tags: number[];
       extra_notes?: string | null;
     };
@@ -1487,7 +1511,7 @@ export interface components {
       /** نوع پروپوزال */
       proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
-      linked_notes?: string[];
+      linked_notes?: components['schemas']['LinkedNoteRequest'][];
       /** وضعیت */
       submit_status?: components['schemas']['NoteSubmitStatusEnum'];
     };
@@ -1508,7 +1532,7 @@ export interface components {
       actions?: string | null;
       leader_vibe?: components['schemas']['LeaderVibeEnum'];
       member_vibe?: components['schemas']['MemberVibeEnum'] | null;
-      linked_notes?: string[];
+      linked_notes?: components['schemas']['LinkedNoteRequest'][];
       tags?: number[];
       extra_notes?: string | null;
     };

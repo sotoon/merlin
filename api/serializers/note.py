@@ -41,6 +41,7 @@ __all__ = [
     "SummarySerializer",
     "OneOnOneSerializer",
     "OneOnOneTagLinkReadSerializer",
+    "LinkedNoteSerializer",
 ]
 
 
@@ -57,6 +58,54 @@ class NoteUserAccessSerializer(serializers.ModelSerializer):
         ]
 
 
+class LinkedNoteSerializer(serializers.ModelSerializer):
+    one_on_one_member = serializers.SlugRelatedField(
+        source="one_on_one.member", read_only=True, slug_field="uuid"
+    )
+    one_on_one_id = serializers.IntegerField(source="one_on_one.id", read_only=True)
+    feedback_request_uuid = serializers.UUIDField(
+        source="feedback_request.uuid", read_only=True
+    )
+    feedback_uuid = serializers.UUIDField(source="feedback.uuid", read_only=True)
+    feedback_request_uuid_of_feedback = serializers.UUIDField(
+        source="feedback.feedback_request.uuid", read_only=True
+    )
+    read_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Note
+        fields = [
+            "uuid",
+            "title",
+            "type",
+            "one_on_one_member",
+            "one_on_one_id",
+            "feedback_uuid",
+            "feedback_request_uuid",
+            "feedback_request_uuid_of_feedback",
+            "read_status",
+        ]
+
+    def get_read_status(self, obj):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            return obj.read_by.filter(uuid=request.user.uuid).exists()
+        return False
+
+    def to_internal_value(self, data):
+        if not isinstance(data, str):
+            raise serializers.ValidationError(
+                "Incorrect type. Expected a string, but got %s" % type(data).__name__
+            )
+
+        try:
+            return Note.objects.get(uuid=data)
+        except Note.DoesNotExist:
+            raise serializers.ValidationError(
+                "Note with uuid=%s does not exist." % data
+            )
+
+
 class NoteSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
@@ -66,9 +115,7 @@ class NoteSerializer(serializers.ModelSerializer):
     mentioned_users = serializers.SlugRelatedField(
         many=True, required=False, queryset=User.objects.all(), slug_field="email"
     )
-    linked_notes = serializers.SlugRelatedField(
-        many=True, required=False, queryset=Note.objects.all(), slug_field="uuid"
-    )
+    linked_notes = LinkedNoteSerializer(many=True, required=False)
     read_status = serializers.SerializerMethodField()
     access_level = NoteUserAccessSerializer(read_only=True, allow_null=True)
     one_on_one_member = serializers.SlugRelatedField(
@@ -319,8 +366,8 @@ class OneOnOneSerializer(serializers.ModelSerializer):
     tag_links = OneOnOneTagLinkReadSerializer(
         source="oneononetaglink_set", many=True, read_only=True
     )
-    linked_notes = serializers.SlugRelatedField(
-        many=True, required=False, queryset=Note.objects.all(), slug_field="uuid"
+    linked_notes = LinkedNoteSerializer(
+        source="note.linked_notes", many=True, required=False
     )
     # member_id injects by the ViewSet
 
@@ -362,7 +409,8 @@ class OneOnOneSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags = validated_data.pop("tags", [])
-        linked_notes = validated_data.pop("linked_notes", [])
+        note_data = validated_data.pop("note", {})
+        linked_notes = note_data.pop("linked_notes", [])
         request = self.context["request"]
         validated_data.pop("cycle", None)
         cycle = Cycle.get_current_cycle()
@@ -395,7 +443,8 @@ class OneOnOneSerializer(serializers.ModelSerializer):
         Tag links are fully replaced; section always comes from tag.section.
         """
         tags = validated_data.pop("tags", None)
-        linked_notes = validated_data.pop("linked_notes", None)
+        note_data = validated_data.pop("note", {})
+        linked_notes = note_data.pop("linked_notes", None)
 
         with transaction.atomic():
             oneonone = super().update(instance, validated_data)
