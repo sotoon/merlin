@@ -238,8 +238,6 @@ const props = defineProps<{ note: Note }>();
 const { t } = useI18n();
 const { data: profile } = useGetProfile();
 const { data: users } = useGetUsers();
-const { data: myNotes } = useGetNotes();
-const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
 const { mutate: updateNote, isPending: updatingNote } = useUpdateNote(
   props.note.uuid,
 );
@@ -275,7 +273,7 @@ function finalizeNoteSubmission() {
   });
 }
 
-function getNoteRoute(note: Note) {
+function getNoteRoute(note: Schema<'LinkedNote'>) {
   switch (note.type) {
     case NOTE_TYPE.template:
       return {
@@ -304,7 +302,9 @@ function getNoteRoute(note: Note) {
       return {
         name: 'note',
         params: {
-          type: NOTE_TYPE_ROUTE_PARAM[note.type],
+          type: NOTE_TYPE_ROUTE_PARAM[
+            note.type as keyof typeof NOTE_TYPE_ROUTE_PARAM
+          ],
           id: note.uuid,
         },
       };
@@ -312,17 +312,10 @@ function getNoteRoute(note: Note) {
 }
 
 const linkedNotes = computed(() => {
-  const allNotes = [...(myNotes.value || []), ...(mentionedNotes.value || [])];
-  const uniqueNotes = Array.from(
-    new Map(allNotes.map((n) => [n.uuid, n])).values(),
-  );
-
-  return uniqueNotes
-    .filter((note) => props.note.linked_notes.includes(note.uuid))
-    .map((note) => ({
-      ...note,
-      to: getNoteRoute(note),
-    }));
+  return props.note.linked_notes.map((note) => ({
+    ...note,
+    to: getNoteRoute(note),
+  }));
 });
 
 const noteTypeIcon = computed(() => {
