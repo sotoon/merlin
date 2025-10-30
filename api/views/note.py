@@ -116,6 +116,15 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
             user = self.request.user
             queryset = queryset.exclude(read_by=user)
 
+        # Optimize nested serialization of linked notes and read status
+        queryset = queryset.prefetch_related(
+            "linked_notes",
+            "linked_notes__one_on_one",
+            "linked_notes__feedback",
+            "linked_notes__feedback_request",
+            "linked_notes__read_by",
+        )
+
         return queryset.distinct()
 
     @action(detail=True, methods=["post"], url_path="read")

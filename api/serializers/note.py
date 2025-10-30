@@ -210,6 +210,20 @@ class NoteSerializer(serializers.ModelSerializer):
         instance.access_level = access_level_obj
         return super().to_representation(instance)
 
+    def create(self, validated_data):
+        linked_notes = validated_data.pop("linked_notes", None)
+        instance = super().create(validated_data)
+        if linked_notes is not None:
+            instance.linked_notes.set(linked_notes)
+        return instance
+
+    def update(self, instance, validated_data):
+        linked_notes = validated_data.pop("linked_notes", None)
+        instance = super().update(instance, validated_data)
+        if linked_notes is not None:
+            instance.linked_notes.set(linked_notes)
+        return instance
+
 
 class CommentSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
