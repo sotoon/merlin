@@ -1,5 +1,4 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.views import APIView
 from api.serializers.feedback import (
     FeedbackFormSerializer,
     FeedbackRequestReadOnlySerializer,
@@ -11,7 +10,6 @@ from django.db.models import Q
 from api.permissions import FeedbackEntryPermission, FeedbackRequestPermission
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 
 
 class FeedbackFormViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,6 +60,7 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
                 Q(note__owner=user)
                 | Q(requestees__user=user)
                 | Q(note__mentioned_users=user)
+                | Q(is_public=True)  # Include all public requests
             ).distinct()
 
         return queryset
@@ -153,75 +152,10 @@ class FeedbackEntryViewSet(viewsets.ModelViewSet):
         )
 
 
-class PublicFeedbackRequestView(APIView):
-    """Authenticated endpoint for viewing a public feedback request."""
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, public_token):
-        feedback_request = get_object_or_404(
-            FeedbackRequest.objects.select_related("note", "note__owner")
-            .prefetch_related("requestees__user", "note__mentioned_users"),
-            public_token=public_token,
-            is_public=True,
-        )
-
-        serializer = FeedbackRequestReadOnlySerializer(
-            feedback_request, context={"request": request}
-        )
-        return Response(serializer.data)
-
-
-class PublicFeedbackSubmissionView(APIView):
-    """Authenticated endpoint for submitting feedback to a public request."""
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, public_token):
-        feedback_request = get_object_or_404(
-            FeedbackRequest.objects.select_related("note", "note__owner"),
-            public_token=public_token,
-            is_public=True,
-        )
-
-        if Feedback.objects.filter(
-            feedback_request=feedback_request, sender=request.user
-        ).exists():
-            return Response(
-                {"detail": "You have already submitted feedback for this request."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        payload = {
-            "receiver_ids": [str(feedback_request.note.owner.uuid)],
-            "feedback_request_uuid": str(feedback_request.uuid),
-            "content": request.data.get("content"),
-        }
-
-        optional_fields = ["evidence", "form_uuid", "mentioned_users"]
-        for field in optional_fields:
-            if field in request.data:
-                payload[field] = request.data[field]
-
-        serializer = FeedbackSerializer(data=payload, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-
-        response_serializer = FeedbackSerializer(
-            instance,
-            context={"request": request},
-            many=isinstance(instance, list),
-        )
-
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
-
 # ─────────────────────────────────────
 
 __all__ = [
     "FeedbackFormViewSet",
     "FeedbackRequestViewSet",
     "FeedbackEntryViewSet",
-    "PublicFeedbackRequestView",
-    "PublicFeedbackSubmissionView",
 ]

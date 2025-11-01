@@ -71,16 +71,6 @@ urlpatterns = [
     path("profile/permissions/", user_permissions, name="user-permissions"),
     path("users/<uuid:target_id>/timeline/permissions/", timeline_permissions, name="timeline-permissions"),
     path("personnel/performance-table/accessible-users/", accessible_users, name="accessible-users"),
-    path(
-        "public/feedback-requests/<str:public_token>/",
-        views.PublicFeedbackRequestView.as_view(),
-        name="public-feedback-request-detail",
-    ),
-    path(
-        "public/feedback-requests/<str:public_token>/submit/",
-        views.PublicFeedbackSubmissionView.as_view(),
-        name="public-feedback-request-submit",
-    ),
     path("", include(router.urls)),
     path("", include(comments_router.urls)),
     path("", include(summaries_router.urls)),
