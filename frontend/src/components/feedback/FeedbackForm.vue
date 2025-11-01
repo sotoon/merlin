@@ -7,7 +7,9 @@ import {
   PText,
   PDatePickerInput,
   PSwitch,
+  PTooltip,
 } from '@pey/core';
+import { PeyInfoIcon } from '@pey/icons';
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{
@@ -42,6 +44,7 @@ const {
       ? (new Date(props.request.deadline) as unknown as string)
       : null,
     form_uuid: props.request?.form_uuid || null,
+    is_public: props.request?.is_public || false,
   },
 });
 
@@ -70,7 +73,11 @@ const onSubmit = handleSubmit((values, ctx) => {
     ? new Date(values.deadline).toISOString().split('T')[0]
     : null;
 
-  emit('submit', { ...values, deadline }, ctx);
+  emit(
+    'submit',
+    { ...values, deadline, is_public: isPublicFeedback.value || undefined },
+    ctx,
+  );
 });
 
 const isStructured = ref(!!formValues?.form_uuid);
@@ -85,6 +92,13 @@ watch(
 watch(isStructured, (newValue) => {
   if (!newValue) {
     setFieldValue('form_uuid', null);
+  }
+});
+
+const isPublicFeedback = ref(false);
+watch(isPublicFeedback, (newValue) => {
+  if (newValue) {
+    setFieldValue('requestee_emails', []);
   }
 });
 
@@ -154,26 +168,83 @@ const formSchema = computed(() => {
       <FeedbackRenderForm :schema="formSchema" is-preview />
     </div>
 
-    <VeeField
-      v-slot="{ componentField }"
-      name="requestee_emails"
-      rules="required"
-    >
-      <UserSelect
-        v-bind="componentField"
-        :label="t('feedback.requestees')"
-        multiple
-        required
-      />
-    </VeeField>
+    <div class="flex items-center gap-x-2">
+      <PSwitch v-model="isPublicFeedback" :label="t('feedback.isPublic')" />
+      <PTooltip>
+        <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+        <template #content>
+          <div class="max-w-sm">
+            با انتخاب درخواست عمومی، لینکی در اختیار شما قرار خواهد گرفت که هر
+            کاربر دیگری با استفاده از آن می‌تواند برای شما بازخورد بنویسد.
+          </div>
+        </template>
+      </PTooltip>
+    </div>
 
-    <VeeField v-slot="{ componentField }" name="mentioned_users">
-      <UserSelect
-        v-bind="componentField"
-        :label="t('note.mentionedUsers')"
-        multiple
-      />
-    </VeeField>
+    <div v-if="!isPublicFeedback">
+      <div class="mb-1 flex items-center gap-x-2">
+        <label id="requestees-label">
+          <PText class="block cursor-default" variant="caption1" weight="bold">
+            {{ t('feedback.requestees') }}
+            <span class="text-danger">*</span>
+          </PText>
+        </label>
+        <PTooltip>
+          <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+          <template #content>
+            <div class="max-w-sm">
+              افرادی که در این بخش وارد می‌کنید، می‌تونن بازخوردشون رو برای شما
+              بنویسن.
+              <br />
+              این افراد تنها دسترسی دیدن درخواست شما، و بازخورد خودشون رو خواهند
+              داشت.
+            </div>
+          </template>
+        </PTooltip>
+      </div>
+      <VeeField
+        v-slot="{ componentField }"
+        name="requestee_emails"
+        rules="required"
+      >
+        <UserSelect
+          v-bind="componentField"
+          aria-labelledby="requestees-label"
+          multiple
+          required
+        />
+      </VeeField>
+    </div>
+
+    <div>
+      <div class="mb-1 flex items-center gap-x-2">
+        <label id="mentioned-users-label">
+          <PText class="block cursor-default" variant="caption1" weight="bold">
+            {{ t('note.mentionedUsers') }}
+          </PText>
+        </label>
+        <PTooltip>
+          <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+          <template #content>
+            <div class="max-w-sm">
+              افرادی که در این بخش وارد می‌کنید، می‌تونن درخواست شما رو به همراه
+              تمام بازخوردهای وارد شده توسط دیگران مشاهده کنن.
+              <br />
+              برای مثال؛ این افراد می‌تونن اعضای کمیته‌ی شما باشن. اگر بازخوردها
+              رو برای کمک به بررسی کمیته از پروپوزال‌تون جمع‌آوری می‌کنید، اعضای
+              کمیته رو حتماً در این قسمت منشن کنید.
+            </div>
+          </template>
+        </PTooltip>
+      </div>
+      <VeeField v-slot="{ componentField }" name="mentioned_users">
+        <UserSelect
+          v-bind="componentField"
+          aria-labelledby="mentioned-users-label"
+          multiple
+        />
+      </VeeField>
+    </div>
 
     <VeeField v-slot="{ componentField }" name="deadline">
       <PDatePickerInput

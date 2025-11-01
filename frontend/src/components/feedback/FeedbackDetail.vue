@@ -11,6 +11,7 @@ import {
   PeyTrashIcon,
   PeyCircleTickOutlineIcon,
   PeyCloseIcon,
+  PeyLinkIcon,
 } from '@pey/icons';
 
 const props = defineProps<{
@@ -24,6 +25,17 @@ const { data: forms } = useGetFeedbackForms();
 const { data: users } = useGetUsers();
 const { mutateAsync: deleteRequest, isPending: isDeleting } =
   useDeleteFeedbackRequest(props.request.uuid);
+
+const copiedText = ref('اشتراک گذاری لینک');
+function shareLink() {
+  const link = window.location.href;
+  navigator.clipboard.writeText(link).then(() => {
+    copiedText.value = 'کپی شد!';
+    setTimeout(() => {
+      copiedText.value = 'اشتراک گذاری لینک';
+    }, 2000);
+  });
+}
 
 function handleDelete() {
   deleteRequest(null).then(() => {
@@ -42,6 +54,9 @@ const currentUserRequesteeLink = computed(() => {
 });
 
 const canSubmitFeedback = computed(() => {
+  if (props.request.is_public && !isOwner) {
+    return !currentUserRequesteeLink.value?.answered;
+  }
   return (
     currentUserRequesteeLink.value && !currentUserRequesteeLink.value.answered
   );
@@ -78,32 +93,47 @@ const mentionedUsers = computed(() => {
         </PText>
       </div>
 
-      <div v-if="canEdit" class="mt-2 flex items-center gap-4">
-        <PIconButton
-          class="shrink-0"
-          :icon="PeyEditIcon"
-          type="button"
-          @click="
-            navigateTo({
-              name: 'feedback-edit',
-              params: { requestId: request.uuid },
-            })
-          "
-        />
-        <PLoading v-if="isDeleting" class="text-primary" />
-        <PInlineConfirm
-          v-else
-          :confirm-button-text="t('common.delete')"
-          :message="t('feedback.confirmDelete')"
-          @confirm="handleDelete"
-        >
+      <div class="mt-2 flex items-center gap-4">
+        <PTooltip v-if="request.is_public && isOwner">
           <PIconButton
-            :icon="PeyTrashIcon"
-            color="danger"
+            class="shrink-0"
+            :icon="PeyLinkIcon"
             type="button"
-            @click.prevent
+            @click="shareLink"
           />
-        </PInlineConfirm>
+          <template #content>
+            <PText variant="caption1">
+              {{ copiedText }}
+            </PText>
+          </template>
+        </PTooltip>
+        <template v-if="canEdit">
+          <PIconButton
+            class="shrink-0"
+            :icon="PeyEditIcon"
+            type="button"
+            @click="
+              navigateTo({
+                name: 'feedback-edit',
+                params: { requestId: request.uuid },
+              })
+            "
+          />
+          <PLoading v-if="isDeleting" class="text-primary" />
+          <PInlineConfirm
+            v-else
+            :confirm-button-text="t('common.delete')"
+            :message="t('feedback.confirmDelete')"
+            @confirm="handleDelete"
+          >
+            <PIconButton
+              :icon="PeyTrashIcon"
+              color="danger"
+              type="button"
+              @click.prevent
+            />
+          </PInlineConfirm>
+        </template>
       </div>
     </div>
 
@@ -130,7 +160,7 @@ const mentionedUsers = computed(() => {
       </PText>
     </div>
 
-    <div v-if="isOwner" class="mt-6">
+    <div v-if="isOwner && !request.is_public" class="mt-6">
       <PText as="p" class="mb-2 text-gray-50" variant="caption1">
         {{ t('feedback.requestees') }}:
       </PText>
