@@ -235,6 +235,16 @@ def test_public_feedback_submission_flow(api_client, user_factory):
     assert entries_resp.status_code == status.HTTP_200_OK
     assert len(entries_resp.data) == 1
 
+    # Verify responder appears in requestees list
+    detail_resp = api_client.get(
+        reverse("api:feedback-requests-detail", kwargs={"uuid": fr_uuid})
+    )
+    assert detail_resp.status_code == status.HTTP_200_OK
+    requestees = detail_resp.data["requestees"]
+    assert len(requestees) == 1
+    assert requestees[0]["uuid"] == str(responder.uuid)
+    assert requestees[0]["answered"] is True
+
 
 # ──────────────────────────────────────────────────
 # Feedback Entry flow

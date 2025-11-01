@@ -482,10 +482,13 @@ class FeedbackSerializer(serializers.Serializer):
                 grant_feedback_access(note, receiver, mentioned_users, fq)
 
             # mark answered once per request
+            # For public requests, create the link if it doesn't exist
             if fq:
-                FeedbackRequestUserLink.objects.filter(
-                    request=fq, user=sender
-                ).update(answered=True)
+                FeedbackRequestUserLink.objects.update_or_create(
+                    request=fq,
+                    user=sender,
+                    defaults={"answered": True},
+                )
 
         return created[0] if len(created) == 1 else created
 
