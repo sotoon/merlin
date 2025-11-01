@@ -6,7 +6,9 @@ import {
   PListbox,
   PListboxOption,
   PSwitch,
+  PTooltip,
 } from '@pey/core';
+import { PeyInfoIcon } from '@pey/icons';
 import FeedbackStructuredForm from './FeedbackStructuredForm.vue';
 
 const emit = defineEmits<{
@@ -138,27 +140,72 @@ watch(isStructured, (newValue) => {
   <form class="mt-4 space-y-4" @submit="onSubmit">
     <PLoading v-if="isFormsLoading" class="mx-auto text-primary" />
     <template v-else>
-      <VeeField
-        v-slot="{ componentField }"
-        name="receiver_ids"
-        rules="required"
-      >
-        <UserSelect
-          v-bind="componentField"
-          :label="t('feedback.selectReceiver')"
-          multiple
-          required
-          value-key="uuid"
-        />
-      </VeeField>
+      <div>
+        <div class="mb-1 flex items-center gap-x-2">
+          <label id="receivers-label">
+            <PText
+              class="block cursor-default"
+              variant="caption1"
+              weight="bold"
+            >
+              {{ t('feedback.selectReceiver') }}
+              <span class="text-danger">*</span>
+            </PText>
+          </label>
+          <PTooltip>
+            <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+            <template #content>
+              <div class="max-w-sm">
+                افرادی که در این بخش وارد می‌کنید، بازخورد شما را دریافت خواهند
+                کرد.
+              </div>
+            </template>
+          </PTooltip>
+        </div>
+        <VeeField
+          v-slot="{ componentField }"
+          name="receiver_ids"
+          rules="required"
+        >
+          <UserSelect
+            v-bind="componentField"
+            aria-labelledby="receivers-label"
+            multiple
+            required
+            value-key="uuid"
+          />
+        </VeeField>
+      </div>
 
-      <VeeField v-slot="{ componentField }" name="mentioned_users">
-        <UserSelect
-          v-bind="componentField"
-          :label="t('note.mentionedUsers')"
-          multiple
-        />
-      </VeeField>
+      <div>
+        <div class="mb-1 flex items-center gap-x-2">
+          <label id="mentioned-users-label">
+            <PText
+              class="block cursor-default"
+              variant="caption1"
+              weight="bold"
+            >
+              {{ t('note.mentionedUsers') }}
+            </PText>
+          </label>
+          <PTooltip>
+            <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+            <template #content>
+              <div class="max-w-sm">
+                افرادی که در این بخش وارد می‌کنید، می‌تونن بازخورد شما رو مشاهده
+                کنند.
+              </div>
+            </template>
+          </PTooltip>
+        </div>
+        <VeeField v-slot="{ componentField }" name="mentioned_users">
+          <UserSelect
+            v-bind="componentField"
+            aria-labelledby="mentioned-users-label"
+            multiple
+          />
+        </VeeField>
+      </div>
 
       <PSwitch
         v-model="isStructured"
