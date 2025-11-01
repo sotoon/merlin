@@ -1,5 +1,3 @@
-import secrets
-
 from rest_framework import serializers
 from api.models.note import (
     FeedbackForm,
@@ -11,7 +9,6 @@ from api.models.note import (
 )
 from django.db import transaction
 from django.utils import timezone
-from django.urls import reverse
 from api.models import Cycle, User
 from drf_spectacular.utils import extend_schema_field
 from api.serializers.note import NoteSerializer
@@ -70,7 +67,6 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
     )
     note = NoteSerializer(read_only=True)
     is_public = serializers.BooleanField(read_only=True)
-    public_url = serializers.SerializerMethodField()
     public_submission_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -87,7 +83,6 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
             "form_uuid",
             "note",
             "is_public",
-            "public_url",
             "public_submission_count",
         )
 
@@ -121,20 +116,6 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
             ]
         except FeedbackRequestUserLink.DoesNotExist:
             return []
-
-    def get_public_url(self, instance):
-        if not instance.is_public or not instance.public_token:
-            return None
-
-        request = self.context.get("request")
-        if request is None:
-            return None
-
-        path = reverse(
-            "api:public-feedback-request-detail",
-            kwargs={"public_token": instance.public_token},
-        )
-        return request.build_absolute_uri(path)
 
     def get_public_submission_count(self, instance):
         if not instance.is_public:
@@ -220,8 +201,6 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                     raise serializers.ValidationError(
                         "Public feedback requests cannot specify invitees."
                     )
-                frequest.public_token = self._generate_public_token()
-                frequest.save(update_fields=["public_token"])
             else:
                 # remove requester from invitees
                 users = [u for u in users if u != owner]
@@ -361,12 +340,6 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return FeedbackRequestReadOnlySerializer(instance, context=self.context).data
-
-    def _generate_public_token(self):
-        while True:
-            token = secrets.token_urlsafe(32)
-            if not FeedbackRequest.objects.filter(public_token=token).exists():
-                return token
 
 
 class FeedbackSerializer(serializers.Serializer):

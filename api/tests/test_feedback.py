@@ -151,11 +151,10 @@ def test_public_request_creation(api_client, user):
     )
     assert resp.status_code == status.HTTP_201_CREATED
     assert resp.data["is_public"] is True
-    assert resp.data["public_url"]
     assert resp.data["public_submission_count"] == 0
 
     fr = FeedbackRequest.objects.get(uuid=resp.data["uuid"])
-    assert fr.public_token is not None
+    assert fr.is_public is True
     assert fr.requestees.count() == 0
 
 
@@ -194,22 +193,21 @@ def test_public_feedback_submission_flow(api_client, user_factory):
     )
     assert create_resp.status_code == status.HTTP_201_CREATED
     fr_uuid = create_resp.data["uuid"]
-    fr = FeedbackRequest.objects.get(uuid=fr_uuid)
-    token = fr.public_token
 
     api_client.force_authenticate(responder)
+    # Any authenticated user can view public request via standard endpoint
     detail_resp = api_client.get(
-        reverse("api:public-feedback-request-detail", kwargs={"public_token": token})
+        reverse("api:feedback-requests-detail", kwargs={"uuid": fr_uuid})
     )
     assert detail_resp.status_code == status.HTTP_200_OK
     assert detail_resp.data["uuid"] == fr_uuid
 
-    submit_url = reverse(
-        "api:public-feedback-request-submit", kwargs={"public_token": token}
-    )
+    # Submit feedback via standard endpoint
     submit_resp = api_client.post(
-        submit_url,
+        reverse("api:feedback-entries-list"),
         {
+            "receiver_ids": [str(owner.uuid)],
+            "feedback_request_uuid": str(fr_uuid),
             "content": "Great presentation!",
             "evidence": "Loved the Q&A",
         },
@@ -218,9 +216,12 @@ def test_public_feedback_submission_flow(api_client, user_factory):
     assert submit_resp.status_code == status.HTTP_201_CREATED
     assert submit_resp.data["sender"]["uuid"] == str(responder.uuid)
 
+    # Duplicate submission should be rejected
     dup_resp = api_client.post(
-        submit_url,
+        reverse("api:feedback-entries-list"),
         {
+            "receiver_ids": [str(owner.uuid)],
+            "feedback_request_uuid": str(fr_uuid),
             "content": "Second feedback",
         },
         format="json",
