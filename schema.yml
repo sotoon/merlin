@@ -2352,13 +2352,21 @@ components:
           allOf:
           - $ref: '#/components/schemas/Note'
           readOnly: true
+        is_public:
+          type: boolean
+          readOnly: true
+        public_submission_count:
+          type: string
+          readOnly: true
       required:
       - content
       - date_updated
       - form_uuid
+      - is_public
       - note
       - owner_name
       - owner_uuid
+      - public_submission_count
       - requestees
       - title
       - uuid
@@ -2410,6 +2418,8 @@ components:
           type: string
           format: uuid
           nullable: true
+        is_public:
+          type: boolean
       required:
       - content
       - title
@@ -2450,9 +2460,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        is_public:
+          type: boolean
       required:
       - content
-      - requestee_emails
       - title
     FeedbackUser:
       type: object
@@ -3245,6 +3256,8 @@ components:
           type: string
           format: uuid
           nullable: true
+        is_public:
+          type: boolean
     PatchedFormRequest:
       type: object
       description: |-

@@ -1081,6 +1081,8 @@ export interface components {
       /** Format: uuid */
       readonly form_uuid: string | null;
       readonly note: components['schemas']['Note'];
+      readonly is_public: boolean;
+      readonly public_submission_count: string;
     };
     /** @description Serializer for FeedbackRequestUserLink: shows linked user's uuid, name,
      *     email, and answered flag. */
@@ -1102,18 +1104,20 @@ export interface components {
       deadline?: string | null;
       /** Format: uuid */
       form_uuid?: string | null;
+      is_public?: boolean;
     };
     /** @description Write-only serializer for creating and updating FeedbackRequest: handles title,
      *     content, invitee emails, deadline, and optional form. */
     FeedbackRequestWriteRequest: {
       title: string;
       content: string;
-      requestee_emails: string[];
+      requestee_emails?: string[];
       mentioned_users?: string[];
       /** Format: date */
       deadline?: string | null;
       /** Format: uuid */
       form_uuid?: string | null;
+      is_public?: boolean;
     };
     /** @description Simple serializer for user info in feedback: exposes uuid and name. */
     FeedbackUser: {
@@ -1478,6 +1482,7 @@ export interface components {
       deadline?: string | null;
       /** Format: uuid */
       form_uuid?: string | null;
+      is_public?: boolean;
     };
     /** @description Serializer for listing forms, along with its cycle metadata,
      *     and assignment completion status. */
