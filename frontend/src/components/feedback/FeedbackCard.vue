@@ -44,6 +44,14 @@ const chipConfig = computed(() => {
       <template #toolbar>
         <div class="flex items-center justify-end gap-1 sm:ms-4" @click.prevent>
           <PChip
+            v-if="request.is_public"
+            class="whitespace-nowrap"
+            color="primary"
+            :label="t('feedback.isPublic')"
+            size="small"
+          />
+          <PChip
+            v-else
             class="whitespace-nowrap"
             :color="chipConfig.color"
             :icon="chipConfig.icon"
