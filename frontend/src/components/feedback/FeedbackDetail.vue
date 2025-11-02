@@ -86,35 +86,6 @@ const mentionedUsers = computed(() => {
 
 <template>
   <div class="px-2 sm:px-4">
-    <PAlert
-      v-if="request.is_public"
-      variant="info-light"
-      class="mb-4"
-      :title="t('feedback.publicLinkSharingTitle')"
-    >
-      <div class="flex items-center gap-4">
-        <input
-          type="text"
-          readonly
-          :value="shareableLink"
-          class="w-full rounded-lg border border-gray-20 bg-gray-10 p-2 text-left"
-          dir="ltr"
-        />
-        <PTooltip v-if="request.is_public && isOwner">
-          <PIconButton
-            class="shrink-0"
-            :icon="PeyLinkIcon"
-            type="button"
-            @click="shareLink"
-          />
-          <template #content>
-            <PText variant="caption1">
-              {{ copiedText }}
-            </PText>
-          </template>
-        </PTooltip>
-      </div>
-    </PAlert>
     <div class="flex items-start justify-between gap-8">
       <div>
         <i
@@ -182,10 +153,10 @@ const mentionedUsers = computed(() => {
     <div v-if="isOwner" class="mt-6">
       <div v-if="request.is_public" class="flex items-center gap-2">
         <PText as="p" class="text-gray-50" variant="caption1">
-          {{ t('feedback.publicSubmissions') }}:
+          تعداد بازخوردهای ثبت‌شده:
         </PText>
         <PText variant="body" weight="bold">
-          {{ request.public_submission_count }}
+          {{ Number(request.public_submission_count || 0).toLocaleString('fa-IR') }}
         </PText>
       </div>
       <template v-else>
@@ -243,6 +214,36 @@ const mentionedUsers = computed(() => {
       </PText>
       <EditorContent :content="request.content" />
     </article>
+
+    <PAlert
+      v-if="request.is_public && isOwner"
+      variant="info-light"
+      class="mt-6"
+      title="لینک به‌اشتراک‌گذاری درخواست"
+    >
+      <div class="flex items-center gap-4">
+        <input
+          type="text"
+          readonly
+          :value="shareableLink"
+          class="w-full rounded-lg border border-gray-20 bg-gray-10 p-2 text-left"
+          dir="ltr"
+        />
+        <PTooltip>
+          <PIconButton
+            class="shrink-0"
+            :icon="PeyLinkIcon"
+            type="button"
+            @click="shareLink"
+          />
+          <template #content>
+            <PText variant="caption1">
+              {{ copiedText }}
+            </PText>
+          </template>
+        </PTooltip>
+      </div>
+    </PAlert>
 
     <FeedbackResponseForm v-if="canSubmitFeedback" :request="request" />
     <FeedbackEntries v-else :entries="entries" :form-schema="formSchema" />
