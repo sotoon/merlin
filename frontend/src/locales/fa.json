@@ -308,7 +308,9 @@
     "sent": "ارسالی",
     "adhocFeedbackSentSuccess": "بازخورد با موفقیت ارسال شد",
     "adhocFeedbacksSentSuccess": "{count} بازخورد با موفقیت ارسال شدند",
-    "isPublic": "بازخورد عمومی"
+    "isPublic": "بازخورد عمومی",
+    "publicLinkSharingTitle": "برای به اشتراک گذاری از این لینک استفاده کنید.",
+    "publicSubmissions": "تعداد بازخوردهای دریافتی"
   },
   "messages": {
     "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
