@@ -54,9 +54,11 @@ const currentUserRequesteeLink = computed(() => {
 });
 
 const canSubmitFeedback = computed(() => {
-  if (props.request.is_public && !isOwner) {
+  // For public requests, allow any non-owner to submit if they haven't answered yet
+  if (props.request.is_public && !isOwner.value) {
     return !currentUserRequesteeLink.value?.answered;
   }
+  // For private requests, only allow invitees who haven't answered
   return (
     currentUserRequesteeLink.value && !currentUserRequesteeLink.value.answered
   );
