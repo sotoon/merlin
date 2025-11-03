@@ -258,6 +258,9 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
     team_id = Subquery(latest_org_qs.values("team_id")[:1])
     tribe_name = Subquery(latest_org_qs.values("team__tribe__name")[:1])
     tribe_id = Subquery(latest_org_qs.values("team__tribe_id")[:1])
+    
+    # Seniority level from latest seniority snapshot
+    seniority_level = Subquery(latest_sen_qs.values("seniority_level")[:1])
 
     is_mapped = Exists(SenioritySnapshot.objects.filter(user=OuterRef("pk")))
 
@@ -282,6 +285,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
             _team_id=team_id,
             _tribe_name=tribe_name,
             _tribe_id=tribe_id,
+            _seniority_level=seniority_level,
             _is_mapped=is_mapped,
         )
         .select_related("team", "leader", "team__tribe")
