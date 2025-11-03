@@ -1,0 +1,352 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Sidebar spacing - applied globally on all admin pages */
+    #nav-sidebar-inner ol li > a.flex.items-center,
+    #nav-sidebar-inner ol li > a[class*="flex"],
+    #nav-sidebar-inner a.flex.items-center {
+        gap: 0.5rem !important;
+    }
+    #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
+    #nav-sidebar-inner a > span.material-symbols-outlined,
+    #nav-sidebar-inner span.material-symbols-outlined:first-child {
+        margin-right: 0.5rem !important;
+    }
+    /* Alternative structure if icons are siblings of text */
+    #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
+        margin-right: 0.5rem !important;
+    }
+    
+    /* Fix import-export buttons overlap with Unfold header buttons */
+    /* Target import/export buttons directly - they use specific classes from django-import-export */
+    a[href*="/import/"],
+    a[href*="/export/"],
+    .object-tools a[href*="import"],
+    .object-tools a[href*="export"] {
+        margin-left: 0.75rem !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Fix object-tools container spacing */
+    .object-tools {
+        margin-left: 0.75rem !important;
+        margin-right: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        gap: 0.5rem !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .object-tools li {
+        margin: 0 !important;
+        list-style: none !important;
+    }
+    
+    /* Fix header area - target the top bar where buttons appear */
+    header,
+    header > div,
+    header > nav {
+        position: relative !important;
+    }
+    
+    /* Target changelist header area specifically */
+    #changelist .changelist-toolbar,
+    .changelist-toolbar {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        margin-bottom: 1rem !important;
+        flex-wrap: wrap !important;
+    }
+    
+    /* Ensure proper spacing between header buttons and import/export */
+    header .flex.items-center,
+    header nav.flex.items-center {
+        gap: 0.75rem !important;
+        margin-left: 0.5rem !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Fix overlap in top-left corner of changelist */
+    #changelist > .changelist-form ~ .changelist-toolbar,
+    #changelist .results + .changelist-toolbar,
+    #changelist .results ~ .changelist-toolbar {
+        margin-top: 0.75rem !important;
+    }
+    
+    /* Fix dropdown/select borders - remove visible borders and apply Unfold styling */
+    select,
+    select.form-control,
+    select.vSelectField,
+    form select {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0.375rem !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: inherit !important;
+        padding: 0.5rem 0.75rem !important;
+        outline: none !important;
+        max-width: 100% !important;
+        width: auto !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Fix Note dropdown width - limit it to prevent overflow */
+    select[id*="note"],
+    select[name*="note"],
+    .field-note select,
+    .form-row .field-note select,
+    select[data-model*="note"] {
+        max-width: 400px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Limit width for all foreign key selects to prevent overly long dropdowns */
+    .form-row select:not(.selector select) {
+        max-width: 500px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    select:focus,
+    select:focus-visible {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1) !important;
+        outline: none !important;
+    }
+    
+    /* Dark theme specific select styling */
+    [data-theme="dark"] select,
+    .dark select {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* Fix date input fields styling and prevent icon overlap */
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="time"],
+    .vDateField input,
+    .vTimeField input {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0.375rem !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: inherit !important;
+        padding: 0.5rem 2.5rem 0.5rem 0.75rem !important; /* Add right padding for icon */
+        outline: none !important;
+        margin-right: 0 !important;
+        width: auto !important;
+        min-width: 150px !important;
+    }
+    
+    input[type="date"]:focus,
+    input[type="datetime-local"]:focus,
+    input[type="time"]:focus,
+    .vDateField input:focus,
+    .vTimeField input:focus {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1) !important;
+        outline: none !important;
+    }
+    
+    /* Fix date picker icon alignment - prevent overlap */
+    .vDateField,
+    .vTimeField {
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        margin-right: 0 !important;
+    }
+    
+    .vDateField input,
+    .vTimeField input {
+        flex: 1 1 auto !important;
+        margin-right: 0.5rem !important;
+    }
+    
+    .vDateField .datetimeshortcuts,
+    .vTimeField .datetimeshortcuts {
+        position: absolute !important;
+        right: 0.5rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+    }
+    
+    .vDateField .datetimeshortcuts a,
+    .vTimeField .datetimeshortcuts a {
+        pointer-events: all !important;
+        display: inline-block !important;
+        margin-left: 0.25rem !important;
+        text-decoration: none !important;
+    }
+    
+    /* Fix all input fields - consistent border styling */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="url"],
+    input[type="password"],
+    textarea,
+    .form-control,
+    .form-field input {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0.375rem !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: inherit !important;
+        padding: 0.5rem 0.75rem !important;
+        outline: none !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    }
+    
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="email"]:focus,
+    input[type="url"]:focus,
+    input[type="password"]:focus,
+    textarea:focus,
+    .form-control:focus,
+    .form-field input:focus {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1) !important;
+        outline: none !important;
+    }
+    
+    /* Fix number input arrows */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        opacity: 0.7 !important;
+        margin-left: 0.25rem !important;
+    }
+    
+    /* Fix filter select boxes (for many-to-many fields) */
+    .selector select,
+    .selector-available select,
+    .selector-chosen select {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0.375rem !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Fix form field alignment and spacing */
+    .form-row {
+        margin-bottom: 1rem !important;
+    }
+    
+    .form-row .field-box {
+        margin-bottom: 0.5rem !important;
+    }
+</style>
+<script>
+// Fallback: Inject sidebar spacing CSS if not already present
+(function() {
+    function injectSpacing() {
+        if (document.getElementById('sidebar-spacing-style')) return;
+        const style = document.createElement('style');
+        style.id = 'sidebar-spacing-style';
+        style.textContent = '#nav-sidebar-inner ol li > a.flex.items-center, #nav-sidebar-inner ol li > a[class*="flex"], #nav-sidebar-inner a.flex.items-center { gap: 0.5rem !important; } #nav-sidebar-inner ol li > a > span.material-symbols-outlined, #nav-sidebar-inner a > span.material-symbols-outlined, #nav-sidebar-inner span.material-symbols-outlined:first-child { margin-right: 0.5rem !important; } #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) { margin-right: 0.5rem !important; }';
+        document.head.appendChild(style);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectSpacing);
+    } else {
+        injectSpacing();
+    }
+})();
+
+// Fix import-export buttons overlap - applied after page load
+(function() {
+    function fixButtonOverlap() {
+        // Find all import/export links and add spacing
+        const importExportLinks = document.querySelectorAll('a[href*="/import/"], a[href*="/export/"], .object-tools a[href*="import"], .object-tools a[href*="export"]');
+        importExportLinks.forEach(link => {
+            link.style.marginLeft = '0.75rem';
+            link.style.marginRight = '0';
+        });
+        
+        // Fix object-tools container
+        const objectTools = document.querySelectorAll('.object-tools');
+        objectTools.forEach(tools => {
+            tools.style.display = 'flex';
+            tools.style.gap = '0.5rem';
+            tools.style.marginLeft = '0.75rem';
+            tools.style.marginRight = '0';
+            tools.style.padding = '0';
+            tools.style.flexWrap = 'wrap';
+            
+            // Fix list items
+            const listItems = tools.querySelectorAll('li');
+            listItems.forEach(li => {
+                li.style.margin = '0';
+                li.style.listStyle = 'none';
+            });
+        });
+        
+        // Fix changelist toolbar
+        const toolbars = document.querySelectorAll('.changelist-toolbar, #changelist .changelist-toolbar');
+        toolbars.forEach(toolbar => {
+            toolbar.style.display = 'flex';
+            toolbar.style.alignItems = 'center';
+            toolbar.style.gap = '0.75rem';
+            toolbar.style.marginLeft = '0';
+            toolbar.style.paddingLeft = '0';
+            toolbar.style.marginBottom = '1rem';
+            toolbar.style.flexWrap = 'wrap';
+        });
+        
+        // Fix header spacing
+        const headerFlexes = document.querySelectorAll('header .flex.items-center, header nav.flex.items-center');
+        headerFlexes.forEach(flex => {
+            flex.style.gap = '0.75rem';
+            flex.style.marginLeft = '0.5rem';
+            flex.style.marginRight = '0';
+        });
+    }
+    
+    function runFix() {
+        fixButtonOverlap();
+        // Run again after a short delay to catch dynamically loaded content
+        setTimeout(fixButtonOverlap, 300);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runFix);
+    } else {
+        runFix();
+    }
+    
+    // Watch for DOM changes and navigation
+    let lastUrl = location.href;
+    const observer = new MutationObserver(() => {
+        const url = location.href;
+        if (url !== lastUrl) {
+            lastUrl = url;
+            setTimeout(runFix, 200);
+        } else {
+            // Also check for dynamically added elements
+            setTimeout(fixButtonOverlap, 100);
+        }
+    });
+    
+    observer.observe(document.body, { 
+        subtree: true, 
+        childList: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+})();
+</script>
+{% endblock %}
+

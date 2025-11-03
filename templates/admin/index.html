@@ -325,22 +325,6 @@
 </div>
 
 <script>
-// Inject sidebar spacing CSS globally - runs immediately
-(function() {
-    function injectSpacing() {
-        if (document.getElementById('sidebar-spacing-style')) return;
-        const style = document.createElement('style');
-        style.id = 'sidebar-spacing-style';
-        style.textContent = '#nav-sidebar-inner ol li > a.flex.items-center { gap: 0.5rem !important; } #nav-sidebar-inner ol li > a > span.material-symbols-outlined { margin-right: 0.5rem !important; }';
-        document.head.appendChild(style);
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectSpacing);
-    } else {
-        injectSpacing();
-    }
-})();
-
 // Filter recent proposals by type and status
 (function() {
     const typeFilter = document.getElementById('proposal-type-filter');
