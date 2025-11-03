@@ -2,6 +2,18 @@
 Admin sidebar navigation configuration for Django Unfold admin panel.
 This configures the sidebar categories and navigation items for the admin interface.
 """
+from django.urls import reverse
+
+
+def get_admin_url(model_path):
+    """Helper function to generate admin changelist URL for a model."""
+    app_label, model_name = model_path.split('.')
+    try:
+        return reverse(f'admin:{app_label}_{model_name}_changelist')
+    except Exception:
+        return None
+
+
 UNFOLD_SIDEBAR_CONFIG = {
     "show_search": True,
     "show_all_applications": False,
@@ -13,22 +25,22 @@ UNFOLD_SIDEBAR_CONFIG = {
                 {
                     "title": "یادداشت‌ها",
                     "icon": "note",
-                    "model": "api.note",
+                    "link": lambda request: reverse('admin:api_note_changelist'),
                 },
                 {
                     "title": "نظرها",
                     "icon": "comment",
-                    "model": "api.comment",
+                    "link": lambda request: reverse('admin:api_comment_changelist'),
                 },
                 {
                     "title": "کاربران",
                     "icon": "person",
-                    "model": "api.user",
+                    "link": lambda request: reverse('admin:api_user_changelist'),
                 },
                 {
                     "title": "دسترسی‌ها",
                     "icon": "lock",
-                    "model": "api.noteuseraccess",
+                    "link": lambda request: reverse('admin:api_noteuseraccess_changelist'),
                 },
             ],
         },
@@ -39,7 +51,7 @@ UNFOLD_SIDEBAR_CONFIG = {
                 {
                     "title": "API Keys",
                     "icon": "key",
-                    "model": "api.apikey",
+                    "link": lambda request: reverse('admin:api_apikey_changelist'),
                 },
             ],
         },
@@ -49,43 +61,43 @@ UNFOLD_SIDEBAR_CONFIG = {
             "items": [
                 {
                     "title": "Cycles",
-                    "icon": "event",  # Changed from "calendar" to "event"
-                    "model": "api.cycle",
+                    "icon": "event",
+                    "link": lambda request: reverse('admin:api_cycle_changelist'),
                 },
                 {
                     "title": "تیم‌ها",
                     "icon": "group",
-                    "model": "api.team",
+                    "link": lambda request: reverse('admin:api_team_changelist'),
                 },
                 {
                     "title": "دپارتمان‌ها",
                     "icon": "business",
-                    "model": "api.department",
+                    "link": lambda request: reverse('admin:api_department_changelist'),
                 },
                 {
                     "title": "سازمان‌ها",
                     "icon": "apartment",
-                    "model": "api.organization",
+                    "link": lambda request: reverse('admin:api_organization_changelist'),
                 },
                 {
                     "title": "قبیله‌ها",
                     "icon": "workspaces",
-                    "model": "api.tribe",
+                    "link": lambda request: reverse('admin:api_tribe_changelist'),
                 },
                 {
                     "title": "نقش‌ها",
                     "icon": "badge",
-                    "model": "api.role",
+                    "link": lambda request: reverse('admin:api_role_changelist'),
                 },
                 {
                     "title": "چپترها",
                     "icon": "menu_book",
-                    "model": "api.chapter",
+                    "link": lambda request: reverse('admin:api_chapter_changelist'),
                 },
                 {
                     "title": "کمیته‌ها",
                     "icon": "groups",
-                    "model": "api.committee",
+                    "link": lambda request: reverse('admin:api_committee_changelist'),
                 },
             ],
         },
@@ -96,17 +108,17 @@ UNFOLD_SIDEBAR_CONFIG = {
                 {
                     "title": "بازخوردها",
                     "icon": "feedback",
-                    "model": "api.feedback",
+                    "link": lambda request: reverse('admin:api_feedback_changelist'),
                 },
                 {
                     "title": "درخواست‌های بازخورد",
                     "icon": "request_quote",
-                    "model": "api.feedbackrequest",
+                    "link": lambda request: reverse('admin:api_feedbackrequest_changelist'),
                 },
                 {
                     "title": "فرم‌های بازخورد",
                     "icon": "description",
-                    "model": "api.feedbackform",
+                    "link": lambda request: reverse('admin:api_feedbackform_changelist'),
                 },
             ],
         },
@@ -117,22 +129,22 @@ UNFOLD_SIDEBAR_CONFIG = {
                 {
                     "title": "فرم‌ها",
                     "icon": "assignment",
-                    "model": "api.form",
+                    "link": lambda request: reverse('admin:api_form_changelist'),
                 },
                 {
                     "title": "سوال‌ها",
                     "icon": "help",
-                    "model": "api.question",
+                    "link": lambda request: reverse('admin:api_question_changelist'),
                 },
                 {
                     "title": "پاسخ‌ها",
                     "icon": "reply",
-                    "model": "api.formresponse",
+                    "link": lambda request: reverse('admin:api_formresponse_changelist'),
                 },
                 {
                     "title": "Form assignments",
                     "icon": "assignment_ind",
-                    "model": "api.formassignment",
+                    "link": lambda request: reverse('admin:api_formassignment_changelist'),
                 },
             ],
         },
@@ -143,27 +155,27 @@ UNFOLD_SIDEBAR_CONFIG = {
                 {
                     "title": "اسنپ‌شات‌های انتساب سازمانی",
                     "icon": "account_tree",
-                    "model": "api.orgassignmentsnapshot",
+                    "link": lambda request: reverse('admin:api_orgassignmentsnapshot_changelist'),
                 },
                 {
                     "title": "اسنپ‌شات‌های جبران خدمات",
                     "icon": "payments",
-                    "model": "api.compensationsnapshot",
+                    "link": lambda request: reverse('admin:api_compensationsnapshot_changelist'),
                 },
                 {
                     "title": "اسنپ‌شات‌های سطح فنی",
                     "icon": "trending_up",
-                    "model": "api.senioritysnapshot",
+                    "link": lambda request: reverse('admin:api_senioritysnapshot_changelist'),
                 },
                 {
                     "title": "پله‌های حقوقی",
                     "icon": "stairs",
-                    "model": "api.payband",
+                    "link": lambda request: reverse('admin:api_payband_changelist'),
                 },
                 {
                     "title": "Data Access Override",
                     "icon": "admin_panel_settings",
-                    "model": "api.dataaccessoverride",
+                    "link": lambda request: reverse('admin:api_dataaccessoverride_changelist'),
                 },
             ],
         },
@@ -174,12 +186,12 @@ UNFOLD_SIDEBAR_CONFIG = {
                 {
                     "title": "Behaviour Tags",
                     "icon": "label",
-                    "model": "api.valuetag",
+                    "link": lambda request: reverse('admin:api_valuetag_changelist'),
                 },
                 {
                     "title": "Organization Behaviour Tags",
                     "icon": "loyalty",
-                    "model": "api.orgvaluetag",
+                    "link": lambda request: reverse('admin:api_orgvaluetag_changelist'),
                 },
             ],
         },
