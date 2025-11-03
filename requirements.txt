@@ -13,4 +13,5 @@ drf-yasg==1.21.7
 django-extensions==3.2.3
 drf-spectacular==0.28.0
 persiantools==5.3.0
+django-unfold==0.28.0
 
