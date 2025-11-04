@@ -1066,4 +1066,381 @@ def test_aspect_filtering_with_multiple_values(api_client):
 	resp = api_client.get("/api/personnel/performance-table/?aspect_TECH__in=10,20&page_size=50")
 	assert resp.status_code == 200
 	results = resp.json()["results"]
-	assert len(results) == 0 
+	assert len(results) == 0
+
+
+# ---------------------------------------------------------------------------
+# Seniority Level Tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_summary_with_seniority_level_creates_snapshot_with_value(api_client):
+	"""When a leader sets seniority_level in Summary, it should be saved in the snapshot."""
+	from api.models import SummarySubmitStatus
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	leader = User.objects.create(email="lead@example.com")
+	team_a.leader = leader
+	team_a.save(update_fields=["leader"])
+	hr = User.objects.create(email="hrm@example.com")
+	org.hr_manager = hr
+	org.save(update_fields=["hr_manager"])
+	u = User.objects.create(email="member@example.com", team=team_a, leader=leader)
+	api_client.force_authenticate(hr)
+	
+	lad = Ladder.objects.create(code="SW", name="Software")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	note = Note.objects.create(
+		owner=u, title="Eval", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	
+	# Create summary with seniority_level set
+	s = Summary.objects.create(
+		note=note, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 1}},
+		salary_change=0.5, bonus=5, committee_date=timezone.now().date(),
+		seniority_level="SENIOR", submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s.submit_status = SummarySubmitStatus.DONE
+	s.save()
+	
+	# Check snapshot has the seniority_level
+	snapshot = SenioritySnapshot.objects.filter(user=u, ladder=lad).first()
+	assert snapshot is not None
+	assert snapshot.seniority_level == "SENIOR"
+	
+	# Check performance table shows it
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
+	row = next(r for r in resp.json()["results"] if r["name"] == "member@example.com")
+	assert row["seniority_level"] == "SENIOR"
+
+
+@pytest.mark.django_db
+def test_summary_without_seniority_level_preserves_from_previous_snapshot(api_client):
+	"""When Summary doesn't set seniority_level, it should be preserved from previous snapshot."""
+	from api.models import SummarySubmitStatus
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	leader = User.objects.create(email="lead2@example.com")
+	team_a.leader = leader
+	team_a.save(update_fields=["leader"])
+	hr = User.objects.create(email="hrm2@example.com")
+	org.hr_manager = hr
+	org.save(update_fields=["hr_manager"])
+	u = User.objects.create(email="member2@example.com", team=team_a, leader=leader)
+	api_client.force_authenticate(hr)
+	
+	lad = Ladder.objects.create(code="SW2", name="Software 2")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	
+	# Create initial snapshot with seniority_level
+	when = timezone.now().date() - timezone.timedelta(days=30)
+	_seniority(u, "SW2", when)
+	SenioritySnapshot.objects.filter(user=u, ladder=lad).update(seniority_level="MID")
+	
+	# Create new summary WITHOUT seniority_level set
+	note = Note.objects.create(
+		owner=u, title="Eval2", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	s = Summary.objects.create(
+		note=note, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 2}},
+		salary_change=0.5, bonus=5, committee_date=timezone.now().date(),
+		seniority_level=None, submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s.submit_status = SummarySubmitStatus.DONE
+	s.save()
+	
+	# Check new snapshot preserved the seniority_level
+	snapshot = SenioritySnapshot.objects.filter(user=u, ladder=lad, effective_date=timezone.now().date()).first()
+	assert snapshot is not None
+	assert snapshot.seniority_level == "MID"
+	
+	# Check performance table shows preserved value
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
+	row = next(r for r in resp.json()["results"] if r["name"] == "member2@example.com")
+	assert row["seniority_level"] == "MID"
+
+
+@pytest.mark.django_db
+def test_summary_changes_seniority_level_overrides_previous(api_client):
+	"""When Summary changes seniority_level, new snapshot should have the new value."""
+	from api.models import SummarySubmitStatus
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	leader = User.objects.create(email="lead3@example.com")
+	team_a.leader = leader
+	team_a.save(update_fields=["leader"])
+	hr = User.objects.create(email="hrm3@example.com")
+	org.hr_manager = hr
+	org.save(update_fields=["hr_manager"])
+	u = User.objects.create(email="member3@example.com", team=team_a, leader=leader)
+	api_client.force_authenticate(hr)
+	
+	lad = Ladder.objects.create(code="SW3", name="Software 3")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	
+	# Create initial snapshot with MID
+	when = timezone.now().date() - timezone.timedelta(days=30)
+	_seniority(u, "SW3", when)
+	SenioritySnapshot.objects.filter(user=u, ladder=lad).update(seniority_level="MID")
+	
+	# Create new summary with SENIOR
+	note = Note.objects.create(
+		owner=u, title="Eval3", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	s = Summary.objects.create(
+		note=note, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 2}},
+		salary_change=0.5, bonus=5, committee_date=timezone.now().date(),
+		seniority_level="SENIOR", submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s.submit_status = SummarySubmitStatus.DONE
+	s.save()
+	
+	# Check new snapshot has the changed value
+	snapshot = SenioritySnapshot.objects.filter(user=u, ladder=lad, effective_date=timezone.now().date()).first()
+	assert snapshot is not None
+	assert snapshot.seniority_level == "SENIOR"
+	
+	# Old snapshot still has MID
+	old_snapshot = SenioritySnapshot.objects.filter(user=u, ladder=lad, effective_date=when).first()
+	assert old_snapshot.seniority_level == "MID"
+	
+	# Performance table shows new value
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
+	row = next(r for r in resp.json()["results"] if r["name"] == "member3@example.com")
+	assert row["seniority_level"] == "SENIOR"
+
+
+@pytest.mark.django_db
+def test_summary_seniority_level_all_values(api_client):
+	"""Test that all seniority level values (JUNIOR, MID, SENIOR, PRINCIPAL) work correctly."""
+	from api.models import SummarySubmitStatus
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	hr = User.objects.create(email="hrm4@example.com")
+	org.hr_manager = hr
+	org.save(update_fields=["hr_manager"])
+	api_client.force_authenticate(hr)
+	
+	lad = Ladder.objects.create(code="SW4", name="Software 4")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	
+	levels = ["JUNIOR", "MID", "SENIOR", "PRINCIPAL"]
+	users = []
+	
+	for i, level in enumerate(levels):
+		leader = User.objects.create(email=f"lead{i}@example.com")
+		team_a.leader = leader
+		team_a.save(update_fields=["leader"])
+		u = User.objects.create(email=f"member{i}@example.com", team=team_a, leader=leader)
+		users.append((u, level))
+		
+		note = Note.objects.create(
+			owner=u, title=f"Eval{i}", content="", date=timezone.now().date(),
+			type="Proposal", proposal_type=ProposalType.EVALUATION
+		)
+		s = Summary.objects.create(
+			note=note, content="", ladder=lad,
+			aspect_changes={"DES": {"changed": True, "new_level": 1}},
+			salary_change=0.5, bonus=5, committee_date=timezone.now().date(),
+			seniority_level=level, submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+		)
+		s.submit_status = SummarySubmitStatus.DONE
+		s.save()
+	
+	# Check all snapshots have correct values
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
+	results = resp.json()["results"]
+	
+	for u, expected_level in users:
+		snapshot = SenioritySnapshot.objects.filter(user=u, ladder=lad).first()
+		assert snapshot is not None
+		assert snapshot.seniority_level == expected_level
+		
+		row = next(r for r in results if r["name"] == u.email)
+		assert row["seniority_level"] == expected_level
+
+
+@pytest.mark.django_db
+def test_summary_seniority_level_serializer_accepts_value(api_client):
+	"""Test that SummarySerializer accepts and validates seniority_level field."""
+	from api.models import SummarySubmitStatus
+	from rest_framework.test import APIClient
+	from api.serializers.note import SummarySerializer
+	
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	leader = User.objects.create(email="lead5@example.com")
+	team_a.leader = leader
+	team_a.save(update_fields=["leader"])
+	u = User.objects.create(email="member5@example.com", team=team_a, leader=leader)
+	
+	lad = Ladder.objects.create(code="SW5", name="Software 5")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	note = Note.objects.create(
+		owner=u, title="Eval5", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	
+	# Test serializer accepts seniority_level
+	data = {
+		"content": "Test content",
+		"ladder": lad.code,
+		"aspect_changes": {"DES": {"changed": True, "new_level": 1}},
+		"bonus": 5,
+		"salary_change": 0.5,
+		"committee_date": timezone.now().date().isoformat(),
+		"seniority_level": "SENIOR",
+		"submit_status": SummarySubmitStatus.DONE,
+	}
+	
+	serializer = SummarySerializer(data=data, context={"note_uuid": str(note.uuid)})
+	assert serializer.is_valid(), serializer.errors
+	summary = serializer.save()
+	assert summary.seniority_level == "SENIOR"
+
+
+@pytest.mark.django_db
+def test_summary_seniority_level_serializer_rejects_invalid_value(api_client):
+	"""Test that SummarySerializer rejects invalid seniority_level values."""
+	from api.models import SummarySubmitStatus
+	from api.serializers.note import SummarySerializer
+	
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	leader = User.objects.create(email="lead6@example.com")
+	team_a.leader = leader
+	team_a.save(update_fields=["leader"])
+	u = User.objects.create(email="member6@example.com", team=team_a, leader=leader)
+	
+	lad = Ladder.objects.create(code="SW6", name="Software 6")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	note = Note.objects.create(
+		owner=u, title="Eval6", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	
+	# Test serializer rejects invalid seniority_level
+	data = {
+		"content": "Test content",
+		"ladder": lad.code,
+		"aspect_changes": {"DES": {"changed": True, "new_level": 1}},
+		"bonus": 5,
+		"salary_change": 0.5,
+		"committee_date": timezone.now().date().isoformat(),
+		"seniority_level": "INVALID_LEVEL",
+		"submit_status": SummarySubmitStatus.DONE,
+	}
+	
+	serializer = SummarySerializer(data=data, context={"note_uuid": str(note.uuid)})
+	assert not serializer.is_valid()
+	assert "seniority_level" in serializer.errors
+
+
+@pytest.mark.django_db
+def test_summary_seniority_level_preserved_across_multiple_summaries(api_client):
+	"""Test that seniority_level is preserved across multiple summaries when not explicitly set."""
+	from api.models import SummarySubmitStatus
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	leader = User.objects.create(email="lead7@example.com")
+	team_a.leader = leader
+	team_a.save(update_fields=["leader"])
+	hr = User.objects.create(email="hrm7@example.com")
+	org.hr_manager = hr
+	org.save(update_fields=["hr_manager"])
+	u = User.objects.create(email="member7@example.com", team=team_a, leader=leader)
+	api_client.force_authenticate(hr)
+	
+	lad = Ladder.objects.create(code="SW7", name="Software 7")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	
+	# First summary: Set seniority_level to SENIOR
+	note1 = Note.objects.create(
+		owner=u, title="Eval1", content="", date=timezone.now().date() - timezone.timedelta(days=60),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	s1 = Summary.objects.create(
+		note=note1, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 1}},
+		salary_change=0.5, bonus=5,
+		committee_date=timezone.now().date() - timezone.timedelta(days=60),
+		seniority_level="SENIOR", submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s1.submit_status = SummarySubmitStatus.DONE
+	s1.save()
+	
+	# Second summary: Don't set seniority_level, should preserve SENIOR
+	note2 = Note.objects.create(
+		owner=u, title="Eval2", content="", date=timezone.now().date() - timezone.timedelta(days=30),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	s2 = Summary.objects.create(
+		note=note2, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 2}},
+		salary_change=0.5, bonus=5,
+		committee_date=timezone.now().date() - timezone.timedelta(days=30),
+		seniority_level=None, submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s2.submit_status = SummarySubmitStatus.DONE
+	s2.save()
+	
+	# Third summary: Still don't set, should still preserve SENIOR
+	note3 = Note.objects.create(
+		owner=u, title="Eval3", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	s3 = Summary.objects.create(
+		note=note3, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 3}},
+		salary_change=0.5, bonus=5,
+		committee_date=timezone.now().date(),
+		seniority_level=None, submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s3.submit_status = SummarySubmitStatus.DONE
+	s3.save()
+	
+	# Check all snapshots preserved SENIOR
+	snapshots = SenioritySnapshot.objects.filter(user=u, ladder=lad).order_by("effective_date")
+	assert snapshots.count() == 3
+	for snapshot in snapshots:
+		assert snapshot.seniority_level == "SENIOR"
+	
+	# Performance table shows SENIOR
+	resp = api_client.get("/api/personnel/performance-table/?page_size=50")
+	row = next(r for r in resp.json()["results"] if r["name"] == "member7@example.com")
+	assert row["seniority_level"] == "SENIOR"
+
+
+@pytest.mark.django_db
+def test_summary_seniority_level_csv_export(api_client):
+	"""Test that seniority_level is included in CSV export."""
+	from api.models import SummarySubmitStatus
+	org, dep_eng, dep_prod, tribe_app, tribe_growth, team_a, team_b = _create_org_graph()
+	hr = User.objects.create(email="hrm8@example.com")
+	org.hr_manager = hr
+	org.save(update_fields=["hr_manager"])
+	u = User.objects.create(email="member8@example.com", team=team_a)
+	api_client.force_authenticate(hr)
+	
+	lad = Ladder.objects.create(code="SW8", name="Software 8")
+	LadderAspect.objects.create(ladder=lad, code="DES", name="Design", order=1)
+	note = Note.objects.create(
+		owner=u, title="Eval8", content="", date=timezone.now().date(),
+		type="Proposal", proposal_type=ProposalType.EVALUATION
+	)
+	s = Summary.objects.create(
+		note=note, content="", ladder=lad,
+		aspect_changes={"DES": {"changed": True, "new_level": 1}},
+		salary_change=0.5, bonus=5, committee_date=timezone.now().date(),
+		seniority_level="PRINCIPAL", submit_status=SummarySubmitStatus.INITIAL_SUBMIT
+	)
+	s.submit_status = SummarySubmitStatus.DONE
+	s.save()
+	
+	# Check CSV includes seniority_level
+	url = reverse("api:personnel-performance-csv")
+	resp = api_client.get(url)
+	assert resp.status_code == 200
+	text = b"".join(resp.streaming_content).decode()
+	assert "seniority_level" in text
+	assert "PRINCIPAL" in text 
