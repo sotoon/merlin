@@ -676,16 +676,20 @@ def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stag
     # Calculate overall score
     overall = round(sum(details.values()) / len(details), 1) if details else 0
 
-    # Preserve seniority_level from latest snapshot (if exists)
-    # Get the most recent snapshot (including same-day) to preserve seniority_level
-    latest_for_seniority = SenioritySnapshot.objects.filter(
-        user=instance.note.owner,
-        effective_date__lte=effective_date,
-    )
-    if canonical_event:
-        latest_for_seniority = latest_for_seniority.exclude(source_event=canonical_event)
-    latest_for_seniority = latest_for_seniority.order_by("-effective_date", "-date_created").first()
-    preserved_seniority_level = latest_for_seniority.seniority_level if latest_for_seniority else None
+    # Preserve seniority_level from latest snapshot OR use Summary's value if provided
+    # Priority: Summary.seniority_level > preserved from previous snapshot
+    if hasattr(instance, 'seniority_level') and instance.seniority_level:
+        preserved_seniority_level = instance.seniority_level
+    else:
+        # Get the most recent snapshot (including same-day) to preserve seniority_level
+        latest_for_seniority = SenioritySnapshot.objects.filter(
+            user=instance.note.owner,
+            effective_date__lte=effective_date,
+        )
+        if canonical_event:
+            latest_for_seniority = latest_for_seniority.exclude(source_event=canonical_event)
+        latest_for_seniority = latest_for_seniority.order_by("-effective_date", "-date_created").first()
+        preserved_seniority_level = latest_for_seniority.seniority_level if latest_for_seniority else None
 
     # Upsert: update existing snapshot at the same effective_date, otherwise create
     existing_sen = SenioritySnapshot.objects.filter(
@@ -698,9 +702,8 @@ def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stag
         existing_sen.stages_json = stages_json
         existing_sen.overall_score = overall
         existing_sen.title = instance.performance_label if getattr(instance, "performance_label", None) else existing_sen.title
-        # Preserve seniority_level if not explicitly set elsewhere
-        if existing_sen.seniority_level is None:
-            existing_sen.seniority_level = preserved_seniority_level
+        # Use Summary's seniority_level if provided, otherwise preserve from previous snapshot
+        existing_sen.seniority_level = preserved_seniority_level
         if canonical_event and existing_sen.source_event_id != canonical_event.id:
             existing_sen.source_event = canonical_event
         existing_sen.save(update_fields=["details_json", "stages_json", "overall_score", "title", "seniority_level", "source_event"])
