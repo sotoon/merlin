@@ -42,6 +42,8 @@ const handleSubmit = (
   createNote(
     {
       ...values,
+      linked_notes:
+        values.linked_notes as unknown as Schema<'LinkedNoteRequest'>[],
       date: dateString,
       type: props.noteType as Schema<'TypeEnum'>,
     },

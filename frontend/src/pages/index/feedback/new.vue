@@ -21,6 +21,7 @@ function handleSubmit(
     mentioned_users: values.mentioned_users,
     deadline: values.deadline,
     form_uuid: values.form_uuid,
+    is_public: values.is_public,
   }).then((data) => {
     ctx.resetForm();
     router.push({ name: 'feedback-detail', params: { requestId: data.uuid } });

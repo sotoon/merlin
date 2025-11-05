@@ -14,8 +14,8 @@ const { mutateAsync: updateRequest, isPending: isSubmitting } =
   useUpdateFeedbackRequest(props.request.uuid);
 
 function handleSubmit(
-  values: Schema<'FeedbackRequestWrite'>,
-  ctx: SubmissionContext<Schema<'FeedbackRequestWrite'>>,
+  values: Schema<'FeedbackRequestWriteRequest'>,
+  ctx: SubmissionContext<Schema<'FeedbackRequestWriteRequest'>>,
 ) {
   updateRequest(values).then(() => {
     navigateTo({

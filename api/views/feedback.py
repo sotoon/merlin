@@ -60,6 +60,7 @@ class FeedbackRequestViewSet(viewsets.ModelViewSet):
                 Q(note__owner=user)
                 | Q(requestees__user=user)
                 | Q(note__mentioned_users=user)
+                | Q(is_public=True)  # Include all public requests
             ).distinct()
 
         return queryset

@@ -136,6 +136,116 @@ def test_outsider_cannot_view_request(api_client, user, receiver, outsider):
     assert api_client.get(detail_url).status_code in (403, 404)
 
 
+@pytest.mark.django_db
+def test_public_request_creation(api_client, user):
+    """Owner can create a public feedback request without invitees."""
+    api_client.force_authenticate(user)
+    payload = {
+        "title": "Open feedback",
+        "content": "Share your thoughts",
+        "requestee_emails": [],
+        "is_public": True,
+    }
+    resp = api_client.post(
+        reverse("api:feedback-requests-list"), payload, format="json"
+    )
+    assert resp.status_code == status.HTTP_201_CREATED
+    assert resp.data["is_public"] is True
+    assert resp.data["public_submission_count"] == 0
+
+    fr = FeedbackRequest.objects.get(uuid=resp.data["uuid"])
+    assert fr.is_public is True
+    assert fr.requestees.count() == 0
+
+
+@pytest.mark.django_db
+def test_public_request_rejects_invitees(api_client, user, receiver):
+    """Public requests must not include invitees."""
+    api_client.force_authenticate(user)
+    payload = {
+        "title": "Open feedback",
+        "content": "Share your thoughts",
+        "requestee_emails": [receiver.email],
+        "is_public": True,
+    }
+    resp = api_client.post(
+        reverse("api:feedback-requests-list"), payload, format="json"
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_public_feedback_submission_flow(api_client, user_factory):
+    """Any authenticated user can answer a public feedback request exactly once."""
+    owner = user_factory()
+    responder = user_factory()
+
+    api_client.force_authenticate(owner)
+    create_resp = api_client.post(
+        reverse("api:feedback-requests-list"),
+        {
+            "title": "Open feedback",
+            "content": "Please share your thoughts",
+            "requestee_emails": [],
+            "is_public": True,
+        },
+        format="json",
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    fr_uuid = create_resp.data["uuid"]
+
+    api_client.force_authenticate(responder)
+    # Any authenticated user can view public request via standard endpoint
+    detail_resp = api_client.get(
+        reverse("api:feedback-requests-detail", kwargs={"uuid": fr_uuid})
+    )
+    assert detail_resp.status_code == status.HTTP_200_OK
+    assert detail_resp.data["uuid"] == fr_uuid
+
+    # Submit feedback via standard endpoint
+    submit_resp = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_ids": [str(owner.uuid)],
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "Great presentation!",
+            "evidence": "Loved the Q&A",
+        },
+        format="json",
+    )
+    assert submit_resp.status_code == status.HTTP_201_CREATED
+    assert submit_resp.data["sender"]["uuid"] == str(responder.uuid)
+
+    # Duplicate submission should be rejected
+    dup_resp = api_client.post(
+        reverse("api:feedback-entries-list"),
+        {
+            "receiver_ids": [str(owner.uuid)],
+            "feedback_request_uuid": str(fr_uuid),
+            "content": "Second feedback",
+        },
+        format="json",
+    )
+    assert dup_resp.status_code == status.HTTP_400_BAD_REQUEST
+
+    api_client.force_authenticate(owner)
+    entries_resp = api_client.get(
+        reverse("api:feedback-requests-list-entries", kwargs={"uuid": fr_uuid})
+    )
+    assert entries_resp.status_code == status.HTTP_200_OK
+    assert len(entries_resp.data) == 1
+
+    # Verify responder appears in requestees list
+    detail_resp = api_client.get(
+        reverse("api:feedback-requests-detail", kwargs={"uuid": fr_uuid})
+    )
+    assert detail_resp.status_code == status.HTTP_200_OK
+    requestees = detail_resp.data["requestees"]
+    assert len(requestees) == 1
+    assert requestees[0]["uuid"] == str(responder.uuid)
+    assert requestees[0]["answered"] is True
+
+
 # ──────────────────────────────────────────────────
 # Feedback Entry flow
 # ──────────────────────────────────────────────────

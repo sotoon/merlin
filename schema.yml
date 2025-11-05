@@ -1939,7 +1939,7 @@ paths:
     get:
       operationId: users_timeline_list
       description: Return paginated timeline events for a given user_id respecting
-        feature flag and basic ACL.
+        basic ACL.
       parameters:
       - name: page
         required: false
@@ -2352,13 +2352,21 @@ components:
           allOf:
           - $ref: '#/components/schemas/Note'
           readOnly: true
+        is_public:
+          type: boolean
+          readOnly: true
+        public_submission_count:
+          type: string
+          readOnly: true
       required:
       - content
       - date_updated
       - form_uuid
+      - is_public
       - note
       - owner_name
       - owner_uuid
+      - public_submission_count
       - requestees
       - title
       - uuid
@@ -2410,6 +2418,8 @@ components:
           type: string
           format: uuid
           nullable: true
+        is_public:
+          type: boolean
       required:
       - content
       - title
@@ -2450,9 +2460,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        is_public:
+          type: boolean
       required:
       - content
-      - requestee_emails
       - title
     FeedbackUser:
       type: object
@@ -2641,6 +2652,66 @@ components:
         * `:)` - 😊
         * `:|` - 😐
         * `:(` - ☹️
+    LinkedNote:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          title: عنوان
+          maxLength: 512
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: نوع
+        one_on_one_member:
+          type: string
+          format: uuid
+          readOnly: true
+        one_on_one_id:
+          type: integer
+          readOnly: true
+        feedback_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        feedback_request_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        feedback_request_uuid_of_feedback:
+          type: string
+          format: uuid
+          readOnly: true
+        read_status:
+          type: string
+          readOnly: true
+      required:
+      - feedback_request_uuid
+      - feedback_request_uuid_of_feedback
+      - feedback_uuid
+      - one_on_one_id
+      - one_on_one_member
+      - read_status
+      - title
+      - uuid
+    LinkedNoteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          title: عنوان
+          maxLength: 512
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          title: نوع
+      required:
+      - title
     MemberVibeEnum:
       enum:
       - :)
@@ -2720,8 +2791,7 @@ components:
         linked_notes:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/LinkedNote'
         read_status:
           type: string
           readOnly: true
@@ -2816,8 +2886,7 @@ components:
         linked_notes:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/LinkedNoteRequest'
         submit_status:
           allOf:
           - $ref: '#/components/schemas/NoteSubmitStatusEnum'
@@ -2967,8 +3036,7 @@ components:
         linked_notes:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/LinkedNote'
         tags:
           type: array
           items:
@@ -3047,8 +3115,7 @@ components:
         linked_notes:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/LinkedNoteRequest'
         tags:
           type: array
           items:
@@ -3189,6 +3256,8 @@ components:
           type: string
           format: uuid
           nullable: true
+        is_public:
+          type: boolean
     PatchedFormRequest:
       type: object
       description: |-
@@ -3258,8 +3327,7 @@ components:
         linked_notes:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/LinkedNoteRequest'
         submit_status:
           allOf:
           - $ref: '#/components/schemas/NoteSubmitStatusEnum'
@@ -3304,8 +3372,7 @@ components:
         linked_notes:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: '#/components/schemas/LinkedNoteRequest'
         tags:
           type: array
           items:
