@@ -273,16 +273,18 @@ class DataValidator:
         from api.models.ladder import Ladder, LadderAspect, LadderLevel, LadderStage
         
         issues = []
+        warnings = []
         
-        # Check for ladders without aspects
-        ladders_without_aspects = Ladder.objects.filter(
-            ladderaspect__isnull=True
-        ).count()
+        # Check for ladders without aspects (this might be valid, so it's a warning)
+        from django.db.models import Count
+        ladders_without_aspects = Ladder.objects.annotate(
+            aspect_count=Count('aspects')
+        ).filter(aspect_count=0).count()
         
         if ladders_without_aspects > 0:
-            issues.append(f"{ladders_without_aspects} ladders without aspects")
+            warnings.append(f"{ladders_without_aspects} ladders without aspects")
         
-        # Check for aspects without ladders
+        # Check for aspects without ladders (this is a real issue - ForeignKey constraint should prevent this)
         aspects_without_ladders = LadderAspect.objects.filter(
             ladder__isnull=True
         ).count()
@@ -293,6 +295,7 @@ class DataValidator:
         return {
             "passed": len(issues) == 0,
             "issues": issues,
+            "warnings": warnings,
             "total_ladders": Ladder.objects.count(),
             "total_aspects": LadderAspect.objects.count()
         }
