@@ -21,6 +21,7 @@
     "@vee-validate/i18n": "^4.12.5",
     "@vee-validate/nuxt": "^4.12.5",
     "@vee-validate/rules": "^4.12.5",
+    "@vueuse/core": "^13.7.0",
     "@vueuse/router": "^10.9.0",
     "dayjs": "^1.11.13",
     "jalaliday": "^3.1.0",

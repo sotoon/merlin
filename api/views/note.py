@@ -16,7 +16,7 @@ from api.models import (
     NoteUserAccess,
     Summary,
     OneOnOne,
-    UserTimeline,
+    OneOnOneActivityLog,
 )
 from api.permissions import (
     CommentPermission as FeedbackPermission,
@@ -63,6 +63,7 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
         user_email = self.request.query_params.get("user")
         retrieve_mentions = self.request.query_params.get("retrieve_mentions")
         note_type_filter = self.request.query_params.get("type")
+        proposal_type_filter = self.request.query_params.get("proposal_type")
 
         accessible_notes = get_notes_visible_to(self.request.user)
 
@@ -70,7 +71,17 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
             queryset = accessible_notes.filter(owner__email=user_email)
 
         elif retrieve_mentions:
+            # Get all accessible notes user doesn't own
             queryset = accessible_notes.filter(~Q(owner=self.request.user))
+            
+            # EXCLUDE feedback answers where user is only mentioned in parent REQUEST
+            # (not the receiver). This prevents phantom notifications for "observer" mentions.
+            # User can still access these answers via /feedback-requests/{uuid}/entries/
+            queryset = queryset.exclude(
+                Q(type=NoteType.FEEDBACK) &
+                Q(feedback__feedback_request__isnull=False) &  # It's an answer (has parent request)
+                ~Q(feedback__receiver=self.request.user)  # User is NOT the receiver
+            )
 
         else:
             queryset = accessible_notes.filter(owner=self.request.user)
@@ -87,6 +98,9 @@ class NoteViewSet(CycleQueryParamMixin, viewsets.ModelViewSet):
 
         if note_type_filter:
             queryset = queryset.filter(type=note_type_filter)
+
+        if proposal_type_filter:
+            queryset = queryset.filter(proposal_type=proposal_type_filter)
 
         return queryset.distinct()
 
@@ -260,7 +274,7 @@ class OneOnOneViewSet(
             ctx["member"] = self.member_obj
         return ctx
 
-    # Log in the UserTimeline
+    # Log activity
     def create(self, request, *args, **kwargs):
         with transaction.atomic():
             response = super().create(request, *args, **kwargs)
@@ -268,8 +282,8 @@ class OneOnOneViewSet(
                 one_on_one_id = response.data.get("id")
                 ooo = OneOnOne.objects.get(id=one_on_one_id)
 
-                # Log to UserTimeline
-                UserTimeline.objects.create(
+                # Log activity
+                OneOnOneActivityLog.objects.create(
                     user=ooo.member,
                     event_type="1on1_created",
                     cycle=ooo.cycle,
@@ -359,7 +373,7 @@ class OneOnOneViewSet(
 
         return super().partial_update(request, *args, **kwargs)
 
-    # Log in the UserTimeline
+    # Log activity
     def update(self, request, *args, **kwargs):
         with transaction.atomic():
             response = super().update(request, *args, **kwargs)
@@ -367,7 +381,7 @@ class OneOnOneViewSet(
                 one_on_one_id = response.data.get("id")
 
                 ooo = OneOnOne.objects.get(id=one_on_one_id)
-                UserTimeline.objects.create(
+                OneOnOneActivityLog.objects.create(
                     user=ooo.member,
                     event_type="1on1_updated",
                     cycle=ooo.cycle,

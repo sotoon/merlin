@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { PButton, PLoading, PText } from '@pey/core';
-import { useForm } from 'vee-validate';
 import FeedbackStructuredForm from './FeedbackStructuredForm.vue';
 
 const props = defineProps<{

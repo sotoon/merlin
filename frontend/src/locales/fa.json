@@ -21,13 +21,14 @@
     "myForms": "فرم‌های من",
     "myTeam": "تیم من",
     "notes": "مدیریت عملکرد",
-    "promotion": "درخواست بررسی ارتقا",
+    "promotion": "کمیته‌ها",
     "performanceManagementGuide": "راهنمای مدیریت عملکرد",
     "personalNotes": "یادداشت‌های شخصی",
     "personal": "میز کار",
     "proposal": "پروپوزال ارتقا",
     "retry": "تلاش مجدد",
     "save": "ذخیره",
+    "success": "موفقیت",
     "search": "جستجو",
     "submit": "ثبت",
     "sort": "مرتب سازی",
@@ -36,7 +37,41 @@
     "results": "نتایج فرم‌ها",
     "feedbackRequest": "درخواست فیدبک",
     "viewDetails": "مشاهده جزئیات",
-    "back": "بازگشت"
+    "back": "بازگشت",
+    "organization": "سازمان",
+    "users": "کاربران",
+    "performanceTable": "جدول عملکرد",
+    "details": "جزئیات",
+    "timeline": "تاریخچه",
+    "changeJobTitle": "تغییر عنوان شغلی",
+    "newJobTitle": "عنوان شغلی جدید",
+    "reasonForChange": "دلیل تغییر",
+    "effectiveDate": "تاریخ اعمال",
+    "changeTitleSuccess": "عنوان شغلی با موفقیت تغییر یافت",
+    "changeTitleError": "خطا در تغییر عنوان شغلی",
+    "maintainerOnly": "فقط مدیران سیستم می‌توانند عنوان شغلی را تغییر دهند",
+    "errorLoadingData": "خطا در بارگذاری اطلاعات",
+    "clear": "پاک کردن",
+    "apply": "اعمال",
+    "noData": "داده‌ای برای نمایش وجود ندارد",
+    "team": "تیم",
+    "ladder": "لدر",
+    "allTeams": "همه تیم‌ها",
+    "allLadders": "همه لدرها",
+    "overallLevel": "سطح کلی",
+    "payBand": "پله حقوقی",
+    "lastBonus": "آخرین پاداش",
+    "selectDate": "انتخاب تاریخ",
+    "exportCSV": "خروجی CSV",
+    "name": "نام",
+    "ascending": "صعودی",
+    "descending": "نزولی",
+    "leader": "لیدر",
+    "lastCommitteeDate": "تاریخ آخرین کمیته",
+    "committeesCurrentYear": "کمیته‌های سال جاری",
+    "allTribes": "همه قبیله‌ها",
+    "allUsers": "همه کاربران",
+    "allLeaders": "همه لیدرها"
   },
   "form": {
     "assignForm": "ارسال فرم",
@@ -87,6 +122,7 @@
     "getNoteError": "خطا در دریافت یادداشت",
     "getNotesError": "خطا در دریافت یادداشت‌ها",
     "getSummaryError": "خطا در دریافت جمع‌بندی",
+    "proposalType": "نوع پروپوزال",
     "getTemplatesError": "خطا در دریافت قالب‌ها",
     "ladderChange": "تغییر در سطح لدر",
     "lastEdit": "آخرین ویرایش",
@@ -133,7 +169,14 @@
     "writeSummaryFor": "نوشتن جمع‌بندی برای \"{title}\"",
     "writeTemplateContent": "متن قالب را بنویسید...",
     "year": "سال",
-    "currentCycle": "دوره فعلی"
+    "currentCycle": "دوره فعلی",
+    "aspectChanges": "تغییرات ابعاد لدر",
+    "hasChanged": "تغییر کرده",
+    "selectLadder": "انتخاب لدر",
+    "selectLadderPlaceholder": "لدر مورد نظر را انتخاب کنید",
+    "stage": "مرحله",
+    "aspectChangesAlertTitle": "اعداد وارد شده میزان تغییرات ابعاد لدر را نشان می‌دهد. اگر میزان تغییرات صفر باشد، ابعاد لدر تغییر نکرده است.",
+    "aspectReachedMaxLevel": "سطح این بعد قبلاً به حداکثر مقدار رسیده است."
   },
   "noteType": {
     "goal": "هدف",
@@ -145,6 +188,12 @@
     "forms": "فرم‌ها",
     "feedbackRequest": "درخواست فیدبک",
     "feedback": "فیدبک"
+  },
+  "proposalType": {
+    "promotion": "پروپوزال ارتقا",
+    "notice": "نوتیس",
+    "mapping": "پروپوزال مپینگ",
+    "evaluation": "خودارزیابی"
   },
   "profile": {
     "chapter": "چپتر",
@@ -162,10 +211,32 @@
     "team": "تیم"
   },
   "user": {
-    "getUsersError": "خطا در دریافت کاربرها",
     "noUser": "کاربری برای نمایش وجود ندارد.",
     "teamName": "تیم {name}",
-    "userNotes": "یادداشت‌های {name}"
+    "userNotes": "یادداشت‌های {name}",
+    "getUsersError": "خطا در دریافت لیست کاربران",
+    "getUserError": "خطا در دریافت اطلاعات کاربر"
+  },
+  "timeline": {
+    "getTimelineError": "خطا در دریافت تاریخچه کاربر",
+    "loadMore": "بارگذاری بیشتر",
+    "noMoreEvents": "رویداد دیگری وجود ندارد",
+    "noEvents": "هیچ رویدادی برای نمایش وجود ندارد",
+    "viewDetails": "مشاهده جزئیات",
+    "currentLevel": "سطح فعلی",
+    "showDetails": "نمایش جزئیات",
+    "hideDetails": "مخفی کردن جزئیات",
+    "seniorityChange": "تغییر سطح لدر",
+    "payChange": "تغییر بسته حقوقی",
+    "bonusPayout": "پرداخت پاداش",
+    "evaluation": "خروجی ارزیابی کمیته",
+    "mapping": "بازنشانی روی لدر",
+    "titleChange": "تغییر عنوان شغلی",
+    "stockGrant": "اعطای سهام",
+    "notice": "نوتیس",
+    "ladderChanged": "تغییر لدر",
+    "unknownEvent": "رویداد ناشناخته",
+    "filterByEventType": "فیلتر بر اساس نوع رویداد"
   },
   "oneOnOne": {
     "individualDimension": "بعد فردی",
@@ -234,9 +305,14 @@
     "sentFeedbackTo": "بازخوردی به {name} ارسال کردید",
     "from": "از",
     "received": "دریافتی",
-    "sent": "ارسالی"
+    "sent": "ارسالی",
+    "adhocFeedbackSentSuccess": "بازخورد با موفقیت ارسال شد",
+    "adhocFeedbacksSentSuccess": "{count} بازخورد با موفقیت ارسال شدند"
   },
   "messages": {
     "max": "مقدار وارد شده نباید بیشتر از {length} کاراکتر باشد."
+  },
+  "performance": {
+    "getPerformanceTableError": "خطا در دریافت جدول عملکرد"
   }
 }

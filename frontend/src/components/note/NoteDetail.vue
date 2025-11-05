@@ -4,7 +4,7 @@
       <div>
         <i
           class="mb-3 me-4 inline-block align-middle text-h1 text-primary"
-          :class="NOTE_TYPE_ICON[note.type]"
+          :class="noteTypeIcon"
         />
 
         <PText responsive variant="h1" weight="bold">
@@ -128,9 +128,8 @@
         <NuxtLink
           class="text-primary hover:underline"
           :to="{
-            name: 'notes',
-            params: { type: '-' },
-            query: { user: note.owner },
+            name: 'user-detail',
+            params: { id: note.owner_uuid },
           }"
         >
           {{ note.owner_name }}
@@ -241,9 +240,9 @@ const { data: profile } = useGetProfile();
 const { data: users } = useGetUsers();
 const { data: myNotes } = useGetNotes();
 const { data: mentionedNotes } = useGetNotes({ retrieveMentions: true });
-const { execute: updateNote, pending: updatingNote } = useUpdateNote({
-  id: props.note.uuid,
-});
+const { mutate: updateNote, isPending: updatingNote } = useUpdateNote(
+  props.note.uuid,
+);
 
 let finalSubmitHintTimeout: NodeJS.Timeout | null = null;
 const finalSubmitHintVisibility = ref(false);
@@ -272,9 +271,7 @@ onBeforeUnmount(() => {
 
 function finalizeNoteSubmission() {
   updateNote({
-    body: {
-      submit_status: NOTE_SUBMIT_STATUS.final,
-    },
+    submit_status: NOTE_SUBMIT_STATUS.final,
   });
 }
 
@@ -326,5 +323,13 @@ const linkedNotes = computed(() => {
       ...note,
       to: getNoteRoute(note),
     }));
+});
+
+const noteTypeIcon = computed(() => {
+  return props.note.type === NOTE_TYPE.proposal
+    ? PROPOSAL_TYPE_ICON[props.note.proposal_type as ProposalType]
+    : props.note.type
+      ? NOTE_TYPE_ICON[props.note.type]
+      : 'i-mdi-note-text';
 });
 </script>

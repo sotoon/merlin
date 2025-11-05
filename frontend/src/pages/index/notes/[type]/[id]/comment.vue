@@ -41,25 +41,28 @@ const {
 
 const isEditMode = computed(() => Boolean(owner && typeof owner === 'string'));
 
-const { data: userComments, pending: getCommentsPending } = useGetNoteComments({
-  noteId: props.note.uuid,
-  owner: isEditMode.value ? (owner as string) : '',
-  enabled: isEditMode.value,
-});
-const { execute: createNoteComment, pending: isSubmitting } =
+const { data: userComments, isPending: getCommentsPending } =
+  useGetNoteComments({
+    noteId: props.note.uuid,
+    owner: isEditMode.value ? (owner as string) : '',
+    enabled: isEditMode.value,
+  });
+const { mutate: createNoteComment, isPending: isSubmitting } =
   useCreateNoteComment(props.note.uuid);
 
 const handleSubmit = (
   values: Schema<'CommentRequest'>,
   ctx: SubmissionContext<Schema<'CommentRequest'>>,
 ) => {
-  createNoteComment({
-    body: values,
-    onSuccess: () => {
-      ctx.resetForm();
-      navigateTo({ name: 'note' });
+  createNoteComment(
+    { ...values },
+    {
+      onSuccess: () => {
+        ctx.resetForm();
+        navigateTo({ name: 'note' });
+      },
     },
-  });
+  );
 };
 
 const handleCancel = () => {

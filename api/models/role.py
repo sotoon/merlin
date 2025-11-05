@@ -20,6 +20,7 @@ class RoleType(models.TextChoices):
     CFO = "CFO", "سی اف او"  # organization
     HRBP = "HRBP", "اچ آر بی پی"
     ENGINEERING_DIRECTOR = "Engineering Director", "دیرکتور مهندسی"  # tribe
+    MAINTAINER = "Maintainer", "نگهدارنده"  # organization
 
     @classmethod
     def default(cls):

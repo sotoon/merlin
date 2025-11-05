@@ -5,10 +5,10 @@ from .base import MerlinBaseModel
 from api.models import (Cycle,
                         Committee,
                         ValueTag,
-                        ValueSection
+                        ValueSection,
                         )
 
-__all__ = ['NoteType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
+__all__ = ['NoteType', 'ProposalType', 'NoteSubmitStatus', 'SummarySubmitStatus', 'Note', 'Comment', 'Feedback', 'FeedbackForm', 'FeedbackRequest', 'FeedbackRequestUserLink', 'FeedbackTagLink', 'Summary', 'NoteUserAccess', 'Vibe',
            'OneOnOne', 'OneOnOneTagLink', 'leader_permissions', 'committee_roles_permissions']
 
 class NoteType(models.TextChoices):
@@ -26,6 +26,17 @@ class NoteType(models.TextChoices):
     @classmethod
     def default(cls):
         return cls.GOAL
+
+
+class ProposalType(models.TextChoices):
+    PROMOTION = "PROMOTION", "ارتقا"
+    NOTICE = "NOTICE", "نوتیس"
+    MAPPING = "MAPPING", "مپینگ اولیه"
+    EVALUATION = "EVALUATION", "ارزیابی"
+
+    @classmethod
+    def default(cls):
+        return cls.PROMOTION
 
 
 class NoteSubmitStatus(models.IntegerChoices):
@@ -90,6 +101,12 @@ class Note(MerlinBaseModel):
         default=NoteType.default(),
         verbose_name="نوع",
     )
+    proposal_type = models.CharField(
+        max_length=16,
+        choices=ProposalType.choices,
+        default=ProposalType.default,
+        verbose_name="نوع پروپوزال",
+    )
     mentioned_users = models.ManyToManyField(
         "api.User",
         blank=True,
@@ -108,6 +125,8 @@ class Note(MerlinBaseModel):
     )
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
                               blank=True, null=True, )
+    is_import = models.BooleanField(default=False, verbose_name="وارد شده از ایمپورت")
+    _skip_access_grants = models.BooleanField(default=False, verbose_name="رد دسترسی‌های خودکار")
 
     def is_sent_to_committee(self):
         return self.type == NoteType.Proposal and self.submit_status in (NoteSubmitStatus.PENDING,
@@ -153,6 +172,10 @@ class Summary(MerlinBaseModel):
     performance_label = models.CharField(
         max_length=256, default="", blank=True, null=True, verbose_name="لیبل عملکردی"
     )
+    ladder = models.ForeignKey(
+        "api.Ladder", null=True, blank=True, on_delete=models.PROTECT, verbose_name="لدر"
+    )
+    aspect_changes = models.JSONField(default=dict, blank=True, verbose_name="تغییرات ابعاد لدر")
     ladder_change = models.CharField(
         max_length=256,
         default="",
@@ -172,10 +195,15 @@ class Summary(MerlinBaseModel):
     )
     cycle = models.ForeignKey("api.cycle", on_delete=models.PROTECT, verbose_name="دوره",
                               blank=True, null=True)
+    is_import = models.BooleanField(default=False, verbose_name="وارد شده از ایمپورت")
 
     class Meta:
         verbose_name = "جمع‌بندی"
         verbose_name_plural = "جمع‌بندی‌ها"
+        indexes = [
+            models.Index(fields=["committee_date"]),
+            models.Index(fields=["note", "committee_date"]),
+        ]
 
     def __str__(self):
         return "جمع‌بندیِ " + str(self.note)
@@ -227,6 +255,11 @@ class NoteUserAccess(MerlinBaseModel):
     def ensure_note_predefined_accesses(cls, note):
         
         if note.type == NoteType.ONE_ON_ONE:
+            return
+        
+        # FEEDBACK and FEEDBACK_REQUEST notes have explicit access control
+        # managed by dedicated service functions (grant_feedback_access, grant_feedback_request_access)
+        if note.type in [NoteType.FEEDBACK, NoteType.FEEDBACK_REQUEST]:
             return
         
         # Owner

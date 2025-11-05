@@ -1,3 +1,5 @@
+from django.contrib import admin
+
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from import_export import fields, resources
@@ -35,6 +37,19 @@ class BaseModelAdmin(ImportExportModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_staff
+
+
+class BaseModelResource(resources.ModelResource):
+    lookup_field = "name"
+
+    def get_instance(self, instance_loader, row):
+        field_value = row.get(self.lookup_field)
+        if field_value:
+            try:
+                return self._meta.model.objects.get(**{self.lookup_field: field_value})
+            except self._meta.model.DoesNotExist:
+                return None
+        return None
 
 
 RESOURCE_FIELDS = {
@@ -119,17 +134,4 @@ RESOURCE_FIELDS = {
         widget=ForeignKeyWidget(Note, field="uuid"),
     )
 }
-
-
-class BaseModelResource(resources.ModelResource):
-    lookup_field = "name"
-
-    def get_instance(self, instance_loader, row):
-        field_value = row.get(self.lookup_field)
-        if field_value:
-            try:
-                return self._meta.model.objects.get(**{self.lookup_field: field_value})
-            except self._meta.model.DoesNotExist:
-                return None
-        return None
 

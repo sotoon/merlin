@@ -1,12 +1,12 @@
 <template>
-  <PLoading v-if="pending" class="text-primary" />
+  <PLoading v-if="isPending" class="text-primary" />
 
   <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
     <PText as="p" class="text-center text-danger" responsive>
       {{ t('note.getCommentsError') }}
     </PText>
 
-    <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+    <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
       {{ t('common.retry') }}
     </PButton>
   </div>
@@ -64,9 +64,9 @@ const props = defineProps<{
 const { t } = useI18n();
 const {
   data: comments,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetNoteComments({
   noteId: props.note.uuid,
 });

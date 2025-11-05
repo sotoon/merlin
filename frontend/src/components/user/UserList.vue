@@ -17,5 +17,5 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{ users: User[] }>();
+defineProps<{ users: Schema<'Profile'>[] }>();
 </script>

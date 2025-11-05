@@ -1,0 +1,696 @@
+"""
+Production-safe history import command.
+NO DELETION OPERATIONS - Only creates/updates timeline events and snapshots.
+Includes backup, rollback, validation, and detailed logging.
+"""
+
+import json
+from typing import Dict, Optional
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from api.management.commands._import_utils import (
+    average_or_none,
+    normalize_stage,
+    open_csv,
+    parse_date,
+    parse_float_or_none,
+    parse_json_dict,
+    row_savepoint,
+    to_jsonl,
+)
+from api.management.commands._prod_utils import ProductionImportBase
+from api.models import TimelineEvent
+from api.models.performance_tables import CompensationSnapshot, SenioritySnapshot
+from api.models.ladder import Ladder
+from api.models.organization import PayBand
+from api.models.user import User
+
+
+class Command(BaseCommand):
+    help = "PRODUCTION-SAFE: Import historical events and related snapshots. NO DELETION - Only creates/updates events."
+
+    def add_arguments(self, parser):
+        parser.add_argument("--csv", required=True)
+        parser.add_argument("--encoding", default="utf-8")
+        parser.add_argument("--delimiter", default=",")
+        parser.add_argument("--dry-run", action="store_true")
+        parser.add_argument("--log-file", default=None, help="Path to detailed log file")
+        parser.add_argument("--backup", action="store_true", default=True, help="Create backup before import")
+        parser.add_argument("--skip-duplicates", action="store_true", default=True, help="Skip duplicate events instead of updating")
+        parser.add_argument("--update-existing", action="store_true", help="Update existing events with new data")
+        parser.add_argument("--validate", action="store_true", default=True, help="Validate data after import")
+
+    def handle(self, *args, **options):
+        csv_path = options["csv"]
+        encoding = options["encoding"]
+        delimiter = options["delimiter"]
+        dry_run = bool(options["dry_run"])
+        log_file = options.get("log_file")
+        create_backup = bool(options["backup"])
+        skip_duplicates = bool(options["skip_duplicates"])
+        update_existing = bool(options["update_existing"])
+        validate = bool(options["validate"])
+
+        # Initialize production import utilities
+        prod_import = ProductionImportBase(self, log_file)
+        
+        # Start production import with safety measures
+        if not prod_import.start_production_import("history_import", create_backup):
+            raise CommandError("Failed to start production import")
+
+        try:
+            created_events = created_sen = created_comp = skipped = errors = 0
+
+            with transaction.atomic():
+                for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
+                    row_errors = []
+                    warnings = []
+                    actions = {}
+
+                    user_email = (row.get("user_email") or "").strip()
+                    event_type = (row.get("event_type") or "").strip()
+                    summary_text = (row.get("summary_text") or "").strip()
+                    date_raw = (row.get("event_date") or "").strip()
+
+                    with row_savepoint(dry_run):
+                        try:
+                            # Resolve user (PRODUCTION-SAFE: Only get, no deletion)
+                            user = User.objects.filter(email=user_email).first()
+                            if not user:
+                                row_errors.append(f"user not found: {user_email}")
+                                errors += 1
+                                prod_import.logger.log_operation(
+                                    "user_not_found",
+                                    {"row": idx, "email": user_email},
+                                    "error"
+                                )
+                                continue
+
+                            # Parse date
+                            try:
+                                effective_date = parse_date(date_raw)
+                            except Exception:
+                                row_errors.append(f"invalid date (expected YYYY-MM-DD): {date_raw}")
+                                errors += 1
+                                prod_import.logger.log_operation(
+                                    "invalid_date",
+                                    {"row": idx, "date": date_raw},
+                                    "error"
+                                )
+                                continue
+
+                            # Generate rich summary text based on event type and available data
+                            rich_summary = self._generate_rich_summary(row, event_type, user)
+                            
+                            # PRODUCTION-SAFE: Handle existing events without deletion
+                            existing_events = TimelineEvent.objects.filter(
+                                user=user,
+                                event_type=event_type,
+                                effective_date=effective_date,
+                            ).order_by('-date_created')
+                            
+                            if existing_events.exists():
+                                if skip_duplicates:
+                                    # Skip duplicate events (PRODUCTION-SAFE)
+                                    actions["timeline"] = "skipped-duplicate"
+                                    skipped += 1
+                                    prod_import.logger.log_operation(
+                                        "duplicate_event_skipped",
+                                        {"user": user_email, "event_type": event_type, "date": effective_date}
+                                    )
+                                elif update_existing:
+                                    # Update existing event (PRODUCTION-SAFE: Only update, no deletion)
+                                    latest_event = existing_events.first()
+                                    if not dry_run and latest_event.summary_text != rich_summary:
+                                        latest_event.summary_text = rich_summary or ""
+                                        latest_event.save(update_fields=['summary_text'])
+                                        actions["timeline"] = "updated"
+                                        prod_import.logger.log_operation(
+                                            "event_updated",
+                                            {"user": user_email, "event_type": event_type, "date": effective_date}
+                                        )
+                                    else:
+                                        actions["timeline"] = "skipped-same"
+                                else:
+                                    # Skip if not updating
+                                    actions["timeline"] = "skipped-existing"
+                                    skipped += 1
+                            else:
+                                # Create new TimelineEvent (PRODUCTION-SAFE: Only create, no deletion)
+                                if not dry_run:
+                                    TimelineEvent.objects.create(
+                                        user=user,
+                                        event_type=event_type,
+                                        summary_text=rich_summary or "",
+                                        effective_date=effective_date,
+                                        content_type=None,  # No links for imported events
+                                        object_id=None,     # No links for imported events
+                                        visibility_mask=1,
+                                        created_by=None,
+                                    )
+                                created_events += 1
+                                actions["timeline"] = "created"
+                                prod_import.logger.log_operation(
+                                    "event_created",
+                                    {"user": user_email, "event_type": event_type, "date": effective_date}
+                                )
+                                
+                                # Create Summary objects for committee events (PRODUCTION-SAFE: Only create, no deletion)
+                                if event_type in {"MAPPING", "NOTICE", "SENIORITY_CHANGE", "EVALUATION"}:
+                                    if not dry_run:
+                                        from api.models.note import Note, ProposalType, Summary, SummarySubmitStatus
+                                        
+                                        # Create or get the note (PRODUCTION-SAFE: Only create/update, no deletion)
+                                        note, note_created = Note.objects.get_or_create(
+                                            owner=user,
+                                            title=rich_summary or f"{event_type} Event",
+                                            content=rich_summary or "",
+                                            date=effective_date,
+                                            type="Proposal",
+                                            proposal_type=ProposalType.EVALUATION,  # Use EVALUATION as default
+                                            defaults={
+                                                "content": rich_summary or "",
+                                                "_skip_access_grants": True,  # Skip leader access grants during import
+                                                "is_import": True,  # Mark as import-created
+                                            }
+                                        )
+                                        
+                                        # Create or update the summary (PRODUCTION-SAFE: Only create/update, no deletion)
+                                        summary, summary_created = Summary.objects.get_or_create(
+                                            note=note,
+                                            defaults={
+                                                "content": rich_summary or "",
+                                                "committee_date": effective_date,
+                                                "submit_status": SummarySubmitStatus.DONE,
+                                                "is_import": True,  # Mark as import-created to prevent signal spam
+                                            }
+                                        )
+                                        
+                                        if not note_created:
+                                            # Mark existing note as import-created to prevent leader access grants
+                                            note.is_import = True
+                                            note._skip_access_grants = True
+                                            note.save(update_fields=['is_import', '_skip_access_grants'])
+
+                                        if not summary_created:
+                                            # Update existing summary
+                                            summary.committee_date = effective_date
+                                            summary.submit_status = SummarySubmitStatus.DONE
+                                            summary.is_import = True  # Mark as import-created to prevent signal spam
+                                            summary.save(update_fields=['committee_date', 'submit_status', 'is_import'])
+                                        
+                                        actions["summary"] = "created" if summary_created else "updated"
+                                        prod_import.logger.log_operation(
+                                            "summary_created_or_updated",
+                                            {"user": user_email, "event_type": event_type, "date": effective_date}
+                                        )
+                                    else:
+                                        actions["summary"] = "would-create"
+
+                            # Per-event type: create snapshots (PRODUCTION-SAFE: Only create, no deletion)
+                            if event_type in {"SENIORITY_CHANGE", "MAPPING"}:
+                                result = self._process_seniority_snapshot(row, user, effective_date, dry_run, prod_import)
+                                if result:
+                                    created_sen += 1
+                                    actions["seniority"] = "created"
+
+                            elif event_type == "PAY_CHANGE":
+                                result = self._process_compensation_snapshot(row, user, effective_date, dry_run, prod_import)
+                                if result:
+                                    created_comp += 1
+                                    actions["compensation"] = "created"
+
+                            elif event_type == "BONUS_PAYOUT":
+                                result = self._process_bonus_snapshot(row, user, effective_date, dry_run, prod_import)
+                                if result:
+                                    created_comp += 1
+                                    actions["compensation"] = "created"
+
+                            elif event_type in {"EVALUATION", "MAPPING", "PROMOTION", "SENIORITY_CHANGE", "NOTICE"}:
+                                # Create Summary object for committee calculations (PRODUCTION-SAFE: Only create, no deletion)
+                                if not dry_run:
+                                    from api.models.note import Note, ProposalType, Summary, SummarySubmitStatus
+                                    
+                                    # Create or get the note (PRODUCTION-SAFE: Only create/update, no deletion)
+                                    note, note_created = Note.objects.get_or_create(
+                                        owner=user,
+                                        title=rich_summary or f"{event_type} Event",
+                                        content=rich_summary or "",
+                                        date=effective_date,
+                                        type="Proposal",
+                                        proposal_type=ProposalType.EVALUATION,  # Use EVALUATION as default
+                                        defaults={
+                                            "content": rich_summary or "",
+                                        }
+                                    )
+                                    
+                                    # Create or update the summary (PRODUCTION-SAFE: Only create/update, no deletion)
+                                    summary, summary_created = Summary.objects.get_or_create(
+                                        note=note,
+                                        defaults={
+                                            "content": rich_summary or "",
+                                            "committee_date": effective_date,
+                                            "submit_status": SummarySubmitStatus.DONE,
+                                        }
+                                    )
+                                    
+                                    if not summary_created:
+                                        # Update existing summary
+                                        summary.committee_date = effective_date
+                                        summary.submit_status = SummarySubmitStatus.DONE
+                                        summary.save(update_fields=['committee_date', 'submit_status'])
+                                    
+                                    actions["summary"] = "created" if summary_created else "updated"
+                                    prod_import.logger.log_operation(
+                                        "summary_created_or_updated",
+                                        {"user": user_email, "event_type": event_type, "date": effective_date}
+                                    )
+                                else:
+                                    actions["summary"] = "would-create"
+
+                            else:
+                                warnings.append(f"unknown event_type: {event_type}")
+                                prod_import.logger.log_operation(
+                                    "unknown_event_type",
+                                    {"user": user_email, "event_type": event_type},
+                                    "warning"
+                                )
+
+                            prod_import.logger.log_operation(
+                                "row_processed",
+                                {"row": idx, "user": user_email, "event_type": event_type, "actions": actions, "warnings": warnings, "errors": row_errors}
+                            )
+
+                        except Exception as e:
+                            errors += 1
+                            prod_import.logger.log_operation(
+                                "row_processing_failed",
+                                {"row": idx, "user": user_email, "error": str(e)},
+                                "error"
+                            )
+
+            if dry_run:
+                transaction.set_rollback(True)
+                self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
+            else:
+                # Complete production import with validation
+                if validate:
+                    expected_counts = {
+                        "timeline_events": created_events,
+                        "seniority_snapshots": created_sen,
+                        "compensation_snapshots": created_comp
+                    }
+                    
+                    if not prod_import.complete_production_import("history", expected_counts):
+                        self.stdout.write(self.style.ERROR("Import completed but validation failed. Check logs for details."))
+                        return
+
+            # Final summary
+            message = f"PRODUCTION-SAFE History import finished. events={created_events}, seniority_snaps={created_sen}, comp_snaps={created_comp}, skipped={skipped}, errors={errors}"
+            self.stdout.write(self.style.SUCCESS(message))
+            
+            # Log operations summary
+            operations_summary = prod_import.get_operations_summary()
+            self.stdout.write(f"Operations performed: {operations_summary['total_operations']}")
+            
+            if prod_import.backup_path:
+                self.stdout.write(f"Backup created at: {prod_import.backup_path}")
+                self.stdout.write("Use --rollback flag to restore from backup if needed")
+
+        except Exception as e:
+            prod_import.logger.log_operation(
+                "history_import_failed",
+                {"error": str(e)},
+                "error"
+            )
+            self.stdout.write(self.style.ERROR(f"Import failed: {str(e)}"))
+            
+            if prod_import.backup_path:
+                self.stdout.write("Backup available for rollback if needed")
+            
+            raise CommandError(f"Production import failed: {str(e)}")
+
+    def _process_seniority_snapshot(self, row, user, effective_date, dry_run, prod_import):
+        """PRODUCTION-SAFE: Process seniority snapshot creation."""
+        ladder_code = (row.get("ladder_code") or "").strip()
+        details = parse_json_dict(row.get("aspect_details_json"))
+        stages_raw = parse_json_dict(row.get("aspect_stages_json")) or {}
+        
+        if not ladder_code or not details:
+            return False
+
+        ladder = Ladder.objects.filter(code=ladder_code).first() if ladder_code else None
+        if not ladder:
+            prod_import.logger.log_operation(
+                "ladder_not_found",
+                {"ladder_code": ladder_code, "user": user.email},
+                "warning"
+            )
+            return False
+
+        # Normalize stages
+        stages = {k: normalize_stage(v) for k, v in stages_raw.items()}
+        overall_raw = (row.get("overall_score") or "").strip()
+        overall = None
+        try:
+            overall = float(overall_raw) if overall_raw else None
+        except Exception:
+            overall = None
+        if overall is None:
+            overall = average_or_none(details.values()) or 0.0
+
+        if not dry_run:
+            SenioritySnapshot.objects.create(
+                user=user,
+                ladder=ladder,
+                title=(row.get("performance_label") or row.get("ladder_title") or ""),
+                overall_score=overall,
+                details_json=details,
+                stages_json=stages,
+                effective_date=effective_date,
+                source_event=None,
+                is_redacted=False,
+            )
+            prod_import.logger.log_operation(
+                "seniority_snapshot_created",
+                {"user": user.email, "ladder": ladder_code, "date": effective_date}
+            )
+        
+        return True
+
+    def _process_compensation_snapshot(self, row, user, effective_date, dry_run, prod_import):
+        """PRODUCTION-SAFE: Process compensation snapshot creation."""
+        pb_raw = (row.get("pay_band_number") or "").strip()
+        salary_change = parse_float_or_none(row.get("salary_change")) or 0.0
+        bonus_percentage = parse_float_or_none(row.get("bonus_percentage")) or 0.0
+
+        pay_band = None
+        if pb_raw:
+            try:
+                pb_num = float(pb_raw)
+            except Exception:
+                prod_import.logger.log_operation(
+                    "invalid_pay_band_number",
+                    {"pay_band": pb_raw, "user": user.email},
+                    "warning"
+                )
+                return False
+            # Create/get PayBand (PRODUCTION-SAFE: Only create, no deletion)
+            if not dry_run:
+                pay_band, _ = PayBand.objects.get_or_create(number=pb_num)
+
+        if not dry_run:
+            CompensationSnapshot.objects.create(
+                user=user,
+                pay_band=pay_band,
+                salary_change=salary_change,
+                bonus_percentage=bonus_percentage,
+                effective_date=effective_date,
+                source_event=None,
+                is_redacted=False,
+            )
+            prod_import.logger.log_operation(
+                "compensation_snapshot_created",
+                {"user": user.email, "pay_band": pb_num if pb_raw else None, "date": effective_date}
+            )
+        
+        return True
+
+    def _process_bonus_snapshot(self, row, user, effective_date, dry_run, prod_import):
+        """PRODUCTION-SAFE: Process bonus snapshot creation."""
+        bonus_percentage = parse_float_or_none(row.get("bonus_percentage"))
+        if bonus_percentage is None:
+            prod_import.logger.log_operation(
+                "bonus_percentage_required",
+                {"user": user.email},
+                "warning"
+            )
+            return False
+
+        # Carry forward latest pay band (PRODUCTION-SAFE: Only get, no deletion)
+        latest_comp = (
+            CompensationSnapshot.objects.filter(user=user, effective_date__lte=effective_date)
+            .order_by("-effective_date", "-date_created")
+            .first()
+        )
+
+        if not dry_run:
+            CompensationSnapshot.objects.create(
+                user=user,
+                pay_band=getattr(latest_comp, "pay_band", None),
+                salary_change=0.0,
+                bonus_percentage=bonus_percentage,
+                effective_date=effective_date,
+                source_event=None,
+                is_redacted=False,
+            )
+            prod_import.logger.log_operation(
+                "bonus_snapshot_created",
+                {"user": user.email, "bonus_percentage": bonus_percentage, "date": effective_date}
+            )
+        
+        return True
+
+    def _generate_rich_summary(self, row, event_type, user):
+        """Generate rich summary text based on event type and available data, mimicking signals.py behavior."""
+        from api.models.ladder import LadderAspect
+        
+        if event_type == "PAY_CHANGE":
+            salary_change = parse_float_or_none(row.get("salary_change")) or 0.0
+            new_pay_band = parse_float_or_none(row.get("pay_band_number"))
+            
+            if new_pay_band is not None and salary_change != 0:
+                # Calculate former pay band with special exception for 24.5
+                former_pay_band = new_pay_band - salary_change
+                
+                # Apply the special exception: 24.5 doesn't exist, so if we would get 24.5, use 24 instead
+                if abs(former_pay_band - 24.5) < 0.001:  # Check if former_pay_band is 24.5
+                    former_pay_band = 24.0
+                
+                # Format the pay bands (remove .0 if it's a whole number)
+                def format_pay_band(band):
+                    if band == int(band):
+                        return str(int(band))
+                    return str(band)
+                
+                former_band_str = format_pay_band(former_pay_band)
+                new_band_str = format_pay_band(new_pay_band)
+                
+                if salary_change > 0:
+                    return f"افزایش پله‌ی حقوقی: {salary_change} (از {former_band_str} به {new_band_str})"
+                elif salary_change < 0:
+                    return f"کاهش پله‌ی حقوقی: {salary_change} (از {former_band_str} به {new_band_str})"
+                else:
+                    return f"تغییر بسته حقوقی (از {former_band_str} به {new_band_str})"
+            elif salary_change > 0:
+                return f"افزایش پله‌ی حقوقی: {salary_change}"
+            elif salary_change < 0:
+                return f"کاهش پله‌ی حقوقی: {salary_change}"
+            else:
+                return "تغییر بسته حقوقی"
+        
+        elif event_type == "BONUS_PAYOUT":
+            bonus_percentage = parse_float_or_none(row.get("bonus_percentage")) or 0.0
+            if bonus_percentage > 0:
+                return f"پرداخت پاداش - {bonus_percentage}٪ از حقوق"
+            else:
+                return "پرداخت پاداش"
+        
+        elif event_type == "MAPPING":
+            ladder_code = (row.get("ladder_code") or "").strip()
+            ladder_title = (row.get("ladder_title") or "").strip()
+            overall_score = parse_float_or_none(row.get("overall_score"))
+            details = parse_json_dict(row.get("aspect_details_json"))
+            stages_raw = parse_json_dict(row.get("aspect_stages_json")) or {}
+            
+            if ladder_title:
+                ladder_name = ladder_title
+            elif ladder_code:
+                ladder_name = ladder_code
+            else:
+                ladder_name = "نامشخص"
+            
+            # Get ladder and aspects for detailed description
+            from api.models.ladder import Ladder
+            ladder = Ladder.objects.filter(code=ladder_code).first() if ladder_code else None
+            
+            if ladder and details:
+                # Get aspect names
+                aspect_names = {}
+                for aspect in LadderAspect.objects.filter(ladder=ladder):
+                    aspect_names[aspect.code] = aspect.name
+                
+                # Build detailed mapping text like seniority changes
+                aspect_details = []
+                for code, level in details.items():
+                    aspect_name = aspect_names.get(code, code)
+                    stage_label = stages_raw.get(code)
+                    stage_label_clean = stage_label.replace('\u200c', '') if stage_label else None
+                    stage_text = f" - محدوده: {stage_label_clean}" if stage_label_clean else ""
+                    
+                    aspect_details.append(f"در بعد {aspect_name}، سطح: {level}{stage_text}")
+                
+                if aspect_details:
+                    detailed_text = "\n".join(aspect_details)
+                    if overall_score is not None:
+                        detailed_text += f"\n\nسطح کلی: {overall_score}"
+                    return f"مپ به لدر {ladder_name}\n{detailed_text}"
+            
+            # Fallback to simple description
+            if overall_score is not None:
+                return f"مپ به لدر {ladder_name} - سطح: {overall_score}"
+            else:
+                return f"مپ به لدر {ladder_name} - سطح: مشخص نشد."
+        
+        elif event_type == "SENIORITY_CHANGE":
+            # Generate detailed seniority change description like signals.py
+            ladder_code = (row.get("ladder_code") or "").strip()
+            details = parse_json_dict(row.get("aspect_details_json"))
+            stages_raw = parse_json_dict(row.get("aspect_stages_json")) or {}
+            
+            if not ladder_code or not details:
+                return "تغییر سطح لدر"
+            
+            # Get ladder and aspects
+            from api.models.ladder import Ladder
+            ladder = Ladder.objects.filter(code=ladder_code).first()
+            if not ladder:
+                return "تغییر سطح لدر"
+            
+            # Get aspect names
+            aspect_names = {}
+            for aspect in LadderAspect.objects.filter(ladder=ladder):
+                aspect_names[aspect.code] = aspect.name
+            
+            # Get previous snapshot for comparison (before the current event date)
+            from api.models.performance_tables import SenioritySnapshot
+            from datetime import datetime
+            effective_date = parse_date(row.get("event_date"))
+            
+            # Get the most recent snapshot BEFORE the current event date
+            latest_snapshot = SenioritySnapshot.objects.filter(
+                user=user,
+                ladder=ladder,
+                effective_date__lt=effective_date
+            ).order_by('effective_date', 'date_created').last()
+            
+            # Build seniority change text
+            aspect_changes = []
+            for code, new_level in details.items():
+                aspect_name = aspect_names.get(code, code)
+                old_level = latest_snapshot.details_json.get(code, 0) if latest_snapshot else 0
+                change_amount = new_level - old_level
+                
+                stage_label = stages_raw.get(code)
+                stage_label_clean = stage_label.replace('\u200c', '') if stage_label else None
+                stage_text = f" - محدوده: {stage_label_clean}" if stage_label_clean else ""
+                
+                # Check if there's a stage change
+                old_stage = latest_snapshot.stages_json.get(code) if latest_snapshot else None
+                stage_changed = stage_label and stage_label != old_stage
+                
+                if change_amount == 0 and not stage_changed:
+                    # No change at all
+                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {old_level}{stage_text}")
+                elif change_amount == 0 and stage_changed:
+                    # Only stage changed
+                    def _short(label):
+                        if not label:
+                            return None
+                        s = label.replace('\u200c', '').split()[0]
+                        return s[:-1] if s.endswith('ی') else s
+                    old_short = _short(old_stage) or 'نامشخص'
+                    new_short = _short(stage_label_clean) or ''
+                    new_phrase = stage_label_clean
+                    aspect_changes.append(f"در بعد {aspect_name}، بدون تغییر. سطح: {old_level} - تغییر محدوده از {old_short} به {new_phrase}")
+                elif change_amount > 0 and stage_changed:
+                    # Both level and stage changed → use suffix form for stage
+                    aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount}) - محدوده: {stage_label}")
+                else:
+                    # Only level changed
+                    # If stage present, append in short suffix form
+                    if stage_label:
+                        aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount}) - محدوده: {stage_label}")
+                    else:
+                        aspect_changes.append(f"در بعد {aspect_name}، ارتقا از سطح {old_level} به {new_level} (+{change_amount})")
+            
+            if aspect_changes:
+                # Calculate overall level change
+                old_details = latest_snapshot.details_json if latest_snapshot else {}
+                old_overall = 0
+                if old_details:
+                    old_overall = round(sum(old_details.values()) / len(old_details), 1)
+                
+                new_overall = round(sum(details.values()) / len(details), 1) if details else 0
+                
+                seniority_text = "\n".join(aspect_changes)
+                if old_overall != new_overall:
+                    seniority_text += f"\n\nسطح کلی: از {old_overall} به {new_overall}"
+                
+                return seniority_text
+            else:
+                return "تغییر سطح لدر"
+        
+        elif event_type == "EVALUATION":
+            # Check if we have rich data to generate detailed summary
+            perf_label = (row.get("performance_label") or "").strip()
+            ladder_code = (row.get("ladder_code") or "").strip()
+            ladder_title = (row.get("ladder_title") or "").strip()
+            overall_score = parse_float_or_none(row.get("overall_score"))
+            details = parse_json_dict(row.get("aspect_details_json"))
+            
+            # If we have rich data, use it to generate detailed summary
+            if ladder_code or ladder_title or overall_score is not None or details:
+                if ladder_title:
+                    ladder_name = ladder_title
+                elif ladder_code:
+                    ladder_name = ladder_code
+                else:
+                    ladder_name = "نامشخص"
+                
+                from api.models.ladder import Ladder
+                ladder = Ladder.objects.filter(code=ladder_code).first() if ladder_code else None
+                
+                if ladder and details:
+                    from api.models.ladder import LadderAspect
+                    aspect_names = {}
+                    for aspect in LadderAspect.objects.filter(ladder=ladder):
+                        aspect_names[aspect.code] = aspect.name
+                    
+                    aspect_details = []
+                    for code, level in details.items():
+                        aspect_name = aspect_names.get(code, code)
+                        aspect_details.append(f"در بعد {aspect_name}، سطح: {level}")
+                    
+                    if aspect_details:
+                        detailed_text = "\n".join(aspect_details)
+                        if overall_score is not None:
+                            detailed_text += f"\n\nسطح کلی: {overall_score}"
+                        return f"ارزیابی عملکرد - {ladder_name}\n{detailed_text}"
+                
+                if overall_score is not None:
+                    return f"ارزیابی عملکرد - {ladder_name} - سطح: {overall_score}"
+                else:
+                    return f"ارزیابی عملکرد - {ladder_name}"
+            
+            # If no rich data, use performance_label or fallback
+            if perf_label:
+                return perf_label
+            else:
+                return "ارزیابی عملکرد"
+        
+        elif event_type == "NOTICE":
+            return "نوتیس عملکردی ثبت شد."
+        
+        elif event_type == "LADDER_CHANGED":
+            # This would need old and new ladder names, which might not be in CSV
+            return "تغییر لدر"
+        
+        else:
+            # Fallback to original summary_text or generic message
+            original_summary = (row.get("summary_text") or "").strip()
+            if original_summary:
+                return original_summary
+            else:
+                return "خروجی ایمپورت شده"

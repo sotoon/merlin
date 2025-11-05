@@ -1,10 +1,11 @@
 from django.contrib import admin
 
 from .base import BaseModelAdmin, BaseModelResource, RESOURCE_FIELDS
-from api.models.organization import Organization, Department, Tribe, Chapter, Team, Committee, ValueTag, OrgValueTag
+from api.models.organization import Organization, Department, Tribe, Chapter, Team, Committee, ValueTag, OrgValueTag, PayBand
+from api.models.ladder import Ladder
 
 
-__all__ = ['OrganizationAdmin', 'DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin', 'OrgValueTagAdmin']
+__all__ = ['OrganizationAdmin', 'DepartmentAdmin', 'TribeAdmin', 'ChapterAdmin', 'TeamAdmin', 'CommitteeAdmin', 'ValueTagAdmin', 'OrgValueTagAdmin', 'PayBandAdmin', 'LadderAdmin']
 
 
 @admin.register(Organization)
@@ -12,14 +13,14 @@ class OrganizationAdmin(BaseModelAdmin):
     class OrganizationResource(BaseModelResource):
         class Meta:
             model = Organization
-            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", )
+            fields = ("name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "maintainer", "description", )
 
     resource_class = OrganizationResource
-    list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "description", ("date_created", "date_updated"),)
+    list_display = ("name", "maintainer", "date_created", "date_updated",)
+    fields = ("uuid","name", "cto", "vp", "ceo", "function_owner", "cpo", "hr_manager", "sales_manager", "cfo", "maintainer", "description", ("date_created", "date_updated"),)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
-    search_fields = ["name"]
+    search_fields = ["name", "maintainer__name", "maintainer__email"]
 
 
 @admin.register(Department)
@@ -86,7 +87,7 @@ class TeamAdmin(BaseModelAdmin):
 @admin.register(Committee)
 class CommitteeAdmin(BaseModelAdmin):
     list_display = ("name", "date_created", "date_updated",)
-    fields = ("uuid", "name", "description", "members", "roles", ("date_created", "date_updated"),)
+    fields = ("uuid", "name", "description", "members", "roles", ("date_created", "date_updated",),)
     filter_horizontal = ("members", "roles",)
     readonly_fields = ("uuid", "date_created", "date_updated")
     ordering = ("-date_created", "name")
@@ -119,3 +120,21 @@ class OrgValueTagAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('organisation', 'tag')
+
+
+@admin.register(PayBand)
+class PayBandAdmin(BaseModelAdmin):
+    list_display = ("number", "date_created", "date_updated")
+    fields = ("uuid", "number", ("date_created", "date_updated"))
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("number",)
+    search_fields = ["number"]
+
+
+@admin.register(Ladder)
+class LadderAdmin(BaseModelAdmin):
+    list_display = ("code", "name", "date_created", "date_updated")
+    fields = ("uuid", "code", "name", "description", ("date_created", "date_updated"))
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    ordering = ("code",)
+    search_fields = ["code", "name"]

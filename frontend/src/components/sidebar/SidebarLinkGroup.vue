@@ -1,8 +1,13 @@
 <script lang="ts" setup>
 import { PText, PButton } from '@pey/core';
-import { ref, onMounted, onUpdated } from 'vue';
 
-defineProps<{ title: string; hasBadge?: boolean }>();
+interface Props {
+  title: string;
+  hasBadge?: boolean;
+  isActive?: boolean;
+}
+
+const props = defineProps<Props>();
 
 const isCollapsed = ref(true);
 const contentRef = ref<HTMLElement>();
@@ -13,6 +18,16 @@ const updateContentHeight = () => {
     contentHeight.value = contentRef.value.scrollHeight + 8;
   }
 };
+
+watch(
+  () => props.isActive,
+  (newValue) => {
+    if (newValue && isCollapsed.value) {
+      isCollapsed.value = false;
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(updateContentHeight);
 onUpdated(updateContentHeight);

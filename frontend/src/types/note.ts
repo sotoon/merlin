@@ -3,6 +3,8 @@ export type NoteType = (typeof NOTE_TYPE)[keyof typeof NOTE_TYPE];
 export type NoteTypeRouteParam =
   (typeof NOTE_TYPE_ROUTE_PARAM)[keyof typeof NOTE_TYPE_ROUTE_PARAM];
 
+export type ProposalType = (typeof PROPOSAL_TYPE)[keyof typeof PROPOSAL_TYPE];
+
 export type NoteSubmitStatus =
   (typeof NOTE_SUBMIT_STATUS)[keyof typeof NOTE_SUBMIT_STATUS];
 
@@ -25,11 +27,13 @@ export interface Note {
   mentioned_users: string[];
   owner: string;
   owner_name: string;
+  owner_uuid: string;
   period: number;
   read_status: boolean;
   submit_status: NoteSubmitStatus;
   title: string;
   type: NoteType;
+  proposal_type?: ProposalType;
   uuid: string;
   year: number;
   one_on_one_member: string | null;
@@ -42,35 +46,17 @@ export interface Note {
 export interface NoteFormValues
   extends Pick<
     Partial<Note>,
-    'title' | 'content' | 'mentioned_users' | 'year' | 'period' | 'linked_notes'
+    | 'title'
+    | 'content'
+    | 'mentioned_users'
+    | 'year'
+    | 'period'
+    | 'linked_notes'
+    | 'proposal_type'
   > {
   content: string;
   date?: Date;
   title: string;
-}
-
-export interface NoteSummary {
-  bonus: number;
-  committee_date: string | null;
-  content: string;
-  ladder_change: string;
-  note: string;
-  performance_label: string;
-  salary_change: number;
-  submit_status: NoteSummarySubmitStatus;
-  uuid: string;
-}
-
-export interface NoteSummaryFormValues
-  extends Pick<
-    NoteSummary,
-    | 'content'
-    | 'performance_label'
-    | 'ladder_change'
-    | 'bonus'
-    | 'salary_change'
-  > {
-  committee_date: Date;
 }
 
 export interface NoteTemplateFormValues

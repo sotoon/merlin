@@ -14,7 +14,7 @@ import type { SubmissionContext } from 'vee-validate';
 import { ONE_ON_ONE_PLACEHOLDERS } from '~/constants/placeholders';
 
 const props = defineProps<{
-  user: User;
+  user: Schema<'Profile'>;
   oneOnOne?: Schema<'OneOnOne'>;
   isSubmitting?: boolean;
 }>();
@@ -85,7 +85,7 @@ const performanceTags = computed(() =>
   (tags.value || []).filter((tag) => tag.section === 'performance'),
 );
 
-const { data: notes, pending: isNotesLoading } = useGetNotes();
+const { data: notes, isPending: isNotesLoading } = useGetNotes();
 const noteOptions = computed(() =>
   notes.value
     ?.filter(
@@ -439,7 +439,9 @@ useStoreDraft({
               weight="bold"
             >
               {{
-                t('oneOnOne.howWasTheMeetingVibeLeader', { name: user.name })
+                t('oneOnOne.howWasTheMeetingVibeLeader', {
+                  name: user.name || '',
+                })
               }}
             </PText>
           </label>
