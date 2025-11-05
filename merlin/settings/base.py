@@ -261,7 +261,9 @@ UNFOLD = {
         "image": None,
         "redirect_after": None,
     },
-    "STYLES": [],
+    "STYLES": [
+        lambda request: "/api/static/admin/css/custom_admin.css",
+    ],
     "SCRIPTS": [],
     "SIDEBAR": UNFOLD_SIDEBAR_CONFIG,
 }
