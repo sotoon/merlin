@@ -11,7 +11,7 @@
       :note="note"
       :summary="summaries?.[0]"
       :show-committee-fields="note.type === NOTE_TYPE.proposal"
-      :is-submitting="pending"
+      :is-submitting="isPending"
       @submit="handleSubmit"
       @cancel="handleCancel"
     />
@@ -26,28 +26,33 @@ definePageMeta({ name: 'note-summary' });
 const props = defineProps<{ note: Note }>();
 
 const { t } = useI18n();
-const { data: summaries, pending: getSummariesPending } = useGetNoteSummaries({
-  noteId: props.note.uuid,
-});
-const { execute: createNoteSummary, pending } = useCreateNoteSummary({
-  noteId: props.note.uuid,
-});
+const { data: summaries, isPending: getSummariesPending } = useGetNoteSummaries(
+  { noteId: props.note.uuid },
+);
+const { mutate: createNoteSummary, isPending } = useCreateNoteSummary(
+  props.note.uuid,
+);
 
 const handleSubmit = (
-  values: NoteSummaryFormValues,
-  ctx: SubmissionContext<NoteSummaryFormValues>,
+  values: Schema<'SummaryRequest'>,
+  ctx: SubmissionContext<Schema<'SummaryRequest'>>,
 ) => {
   const committeeDateString =
     values.committee_date &&
-    `${values.committee_date.getFullYear()}-${values.committee_date.getMonth() + 1}-${values.committee_date.getDate()}`;
+    `${(values.committee_date as unknown as Date).getFullYear()}-${(values.committee_date as unknown as Date).getMonth() + 1}-${(values.committee_date as unknown as Date).getDate()}`;
 
-  createNoteSummary({
-    body: { ...values, committee_date: committeeDateString },
-    onSuccess: () => {
-      ctx.resetForm();
-      navigateTo({ name: 'note', replace: true });
+  createNoteSummary(
+    {
+      ...values,
+      committee_date: committeeDateString,
     },
-  });
+    {
+      onSuccess: () => {
+        ctx.resetForm();
+        navigateTo({ name: 'note', replace: true });
+      },
+    },
+  );
 };
 
 const handleCancel = () => {

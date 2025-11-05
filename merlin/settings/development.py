@@ -1,4 +1,4 @@
-from decouple import config 
+from decouple import config
 from merlin.settings.base import *
 
 DEBUG = config('DEBUG', default=True, cast=bool)

@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 import logging
 
 from api.models.base import MerlinBaseModel
-from api.services import ensure_leader_note_accesses
 
 
 __all__ = ['User']
@@ -59,9 +58,7 @@ class User(MerlinBaseModel, AbstractUser):
         related_name="committee_users",
         verbose_name="کمیته",
     )
-    level = models.CharField(
-        max_length=256, default="", blank=True, null=True, verbose_name="سطح"
-    )
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -72,7 +69,7 @@ class User(MerlinBaseModel, AbstractUser):
 
     @property
     def tribe(self):
-        return self.team.tribe
+        return self.team.tribe if self.team else None
 
     def get_committee_role_members(self):
         committee_role_members = set()
@@ -109,6 +106,8 @@ class User(MerlinBaseModel, AbstractUser):
         super().save(*args, **kwargs)
         
         if original_leader != self.leader:
+            # Local import to avoid circular import at module load time
+            from api.services import ensure_leader_note_accesses
             ensure_leader_note_accesses(self, self.leader)
 
     class Meta:
@@ -116,13 +115,16 @@ class User(MerlinBaseModel, AbstractUser):
         verbose_name_plural = "کاربران"
 
     def get_leaders(self):
-        leader = self.leader
         leaders = []
-        count = 0
-        max_count = 10
-        while leader:
-            leaders.append(leader)
-            count += 1
-            if max_count > count:
+        visited_ids = set()
+        current = self.leader
+        depth = 0
+        max_depth = 10
+        while current and depth < max_depth:
+            if current.pk in visited_ids:
                 break
+            leaders.append(current)
+            visited_ids.add(current.pk)
+            current = current.leader
+            depth += 1
         return leaders

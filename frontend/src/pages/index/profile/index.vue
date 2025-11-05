@@ -1,27 +1,17 @@
 <template>
-  <div>
+  <div class="space-y-2 px-4 py-8 lg:px-8 lg:pt-10">
     <div
-      class="relative flex justify-between gap-2 border-b border-gray-20 pb-4 sm:items-end"
+      class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
-      <div class="flex flex-col gap-4 overflow-hidden md:flex-row md:items-end">
-        <div
-          class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary-20"
-        >
-          <PeyUserIcon class="text-primary" :size="32" />
-        </div>
+      <div class="flex items-center gap-4">
+        <i class="i-mdi-user text-h1 text-primary" />
 
-        <div>
-          <PHeading level="h1" responsive>
-            {{ profile.name }}
-          </PHeading>
-
-          <PText as="p" class="mt-2 text-gray-70" responsive>
-            {{ profile.email }}
-          </PText>
-        </div>
+        <PHeading level="h1" responsive>
+          {{ profile?.name }}
+        </PHeading>
       </div>
 
-      <div class="absolute left-0 flex flex-col items-center gap-3 sm:flex-row">
+      <div class="flex items-center gap-2">
         <NuxtLink :to="{ name: 'profile-edit' }">
           <PIconButton class="shrink-0" :icon="PeyEditIcon" tabindex="-1" />
         </NuxtLink>
@@ -35,50 +25,54 @@
       </div>
     </div>
 
-    <div class="p-3">
-      <PropertyTable :title="t('profile.organizationInfo')">
-        <PropertyTableRow
-          :label="t('profile.department')"
-          :value="profile.department"
-        />
+    <div v-if="isPending" class="flex items-center justify-center py-8">
+      <PLoading class="text-primary" :size="20" />
+    </div>
 
-        <PropertyTableRow
-          :label="t('profile.chapter')"
-          :value="profile.chapter"
-        />
+    <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
+      <PText as="p" class="text-center text-danger" responsive>
+        {{ t('profile.getProfileError') }}
+      </PText>
 
-        <PropertyTableRow :label="t('profile.team')" :value="profile.team" />
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
+        {{ t('common.retry') }}
+      </PButton>
+    </div>
 
-        <PropertyTableRow
-          :label="t('profile.leader')"
-          :value="profile.leader"
-        />
-
-        <PropertyTableRow :label="t('profile.level')" :value="profile.level" />
-      </PropertyTable>
-
-      <PropertyTable :title="t('profile.contactInfo')">
-        <PropertyTableRow
-          :label="t('profile.organizationEmail')"
-          :value="profile.email"
-        />
-
-        <PropertyTableRow :label="t('profile.gmail')" :value="profile.gmail" />
-
-        <PropertyTableRow :label="t('profile.phone')" :value="profile.phone" />
-      </PropertyTable>
+    <div v-else-if="profile">
+      <PTabs class="pt-4">
+        <PTab :title="t('common.details')">
+          <ProfileDetail :profile="profile" />
+        </PTab>
+        <PTab :title="t('common.timeline')">
+          <UserTimeline :user-id="profile.uuid" />
+        </PTab>
+      </PTabs>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { PHeading, PIconButton, PText } from '@pey/core';
-import { PeyEditIcon, PeyLogoutIcon, PeyUserIcon } from '@pey/icons';
+import {
+  PButton,
+  PHeading,
+  PLoading,
+  PText,
+  PTabs,
+  PTab,
+  PIconButton,
+} from '@pey/core';
+import { PeyEditIcon, PeyLogoutIcon, PeyRetryIcon } from '@pey/icons';
+import ProfileDetail from '~/components/profile/ProfileDetail.vue';
+import UserTimeline from '~/components/timeline/UserTimeline.vue';
 
 definePageMeta({ name: 'profile' });
-const props = defineProps<{ profile: User }>();
 
 const { t } = useI18n();
-useHead({ title: () => props.profile.name });
+const { data: profile, isPending, error, refetch } = useGetProfile();
 const logout = useLogout();
+
+useHead({
+  title: profile.value?.name,
+});
 </script>

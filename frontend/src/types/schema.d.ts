@@ -305,6 +305,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/ladders/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Return all available ladders with their aspects. */
+    get: operations['ladders_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/login/': {
     parameters: {
       query?: never;
@@ -577,6 +594,88 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/notices/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['notices_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/notices/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['notices_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/personnel/performance-table/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['personnel_performance_table_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/personnel/performance-table/accessible-users/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Get list of users accessible to current user for performance table. */
+    get: operations['personnel_performance_table_accessible_users_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/personnel/performance-table/csv/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Handle CSV export specifically */
+    get: operations['personnel_performance_table_csv_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile/': {
     parameters: {
       query?: never;
@@ -596,6 +695,55 @@ export interface paths {
     patch: operations['profile_partial_update'];
     trace?: never;
   };
+  '/api/profile/{user_uuid}/current-ladder/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['profile_current_ladder_retrieve_2'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/profile/current-ladder/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['profile_current_ladder_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/profile/permissions/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Get current user's permissions and accessible data for UI configuration. */
+    get: operations['profile_permissions_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/signup/': {
     parameters: {
       query?: never;
@@ -607,6 +755,23 @@ export interface paths {
     put?: never;
     /** @description API endpoint for creating a new user. */
     post: operations['signup_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/teams/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Catalog endpoint for all teams. */
+    get: operations['teams_list'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -630,6 +795,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/title-changes/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['title_changes_list'];
+    put?: never;
+    post: operations['title_changes_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/tribes/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['tribes_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/users/': {
     parameters: {
       query?: never;
@@ -637,8 +834,57 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description List all app users */
     get: operations['users_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/{target_id}/timeline/permissions/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Check if current user can view a specific user's timeline. */
+    get: operations['users_timeline_permissions_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/{user_id}/timeline/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Return paginated timeline events for a given user_id respecting feature flag and basic ACL. */
+    get: operations['users_timeline_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/{uuid}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['users_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -685,6 +931,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    AccessibleUser: {
+      readonly id: number;
+      /**
+       * ایمیل سازمانی
+       * Format: email
+       */
+      email: string;
+      /** نام */
+      name?: string | null;
+      ladder: string | null;
+      tribe: string | null;
+      team: string | null;
+    };
+    AccessibleUsersResponse: {
+      accessible_users: components['schemas']['AccessibleUser'][];
+      total_count: number;
+      scope: string;
+    };
+    /** @description Serializer for ladder aspect with code and name. */
+    Aspect: {
+      /** @description Aspect code (e.g., 'DES', 'IMP', 'BUS') */
+      code: string;
+      /** @description Aspect name */
+      name: string;
+    };
     Comment: {
       /** Format: uuid */
       readonly uuid: string;
@@ -708,6 +979,45 @@ export interface components {
       /** محتوا */
       content: string;
     };
+    /** @description Serializer for current ladder and aspects response. */
+    CurrentLadder: {
+      /** @description Ladder code (e.g., 'SW', 'DEVOPS') */
+      ladder: string;
+      /** @description Maximum level for this ladder */
+      max_level: number;
+      /** @description List of ladder aspects with their codes and names */
+      aspects: components['schemas']['Aspect'][];
+      /** @description List of available stages as [{value,label}] */
+      stages: {
+        [key: string]: string;
+      }[];
+      /** @description Dict of current aspect values for the user. */
+      current_aspects?: {
+        [key: string]: number;
+      };
+    };
+    /**
+     * @description * `SENIORITY_CHANGE` - تغییر سطح لدر
+     *     * `PAY_CHANGE` - تغییر بسته‌ حقوقی
+     *     * `BONUS_PAYOUT` - پرداخت پاداش
+     *     * `EVALUATION` - خروجی ارزیابی کمیته
+     *     * `MAPPING` - بازنشانی روی لدر
+     *     * `TITLE_CHANGE` - تغییر عنوان شغلی
+     *     * `STOCK_GRANT` - اعطای سهام
+     *     * `NOTICE` - نوتیس
+     *     * `LADDER_CHANGED` - تغییر لدر
+     * @enum {string}
+     */
+    EventTypeEnum:
+      | 'SENIORITY_CHANGE'
+      | 'PAY_CHANGE'
+      | 'BONUS_PAYOUT'
+      | 'EVALUATION'
+      | 'MAPPING'
+      | 'TITLE_CHANGE'
+      | 'STOCK_GRANT'
+      | 'NOTICE'
+      | 'LADDER_CHANGED';
     /** @description Single *or* bulk ad-hoc feedback, and single-receiver answers to requests.
      *
      *     • `receiver_ids`   - list of UUIDs (required)
@@ -811,6 +1121,12 @@ export interface components {
       readonly uuid: string;
       readonly name: string;
     };
+    FilterOptions: {
+      ladders: string[];
+      tribes: string[];
+      teams: string[];
+      leaders: string[];
+    };
     /** @description Serializer for listing forms, along with its cycle metadata,
      *     and assignment completion status. */
     Form: {
@@ -855,6 +1171,23 @@ export interface components {
      * @enum {string}
      */
     FormTypeEnum: 'PM' | 'TL' | 'MANAGER' | 'GENERAL';
+    /** @description Serializer for list of ladders with their aspects. */
+    LadderList: {
+      /** @description Ladder code (e.g., 'SW', 'DEVOPS') */
+      code: string;
+      /** @description Ladder name */
+      name: string;
+      /** @description Ladder description */
+      description: string;
+      /** @description Maximum level for this ladder */
+      max_level: number;
+      /** @description List of ladder aspects with their codes and names */
+      aspects: components['schemas']['Aspect'][];
+      /** @description List of available stages as [{value,label}] */
+      stages: {
+        [key: string]: string;
+      }[];
+    };
     /**
      * @description * `:)` - 😊
      *     * `:|` - 😐
@@ -888,6 +1221,8 @@ export interface components {
        */
       readonly owner: string;
       readonly owner_name: string;
+      /** Format: uuid */
+      readonly owner_uuid: string;
       /** عنوان */
       title: string;
       /** محتوا */
@@ -903,6 +1238,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       readonly read_status: string;
@@ -935,6 +1272,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       /** وضعیت */
@@ -975,6 +1314,26 @@ export interface components {
       /** نوشتن فیدبک */
       can_write_feedback?: boolean;
     };
+    Notice: {
+      readonly id: number;
+      user: number;
+      notice_type?: components['schemas']['NoticeTypeEnum'];
+      description: string;
+      /** Format: date */
+      committee_date: string;
+      /**
+       * تاریخ ساخت
+       * Format: date-time
+       */
+      readonly date_created: string | null;
+    };
+    /**
+     * @description * `PERFORMANCE` - عملکردی
+     *     * `CONDUCT` - رفتاری
+     *     * `OTHER` - سایر
+     * @enum {string}
+     */
+    NoticeTypeEnum: 'PERFORMANCE' | 'CONDUCT' | 'OTHER';
     /** @description Handles 1:1 CRUD with:
      *     - Client sends 'tags': [id, ...]
      *     - Server creates Note, OneOnOne, TagLinks in a single transaction
@@ -1045,6 +1404,21 @@ export interface components {
       tag: components['schemas']['TagReadRequest'];
       section: components['schemas']['SectionEnum'];
     };
+    PaginatedTimelineEventLiteList: {
+      /** @example 123 */
+      count?: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=4
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=2
+       */
+      previous?: string | null;
+      results?: components['schemas']['TimelineEventLite'][];
+    };
     PatchedCommentRequest: {
       /**
        * ایمیل سازمانی
@@ -1110,6 +1484,8 @@ export interface components {
       year?: number;
       /** نوع */
       type?: components['schemas']['TypeEnum'];
+      /** نوع پروپوزال */
+      proposal_type?: components['schemas']['ProposalTypeEnum'];
       mentioned_users?: string[];
       linked_notes?: string[];
       /** وضعیت */
@@ -1145,6 +1521,21 @@ export interface components {
       phone?: string | null;
     };
     PatchedSummaryRequest: {
+      ladder?: string | null;
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}} */
+      aspect_changes?: {
+        [key: string]: {
+          /** @description Whether the aspect has changed */
+          changed: boolean;
+          /** @description New level for the aspect (1-10) */
+          new_level: number;
+          /**
+           * @description Stage of the aspect
+           * @enum {string}
+           */
+          stage?: 'EARLY' | 'MID' | 'LATE';
+        };
+      };
       /** محتوا */
       content?: string;
       /** لیبل عملکردی */
@@ -1166,7 +1557,24 @@ export interface components {
       /** وضعیت */
       submit_status?: components['schemas']['SummarySubmitStatusEnum'];
     };
+    PerformanceTableResponse: {
+      count: number;
+      page: number;
+      page_size: number;
+      results: components['schemas']['UserPerformanceData'][];
+    };
+    PermissionsField: {
+      can_view_all_users: boolean;
+      can_view_technical_users: boolean;
+      can_view_product_users: boolean;
+      accessible_ladders: string[];
+      accessible_tribes: string[];
+      accessible_teams: string[];
+      accessible_leaders: string[];
+      scope: string;
+    };
     Profile: {
+      readonly id: number;
       /** Format: uuid */
       readonly uuid: string;
       /**
@@ -1188,8 +1596,7 @@ export interface components {
       readonly team: string;
       /** نام */
       readonly leader: string | null;
-      /** سطح */
-      readonly level: string | null;
+      readonly current_job_title: string;
     };
     ProfileList: {
       /** Format: uuid */
@@ -1201,6 +1608,8 @@ export interface components {
       email: string;
       /** نام */
       name?: string | null;
+      /** نام */
+      readonly team: string;
     };
     ProfileRequest: {
       /** نام */
@@ -1210,6 +1619,14 @@ export interface components {
       /** موبایل */
       phone?: string | null;
     };
+    /**
+     * @description * `PROMOTION` - ارتقا
+     *     * `NOTICE` - نوتیس
+     *     * `MAPPING` - مپینگ اولیه
+     *     * `EVALUATION` - ارزیابی
+     * @enum {string}
+     */
+    ProposalTypeEnum: 'PROMOTION' | 'NOTICE' | 'MAPPING' | 'EVALUATION';
     /**
      * @description * `personal` - بعد فردی
      *     * `career` - مسیر رشد و انتظارات
@@ -1223,6 +1640,21 @@ export interface components {
       readonly uuid: string;
       /** Format: uuid */
       readonly note: string;
+      ladder?: string | null;
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}} */
+      aspect_changes?: {
+        [key: string]: {
+          /** @description Whether the aspect has changed */
+          changed: boolean;
+          /** @description New level for the aspect (1-10) */
+          new_level: number;
+          /**
+           * @description Stage of the aspect
+           * @enum {string}
+           */
+          stage?: 'EARLY' | 'MID' | 'LATE';
+        };
+      };
       /** محتوا */
       content: string;
       /** لیبل عملکردی */
@@ -1245,6 +1677,21 @@ export interface components {
       submit_status?: components['schemas']['SummarySubmitStatusEnum'];
     };
     SummaryRequest: {
+      ladder?: string | null;
+      /** @description Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}} */
+      aspect_changes?: {
+        [key: string]: {
+          /** @description Whether the aspect has changed */
+          changed: boolean;
+          /** @description New level for the aspect (1-10) */
+          new_level: number;
+          /**
+           * @description Stage of the aspect
+           * @enum {string}
+           */
+          stage?: 'EARLY' | 'MID' | 'LATE';
+        };
+      };
       /** محتوا */
       content: string;
       /** لیبل عملکردی */
@@ -1285,6 +1732,55 @@ export interface components {
       name_fa: string;
       section: components['schemas']['SectionEnum'];
     };
+    TargetInfo: {
+      ladder: string | null;
+      tribe: string | null;
+      team: string | null;
+      is_technical: boolean;
+      is_product: boolean;
+    };
+    Team: {
+      readonly id: number;
+      /** نام */
+      name: string;
+    };
+    TimelineEventLite: {
+      readonly id: number;
+      event_type?: components['schemas']['EventTypeEnum'];
+      /** Format: date */
+      effective_date: string;
+      summary_text: string;
+      readonly object_url: string;
+      readonly model: string;
+      readonly object_id: string;
+    };
+    TimelinePermissions: {
+      can_view: boolean;
+      reason: string;
+      target_info: components['schemas']['TargetInfo'];
+    };
+    TitleChange: {
+      readonly id: number;
+      user: number;
+      old_title: string;
+      new_title: string;
+      reason?: string | null;
+      /** Format: date */
+      effective_date: string;
+      /**
+       * تاریخ ساخت
+       * Format: date-time
+       */
+      readonly date_created: string | null;
+    };
+    TitleChangeRequest: {
+      user: number;
+      old_title: string;
+      new_title: string;
+      reason?: string | null;
+      /** Format: date */
+      effective_date: string;
+    };
     TokenRefresh: {
       readonly access: string;
     };
@@ -1293,6 +1789,11 @@ export interface components {
     };
     TokenRequest: {
       token: string;
+    };
+    Tribe: {
+      readonly id: number;
+      /** نام */
+      name: string;
     };
     /**
      * @description * `Goal` - هدف
@@ -1318,6 +1819,13 @@ export interface components {
       | 'OneOnOne'
       | 'FeedbackRequest'
       | 'Feedback';
+    UIHintsField: {
+      /** @default true */
+      show_timeline_section: boolean;
+      /** @default true */
+      show_performance_table: boolean;
+      filter_options: components['schemas']['FilterOptions'];
+    };
     User: {
       /** Format: uuid */
       readonly uuid: string;
@@ -1330,6 +1838,54 @@ export interface components {
       email: string;
       /** گذرواژه */
       password: string;
+    };
+    UserField: {
+      readonly id: number;
+      /**
+       * ایمیل سازمانی
+       * Format: email
+       */
+      email: string;
+      /** نام */
+      name?: string | null;
+      roles: string[];
+      organization: string;
+    };
+    UserPerformanceData: {
+      uuid: string;
+      name: string;
+      /** Format: date */
+      last_committee_date: string | null;
+      /** @default 0 */
+      committees_current_year: number;
+      /** @default 0 */
+      committees_last_year: number;
+      /** Format: double */
+      pay_band: number | null;
+      /** Format: double */
+      salary_change: number | null;
+      /** @default false */
+      is_mapped: boolean;
+      /** Format: date */
+      last_bonus_date: string | null;
+      /** Format: double */
+      last_bonus_percentage: number | null;
+      /** Format: date */
+      last_salary_change_date: string | null;
+      ladder: string | null;
+      ladder_levels?: {
+        [key: string]: unknown;
+      };
+      /** Format: double */
+      overall_level: number | null;
+      leader: string | null;
+      team: string | null;
+      tribe: string | null;
+    };
+    UserPermissions: {
+      user: components['schemas']['UserField'];
+      permissions: components['schemas']['PermissionsField'];
+      ui_hints: components['schemas']['UIHintsField'];
     };
     UserRequest: {
       /** نام */
@@ -1958,6 +2514,25 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Form'];
+        };
+      };
+    };
+  };
+  ladders_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LadderList'][];
         };
       };
     };
@@ -2720,6 +3295,103 @@ export interface operations {
       };
     };
   };
+  notices_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Notice'][];
+        };
+      };
+    };
+  };
+  notices_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this نوتیس. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Notice'];
+        };
+      };
+    };
+  };
+  personnel_performance_table_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PerformanceTableResponse'];
+        };
+      };
+    };
+  };
+  personnel_performance_table_accessible_users_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AccessibleUsersResponse'];
+        };
+      };
+    };
+  };
+  personnel_performance_table_csv_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   profile_retrieve: {
     parameters: {
       query?: never;
@@ -2789,6 +3461,65 @@ export interface operations {
       };
     };
   };
+  profile_current_ladder_retrieve_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentLadder'];
+        };
+      };
+    };
+  };
+  profile_current_ladder_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentLadder'];
+        };
+      };
+    };
+  };
+  profile_permissions_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserPermissions'];
+        };
+      };
+    };
+  };
   signup_create: {
     parameters: {
       query?: never;
@@ -2826,6 +3557,25 @@ export interface operations {
       };
     };
   };
+  teams_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Team'][];
+        };
+      };
+    };
+  };
   templates_list: {
     parameters: {
       query?: never;
@@ -2845,6 +3595,69 @@ export interface operations {
       };
     };
   };
+  title_changes_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TitleChange'][];
+        };
+      };
+    };
+  };
+  title_changes_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TitleChangeRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['TitleChangeRequest'];
+        'multipart/form-data': components['schemas']['TitleChangeRequest'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TitleChange'];
+        };
+      };
+    };
+  };
+  tribes_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Tribe'][];
+        };
+      };
+    };
+  };
   users_list: {
     parameters: {
       query?: never;
@@ -2860,6 +3673,72 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ProfileList'][];
+        };
+      };
+    };
+  };
+  users_timeline_permissions_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        target_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TimelinePermissions'];
+        };
+      };
+    };
+  };
+  users_timeline_list: {
+    parameters: {
+      query?: {
+        /** @description A page number within the paginated result set. */
+        page?: number;
+      };
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedTimelineEventLiteList'];
+        };
+      };
+    };
+  };
+  users_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        uuid: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Profile'];
         };
       };
     };

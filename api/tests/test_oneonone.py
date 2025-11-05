@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 from rest_framework import status
 
-from api.models import User, Note, OneOnOne, ValueTag, ValueSection, OrgValueTag, Cycle, UserTimeline, NoteUserAccess
+from api.models import User, Note, OneOnOne, ValueTag, ValueSection, OrgValueTag, Cycle, OneOnOneActivityLog, NoteUserAccess
 from api.services.note_access import grant_oneonone_access, ensure_leader_note_accesses
 
 
@@ -493,7 +493,7 @@ def test_timeline_entry_after_create(api_client, user_factory, cycle_factory):
     note = Note.objects.get(uuid=note_uuid)
 
 
-    assert UserTimeline.objects.filter(
+    assert OneOnOneActivityLog.objects.filter(
         object_id=note.id,
         event_type="1on1_created"
     ).exists()
@@ -512,8 +512,8 @@ def test_timeline_entry_after_update(api_client, one_on_one):
     resp = api_client.patch(url, {"performance_summary": "New summary"}, format="json")
     assert resp.status_code == 200
 
-    # Check UserTimeline for an entry
-    timeline_qs = UserTimeline.objects.filter(
+    # Check activity log for an entry
+    timeline_qs = OneOnOneActivityLog.objects.filter(
         object_id=one_on_one.note.id,
         event_type="1on1_updated",
         extra_json__performance_summary="New summary",

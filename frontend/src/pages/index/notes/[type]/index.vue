@@ -4,10 +4,7 @@
       class="flex items-center justify-between gap-2 border-b border-gray-20 pb-4"
     >
       <div class="flex items-center gap-4">
-        <i
-          class="text-h1 text-primary"
-          :class="noteType ? NOTE_TYPE_ICON[noteType] : 'i-mdi-note-text'"
-        />
+        <i class="text-h1 text-primary" :class="noteTypeIcon" />
 
         <PHeading level="h1" responsive>
           {{ noteTitle }}
@@ -16,13 +13,16 @@
 
       <NuxtLink
         v-if="!isUser && noteType !== NOTE_TYPE.message"
-        :to="{ name: 'note-create' }"
+        :to="{
+          name: 'note-create',
+          query: route.query,
+        }"
       >
         <PIconButton class="shrink-0" :icon="PeyPlusIcon" tabindex="-1" />
       </NuxtLink>
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div v-if="isPending" class="flex items-center justify-center py-8">
       <PLoading class="text-primary" :size="20" />
     </div>
 
@@ -31,7 +31,7 @@
         {{ t('note.getNotesError') }}
       </PText>
 
-      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+      <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
         {{ t('common.retry') }}
       </PButton>
     </div>
@@ -93,15 +93,15 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const {
-  data: notes,
-  pending,
-  error,
-  refresh,
-} = useGetNotes({
+const route = useRoute();
+
+const notesOptions = computed(() => ({
   type: props.noteType,
   user: props.userEmail,
-});
+  proposalType: route.query.proposal_type as ProposalType,
+}));
+
+const { data: notes, isPending, error, refetch } = useGetNotes(notesOptions);
 // TODO: filter out templates in the backend
 const filteredNotes = useFilterNotes(
   () => notes.value?.filter((note) => note.type !== NOTE_TYPE.template) || [],
@@ -114,7 +114,9 @@ const noteTitles = computed(() => ({
   [NOTE_TYPE.meeting]: t('common.meetings'),
   [NOTE_TYPE.oneOnOne]: t('common.oneOnOne'),
   [NOTE_TYPE.message]: t('common.messageToOthers'),
-  [NOTE_TYPE.proposal]: t('common.proposal'),
+  [NOTE_TYPE.proposal]: route.query.proposal_type
+    ? t(`proposalType.${route.query.proposal_type.toString().toLowerCase()}`)
+    : t('common.proposal'),
   [NOTE_TYPE.forms]: t('common.forms'),
   [NOTE_TYPE.feedbackRequest]: t('common.feedbackRequest'),
   [NOTE_TYPE.feedback]: t('common.feedback'),
@@ -126,6 +128,12 @@ const noteTitle = computed(() =>
       ? t('user.userNotes', { name: props.user.name })
       : t('common.notes'),
 );
+const noteTypeIcon = computed(() => {
+  if (props.noteType === NOTE_TYPE.proposal) {
+    return PROPOSAL_TYPE_ICON[route.query.proposal_type as ProposalType];
+  }
+  return props.noteType ? NOTE_TYPE_ICON[props.noteType] : 'i-mdi-note-text';
+});
 
 useHead({
   title: noteTitle,

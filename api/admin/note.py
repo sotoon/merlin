@@ -24,6 +24,7 @@ class NoteAdmin(BaseModelAdmin):
                 "content",
                 "date",
                 "type",
+                "proposal_type",
                 "mentioned_users",
                 "linked_notes",
                 "cycle",
@@ -33,16 +34,17 @@ class NoteAdmin(BaseModelAdmin):
     list_display = (
         "title",
         "type",
+        "proposal_type",
         "owner",
         "date",
         "submit_status",
         "date_created",
         "date_updated",
     )
-    list_filter = ("type",)
+    list_filter = ("type", "proposal_type",)
     fields = (
         "uuid",
-        ("title", "type"),
+        ("title", "type", "proposal_type"),
         ("owner", "date", "period", "year"),
         "content",
         "mentioned_users",
@@ -58,7 +60,7 @@ class NoteAdmin(BaseModelAdmin):
         "title",
         "owner__name",
         "owner__email",
-        "cycle",
+        "cycle__name",
     ]
     search_help_text = "جستجو در عنوان، نام نویسنده، ایمیل نویسنده، دوره عملکردی"
 
@@ -79,7 +81,7 @@ class CommentAdmin(BaseModelAdmin):
         "owner__name",
         "owner__email",
         "note__title",
-        "cycle",
+        "cycle__name",
     ]
     search_help_text = "جستجو در نام کاربر، ایمیل کاربر، عنوان یادداشت، دوره عملکردی"
 
@@ -132,7 +134,7 @@ class SummaryAdmin(BaseModelAdmin):
         "note__title",
         "note__owner__name",
         "note__owner__email",
-        "cycle",
+        "cycle__name",
     ]
     search_help_text = (
         "جستجو در عنوان یادداشت، نام نویسنده، ایمیل نویسنده، دوره عملکردی"

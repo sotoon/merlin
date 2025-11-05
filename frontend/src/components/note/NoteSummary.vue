@@ -1,12 +1,12 @@
 <template>
-  <PLoading v-if="pending" class="text-primary" />
+  <PLoading v-if="isPending" class="text-primary" />
 
   <div v-else-if="error" class="flex flex-col items-center gap-4 py-8">
     <PText as="p" class="text-center text-danger" responsive>
       {{ t('note.getSummaryError') }}
     </PText>
 
-    <PButton color="gray" :icon-start="PeyRetryIcon" @click="refresh">
+    <PButton color="gray" :icon-start="PeyRetryIcon" @click="refetch">
       {{ t('common.retry') }}
     </PButton>
   </div>
@@ -91,29 +91,38 @@
 
       <PBox v-if="note.type === NOTE_TYPE.proposal">
         <PropertyTable>
-          <PropertyTableRow
-            :label="t('note.performanceLabel')"
-            :value="summaries[0].performance_label"
-          />
+          <template v-if="note.proposal_type !== PROPOSAL_TYPE.notice">
+            <PropertyTableRow
+              :label="t('note.performanceLabel')"
+              :value="summaries[0].performance_label"
+            />
 
-          <PropertyTableRow
-            :label="t('note.performanceBonus')"
-            :value="
-              (summaries[0].bonus / 100).toLocaleString('fa-IR', {
-                style: 'percent',
-              })
-            "
-          />
+            <PropertyTableRow
+              :label="t('note.performanceBonus')"
+              :value="
+                summaries[0].bonus
+                  ? (summaries[0].bonus / 100).toLocaleString('fa-IR', {
+                      style: 'percent',
+                    })
+                  : '-'
+              "
+            />
 
-          <PropertyTableRow
-            :label="t('note.ladderChange')"
-            :value="summaries[0].ladder_change"
-          />
+            <PropertyTableRow
+              v-if="summaries[0].ladder_change"
+              :label="t('note.ladderChange')"
+              :value="summaries[0].ladder_change"
+            />
 
-          <PropertyTableRow
-            :label="t('note.salaryChange')"
-            :value="summaries[0].salary_change.toLocaleString('fa-IR')"
-          />
+            <PropertyTableRow
+              :label="t('note.salaryChange')"
+              :value="
+                summaries[0].salary_change
+                  ? summaries[0].salary_change.toLocaleString('fa-IR')
+                  : '-'
+              "
+            />
+          </template>
 
           <PropertyTableRow
             :label="t('note.committeeDate')"
@@ -125,6 +134,27 @@
                 : '-'
             "
           />
+
+          <template
+            v-if="
+              summaries[0].aspect_changes &&
+              Object.keys(summaries[0].aspect_changes).length > 0
+            "
+          >
+            <PropertyTableRow
+              v-for="(aspectChange, aspectCode) in summaries[0].aspect_changes"
+              v-show="aspectChange.changed"
+              :key="aspectCode"
+              :label="aspectDict[aspectCode]"
+              :value="
+                aspectChange.new_level
+                  ? `${aspectChange.new_level.toLocaleString('fa-IR')} ${
+                      aspectChange.stage ? `(${aspectChange.stage})` : ''
+                    }`
+                  : '-'
+              "
+            />
+          </template>
         </PropertyTable>
       </PBox>
     </article>
@@ -158,6 +188,7 @@ import {
   PeyPlusIcon,
   PeyRetryIcon,
 } from '@pey/icons';
+import { useQueryClient } from '@tanstack/vue-query';
 
 const props = defineProps<{ note: Note }>();
 
@@ -165,32 +196,51 @@ let finalSubmitHintTimeout: NodeJS.Timeout | null = null;
 const finalSubmitHintVisibility = ref(false);
 const finalSubmitButton = ref<HTMLElement | null>(null);
 
+const queryClient = useQueryClient();
 const { t } = useI18n();
+const invalidateQueries = useInvalidateQueries();
+
 const {
   data: summaries,
-  pending,
+  isPending,
   error,
-  refresh,
+  refetch,
 } = useGetNoteSummaries({
   noteId: props.note.uuid,
 });
-const { execute: updateSummary, pending: updatingSummary } =
-  useCreateNoteSummary({
-    noteId: props.note.uuid,
-  });
+const { mutate: updateSummary, isPending: updatingSummary } =
+  useCreateNoteSummary(props.note.uuid);
+
+const { data: ladderData } = useGetLadders();
+const aspectDict = computed(() => {
+  return (
+    ladderData.value?.reduce(
+      (acc, ladder) => {
+        ladder.aspects.forEach((aspect) => {
+          acc[aspect.code] = aspect.name;
+        });
+        return acc;
+      },
+      {} as Record<string, string>,
+    ) || {}
+  );
+});
 
 const finalizeSummarySubmission = () => {
   if (!summaries.value?.length) return;
 
-  updateSummary({
-    body: {
+  updateSummary(
+    {
       ...summaries.value[0],
       submit_status: NOTE_SUMMARY_SUBMIT_STATUS.final,
     },
-    onSuccess: () => {
-      invalidateNuxtData(['note', props.note.uuid]);
+    {
+      onSuccess: () => {
+        invalidateQueries('note-list');
+        queryClient.invalidateQueries({ queryKey: ['note', props.note.uuid] });
+      },
     },
-  });
+  );
 };
 
 watch(

@@ -4,6 +4,8 @@ from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from api import views
+from api.views import UserTimelineView, PersonnelPerformanceTableView, PersonnelPerformanceCSVView
+from api.views.user_access import user_permissions, timeline_permissions, accessible_users
 
 # ─── Top-level router ────────────────────────────────────────────────────────────
 router = routers.DefaultRouter()
@@ -29,9 +31,19 @@ forms_router = routers.DefaultRouter()
 forms_router.register(r"forms", views.FormViewSet, basename="forms")
 
 # ─── Nested feedback and routers ─────────────────────────────────────────────
-router.register(r"feedback-forms",    views.FeedbackFormViewSet,    basename="feedback-forms")
-router.register(r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests")
-router.register(r"feedback-entries",  views.FeedbackEntryViewSet,   basename="feedback-entries")
+router.register(r"feedback-forms", views.FeedbackFormViewSet, basename="feedback-forms")
+router.register(
+    r"feedback-requests", views.FeedbackRequestViewSet, basename="feedback-requests"
+)
+router.register(
+    r"feedback-entries", views.FeedbackEntryViewSet, basename="feedback-entries"
+)
+
+# ─── Profile timeline endpoints ───────────────────────────────────────────────
+router.register(r"title-changes", views.TitleChangeViewSet, basename="title-changes")
+router.register(r"notices", views.NoticeViewSet, basename="notice")
+# Disabled until stock-grant detail endpoint is finalised
+# router.register(r"stock-grants", views.StockGrantViewSet, basename="stockgrant")
 
 # ─── URL PATTERNS ────────────────────────────────────────────────────────────────
 urlpatterns = [
@@ -40,9 +52,25 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("verify-token/", views.VerifyTokenView.as_view(), name="verify-token"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
-    path("users/", views.UsersView.as_view(), name="users"),
+    path("profile/current-ladder/", views.CurrentLadderView.as_view(), name="current-ladder"),
+    path(
+        "profile/<uuid:user_uuid>/current-ladder/",
+        views.CurrentLadderView.as_view(),
+        name="current-ladder-other",
+    ),
+    path("ladders/", views.LadderListView.as_view(), name="ladders"),
+    path("teams/", views.TeamListView.as_view(), name="teams"),
+    path("tribes/", views.TribeListView.as_view(), name="tribes"),
+    path("users/", views.UserListView.as_view(), name="user-list"),
+    path("users/<uuid:uuid>/", views.UserDetailView.as_view(), name="user-detail"),
     path("templates/", views.TemplatesView.as_view(), name="templates"),
     path("value-tags/", views.ValueTagListView.as_view(), name="value-tags"),
+    path("users/<uuid:user_id>/timeline/", UserTimelineView.as_view(), name="user-timeline"),
+    path("personnel/performance-table/", PersonnelPerformanceTableView.as_view(), name="personnel-performance-table"),
+    path("personnel/performance-table/csv/", PersonnelPerformanceCSVView.as_view(), name="personnel-performance-csv"),
+    path("profile/permissions/", user_permissions, name="user-permissions"),
+    path("users/<uuid:target_id>/timeline/permissions/", timeline_permissions, name="timeline-permissions"),
+    path("personnel/performance-table/accessible-users/", accessible_users, name="accessible-users"),
     path("", include(router.urls)),
     path("", include(comments_router.urls)),
     path("", include(summaries_router.urls)),

@@ -10,6 +10,13 @@ export const NOTE_TYPE = {
   feedback: 'Feedback',
 } as const;
 
+export const PROPOSAL_TYPE = {
+  promotion: 'PROMOTION',
+  notice: 'NOTICE',
+  mapping: 'MAPPING',
+  evaluation: 'EVALUATION',
+} as const;
+
 export const NOTE_TYPE_ROUTE_PARAM = {
   [NOTE_TYPE.goal]: 'goal',
   [NOTE_TYPE.oneOnOne]: 'oneOnOne',
@@ -29,8 +36,15 @@ export const NOTE_TYPE_ICON = {
   [NOTE_TYPE.proposal]: 'i-mdi-chart-line',
   [NOTE_TYPE.template]: 'i-mdi-clipboard-text',
   [NOTE_TYPE.forms]: 'i-mdi-form',
-  [NOTE_TYPE.feedbackRequest]: 'i-mdi-feedback',
-  [NOTE_TYPE.feedback]: 'i-mdi-feedback',
+  [NOTE_TYPE.feedbackRequest]: 'i-mdi-comment-check',
+  [NOTE_TYPE.feedback]: 'i-mdi-comment-quote-outline',
+};
+
+export const PROPOSAL_TYPE_ICON = {
+  [PROPOSAL_TYPE.promotion]: 'i-mdi-trending-up',
+  [PROPOSAL_TYPE.notice]: 'i-mdi-alert-circle',
+  [PROPOSAL_TYPE.mapping]: 'i-mdi-map-marker',
+  [PROPOSAL_TYPE.evaluation]: 'i-mdi-clipboard-check',
 };
 
 export const getNoteTypeLabels = (t: (key: string) => string) => ({
@@ -43,6 +57,13 @@ export const getNoteTypeLabels = (t: (key: string) => string) => ({
   [NOTE_TYPE.forms]: t('noteType.forms'),
   [NOTE_TYPE.feedbackRequest]: t('noteType.feedbackRequest'),
   [NOTE_TYPE.feedback]: t('noteType.feedback'),
+});
+
+export const getProposalTypeLabels = (t: (key: string) => string) => ({
+  [PROPOSAL_TYPE.promotion]: t('proposalType.promotion'),
+  [PROPOSAL_TYPE.notice]: t('proposalType.notice'),
+  [PROPOSAL_TYPE.mapping]: t('proposalType.mapping'),
+  [PROPOSAL_TYPE.evaluation]: t('proposalType.evaluation'),
 });
 
 export const NOTES_WITH_SUMMARY: NoteType[] = [

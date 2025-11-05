@@ -703,6 +703,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Form'
           description: ''
+  /api/ladders/:
+    get:
+      operationId: ladders_list
+      description: Return all available ladders with their aspects.
+      tags:
+      - ladders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LadderList'
+          description: ''
   /api/login/:
     post:
       operationId: login_create
@@ -1553,6 +1570,83 @@ paths:
               schema:
                 $ref: '#/components/schemas/Note'
           description: ''
+  /api/notices/:
+    get:
+      operationId: notices_list
+      tags:
+      - notices
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notice'
+          description: ''
+  /api/notices/{id}/:
+    get:
+      operationId: notices_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this نوتیس.
+        required: true
+      tags:
+      - notices
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notice'
+          description: ''
+  /api/personnel/performance-table/:
+    get:
+      operationId: personnel_performance_table_retrieve
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceTableResponse'
+          description: ''
+  /api/personnel/performance-table/accessible-users/:
+    get:
+      operationId: personnel_performance_table_accessible_users_retrieve
+      description: Get list of users accessible to current user for performance table.
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessibleUsersResponse'
+          description: ''
+  /api/personnel/performance-table/csv/:
+    get:
+      operationId: personnel_performance_table_csv_retrieve
+      description: Handle CSV export specifically
+      tags:
+      - personnel
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/profile/:
     get:
       operationId: profile_retrieve
@@ -1618,6 +1712,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/Profile'
           description: ''
+  /api/profile/{user_uuid}/current-ladder/:
+    get:
+      operationId: profile_current_ladder_retrieve_2
+      parameters:
+      - in: path
+        name: user_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentLadder'
+          description: ''
+  /api/profile/current-ladder/:
+    get:
+      operationId: profile_current_ladder_retrieve
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentLadder'
+          description: ''
+  /api/profile/permissions/:
+    get:
+      operationId: profile_permissions_retrieve
+      description: Get current user's permissions and accessible data for UI configuration.
+      tags:
+      - profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPermissions'
+          description: ''
   /api/signup/:
     post:
       operationId: signup_create
@@ -1662,6 +1806,23 @@ paths:
                         type: string
                         description: Access token
           description: Successfully Signed Up!
+  /api/teams/:
+    get:
+      operationId: teams_list
+      description: Catalog endpoint for all teams.
+      tags:
+      - teams
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+          description: ''
   /api/templates/:
     get:
       operationId: templates_list
@@ -1679,10 +1840,66 @@ paths:
                 items:
                   $ref: '#/components/schemas/Note'
           description: ''
+  /api/title-changes/:
+    get:
+      operationId: title_changes_list
+      tags:
+      - title-changes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TitleChange'
+          description: ''
+    post:
+      operationId: title_changes_create
+      tags:
+      - title-changes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TitleChangeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TitleChangeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TitleChangeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TitleChange'
+          description: ''
+  /api/tribes/:
+    get:
+      operationId: tribes_list
+      tags:
+      - tribes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tribe'
+          description: ''
   /api/users/:
     get:
       operationId: users_list
-      description: List all app users
       tags:
       - users
       security:
@@ -1695,6 +1912,78 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProfileList'
+          description: ''
+  /api/users/{target_id}/timeline/permissions/:
+    get:
+      operationId: users_timeline_permissions_retrieve
+      description: Check if current user can view a specific user's timeline.
+      parameters:
+      - in: path
+        name: target_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelinePermissions'
+          description: ''
+  /api/users/{user_id}/timeline/:
+    get:
+      operationId: users_timeline_list
+      description: Return paginated timeline events for a given user_id respecting
+        feature flag and basic ACL.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTimelineEventLiteList'
+          description: ''
+  /api/users/{uuid}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
           description: ''
   /api/value-tags/:
     get:
@@ -1749,6 +2038,65 @@ paths:
           description: Verified Successfully
 components:
   schemas:
+    AccessibleUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          maxLength: 254
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        ladder:
+          type: string
+          nullable: true
+        tribe:
+          type: string
+          nullable: true
+        team:
+          type: string
+          nullable: true
+      required:
+      - email
+      - id
+      - ladder
+      - team
+      - tribe
+    AccessibleUsersResponse:
+      type: object
+      properties:
+        accessible_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessibleUser'
+        total_count:
+          type: integer
+        scope:
+          type: string
+      required:
+      - accessible_users
+      - scope
+      - total_count
+    Aspect:
+      type: object
+      description: Serializer for ladder aspect with code and name.
+      properties:
+        code:
+          type: string
+          description: Aspect code (e.g., 'DES', 'IMP', 'BUS')
+        name:
+          type: string
+          description: Aspect name
+      required:
+      - code
+      - name
     Comment:
       type: object
       properties:
@@ -1789,6 +2137,61 @@ components:
           title: محتوا
       required:
       - content
+    CurrentLadder:
+      type: object
+      description: Serializer for current ladder and aspects response.
+      properties:
+        ladder:
+          type: string
+          description: Ladder code (e.g., 'SW', 'DEVOPS')
+        max_level:
+          type: integer
+          description: Maximum level for this ladder
+        aspects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Aspect'
+          description: List of ladder aspects with their codes and names
+        stages:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: List of available stages as [{value,label}]
+        current_aspects:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+          description: Dict of current aspect values for the user.
+      required:
+      - aspects
+      - ladder
+      - max_level
+      - stages
+    EventTypeEnum:
+      enum:
+      - SENIORITY_CHANGE
+      - PAY_CHANGE
+      - BONUS_PAYOUT
+      - EVALUATION
+      - MAPPING
+      - TITLE_CHANGE
+      - STOCK_GRANT
+      - NOTICE
+      - LADDER_CHANGED
+      type: string
+      description: |-
+        * `SENIORITY_CHANGE` - تغییر سطح لدر
+        * `PAY_CHANGE` - تغییر بسته‌ حقوقی
+        * `BONUS_PAYOUT` - پرداخت پاداش
+        * `EVALUATION` - خروجی ارزیابی کمیته
+        * `MAPPING` - بازنشانی روی لدر
+        * `TITLE_CHANGE` - تغییر عنوان شغلی
+        * `STOCK_GRANT` - اعطای سهام
+        * `NOTICE` - نوتیس
+        * `LADDER_CHANGED` - تغییر لدر
     Feedback:
       type: object
       description: |-
@@ -2066,6 +2469,30 @@ components:
       required:
       - name
       - uuid
+    FilterOptions:
+      type: object
+      properties:
+        ladders:
+          type: array
+          items:
+            type: string
+        tribes:
+          type: array
+          items:
+            type: string
+        teams:
+          type: array
+          items:
+            type: string
+        leaders:
+          type: array
+          items:
+            type: string
+      required:
+      - ladders
+      - leaders
+      - teams
+      - tribes
     Form:
       type: object
       description: |-
@@ -2169,6 +2596,41 @@ components:
         * `TL` - Team Leader
         * `MANAGER` - Manager
         * `GENERAL` - General
+    LadderList:
+      type: object
+      description: Serializer for list of ladders with their aspects.
+      properties:
+        code:
+          type: string
+          description: Ladder code (e.g., 'SW', 'DEVOPS')
+        name:
+          type: string
+          description: Ladder name
+        description:
+          type: string
+          description: Ladder description
+        max_level:
+          type: integer
+          description: Maximum level for this ladder
+        aspects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Aspect'
+          description: List of ladder aspects with their codes and names
+        stages:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          description: List of available stages as [{value,label}]
+      required:
+      - aspects
+      - code
+      - description
+      - max_level
+      - name
+      - stages
     LeaderVibeEnum:
       enum:
       - :)
@@ -2216,6 +2678,10 @@ components:
         owner_name:
           type: string
           readOnly: true
+        owner_uuid:
+          type: string
+          format: uuid
+          readOnly: true
         title:
           type: string
           title: عنوان
@@ -2241,6 +2707,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2298,6 +2768,7 @@ components:
       - one_on_one_member
       - owner
       - owner_name
+      - owner_uuid
       - read_status
       - title
       - uuid
@@ -2331,6 +2802,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2405,6 +2880,43 @@ components:
         can_write_feedback:
           type: boolean
           title: نوشتن فیدبک
+    Notice:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+        notice_type:
+          $ref: '#/components/schemas/NoticeTypeEnum'
+        description:
+          type: string
+        committee_date:
+          type: string
+          format: date
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ ساخت
+      required:
+      - committee_date
+      - date_created
+      - description
+      - id
+      - user
+    NoticeTypeEnum:
+      enum:
+      - PERFORMANCE
+      - CONDUCT
+      - OTHER
+      type: string
+      description: |-
+        * `PERFORMANCE` - عملکردی
+        * `CONDUCT` - رفتاری
+        * `OTHER` - سایر
     OneOnOne:
       type: object
       description: |-
@@ -2574,6 +3086,26 @@ components:
       required:
       - section
       - tag
+    PaginatedTimelineEventLiteList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEventLite'
     PatchedCommentRequest:
       type: object
       properties:
@@ -2712,6 +3244,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/TypeEnum'
           title: نوع
+        proposal_type:
+          allOf:
+          - $ref: '#/components/schemas/ProposalTypeEnum'
+          title: نوع پروپوزال
         mentioned_users:
           type: array
           items:
@@ -2798,6 +3334,35 @@ components:
     PatchedSummaryRequest:
       type: object
       properties:
+        ladder:
+          type: string
+          minLength: 1
+          nullable: true
+        aspect_changes:
+          type: object
+          description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
+            bool, ''new_level'': int, ''stage'': ''EARLY|MID|LATE''}}'
+          additionalProperties:
+            type: object
+            properties:
+              changed:
+                type: boolean
+                description: Whether the aspect has changed
+              new_level:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: New level for the aspect (1-10)
+              stage:
+                type: string
+                enum:
+                - EARLY
+                - MID
+                - LATE
+                description: Stage of the aspect
+            required:
+            - changed
+            - new_level
         content:
           type: string
           minLength: 1
@@ -2832,9 +3397,66 @@ components:
           title: وضعیت
           minimum: -2147483648
           maximum: 2147483647
+    PerformanceTableResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPerformanceData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    PermissionsField:
+      type: object
+      properties:
+        can_view_all_users:
+          type: boolean
+        can_view_technical_users:
+          type: boolean
+        can_view_product_users:
+          type: boolean
+        accessible_ladders:
+          type: array
+          items:
+            type: string
+        accessible_tribes:
+          type: array
+          items:
+            type: string
+        accessible_teams:
+          type: array
+          items:
+            type: string
+        accessible_leaders:
+          type: array
+          items:
+            type: string
+        scope:
+          type: string
+      required:
+      - accessible_ladders
+      - accessible_leaders
+      - accessible_teams
+      - accessible_tribes
+      - can_view_all_users
+      - can_view_product_users
+      - can_view_technical_users
+      - scope
     Profile:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -2876,17 +3498,16 @@ components:
           nullable: true
           title: نام
           readOnly: true
-        level:
+        current_job_title:
           type: string
           readOnly: true
-          nullable: true
-          title: سطح
       required:
       - chapter
+      - current_job_title
       - department
       - email
+      - id
       - leader
-      - level
       - team
       - uuid
     ProfileList:
@@ -2906,8 +3527,13 @@ components:
           nullable: true
           title: نام
           maxLength: 256
+        team:
+          type: string
+          title: نام
+          readOnly: true
       required:
       - email
+      - team
       - uuid
     ProfileRequest:
       type: object
@@ -2927,6 +3553,18 @@ components:
           nullable: true
           title: موبایل
           maxLength: 256
+    ProposalTypeEnum:
+      enum:
+      - PROMOTION
+      - NOTICE
+      - MAPPING
+      - EVALUATION
+      type: string
+      description: |-
+        * `PROMOTION` - ارتقا
+        * `NOTICE` - نوتیس
+        * `MAPPING` - مپینگ اولیه
+        * `EVALUATION` - ارزیابی
     SectionEnum:
       enum:
       - personal
@@ -2950,6 +3588,34 @@ components:
           type: string
           format: uuid
           readOnly: true
+        ladder:
+          type: string
+          nullable: true
+        aspect_changes:
+          type: object
+          description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
+            bool, ''new_level'': int, ''stage'': ''EARLY|MID|LATE''}}'
+          additionalProperties:
+            type: object
+            properties:
+              changed:
+                type: boolean
+                description: Whether the aspect has changed
+              new_level:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: New level for the aspect (1-10)
+              stage:
+                type: string
+                enum:
+                - EARLY
+                - MID
+                - LATE
+                description: Stage of the aspect
+            required:
+            - changed
+            - new_level
         content:
           type: string
           title: محتوا
@@ -2990,6 +3656,35 @@ components:
     SummaryRequest:
       type: object
       properties:
+        ladder:
+          type: string
+          minLength: 1
+          nullable: true
+        aspect_changes:
+          type: object
+          description: 'Changes to ladder aspects. Format: {''ASPECT_CODE'': {''changed'':
+            bool, ''new_level'': int, ''stage'': ''EARLY|MID|LATE''}}'
+          additionalProperties:
+            type: object
+            properties:
+              changed:
+                type: boolean
+                description: Whether the aspect has changed
+              new_level:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: New level for the aspect (1-10)
+              stage:
+                type: string
+                enum:
+                - EARLY
+                - MID
+                - LATE
+                description: Stage of the aspect
+            required:
+            - changed
+            - new_level
         content:
           type: string
           minLength: 1
@@ -3074,6 +3769,141 @@ components:
       - name_en
       - name_fa
       - section
+    TargetInfo:
+      type: object
+      properties:
+        ladder:
+          type: string
+          nullable: true
+        tribe:
+          type: string
+          nullable: true
+        team:
+          type: string
+          nullable: true
+        is_technical:
+          type: boolean
+        is_product:
+          type: boolean
+      required:
+      - is_product
+      - is_technical
+      - ladder
+      - team
+      - tribe
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: نام
+          maxLength: 256
+      required:
+      - id
+      - name
+    TimelineEventLite:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        event_type:
+          $ref: '#/components/schemas/EventTypeEnum'
+        effective_date:
+          type: string
+          format: date
+        summary_text:
+          type: string
+          maxLength: 512
+        object_url:
+          type: string
+          readOnly: true
+        model:
+          type: string
+          readOnly: true
+        object_id:
+          type: string
+          readOnly: true
+      required:
+      - effective_date
+      - id
+      - model
+      - object_id
+      - object_url
+      - summary_text
+    TimelinePermissions:
+      type: object
+      properties:
+        can_view:
+          type: boolean
+        reason:
+          type: string
+        target_info:
+          $ref: '#/components/schemas/TargetInfo'
+      required:
+      - can_view
+      - reason
+      - target_info
+    TitleChange:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+        old_title:
+          type: string
+          maxLength: 256
+        new_title:
+          type: string
+          maxLength: 256
+        reason:
+          type: string
+          nullable: true
+        effective_date:
+          type: string
+          format: date
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاریخ ساخت
+      required:
+      - date_created
+      - effective_date
+      - id
+      - new_title
+      - old_title
+      - user
+    TitleChangeRequest:
+      type: object
+      properties:
+        user:
+          type: integer
+        old_title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        new_title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        reason:
+          type: string
+          nullable: true
+        effective_date:
+          type: string
+          format: date
+      required:
+      - effective_date
+      - new_title
+      - old_title
+      - user
     TokenRefresh:
       type: object
       properties:
@@ -3099,6 +3929,19 @@ components:
           minLength: 1
       required:
       - token
+    Tribe:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: نام
+          maxLength: 256
+      required:
+      - id
+      - name
     TypeEnum:
       enum:
       - Goal
@@ -3123,6 +3966,19 @@ components:
         * `OneOnOne` - یک‌به‌یک
         * `FeedbackRequest` - درخواست بازخورد
         * `Feedback` - بازخورد
+    UIHintsField:
+      type: object
+      properties:
+        show_timeline_section:
+          type: boolean
+          default: true
+        show_performance_table:
+          type: boolean
+          default: true
+        filter_options:
+          $ref: '#/components/schemas/FilterOptions'
+      required:
+      - filter_options
     User:
       type: object
       properties:
@@ -3148,6 +4004,119 @@ components:
       - email
       - password
       - uuid
+    UserField:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: ایمیل سازمانی
+          maxLength: 254
+        name:
+          type: string
+          nullable: true
+          title: نام
+          maxLength: 256
+        roles:
+          type: array
+          items:
+            type: string
+        organization:
+          type: string
+      required:
+      - email
+      - id
+      - organization
+      - roles
+    UserPerformanceData:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        last_committee_date:
+          type: string
+          format: date
+          nullable: true
+        committees_current_year:
+          type: integer
+          default: 0
+        committees_last_year:
+          type: integer
+          default: 0
+        pay_band:
+          type: number
+          format: double
+          nullable: true
+        salary_change:
+          type: number
+          format: double
+          nullable: true
+        is_mapped:
+          type: boolean
+          default: false
+        last_bonus_date:
+          type: string
+          format: date
+          nullable: true
+        last_bonus_percentage:
+          type: number
+          format: double
+          nullable: true
+        last_salary_change_date:
+          type: string
+          format: date
+          nullable: true
+        ladder:
+          type: string
+          nullable: true
+        ladder_levels:
+          type: object
+          additionalProperties: {}
+        overall_level:
+          type: number
+          format: double
+          nullable: true
+        leader:
+          type: string
+          nullable: true
+        team:
+          type: string
+          nullable: true
+        tribe:
+          type: string
+          nullable: true
+      required:
+      - ladder
+      - last_bonus_date
+      - last_bonus_percentage
+      - last_committee_date
+      - last_salary_change_date
+      - leader
+      - name
+      - overall_level
+      - pay_band
+      - salary_change
+      - team
+      - tribe
+      - uuid
+    UserPermissions:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserField'
+        permissions:
+          $ref: '#/components/schemas/PermissionsField'
+        ui_hints:
+          $ref: '#/components/schemas/UIHintsField'
+      required:
+      - permissions
+      - ui_hints
+      - user
     UserRequest:
       type: object
       properties:

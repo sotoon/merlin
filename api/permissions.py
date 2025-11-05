@@ -133,7 +133,8 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
     """
     Sender can create/update/delete their feedback;
     sender, receiver, or request owner may read;
-    ad-hoc mentioned users may read.
+    ad-hoc mentioned users may read;
+    users mentioned in the REQUEST may read all answers.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -147,6 +148,13 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
 
             # Allow the original request owner to read answers
             if obj.feedback_request and obj.feedback_request.note.owner_id == user.id:
+                return True
+
+            # Allow users mentioned in the ORIGINAL REQUEST to read all answers
+            if (
+                obj.feedback_request
+                and obj.feedback_request.note.mentioned_users.filter(id=user.id).exists()
+            ):
                 return True
 
             # Ad-hoc feedbacks (no related request) also allow mentioned users

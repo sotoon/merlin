@@ -18,12 +18,10 @@ import { PLoading } from '@pey/core';
 
 const props = defineProps<{ note: Note }>();
 
-const { execute: updateReadStatus, pending: readStatusPending } =
-  useUpdateNoteReadStatus({
-    id: props.note.uuid,
-  });
+const { mutate: updateReadStatus, isPending: readStatusPending } =
+  useUpdateNoteReadStatus();
 
 const toggleReadStatus = () => {
-  updateReadStatus(!props.note.read_status);
+  updateReadStatus(props.note.uuid, !props.note.read_status);
 };
 </script>

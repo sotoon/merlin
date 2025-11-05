@@ -1,12 +1,14 @@
+import threading
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
-from django.utils.translation import gettext_lazy as _
 
 from api.services import grant_oneonone_access
 from api.serializers.organization import TagReadSerializer
 from api.models import (
-    Feedback,
     Note,
     NoteType,
     NoteUserAccess,
@@ -16,18 +18,20 @@ from api.models import (
     OneOnOneTagLink,
     ValueTag,
     Cycle,
-    UserTimeline,
     Comment,
-    Note,
-    NoteType,
-    NoteUserAccess,
-    Summary,
-    User,
-    OneOnOne,
-    OneOnOneTagLink,
-    ValueTag,
-    Cycle,
+    Ladder,
 )
+
+# Thread-local storage for current user
+_current_user = threading.local()
+
+def get_current_user():
+    """Get the current user from thread-local storage."""
+    return getattr(_current_user, 'user', None)
+
+def set_current_user(user):
+    """Set the current user in thread-local storage."""
+    _current_user.user = user
 
 
 __all__ = [
@@ -58,6 +62,7 @@ class NoteSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(), read_only=True, slug_field="email"
     )
     owner_name = serializers.CharField(source="owner.name", read_only=True)
+    owner_uuid = serializers.UUIDField(source="owner.uuid", read_only=True)
     mentioned_users = serializers.SlugRelatedField(
         many=True, required=False, queryset=User.objects.all(), slug_field="email"
     )
@@ -86,12 +91,14 @@ class NoteSerializer(serializers.ModelSerializer):
             "date_updated",
             "owner",
             "owner_name",
+            "owner_uuid",
             "title",
             "content",
             "date",
             "period",
             "year",
             "type",
+            "proposal_type",
             "mentioned_users",
             "linked_notes",
             "read_status",
@@ -117,9 +124,19 @@ class NoteSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        """Require proposal_type when creating or updating a Proposal note."""
         if not self.instance:
-            owner = self.context["request"].user
-            data["owner"] = owner
+            data["owner"] = self.context["request"].user
+
+        note_type = data.get("type", getattr(self.instance, "type", None))
+        prop_type = data.get(
+            "proposal_type", getattr(self.instance, "proposal_type", None)
+        )
+        if note_type == NoteType.Proposal and not prop_type:
+            raise serializers.ValidationError(
+                {"proposal_type": _("This field is required for Proposal notes.")}
+            )
+
         return super().validate(data)
 
     def validate_mentioned_users(self, value):
@@ -182,14 +199,58 @@ class CommentSerializer(serializers.ModelSerializer):
         return feedback
 
 
+@extend_schema_field(
+    {
+        "type": "object",
+        "description": "Changes to ladder aspects",
+        "additionalProperties": {
+            "type": "object",
+            "properties": {
+                "changed": {
+                    "type": "boolean",
+                    "description": "Whether the aspect has changed",
+                },
+                "new_level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "New level for the aspect (1-10)",
+                },
+                "stage": {
+                    "type": "string",
+                    "enum": ["EARLY", "MID", "LATE"],
+                    "description": "Stage of the aspect",
+                },
+            },
+            "required": ["changed", "new_level"],
+        },
+    }
+)
+class AspectChangesField(serializers.JSONField):
+    """Custom field for aspect_changes with proper schema documentation."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.help_text = "Changes to ladder aspects. Format: {'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}}"
+
+
 class SummarySerializer(serializers.ModelSerializer):
     note = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    ladder = serializers.SlugRelatedField(
+        queryset=Ladder.objects.all(),
+        slug_field="code",
+        required=False,
+        allow_null=True,
+    )
+    aspect_changes = AspectChangesField(required=False, default=dict, help_text="{'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}}")
 
     class Meta:
         model = Summary
         fields = (
             "uuid",
             "note",
+            "ladder",
+            "aspect_changes",
             "content",
             "performance_label",
             "ladder_change",
@@ -198,16 +259,27 @@ class SummarySerializer(serializers.ModelSerializer):
             "committee_date",
             "submit_status",
         )
-        read_only_fields = [
-            "uuid",
-        ]
+        read_only_fields = ["uuid", "note"]
 
     def validate(self, data):
         note_uuid = self.context["note_uuid"]
         data["note"] = Note.objects.get(uuid=note_uuid)
+        
+        # Validate committee_date is not in the future
+        committee_date = data.get('committee_date')
+        if committee_date and committee_date > timezone.now().date():
+            raise serializers.ValidationError({
+                'committee_date': 'Committee date cannot be in the future.'
+            })
+        
         return super().validate(data)
 
     def create(self, validated_data):
+        # Store current user for signal access
+        request = self.context.get("request")
+        if request and hasattr(request, 'user'):
+            set_current_user(request.user)
+        
         instance, created = Summary.objects.update_or_create(
             note=validated_data["note"], defaults=validated_data
         )
