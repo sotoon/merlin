@@ -232,8 +232,19 @@ SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
 
 AUTH_USER_MODEL = "api.User"
 
-# Import admin sidebar configuration
-from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG
+# Import admin sidebar configuration lazily to avoid import errors
+try:
+    from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG
+except Exception as e:
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.error(f"Failed to load admin sidebar config: {e}")
+    # Provide minimal sidebar config as fallback
+    UNFOLD_SIDEBAR_CONFIG = {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [],
+    }
 
 UNFOLD = {
     "SITE_TITLE": "Merlin Admin",
