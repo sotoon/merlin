@@ -16,6 +16,7 @@ class UserPerformanceDataSerializer(serializers.Serializer):
     ladder = serializers.CharField(allow_null=True)
     ladder_levels = serializers.DictField(default=dict)
     overall_level = serializers.FloatField(allow_null=True)
+    seniority_level = serializers.CharField(allow_null=True)
     leader = serializers.CharField(allow_null=True)
     team = serializers.CharField(allow_null=True)
     tribe = serializers.CharField(allow_null=True)

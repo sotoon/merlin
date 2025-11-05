@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 from io import StringIO
 
+from django.conf import settings
 from django.http import StreamingHttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,14 +14,39 @@ from api.services.performance_tables import (
     apply_personnel_filters,
     apply_personnel_ordering,
 )
-from api.services.timeline_access import can_view_timeline
+from api.services.timeline_access import can_view_timeline, has_role
 from api.utils.performance_tables import build_csv_filename
 from api.serializers.performance_tables import PerformanceTableResponseSerializer
+from api.models import RoleType
 
 __all__ = [
     "PersonnelPerformanceTableView",
     "PersonnelPerformanceCSVView",
+    "is_service_account",
 ]
+
+
+def is_service_account(user):
+    """Check if user is a service account (for API integrations).
+    
+    Service accounts are identified by:
+    1. Having MAINTAINER role
+    2. Email matching configured service account patterns (from settings)
+    """
+    # Check for MAINTAINER role
+    if has_role(user, {RoleType.MAINTAINER}):
+        return True
+    
+    # Check email patterns (configurable via settings)
+    service_account_email_patterns = getattr(settings, 'SERVICE_ACCOUNT_EMAIL_PATTERNS', [])
+    if service_account_email_patterns:
+        import fnmatch
+        user_email = getattr(user, 'email', '') or ''
+        for pattern in service_account_email_patterns:
+            if fnmatch.fnmatch(user_email.lower(), pattern.lower()):
+                return True
+    
+    return False
 
 
 @extend_schema(
@@ -69,8 +95,11 @@ class PersonnelPerformanceTableView(APIView):
             page_size = int(request.query_params.get("page_size", 10))
         except ValueError:
             return Response({"detail": "Invalid page or page_size"}, status=400)
-        if page_size > 500:
-            page_size = 500
+        
+        # Service accounts can request larger page sizes
+        max_page_size = 5000 if is_service_account(request.user) else 500
+        if page_size > max_page_size:
+            page_size = max_page_size
         start = (page - 1) * page_size
         end = start + page_size
         page_items = visible[start:end]
@@ -94,6 +123,7 @@ class PersonnelPerformanceTableView(APIView):
                 "ladder": getattr(u, "_ladder_name", None),
                 "ladder_levels": getattr(u, "_details_json", {}) if getattr(u, "_details_json", {}) is not None else {},
                 "overall_level": getattr(u, "_overall_score", None),
+                "seniority_level": getattr(u, "_seniority_level", None),
                 "leader": getattr(u, "_leader_name", None)
                 or getattr(u.leader, "name", None),
                 "team": getattr(u, "_team_name", None) or getattr(u.team, "name", None),
@@ -166,6 +196,7 @@ class PersonnelPerformanceCSVView(APIView):
                 "ladder",
                 "ladder_levels",
                 "overall_level",
+                "seniority_level",
                 "leader",
                 "team",
                 "tribe",
@@ -191,6 +222,7 @@ class PersonnelPerformanceCSVView(APIView):
                     "ladder": getattr(u, "_ladder_code", None),
                     "ladder_levels": getattr(u, "_details_json", {}) if getattr(u, "_details_json", {}) is not None else {},
                     "overall_level": getattr(u, "_overall_score", None),
+                    "seniority_level": getattr(u, "_seniority_level", None),
                     "leader": getattr(u, "_leader_name", None) or getattr(u.leader, "name", None),
                     "team": getattr(u, "_team_name", None) or getattr(u.team, "name", None),
                     "tribe": getattr(u, "_tribe_name", None) or getattr(getattr(u.team, "tribe", None), "name", None),

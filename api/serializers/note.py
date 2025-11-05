@@ -305,6 +305,17 @@ class SummarySerializer(serializers.ModelSerializer):
     )
     aspect_changes = AspectChangesField(required=False, default=dict, help_text="{'ASPECT_CODE': {'changed': bool, 'new_level': int, 'stage': 'EARLY|MID|LATE'}}")
 
+    seniority_level = serializers.ChoiceField(
+        choices=[
+            ("JUNIOR", "Junior"),
+            ("MID", "Mid"),
+            ("SENIOR", "Senior"),
+            ("PRINCIPAL", "Principal"),
+        ],
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = Summary
         fields = (
@@ -317,6 +328,7 @@ class SummarySerializer(serializers.ModelSerializer):
             "ladder_change",
             "bonus",
             "salary_change",
+            "seniority_level",
             "committee_date",
             "submit_status",
         )

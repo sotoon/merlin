@@ -185,6 +185,19 @@ class Summary(MerlinBaseModel):
     )
     bonus = models.IntegerField(default=0, verbose_name="پاداش عملکردی")
     salary_change = models.FloatField(default=0, verbose_name="تغییر پله‌ی حقوقی")
+    seniority_level = models.CharField(
+        max_length=20,
+        choices=[
+            ("JUNIOR", "Junior"),
+            ("MID", "Mid"),
+            ("SENIOR", "Senior"),
+            ("PRINCIPAL", "Principal"),
+        ],
+        null=True,
+        blank=True,
+        verbose_name="سطح سنیوریتی",
+        help_text="Optional seniority classification (Junior/Mid/Senior/Principal)",
+    )
     committee_date = models.DateField(
         blank=True, null=True, verbose_name="تاریخ برگزاری جلسه‌ی کمیته"
     )

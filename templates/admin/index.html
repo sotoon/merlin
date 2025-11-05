@@ -1,0 +1,372 @@
+{% extends 'admin/base.html' %}
+{% load i18n admin_urls static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+<!-- CUSTOM DASHBOARD TEMPLATE LOADED -->
+<div class="flex flex-col lg:flex-row lg:gap-8">
+    <div class="grow">
+        <div class="mb-6">
+            <!-- Statistics Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Total Users" %}</p>
+                            <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ total_users|default:0 }}</p>
+                            {% if recent_users > 0 %}
+                            <p class="text-xs text-base-500 dark:text-base-400 mt-2">+{{ recent_users }} {% trans "new this week" %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Total Notes" %}</p>
+                            <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ total_notes|default:0 }}</p>
+                            {% if recent_notes > 0 %}
+                            <p class="text-xs text-base-500 dark:text-base-400 mt-2">+{{ recent_notes }} {% trans "this week" %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Total Feedback" %}</p>
+                            <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ total_feedback|default:0 }}</p>
+                            {% if recent_feedback > 0 %}
+                            <p class="text-xs text-base-500 dark:text-base-400 mt-2">+{{ recent_feedback }} {% trans "this week" %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Feedback Requests" %}</p>
+                            <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ total_feedback_requests|default:0 }}</p>
+                            <a href="{% url 'admin:api_feedbackrequest_changelist' %}" class="text-xs text-link hover:underline mt-2 inline-block">
+                                {% trans "View All" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Active API Keys" %}</p>
+                            <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ active_api_keys|default:0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Latest Notes -->
+                <div class="bg-base-50 rounded-default shadow-xs dark:bg-base-800">
+                    <div class="p-4 border-b border-base-200 dark:border-base-700">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 class="text-lg font-semibold text-base-900 dark:text-base-100">{% trans "Latest Notes" %}</h3>
+                            <a href="{% url 'admin:api_note_changelist' %}" class="text-sm text-link hover:underline">
+                                {% trans "View All" %} →
+                            </a>
+                        </div>
+                    </div>
+                    <div class="p-4" style="max-height: 400px; overflow-y: auto;">
+                        {% if latest_notes %}
+                            <ul style="list-style: none; padding: 0;">
+                                {% for note in latest_notes %}
+                                <li class="py-2 border-b border-base-100 dark:border-base-700 last:border-0">
+                                    <div>
+                                        <a href="{% url 'admin:api_note_change' note.pk %}" class="text-sm font-medium text-base-900 dark:text-base-100 hover:text-link">
+                                            {{ note.title|truncatewords:10 }}
+                                        </a>
+                                        <p class="text-xs text-base-500 dark:text-base-400 mt-1">
+                                            {{ note.owner }} • {{ note.date_created|date:"Y-m-d" }}
+                                        </p>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-sm text-base-500 dark:text-base-400">{% trans "No notes yet" %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Latest Users -->
+                <div class="bg-base-50 rounded-default shadow-xs dark:bg-base-800">
+                    <div class="p-4 border-b border-base-200 dark:border-base-700">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 class="text-lg font-semibold text-base-900 dark:text-base-100">{% trans "Recent Users" %}</h3>
+                            <a href="{% url 'admin:api_user_changelist' %}" class="text-sm text-link hover:underline">
+                                {% trans "View All" %} →
+                            </a>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        {% if latest_users %}
+                            <ul style="list-style: none; padding: 0;">
+                                {% for user in latest_users %}
+                                <li class="py-2 border-b border-base-100 dark:border-base-700 last:border-0">
+                                    <div>
+                                        <a href="{% url 'admin:api_user_change' user.pk %}" class="text-sm font-medium text-base-900 dark:text-base-100 hover:text-link">
+                                            {{ user.name|default:user.email }}
+                                        </a>
+                                        <p class="text-xs text-base-500 dark:text-base-400 mt-1">
+                                            {{ user.email }} • {{ user.date_created|date:"Y-m-d" }}
+                                        </p>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-sm text-base-500 dark:text-base-400">{% trans "No users yet" %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Statistics -->
+            <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800 mb-6">
+                <h3 class="text-lg font-semibold text-base-900 dark:text-base-100 mb-4">{% trans "Login Statistics (This Week)" %}</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Total Logins" %}</p>
+                        <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ total_logins_this_week|default:0 }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Average per Day" %}</p>
+                        <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ avg_logins_per_day|default:0 }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-base-600 dark:text-base-400">{% trans "Unique Users" %}</p>
+                        <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ unique_logins_this_week|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proposals Dashboard -->
+            <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800 mb-6">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 class="text-lg font-semibold text-base-900 dark:text-base-100">{% trans "Proposals Dashboard" %}</h3>
+                    <a href="{% url 'admin:api_note_changelist' %}?type__exact=Proposal" class="text-sm text-link hover:underline">
+                        {% trans "View All Proposals" %} →
+                    </a>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <!-- Proposals by Type -->
+                    <div>
+                        <h4 class="text-sm font-semibold text-base-700 dark:text-base-300 mb-2">{% trans "By Type" %}</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            {% for type_key, type_label in proposal_types %}
+                                <li class="py-1 text-sm text-base-600 dark:text-base-400">
+                                    {{ type_label }}: <span class="font-medium text-base-900 dark:text-base-100">
+                                        {% for key, value in proposals_by_type.items %}
+                                            {% if key == type_key %}{{ value }}{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Proposals by Status - This Week -->
+                    <div>
+                        <h4 class="text-sm font-semibold text-base-700 dark:text-base-300 mb-2">{% trans "By Status (This Week)" %}</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            {% for status_code, status_data in proposals_by_status_week.items %}
+                                <li class="py-1 text-sm text-base-600 dark:text-base-400">
+                                    {{ status_data.label }}: 
+                                    <span class="font-medium {% if status_code == 2 %}font-bold{% endif %} text-base-900 dark:text-base-100">
+                                        {{ status_data.count }}
+                                        {% if status_code == 2 %}<span class="text-orange-600 dark:text-orange-400">{% trans "(Pending)" %}</span>{% endif %}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                            {% if reviewed_proposals_this_week > 0 %}
+                                <li class="py-1 text-sm text-base-600 dark:text-base-400 mt-2">
+                                    <span class="font-bold text-base-900 dark:text-base-100">{% trans "Reviewed This Week" %}: {{ reviewed_proposals_this_week }}</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Proposals by Status - This Month (Persian Calendar) -->
+                    <div>
+                        <h4 class="text-sm font-semibold text-base-700 dark:text-base-300 mb-2">{% trans "By Status (This Month)" %}</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            {% for status_code, status_data in proposals_by_status_month.items %}
+                                <li class="py-1 text-sm text-base-600 dark:text-base-400">
+                                    {{ status_data.label }}: 
+                                    <span class="font-medium {% if status_code == 2 %}font-bold{% endif %} text-base-900 dark:text-base-100">
+                                        {{ status_data.count }}
+                                        {% if status_code == 2 %}<span class="text-orange-600 dark:text-orange-400">{% trans "(Pending)" %}</span>{% endif %}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                            {% if reviewed_proposals_this_month > 0 %}
+                                <li class="py-1 text-sm text-base-600 dark:text-base-400 mt-2">
+                                    <span class="font-bold text-base-900 dark:text-base-100">{% trans "Reviewed This Month" %}: {{ reviewed_proposals_this_month }}</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Proposals -->
+            <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800 mb-6">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 class="text-lg font-semibold text-base-900 dark:text-base-100">{% trans "Recent Proposals" %}</h3>
+                    <a href="{% url 'admin:api_note_changelist' %}?type__exact=Proposal" class="text-sm text-link hover:underline">
+                        {% trans "View All Proposals" %} →
+                    </a>
+                </div>
+                
+                <!-- Filters -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="proposal-type-filter" class="block text-sm font-medium text-base-600 dark:text-base-400 mb-1">{% trans "Filter by Type" %}</label>
+                        <select id="proposal-type-filter" class="w-full p-2 border border-base-300 dark:border-base-700 rounded-default bg-white dark:bg-base-900 text-base-900 dark:text-base-100">
+                            <option value="">{% trans "All Types" %}</option>
+                            {% for type_key, type_label in proposal_types %}
+                                <option value="{{ type_key }}">{{ type_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="proposal-status-filter" class="block text-sm font-medium text-base-600 dark:text-base-400 mb-1">{% trans "Filter by Status" %}</label>
+                        <select id="proposal-status-filter" class="w-full p-2 border border-base-300 dark:border-base-700 rounded-default bg-white dark:bg-base-900 text-base-900 dark:text-base-100">
+                            <option value="">{% trans "All Statuses" %}</option>
+                            {% for status_code, status_label in proposal_statuses %}
+                                <option value="{{ status_code }}">{{ status_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Proposals List -->
+                <div id="recent-proposals-list" style="max-height: 400px; overflow-y: auto;">
+                    {% if recent_proposals %}
+                        <ul style="list-style: none; padding: 0;" id="proposals-list">
+                            {% for proposal in recent_proposals %}
+                            <li class="proposal-item py-2 border-b border-base-100 dark:border-base-700 last:border-0" 
+                                data-proposal-type="{{ proposal.proposal_type }}" 
+                                data-proposal-status="{{ proposal.submit_status }}">
+                                <div>
+                                    <a href="{% url 'admin:api_note_change' proposal.pk %}" class="text-sm font-medium text-base-900 dark:text-base-100 hover:text-link">
+                                        {{ proposal.title|truncatewords:15 }}
+                                    </a>
+                                    <div class="mt-1 flex flex-wrap gap-2 text-xs text-base-500 dark:text-base-400">
+                                        <span>{{ proposal.owner }}</span>
+                                        <span>•</span>
+                                        <span class="proposal-type-badge">{{ proposal.get_proposal_type_display }}</span>
+                                        <span>•</span>
+                                        <span class="proposal-status-badge {% if proposal.submit_status == 2 %}font-bold text-orange-600 dark:text-orange-400{% endif %}">
+                                            {{ proposal.get_submit_status_display }}
+                                        </span>
+                                        <span>•</span>
+                                        <span>{{ proposal.date_updated|date:"Y-m-d" }}</span>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <p id="no-results-message" class="text-sm text-base-500 dark:text-base-400" style="display: none;">{% trans "No proposals match the selected filters" %}</p>
+                    {% else %}
+                        <p class="text-sm text-base-500 dark:text-base-400">{% trans "No proposals yet" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Additional Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <h3 class="text-sm font-medium text-base-600 dark:text-base-400 mb-2">{% trans "Forms" %}</h3>
+                    <p class="text-2xl font-bold text-base-900 dark:text-base-100">{{ total_forms|default:0 }}</p>
+                    <div class="mt-2">
+                        <p class="text-xs text-base-500 dark:text-base-400">
+                            <span>{{ pending_forms|default:0 }}</span> {% trans "pending" %} • 
+                            <span>{{ completed_forms|default:0 }}</span> {% trans "completed" %}
+                        </p>
+                    </div>
+                    <a href="{% url 'admin:api_form_changelist' %}" class="text-xs text-link hover:underline mt-2 inline-block">
+                        {% trans "Manage" %} →
+                    </a>
+                </div>
+
+                <div class="bg-base-50 rounded-default p-4 shadow-xs dark:bg-base-800">
+                    <h3 class="text-sm font-medium text-base-600 dark:text-base-400 mb-2">{% trans "Current Cycle" %}</h3>
+                    <p class="text-lg font-semibold text-base-900 dark:text-base-100">{{ current_cycle_name }}</p>
+                    <a href="{% url 'admin:api_cycle_changelist' %}" class="text-xs text-link hover:underline mt-2 inline-block">
+                        {% trans "Manage Cycles" %} →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "unfold/helpers/history.html" %}
+</div>
+
+<script>
+// Filter recent proposals by type and status
+(function() {
+    const typeFilter = document.getElementById('proposal-type-filter');
+    const statusFilter = document.getElementById('proposal-status-filter');
+    const proposalItems = document.querySelectorAll('.proposal-item');
+    const noResultsMessage = document.getElementById('no-results-message');
+    const proposalsList = document.getElementById('proposals-list');
+    
+    function filterProposals() {
+        const selectedType = typeFilter ? typeFilter.value : '';
+        const selectedStatus = statusFilter ? statusFilter.value : '';
+        let visibleCount = 0;
+        
+        proposalItems.forEach(function(item) {
+            const itemType = item.getAttribute('data-proposal-type');
+            const itemStatus = item.getAttribute('data-proposal-status');
+            
+            const typeMatch = !selectedType || itemType === selectedType;
+            const statusMatch = !selectedStatus || itemStatus === selectedStatus;
+            
+            if (typeMatch && statusMatch) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Show/hide "no results" message
+        if (noResultsMessage && proposalsList) {
+            if (visibleCount === 0 && proposalItems.length > 0) {
+                noResultsMessage.style.display = 'block';
+                proposalsList.style.display = 'none';
+            } else {
+                noResultsMessage.style.display = 'none';
+                proposalsList.style.display = '';
+            }
+        }
+    }
+    
+    if (typeFilter) typeFilter.addEventListener('change', filterProposals);
+    if (statusFilter) statusFilter.addEventListener('change', filterProposals);
+})();
+</script>
+{% endblock %}
