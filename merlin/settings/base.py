@@ -233,18 +233,20 @@ SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
 AUTH_USER_MODEL = "api.User"
 
 # Import admin sidebar configuration lazily to avoid import errors
-try:
-    from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG
-except Exception as e:
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.error(f"Failed to load admin sidebar config: {e}")
-    # Provide minimal sidebar config as fallback
-    UNFOLD_SIDEBAR_CONFIG = {
-        "show_search": True,
-        "show_all_applications": True,
-        "navigation": [],
-    }
+# TEMPORARILY USING FALLBACK FOR DEBUGGING
+UNFOLD_SIDEBAR_CONFIG = {
+    "show_search": True,
+    "show_all_applications": True,
+    "navigation": [],
+}
+
+# Uncomment to use custom sidebar (currently disabled for debugging)
+# try:
+#     from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG as _SIDEBAR_CONFIG
+#     UNFOLD_SIDEBAR_CONFIG = _SIDEBAR_CONFIG
+# except Exception as e:
+#     import sys
+#     print(f"WARNING: Failed to load admin sidebar config: {e}", file=sys.stderr)
 
 UNFOLD = {
     "SITE_TITLE": "Merlin Admin",
@@ -256,14 +258,12 @@ UNFOLD = {
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "ENVIRONMENT": None,  # Can be set to show environment badge
-    "DASHBOARD_CALLBACK": "merlin.dashboard.dashboard_callback",
+    # "DASHBOARD_CALLBACK": "merlin.dashboard.dashboard_callback",  # TEMPORARILY DISABLED FOR DEBUGGING
     "LOGIN": {
         "image": None,
         "redirect_after": None,
     },
-    "STYLES": [
-        lambda request: "/api/static/admin/css/custom_admin.css",
-    ],
+    "STYLES": [],  # Temporarily disabled for debugging
     "SCRIPTS": [],
     "SIDEBAR": UNFOLD_SIDEBAR_CONFIG,
 }
