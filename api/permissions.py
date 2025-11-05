@@ -171,15 +171,21 @@ class FeedbackEntryPermission(permissions.IsAuthenticated):
 
 
 class FeedbackRequestPermission(permissions.IsAuthenticated):
-    """Owner of request or invited users may read; only owner may modify/delete."""
+    """Owner of request, invited users, or any authenticated user for public requests may read; only owner may modify/delete."""
 
     def has_object_permission(self, request, view, obj):
         user = request.user
         if request.method in permissions.SAFE_METHODS:
+            # Allow if user is owner
             if obj.note.owner_id == user.id:
                 return True
+            # Allow if request is public
+            if obj.is_public:
+                return True
+            # Allow if user is invitee
             if obj.requestees.filter(user_id=user.id).exists():
                 return True
+            # Allow if user is mentioned
             return obj.note.mentioned_users.filter(id=user.id).exists()
         # modifications only by owner
         return obj.note.owner_id == user.id

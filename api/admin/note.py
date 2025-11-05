@@ -53,7 +53,8 @@ class NoteAdmin(BaseModelAdmin):
         "cycle",
         ("date_created", "date_updated"),
     )
-    readonly_fields = ("uuid", "date_created", "date_updated", "mentioned_users")
+    readonly_fields = ("uuid", "date_created", "date_updated")
+    filter_horizontal = ("mentioned_users",)
     ordering = ("-date_updated", "title")
     search_fields = [
         "uuid",

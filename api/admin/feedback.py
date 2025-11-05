@@ -13,9 +13,18 @@ class FeedbackFormAdmin(BaseModelAdmin):
 
 @admin.register(Feedback)
 class FeedbackAdmin(BaseModelAdmin):
-    list_display = ("uuid", "sender", "receiver", "date_created")
+    list_display = ("uuid", "sender", "receiver", "note", "date_created")
     readonly_fields = ("uuid", "date_created", "date_updated")
     search_fields = ("sender__name", "receiver__name", "content")
+    fields = (
+        "uuid",
+        ("sender", "receiver", "note"),
+        "form",
+        "content",
+        "evidence",
+        "cycle",
+        ("date_created", "date_updated"),
+    )
 
 
 @admin.register(FeedbackRequest)

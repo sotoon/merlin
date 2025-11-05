@@ -66,6 +66,8 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
         source="form.uuid", read_only=True, allow_null=True
     )
     note = NoteSerializer(read_only=True)
+    is_public = serializers.BooleanField(read_only=True)
+    public_submission_count = serializers.SerializerMethodField()
 
     class Meta:
         model = FeedbackRequest
@@ -80,6 +82,8 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
             "requestees",
             "form_uuid",
             "note",
+            "is_public",
+            "public_submission_count",
         )
 
     @extend_schema_field(FeedbackRequestUserLinkSerializer(many=True))
@@ -113,6 +117,11 @@ class FeedbackRequestReadOnlySerializer(serializers.ModelSerializer):
         except FeedbackRequestUserLink.DoesNotExist:
             return []
 
+    def get_public_submission_count(self, instance):
+        if not instance.is_public:
+            return 0
+        return instance.feedback_answers.count()
+
 
 class FeedbackRequestWriteSerializer(serializers.Serializer):
     """
@@ -127,7 +136,8 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         slug_field="email",
         queryset=User.objects.all(),
         write_only=True,
-        allow_empty=False,
+        allow_empty=True,
+        required=False,
     )
     mentioned_users = serializers.SlugRelatedField(
         many=True,
@@ -138,6 +148,7 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
     )
     deadline = serializers.DateField(required=False, allow_null=True)
     form_uuid = serializers.UUIDField(required=False, allow_null=True)
+    is_public = serializers.BooleanField(required=False)
 
     def create(self, validated_data):
         """
@@ -145,8 +156,9 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         FeedbackRequestUserLink entries, enforcing invitee ACL and deadlines.
         """
         owner = self.context["request"].user
-        users = validated_data.pop("requestee_emails")
+        users = validated_data.pop("requestee_emails", [])
         mentioned_users = validated_data.pop("mentioned_users", [])
+        is_public = validated_data.get("is_public", False)
 
         deadline = validated_data.pop("deadline", None)
         if deadline and deadline < timezone.now().date():
@@ -178,18 +190,36 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                 except FeedbackForm.DoesNotExist:
                     raise serializers.ValidationError("Invalid form selected")
             frequest = FeedbackRequest.objects.create(
-                note=note, deadline=deadline, form=fform
+                note=note,
+                deadline=deadline,
+                form=fform,
+                is_public=is_public,
             )
 
-            # remove requester from invitees
-            users = [u for u in users if u != owner]
-            bulk_links = [
-                FeedbackRequestUserLink(request=frequest, user=u) for u in users
-            ]
-            FeedbackRequestUserLink.objects.bulk_create(bulk_links)
+            if frequest.is_public:
+                if users:
+                    raise serializers.ValidationError(
+                        "Public feedback requests cannot specify invitees."
+                    )
+            else:
+                # remove requester from invitees
+                users = [u for u in users if u != owner]
+                if not users:
+                    raise serializers.ValidationError(
+                        "You must invite at least one user to a private feedback request."
+                    )
+                bulk_links = [
+                    FeedbackRequestUserLink(request=frequest, user=u)
+                    for u in users
+                ]
+                FeedbackRequestUserLink.objects.bulk_create(bulk_links)
 
             # Grant access to owner, requestees, and mentioned users
-            grant_feedback_request_access(note, users, mentioned_users)
+            grant_feedback_request_access(
+                note,
+                users if not frequest.is_public else [],
+                mentioned_users,
+            )
         return frequest
 
     def update(self, instance, validated_data):
@@ -200,6 +230,13 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
         if instance.requestees.filter(answered=True).exists():
             raise serializers.ValidationError(
                 "Cannot edit a feedback request that has already received feedback."
+            )
+
+        if "is_public" in validated_data and (
+            validated_data["is_public"] != instance.is_public
+        ):
+            raise serializers.ValidationError(
+                "Changing the visibility of a feedback request is not supported."
             )
 
         with transaction.atomic():
@@ -229,10 +266,16 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
                 else:
                     instance.form = None
 
+            instance.is_public = validated_data.get("is_public", instance.is_public)
             instance.save()
 
             if "requestee_emails" in validated_data:
                 new_requestees = validated_data.get("requestee_emails")
+                if instance.is_public and new_requestees:
+                    raise serializers.ValidationError(
+                        "Public feedback requests cannot specify invitees."
+                    )
+
                 instance.requestees.all().delete()
                 from api.models.note import NoteUserAccess
 
@@ -242,14 +285,25 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
 
                 owner = self.context["request"].user
                 users = [u for u in new_requestees if u != owner]
-                bulk_links = [
-                    FeedbackRequestUserLink(request=instance, user=u) for u in users
-                ]
-                FeedbackRequestUserLink.objects.bulk_create(bulk_links)
+                if not instance.is_public:
+                    if not users:
+                        raise serializers.ValidationError(
+                            "You must invite at least one user to a private feedback request."
+                        )
+
+                    bulk_links = [
+                        FeedbackRequestUserLink(request=instance, user=u)
+                        for u in users
+                    ]
+                    FeedbackRequestUserLink.objects.bulk_create(bulk_links)
 
                 # Grant access to owner, requestees, and mentioned users
                 mentioned_users = validated_data.get("mentioned_users", [])
-                grant_feedback_request_access(note, users, mentioned_users)
+                grant_feedback_request_access(
+                    note,
+                    users if not instance.is_public else [],
+                    mentioned_users,
+                )
         return instance
 
     def validate(self, attrs):
@@ -263,6 +317,25 @@ class FeedbackRequestWriteSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "You cannot invite yourself to your own feedback request."
             )
+
+        is_public = attrs.get("is_public")
+        if is_public is None and self.instance is not None:
+            is_public = self.instance.is_public
+
+        if is_public:
+            if emails:
+                raise serializers.ValidationError(
+                    "Public feedback requests cannot specify invitees."
+                )
+        else:
+            if self.instance is None and not emails:
+                raise serializers.ValidationError(
+                    "You must invite at least one user to a private feedback request."
+                )
+            if "requestee_emails" in attrs and not emails:
+                raise serializers.ValidationError(
+                    "You must invite at least one user to a private feedback request."
+                )
         return attrs
 
     def to_representation(self, instance):
@@ -348,16 +421,27 @@ class FeedbackSerializer(serializers.Serializer):
         # Optional request
         fq = None
         if feedback_request_uuid:
-            fq = FeedbackRequest.objects.select_related("note").get(uuid=feedback_request_uuid)
+            fq = FeedbackRequest.objects.select_related("note").get(
+                uuid=feedback_request_uuid
+            )
             # receiver must be the request owner
             owner_uuid = str(fq.note.owner.uuid)
             if owner_uuid not in receivers:
                 raise serializers.ValidationError(
                     "Receiver_ids must contain the request owner only."
                 )
-            # sender must be invited
-            if not fq.requestees.filter(user=sender).exists():
-                raise serializers.ValidationError("You were not invited to answer.")
+
+            if fq.is_public:
+                if Feedback.objects.filter(
+                    feedback_request=fq, sender=sender
+                ).exists():
+                    raise serializers.ValidationError(
+                        "You have already submitted feedback for this request."
+                    )
+            else:
+                # sender must be invited
+                if not fq.requestees.filter(user=sender).exists():
+                    raise serializers.ValidationError("You were not invited to answer.")
 
         # Active cycle
         cycle = Cycle.get_current_cycle()
@@ -398,10 +482,13 @@ class FeedbackSerializer(serializers.Serializer):
                 grant_feedback_access(note, receiver, mentioned_users, fq)
 
             # mark answered once per request
+            # For public requests, create the link if it doesn't exist
             if fq:
-                FeedbackRequestUserLink.objects.filter(
-                    request=fq, user=sender
-                ).update(answered=True)
+                FeedbackRequestUserLink.objects.update_or_create(
+                    request=fq,
+                    user=sender,
+                    defaults={"answered": True},
+                )
 
         return created[0] if len(created) == 1 else created
 

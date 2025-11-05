@@ -42,6 +42,8 @@ const handleSubmit = (
   updateNote(
     {
       ...values,
+      linked_notes:
+        values.linked_notes as unknown as Schema<'LinkedNoteRequest'>[],
       date: dateString,
     },
     {

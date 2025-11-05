@@ -5,12 +5,14 @@ import {
   PIconButton,
   PInlineConfirm,
   PLoading,
+  PAlert,
 } from '@pey/core';
 import {
   PeyEditIcon,
   PeyTrashIcon,
   PeyCircleTickOutlineIcon,
   PeyCloseIcon,
+  PeyLinkIcon,
 } from '@pey/icons';
 
 const props = defineProps<{
@@ -24,6 +26,17 @@ const { data: forms } = useGetFeedbackForms();
 const { data: users } = useGetUsers();
 const { mutateAsync: deleteRequest, isPending: isDeleting } =
   useDeleteFeedbackRequest(props.request.uuid);
+
+const shareableLink = computed(() => window.location.href);
+const copiedText = ref('اشتراک گذاری لینک');
+function shareLink() {
+  navigator.clipboard.writeText(shareableLink.value).then(() => {
+    copiedText.value = 'کپی شد!';
+    setTimeout(() => {
+      copiedText.value = 'اشتراک گذاری لینک';
+    }, 2000);
+  });
+}
 
 function handleDelete() {
   deleteRequest(null).then(() => {
@@ -42,6 +55,11 @@ const currentUserRequesteeLink = computed(() => {
 });
 
 const canSubmitFeedback = computed(() => {
+  // For public requests, allow any non-owner to submit if they haven't answered yet
+  if (props.request.is_public && !isOwner.value) {
+    return !currentUserRequesteeLink.value?.answered;
+  }
+  // For private requests, only allow invitees who haven't answered
   return (
     currentUserRequesteeLink.value && !currentUserRequesteeLink.value.answered
   );
@@ -78,32 +96,34 @@ const mentionedUsers = computed(() => {
         </PText>
       </div>
 
-      <div v-if="canEdit" class="mt-2 flex items-center gap-4">
-        <PIconButton
-          class="shrink-0"
-          :icon="PeyEditIcon"
-          type="button"
-          @click="
-            navigateTo({
-              name: 'feedback-edit',
-              params: { requestId: request.uuid },
-            })
-          "
-        />
-        <PLoading v-if="isDeleting" class="text-primary" />
-        <PInlineConfirm
-          v-else
-          :confirm-button-text="t('common.delete')"
-          :message="t('feedback.confirmDelete')"
-          @confirm="handleDelete"
-        >
+      <div class="mt-2 flex items-center gap-4">
+        <template v-if="canEdit">
           <PIconButton
-            :icon="PeyTrashIcon"
-            color="danger"
+            class="shrink-0"
+            :icon="PeyEditIcon"
             type="button"
-            @click.prevent
+            @click="
+              navigateTo({
+                name: 'feedback-edit',
+                params: { requestId: request.uuid },
+              })
+            "
           />
-        </PInlineConfirm>
+          <PLoading v-if="isDeleting" class="text-primary" />
+          <PInlineConfirm
+            v-else
+            :confirm-button-text="t('common.delete')"
+            :message="t('feedback.confirmDelete')"
+            @confirm="handleDelete"
+          >
+            <PIconButton
+              :icon="PeyTrashIcon"
+              color="danger"
+              type="button"
+              @click.prevent
+            />
+          </PInlineConfirm>
+        </template>
       </div>
     </div>
 
@@ -131,34 +151,46 @@ const mentionedUsers = computed(() => {
     </div>
 
     <div v-if="isOwner" class="mt-6">
-      <PText as="p" class="mb-2 text-gray-50" variant="caption1">
-        {{ t('feedback.requestees') }}:
-      </PText>
-      <div class="flex flex-wrap items-center gap-2">
-        <div
-          v-for="requestee in request.requestees"
-          :key="requestee.uuid"
-          class="flex items-center gap-x-1 rounded-full border border-gray-20 px-2 py-1"
-        >
-          <span>{{ requestee.name }}</span>
-          <PTooltip>
-            <component
-              :is="requestee.answered ? PeyCircleTickOutlineIcon : PeyCloseIcon"
-              class="h-4 w-4"
-              :class="[requestee.answered ? 'text-success' : 'text-danger']"
-            />
-            <template #content>
-              <PText variant="caption1">
-                {{
-                  requestee.answered
-                    ? t('feedback.answered')
-                    : t('feedback.notAnswered')
-                }}
-              </PText>
-            </template>
-          </PTooltip>
-        </div>
+      <div v-if="request.is_public" class="flex items-center gap-2">
+        <PText as="p" class="text-gray-50" variant="caption1">
+          تعداد بازخوردهای ثبت‌شده:
+        </PText>
+        <PText variant="body" weight="bold">
+          {{ Number(request.public_submission_count || 0).toLocaleString('fa-IR') }}
+        </PText>
       </div>
+      <template v-else>
+        <PText as="p" class="mb-2 text-gray-50" variant="caption1">
+          {{ t('feedback.requestees') }}:
+        </PText>
+        <div class="flex flex-wrap items-center gap-2">
+          <div
+            v-for="requestee in request.requestees"
+            :key="requestee.uuid"
+            class="flex items-center gap-x-1 rounded-full border border-gray-20 px-2 py-1"
+          >
+            <span>{{ requestee.name }}</span>
+            <PTooltip>
+              <component
+                :is="
+                  requestee.answered ? PeyCircleTickOutlineIcon : PeyCloseIcon
+                "
+                class="h-4 w-4"
+                :class="[requestee.answered ? 'text-success' : 'text-danger']"
+              />
+              <template #content>
+                <PText variant="caption1">
+                  {{
+                    requestee.answered
+                      ? t('feedback.answered')
+                      : t('feedback.notAnswered')
+                  }}
+                </PText>
+              </template>
+            </PTooltip>
+          </div>
+        </div>
+      </template>
     </div>
 
     <div v-if="request.note?.mentioned_users?.length" class="mt-6">
@@ -182,6 +214,36 @@ const mentionedUsers = computed(() => {
       </PText>
       <EditorContent :content="request.content" />
     </article>
+
+    <PAlert
+      v-if="request.is_public && isOwner"
+      variant="info-light"
+      class="mt-6"
+      title="لینک به‌اشتراک‌گذاری درخواست"
+    >
+      <div class="flex items-center gap-4">
+        <input
+          type="text"
+          readonly
+          :value="shareableLink"
+          class="w-full rounded-lg border border-gray-20 bg-gray-10 p-2 text-left"
+          dir="ltr"
+        />
+        <PTooltip>
+          <PIconButton
+            class="shrink-0"
+            :icon="PeyLinkIcon"
+            type="button"
+            @click="shareLink"
+          />
+          <template #content>
+            <PText variant="caption1">
+              {{ copiedText }}
+            </PText>
+          </template>
+        </PTooltip>
+      </div>
+    </PAlert>
 
     <FeedbackResponseForm v-if="canSubmitFeedback" :request="request" />
     <FeedbackEntries v-else :entries="entries" :form-schema="formSchema" />
