@@ -89,7 +89,7 @@ class DatabaseBackup:
             'api_organization', 'api_committee', 'api_timelineevent',
             'api_compensationsnapshot', 'api_senioritysnapshot', 'api_note',
             'api_summary', 'api_payband', 'api_ladder', 'api_ladderaspect',
-            'api_ladderlevel', 'api_ladderstage'
+            'api_ladderlevel'
         ]
         
         backed_up_tables = []

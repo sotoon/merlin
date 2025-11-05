@@ -96,11 +96,12 @@ class Command(BaseCommand):
                                 {"row": idx, "error": str(e)},
                                 "error"
                             )
-
-            if dry_run:
-                transaction.set_rollback(True)
-                self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
-            else:
+                
+                if dry_run:
+                    transaction.set_rollback(True)
+                    self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
+            
+            if not dry_run:
                 # Complete production import with validation
                 if validate:
                     expected_counts = {
