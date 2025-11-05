@@ -55,8 +55,8 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
-    # "unfold",  # TEMPORARILY DISABLED FOR DEBUGGING
-    # "unfold.contrib.import_export",  # TEMPORARILY DISABLED FOR DEBUGGING
+    "unfold",
+    "unfold.contrib.import_export",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -232,41 +232,32 @@ SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
 
 AUTH_USER_MODEL = "api.User"
 
-# UNFOLD CONFIGURATION COMPLETELY DISABLED FOR DEBUGGING
-# All Unfold-related code is commented out to test if basic Django admin works
+# Import admin sidebar configuration with error handling
+try:
+    from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG
+except Exception:
+    UNFOLD_SIDEBAR_CONFIG = {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [],
+    }
 
-# # Import admin sidebar configuration lazily to avoid import errors
-# # TEMPORARILY USING FALLBACK FOR DEBUGGING
-# UNFOLD_SIDEBAR_CONFIG = {
-#     "show_search": True,
-#     "show_all_applications": True,
-#     "navigation": [],
-# }
-# 
-# # Uncomment to use custom sidebar (currently disabled for debugging)
-# # try:
-# #     from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG as _SIDEBAR_CONFIG
-# #     UNFOLD_SIDEBAR_CONFIG = _SIDEBAR_CONFIG
-# # except Exception as e:
-# #     import sys
-# #     print(f"WARNING: Failed to load admin sidebar config: {e}", file=sys.stderr)
-# 
-# UNFOLD = {
-#     "SITE_TITLE": "Merlin Admin",
-#     "SITE_HEADER": "Merlin Control Center",
-#     "SITE_URL": "/",
-#     "SITE_ICON": None,
-#     "SITE_LOGO": None,
-#     "SITE_SYMBOL": "settings",
-#     "SHOW_HISTORY": True,
-#     "SHOW_VIEW_ON_SITE": True,
-#     "ENVIRONMENT": None,  # Can be set to show environment badge
-#     # "DASHBOARD_CALLBACK": "merlin.dashboard.dashboard_callback",  # TEMPORARILY DISABLED FOR DEBUGGING
-#     "LOGIN": {
-#         "image": None,
-#         "redirect_after": None,
-#     },
-#     "STYLES": [],  # Temporarily disabled for debugging
-#     "SCRIPTS": [],
-#     "SIDEBAR": UNFOLD_SIDEBAR_CONFIG,
-# }
+UNFOLD = {
+    "SITE_TITLE": "Merlin Admin",
+    "SITE_HEADER": "Merlin Control Center",
+    "SITE_URL": "/",
+    "SITE_ICON": None,
+    "SITE_LOGO": None,
+    "SITE_SYMBOL": "settings",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "ENVIRONMENT": None,
+    "DASHBOARD_CALLBACK": "merlin.dashboard.dashboard_callback",
+    "LOGIN": {
+        "image": None,
+        "redirect_after": None,
+    },
+    "STYLES": [],
+    "SCRIPTS": [],
+    "SIDEBAR": UNFOLD_SIDEBAR_CONFIG,
+}
