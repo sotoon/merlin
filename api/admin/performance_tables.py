@@ -33,10 +33,10 @@ class CompensationSnapshotAdmin(BaseModelAdmin):
 
 @admin.register(SenioritySnapshot)
 class SenioritySnapshotAdmin(BaseModelAdmin):
-    list_display = ("user", "ladder", "overall_score", "effective_date", "date_created")
-    list_filter = ("ladder", "effective_date")
+    list_display = ("user", "ladder", "overall_score", "seniority_level", "effective_date", "date_created")
+    list_filter = ("ladder", "seniority_level", "effective_date")
     search_fields = ("user__name", "user__email")
-    fields = ("uuid", "user", "ladder", "title", "overall_score", "details_json", "stages_json", "effective_date", ("date_created", "date_updated"))
+    fields = ("uuid", "user", "ladder", "title", "overall_score", "seniority_level", "details_json", "stages_json", "effective_date", ("date_created", "date_updated"))
     readonly_fields = ("uuid", "date_created", "date_updated")
     autocomplete_fields = ("user", "ladder")
 
