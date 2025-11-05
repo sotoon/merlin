@@ -32,7 +32,47 @@ def dashboard_callback(request, context):
     Custom dashboard callback for Unfold admin panel.
     Returns context with statistics and recent activity widgets.
     """
+    # Initialize default values first
+    default_context = {
+        'total_users': 0,
+        'total_notes': 0,
+        'total_feedback': 0,
+        'total_feedback_requests': 0,
+        'total_forms': 0,
+        'total_cycles': 0,
+        'total_departments': 0,
+        'active_api_keys': 0,
+        'recent_notes': 0,
+        'recent_feedback': 0,
+        'recent_users': 0,
+        'latest_notes': [],
+        'latest_users': [],
+        'total_logins_this_week': 0,
+        'avg_logins_per_day': 0,
+        'unique_logins_this_week': 0,
+        'proposals_by_type': {},
+        'proposals_by_status_total': {},
+        'proposals_by_status_week': {},
+        'proposals_by_status_month': {},
+        'proposal_types': [],
+        'proposal_statuses': [],
+        'pending_proposals': 0,
+        'reviewed_proposals_this_week': 0,
+        'reviewed_proposals_this_month': 0,
+        'recent_proposals': [],
+        'pending_forms': 0,
+        'completed_forms': 0,
+        'current_cycle_name': "هیچ دوره فعالی وجود ندارد",
+    }
+    
     try:
+        # Try to get proposal types and statuses early
+        try:
+            default_context['proposal_types'] = ProposalType.choices
+            default_context['proposal_statuses'] = NoteSubmitStatus.choices
+        except Exception as e:
+            logger.error(f"Error loading proposal types/statuses: {e}", exc_info=True)
+        
         now = timezone.now()
         week_ago = now - timedelta(days=7)
         
@@ -94,20 +134,27 @@ def dashboard_callback(request, context):
         # Proposals statistics
         proposals = Note.objects.filter(type=NoteType.Proposal)
         
-        # Get Persian calendar month boundaries
-        today_greg = now.date()
-        jalali_today = JalaliDate.to_jalali(today_greg)
-        # First day of current Persian month
-        month_start_greg = JalaliDate(jalali_today.year, jalali_today.month, 1).to_gregorian()
-        # Last day of current Persian month
-        if jalali_today.month == 12:
-            # If it's the last month, calculate next year's first month
-            next_month_start = JalaliDate(jalali_today.year + 1, 1, 1).to_gregorian()
-        else:
-            next_month_start = JalaliDate(jalali_today.year, jalali_today.month + 1, 1).to_gregorian()
-        month_end_greg = next_month_start - timedelta(days=1)
-        month_start = timezone.make_aware(datetime.combine(month_start_greg, datetime.min.time()))
-        month_end = timezone.make_aware(datetime.combine(month_end_greg, datetime.max.time()))
+        # Get Persian calendar month boundaries with error handling
+        try:
+            today_greg = now.date()
+            jalali_today = JalaliDate.to_jalali(today_greg)
+            # First day of current Persian month
+            month_start_greg = JalaliDate(jalali_today.year, jalali_today.month, 1).to_gregorian()
+            # Last day of current Persian month
+            if jalali_today.month == 12:
+                # If it's the last month, calculate next year's first month
+                next_month_start = JalaliDate(jalali_today.year + 1, 1, 1).to_gregorian()
+            else:
+                next_month_start = JalaliDate(jalali_today.year, jalali_today.month + 1, 1).to_gregorian()
+            month_end_greg = next_month_start - timedelta(days=1)
+            month_start = timezone.make_aware(datetime.combine(month_start_greg, datetime.min.time()))
+            month_end = timezone.make_aware(datetime.combine(month_end_greg, datetime.max.time()))
+        except Exception as e:
+            logger.error(f"Error calculating Persian calendar dates: {e}", exc_info=True)
+            # Fallback to current month in Gregorian calendar
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+            month_end = next_month - timedelta(days=1)
         
         # Proposals by type
         proposals_by_type = defaultdict(int)
@@ -226,45 +273,8 @@ def dashboard_callback(request, context):
         })
     except Exception as e:
         logger.error(f"Error in dashboard_callback: {e}", exc_info=True)
-        # Provide default values on error
-        try:
-            proposal_types = ProposalType.choices
-            proposal_statuses = NoteSubmitStatus.choices
-        except:
-            proposal_types = []
-            proposal_statuses = []
-        
-        context.update({
-            'total_users': 0,
-            'total_notes': 0,
-            'total_feedback': 0,
-            'total_feedback_requests': 0,
-            'total_forms': 0,
-            'total_cycles': 0,
-            'total_departments': 0,
-            'active_api_keys': 0,
-            'recent_notes': 0,
-            'recent_feedback': 0,
-            'recent_users': 0,
-            'latest_notes': [],
-            'latest_users': [],
-            'total_logins_this_week': 0,
-            'avg_logins_per_day': 0,
-            'unique_logins_this_week': 0,
-            'proposals_by_type': {},
-            'proposals_by_status_total': {},
-            'proposals_by_status_week': {},
-            'proposals_by_status_month': {},
-            'proposal_types': proposal_types,
-            'proposal_statuses': proposal_statuses,
-            'pending_proposals': 0,
-            'reviewed_proposals_this_week': 0,
-            'reviewed_proposals_this_month': 0,
-            'recent_proposals': [],
-            'pending_forms': 0,
-            'completed_forms': 0,
-            'current_cycle_name': "هیچ دوره فعالی وجود ندارد",
-        })
+        # Use pre-initialized default values
+        context.update(default_context)
     
     return context
 
