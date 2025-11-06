@@ -1,0 +1,67 @@
+{# This template wraps Unfold's admin/base.html to pass through the extrastyle block #}
+{% extends 'unfold/layouts/skeleton.html' %}
+
+{% load i18n unfold %}
+
+{# Pass through extrastyle block to skeleton.html head section #}
+{% block extrastyle %}
+    {{ block.super }}
+    {# This allows child templates like index.html to inject CSS into the head #}
+{% endblock %}
+
+{# Include all the base structure from Unfold's admin/base.html #}
+{% block base %}
+    <div id="page" class="flex min-h-screen">
+        {% if not is_popup and is_nav_sidebar_enabled %}
+            {% block nav-sidebar %}
+                {% include "admin/nav_sidebar.html" %}
+            {% endblock %}
+        {% endif %}
+
+        <div id="main" class="flex-grow min-w-0">
+            {% include "unfold/helpers/header.html" %}
+
+            {% if not is_popup %}
+                {% spaceless %}
+                    {% block breadcrumbs %}
+                        <div class="px-4 lg:px-12">
+                            <div class="container mb-12 mx-auto -my-3">
+                                <ul class="flex">
+                                    {% url 'admin:index' as link %}
+                                    {% trans 'Home' as name %}
+                                    {% include 'unfold/helpers/breadcrumb_item.html' with link=link name=name %}
+                                    {% block custom_breadcrumbs %}{% endblock %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endblock %}
+                {% endspaceless %}
+            {% endif %}
+
+            <div id="content-main" class="px-4 lg:px-12">
+                <div id="content" class="container mx-auto {% block coltype %}colM{% endblock %}">
+                    {% block messages %}
+                        {% include "unfold/helpers/messages.html" %}
+                    {% endblock messages %}
+
+                    {% block pretitle %}{% endblock %}
+                    {% block content_title %}{% if title %}<h1 class="mb-6 text-3xl font-medium tracking-tight text-gray-900 dark:text-white">{{ title }}</h1>{% endif %}{% endblock %}
+                    {% block content_subtitle %}{% if subtitle %}<h2 class="mb-6 text-xl font-normal tracking-tight text-gray-600 dark:text-gray-400">{{ subtitle }}</h2>{% endif %}{% endblock %}
+                    {% block content %}
+                        {{ content }}
+                        {% block object-tools %}{% endblock %}
+                    {% endblock %}
+                    {% block sidebar %}{% endblock %}
+                    <br class="clear" />
+                </div>
+            </div>
+
+            {% block footer %}
+                {% include "unfold/helpers/footer.html" %}
+            {% endblock %}
+        </div>
+    </div>
+
+    {% include "unfold/helpers/modal.html" %}
+{% endblock %}
+
