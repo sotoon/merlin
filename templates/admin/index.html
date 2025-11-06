@@ -35,6 +35,37 @@
         .form-row select:not(.selector select) {
             max-width: 500px !important;
         }
+        
+        /* Missing Unfold/Tailwind classes - scoped to dashboard content only */
+        #content .bg-base-50 { background-color: #f9fafb !important; }
+        #content .bg-base-100 { background-color: #f3f4f6 !important; }
+        #content .bg-base-200 { background-color: #e5e7eb !important; }
+        #content .rounded-default { border-radius: 0.5rem !important; }
+        #content .shadow-xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
+        #content .text-base-400 { color: #9ca3af !important; }
+        #content .text-base-500 { color: #6b7280 !important; }
+        #content .text-base-600 { color: #4b5563 !important; }
+        #content .text-base-700 { color: #374151 !important; }
+        #content .text-base-900 { color: #111827 !important; }
+        #content .text-base-100 { color: #f3f4f6 !important; }
+        #content .border-base-100 { border-color: #f3f4f6 !important; }
+        #content .border-base-200 { border-color: #e5e7eb !important; }
+        #content .border-base-300 { border-color: #d1d5db !important; }
+        #content .border-base-700 { border-color: #374151 !important; }
+        #content .text-link { color: #3b82f6 !important; }
+        #content .text-orange-600 { color: #ea580c !important; }
+        
+        /* Dark mode - scoped to dashboard content */
+        @media (prefers-color-scheme: dark) {
+            #content .dark\\:bg-base-800 { background-color: #1f2937 !important; }
+            #content .dark\\:bg-base-900 { background-color: #111827 !important; }
+            #content .dark\\:text-base-100 { color: #f3f4f6 !important; }
+            #content .dark\\:text-base-300 { color: #d1d5db !important; }
+            #content .dark\\:text-base-400 { color: #9ca3af !important; }
+            #content .dark\\:text-white { color: #ffffff !important; }
+            #content .dark\\:border-base-700 { border-color: #374151 !important; }
+            #content .dark\\:text-orange-400 { color: #fb923c !important; }
+        }
     `;
     
     const style = document.createElement('style');
