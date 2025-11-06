@@ -142,13 +142,13 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
             | Q(leader=viewer)  # Include direct reports
         )
 
-    # Team leaders: users who have this viewer as their direct leader
-    if qs.filter(leader=viewer).exists():
-        return qs.filter(leader=viewer)
-
     # Agile coaches: users who have this viewer as their agile coach + direct reports
     if qs.filter(agile_coach=viewer).exists():
         return qs.filter(Q(agile_coach=viewer) | Q(leader=viewer))
+
+    # Team leaders: users who have this viewer as their direct leader
+    if qs.filter(leader=viewer).exists():
+        return qs.filter(leader=viewer)
 
     # Fallback: start with all; final filtering via can_view_timeline in the view
     return qs
