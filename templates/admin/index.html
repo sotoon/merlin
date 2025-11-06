@@ -8,11 +8,12 @@
 // Inject CSS into head section for reliable styling
 (function() {
     const css = `
-        /* Sidebar spacing - inline CSS for reliability */
+        /* Sidebar spacing - GLOBAL fix */
         #nav-sidebar-inner ol li > a.flex.items-center,
         #nav-sidebar-inner ol li > a[class*="flex"],
         #nav-sidebar-inner a.flex.items-center {
             gap: 0.5rem !important;
+            padding: 0.5rem 1rem !important;
         }
         #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
         #nav-sidebar-inner a > span.material-symbols-outlined,
@@ -21,6 +22,27 @@
         }
         #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
             margin-right: 0.5rem !important;
+        }
+        
+        /* Sidebar text visibility on staging */
+        #nav-sidebar a,
+        #nav-sidebar-inner a,
+        #nav-sidebar ol li a {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+        #nav-sidebar a:hover {
+            color: rgba(255, 255, 255, 1) !important;
+        }
+        
+        /* Fix header - ensure site name shows in top right */
+        #site-name {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        #site-name a {
+            color: inherit !important;
+            text-decoration: none !important;
         }
         
         /* Fix Note dropdown width */
