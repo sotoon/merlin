@@ -3,40 +3,45 @@
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
-{% block extrastyle %}
-{{ block.super }}
-<style>
-    /* Sidebar spacing - inline CSS for reliability */
-    #nav-sidebar-inner ol li > a.flex.items-center,
-    #nav-sidebar-inner ol li > a[class*="flex"],
-    #nav-sidebar-inner a.flex.items-center {
-        gap: 0.5rem !important;
-    }
-    #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
-    #nav-sidebar-inner a > span.material-symbols-outlined,
-    #nav-sidebar-inner span.material-symbols-outlined:first-child {
-        margin-right: 0.5rem !important;
-    }
-    #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
-        margin-right: 0.5rem !important;
-    }
-    
-    /* Fix Note dropdown width */
-    select[id*="note"],
-    select[name*="note"],
-    .field-note select {
-        max-width: 400px !important;
-        width: 100% !important;
-    }
-    
-    /* Limit foreign key selects */
-    .form-row select:not(.selector select) {
-        max-width: 500px !important;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
+<script>
+// Inject CSS into head section for reliable styling
+(function() {
+    const css = `
+        /* Sidebar spacing - inline CSS for reliability */
+        #nav-sidebar-inner ol li > a.flex.items-center,
+        #nav-sidebar-inner ol li > a[class*="flex"],
+        #nav-sidebar-inner a.flex.items-center {
+            gap: 0.5rem !important;
+        }
+        #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
+        #nav-sidebar-inner a > span.material-symbols-outlined,
+        #nav-sidebar-inner span.material-symbols-outlined:first-child {
+            margin-right: 0.5rem !important;
+        }
+        #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Fix Note dropdown width */
+        select[id*="note"],
+        select[name*="note"],
+        .field-note select {
+            max-width: 400px !important;
+            width: 100% !important;
+        }
+        
+        /* Limit foreign key selects */
+        .form-row select:not(.selector select) {
+            max-width: 500px !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+})();
+</script>
 <!-- CUSTOM DASHBOARD TEMPLATE LOADED -->
 <div class="flex flex-col lg:flex-row lg:gap-8">
     <div class="grow">
