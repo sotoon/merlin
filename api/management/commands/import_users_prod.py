@@ -75,16 +75,29 @@ class Command(BaseCommand):
                                     continue
 
                                 # Create or get user (PRODUCTION-SAFE: No deletion)
-                                user, user_created = User.objects.update_or_create(
-                                    email=email,
-                                    defaults={
-                                        "name": name,
-                                        "gmail": gmail,
-                                        "phone": phone,
-                                        "username": email,
-                                        "is_active": True,
-                                    }
-                                )
+                                # Use case-insensitive email lookup to avoid duplicates
+                                existing_user = User.objects.filter(email__iexact=email).first()
+                                if existing_user:
+                                    # Update existing user
+                                    user = existing_user
+                                    user_created = False
+                                    user.name = name
+                                    user.gmail = gmail
+                                    user.phone = phone
+                                    user.username = email
+                                    user.is_active = True
+                                    user.save(update_fields=["name", "gmail", "phone", "username", "is_active"])
+                                else:
+                                    # Create new user
+                                    user = User.objects.create(
+                                        email=email,
+                                        name=name,
+                                        gmail=gmail,
+                                        phone=phone,
+                                        username=email,
+                                        is_active=True,
+                                    )
+                                    user_created = True
 
                                 if user_created:
                                     created += 1
@@ -125,7 +138,7 @@ class Command(BaseCommand):
                                 if not email:
                                     continue
 
-                                user = User.objects.filter(email=email).first()
+                                user = User.objects.filter(email__iexact=email).first()
                                 if not user:
                                     prod_import.logger.log_operation(
                                         "user_not_found",
@@ -223,7 +236,7 @@ class Command(BaseCommand):
 
                                 # Update leader relationship (PRODUCTION-SAFE: Only update, no deletion)
                                 if leader_email:
-                                    leader = User.objects.filter(email=leader_email).first()
+                                    leader = User.objects.filter(email__iexact=leader_email).first()
                                     if leader:
                                         if user.leader != leader or force_update:
                                             user.leader = leader
@@ -242,7 +255,7 @@ class Command(BaseCommand):
 
                                 # Update agile coach (PRODUCTION-SAFE: Only update, no deletion)
                                 if agile_coach_email:
-                                    agile_coach = User.objects.filter(email=agile_coach_email).first()
+                                    agile_coach = User.objects.filter(email__iexact=agile_coach_email).first()
                                     if agile_coach:
                                         if user.agile_coach != agile_coach or force_update:
                                             user.agile_coach = agile_coach
@@ -298,16 +311,29 @@ class Command(BaseCommand):
                                     continue
 
                                 # Create or get user (PRODUCTION-SAFE: No deletion)
-                                user, user_created = User.objects.update_or_create(
-                                    email=email,
-                                    defaults={
-                                        "name": name,
-                                        "gmail": gmail,
-                                        "phone": phone,
-                                        "username": email,
-                                        "is_active": True,
-                                    }
-                                )
+                                # Use case-insensitive email lookup to avoid duplicates
+                                existing_user = User.objects.filter(email__iexact=email).first()
+                                if existing_user:
+                                    # Update existing user
+                                    user = existing_user
+                                    user_created = False
+                                    user.name = name
+                                    user.gmail = gmail
+                                    user.phone = phone
+                                    user.username = email
+                                    user.is_active = True
+                                    user.save(update_fields=["name", "gmail", "phone", "username", "is_active"])
+                                else:
+                                    # Create new user
+                                    user = User.objects.create(
+                                        email=email,
+                                        name=name,
+                                        gmail=gmail,
+                                        phone=phone,
+                                        username=email,
+                                        is_active=True,
+                                    )
+                                    user_created = True
 
                                 if user_created:
                                     created += 1
@@ -349,7 +375,7 @@ class Command(BaseCommand):
                                 if not email:
                                     continue
 
-                                user = User.objects.filter(email=email).first()
+                                user = User.objects.filter(email__iexact=email).first()
                                 if not user:
                                     prod_import.logger.log_operation(
                                         "user_not_found",
@@ -447,7 +473,7 @@ class Command(BaseCommand):
 
                                 # Update leader relationship (PRODUCTION-SAFE: Only update, no deletion)
                                 if leader_email:
-                                    leader = User.objects.filter(email=leader_email).first()
+                                    leader = User.objects.filter(email__iexact=leader_email).first()
                                     if leader:
                                         if user.leader != leader or force_update:
                                             user.leader = leader
@@ -466,7 +492,7 @@ class Command(BaseCommand):
 
                                 # Update agile coach (PRODUCTION-SAFE: Only update, no deletion)
                                 if agile_coach_email:
-                                    agile_coach = User.objects.filter(email=agile_coach_email).first()
+                                    agile_coach = User.objects.filter(email__iexact=agile_coach_email).first()
                                     if agile_coach:
                                         if user.agile_coach != agile_coach or force_update:
                                             user.agile_coach = agile_coach
