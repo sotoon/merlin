@@ -31,7 +31,8 @@ from api.models.performance_tables import (
 )
 from api.models.note import Note, Summary, Feedback
 from api.models.activity import OneOnOneActivityLog
-from api.models.form import Form, FormAssignment
+from api.models.form import FormResponse, FormAssignment
+from api.models.organization import Team, Chapter, Tribe, Organization
 
 
 class Command(BaseCommand):
@@ -91,6 +92,7 @@ class Command(BaseCommand):
         start_time = date_obj_utc
         end_time = date_obj_utc.replace(second=59)
         
+        # Find users created on the target date (these are potential duplicates)
         candidates = User.objects.filter(
             date_created__gte=start_time,
             date_created__lte=end_time,
@@ -98,26 +100,68 @@ class Command(BaseCommand):
 
         self.stdout.write(f"\nFound {candidates.count()} candidate users created in that time window")
 
-        # Group by case-insensitive email
+        # For each candidate, check if there's an existing user with the same email (case-insensitive)
+        # created BEFORE the target date OR with NULL date_created. If so, the candidate is a duplicate.
+        duplicates_found = {}
+        for candidate in candidates:
+            email_lower = candidate.email.lower()
+            
+            # Check if there's an existing user with the same email created before the target date
+            # OR with NULL date_created (treat NULL as oldest/original)
+            existing_user = User.objects.filter(
+                email__iexact=email_lower
+            ).filter(
+                Q(date_created__lt=start_time) | Q(date_created__isnull=True)
+            ).order_by('date_created').first()  # NULL dates come first in ascending order
+            
+            if existing_user:
+                # Found a duplicate! The candidate is a duplicate of the existing user
+                if email_lower not in duplicates_found:
+                    duplicates_found[email_lower] = {
+                        'original': existing_user,
+                        'duplicates': []
+                    }
+                duplicates_found[email_lower]['duplicates'].append(candidate)
+        
+        # Also check for duplicates within the candidates themselves (multiple users created on same date)
         email_groups = {}
-        for user in candidates:
-            email_lower = user.email.lower()
+        for candidate in candidates:
+            email_lower = candidate.email.lower()
             if email_lower not in email_groups:
                 email_groups[email_lower] = []
-            email_groups[email_lower].append(user)
-
-        # Find duplicates (groups with more than one user)
-        duplicates_found = {email: users for email, users in email_groups.items() if len(users) > 1}
+            email_groups[email_lower].append(candidate)
+        
+        # Add intra-day duplicates
+        for email_lower, users in email_groups.items():
+            if len(users) > 1:
+                # Multiple users with same email created on same date
+                if email_lower not in duplicates_found:
+                    # Sort to find original (prefer lowercase email, then oldest)
+                    # Handle NULL dates: treat them as oldest (before any actual date)
+                    users_sorted = sorted(users, key=lambda u: (
+                        u.email.lower() != email_lower,
+                        u.date_created if u.date_created is not None else datetime.min.replace(tzinfo=pytz.UTC)
+                    ))
+                    duplicates_found[email_lower] = {
+                        'original': users_sorted[0],
+                        'duplicates': users_sorted[1:]
+                    }
+                else:
+                    # Already have an original from before, add these as additional duplicates
+                    duplicates_found[email_lower]['duplicates'].extend(users)
         
         if not duplicates_found:
             self.stdout.write(self.style.SUCCESS("No duplicate users found!"))
             return
 
         self.stdout.write(f"\nFound {len(duplicates_found)} duplicate email groups:")
-        for email, users in duplicates_found.items():
-            self.stdout.write(f"  {email}: {len(users)} users")
-            for user in users:
-                self.stdout.write(f"    - {user.email} (ID: {user.id}, created: {user.date_created})")
+        for email_lower, dup_info in duplicates_found.items():
+            original = dup_info['original']
+            duplicates = dup_info['duplicates']
+            self.stdout.write(f"  {email_lower}: 1 original + {len(duplicates)} duplicate(s)")
+            self.stdout.write(f"    Original: {original.email} (ID: {original.id}, created: {original.date_created})")
+            for dup in duplicates:
+                self.stdout.write(f"    Duplicate: {dup.email} (ID: {dup.id}, created: {dup.date_created})")
 
         if dry_run:
             self.stdout.write(self.style.WARNING("\nDRY RUN - No changes will be made"))
@@ -136,19 +180,21 @@ class Command(BaseCommand):
         ))
 
         with transaction.atomic():
-            for email_lower, users in duplicates_found.items():
-                # Determine original (prefer lowercase email, then oldest)
-                original = None
-                duplicates = []
-
-                # Sort by email (lowercase first) then by creation date
-                users_sorted = sorted(users, key=lambda u: (u.email.lower() != email_lower, u.date_created))
-
-                original = users_sorted[0]
-                duplicates = users_sorted[1:]
+            for email_lower, dup_info in duplicates_found.items():
+                original = dup_info['original']
+                duplicates = dup_info['duplicates']
 
                 self.stdout.write(f"\nProcessing {email_lower}:")
                 self.stdout.write(f"  Original (KEEPING): {original.email} (ID: {original.id}, created: {original.date_created})")
+                
+                # SAFETY CHECK: Original should NOT be in the target time window
+                # Handle NULL date_created (treat as not in window)
+                if original.date_created is not None and start_time <= original.date_created <= end_time:
+                    self.stdout.write(self.style.ERROR(
+                        f"  ⚠️  WARNING: Original user was created in target time window! "
+                        f"This might indicate an issue. Original will be kept, but please verify."
+                    ))
+                
                 for dup in duplicates:
                     # SAFETY CHECK: Verify duplicate was created in the target time window
                     if not (start_time <= dup.date_created <= end_time):
@@ -285,12 +331,12 @@ class Command(BaseCommand):
         if count > 0:
             self.stdout.write(f"      - Transferred {count} activity logs")
 
-        # Forms
-        forms = Form.objects.filter(user=duplicate_user)
-        count = forms.update(user=original_user)
+        # FormResponse (user-specific form responses)
+        form_responses = FormResponse.objects.filter(user=duplicate_user)
+        count = form_responses.update(user=original_user)
         transferred_count += count
         if count > 0:
-            self.stdout.write(f"      - Transferred {count} forms")
+            self.stdout.write(f"      - Transferred {count} form responses")
 
         # FormAssignments
         assigned_forms = FormAssignment.objects.filter(assigned_to=duplicate_user)
@@ -346,9 +392,50 @@ class Command(BaseCommand):
         if count > 0:
             self.stdout.write(f"      - Updated {count} users with agile_coach reference")
 
-        # If duplicate was a leader/coach, we should preserve that relationship on original
-        # But this is tricky - we might want to merge organizational data
-        # For now, we'll just update the references
+        # Update PROTECT foreign key references (must be done before deletion)
+        # Team.leader
+        teams = Team.objects.filter(leader=duplicate_user)
+        count = teams.update(leader=original_user)
+        transferred_count += count
+        if count > 0:
+            self.stdout.write(f"      - Updated {count} teams with leader reference")
+
+        # Chapter.leader
+        chapters = Chapter.objects.filter(leader=duplicate_user)
+        count = chapters.update(leader=original_user)
+        transferred_count += count
+        if count > 0:
+            self.stdout.write(f"      - Updated {count} chapters with leader reference")
+
+        # Tribe.leader
+        tribes_leader = Tribe.objects.filter(leader=duplicate_user)
+        count = tribes_leader.update(leader=original_user)
+        transferred_count += count
+        if count > 0:
+            self.stdout.write(f"      - Updated {count} tribes with leader reference")
+
+        # Tribe.engineering_director
+        tribes_eng = Tribe.objects.filter(engineering_director=duplicate_user)
+        count = tribes_eng.update(engineering_director=original_user)
+        transferred_count += count
+        if count > 0:
+            self.stdout.write(f"      - Updated {count} tribes with engineering_director reference")
+
+        # Tribe.product_director
+        tribes_prod = Tribe.objects.filter(product_director=duplicate_user)
+        count = tribes_prod.update(product_director=original_user)
+        transferred_count += count
+        if count > 0:
+            self.stdout.write(f"      - Updated {count} tribes with product_director reference")
+
+        # Organization role references (all PROTECT)
+        org_fields = ['cto', 'vp', 'ceo', 'cpo', 'hr_manager', 'sales_manager', 'cfo', 'function_owner', 'maintainer']
+        for field in org_fields:
+            orgs = Organization.objects.filter(**{field: duplicate_user})
+            count = orgs.update(**{field: original_user})
+            transferred_count += count
+            if count > 0:
+                self.stdout.write(f"      - Updated {count} organizations with {field} reference")
 
         return transferred_count
 
