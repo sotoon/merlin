@@ -4,29 +4,40 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-    /* Sidebar spacing - applied globally on all admin pages */
-    #nav-sidebar-inner ol li > a.flex.items-center,
-    #nav-sidebar-inner ol li > a[class*="flex"],
-    #nav-sidebar-inner a.flex.items-center {
+    /* Sidebar spacing - UNIVERSAL SELECTORS for all environments */
+    aside ol li > a,
+    aside ol li > a[class*="flex"],
+    nav ol li > a,
+    nav ol li > a[class*="flex"],
+    #nav-sidebar ol li > a,
+    #nav-sidebar-inner ol li > a {
         gap: 0.75rem !important;
         padding: 0.5rem 1rem !important;
+        display: flex !important;
+        align-items: center !important;
     }
-    #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
-    #nav-sidebar-inner a > span.material-symbols-outlined,
-    #nav-sidebar-inner span.material-symbols-outlined:first-child {
+    aside ol li > a > span.material-symbols-outlined,
+    aside ol li > a > span[class*="material"],
+    nav ol li > a > span.material-symbols-outlined,
+    #nav-sidebar ol li > a > span.material-symbols-outlined,
+    #nav-sidebar-inner ol li > a > span.material-symbols-outlined {
         margin-right: 0.75rem !important;
         display: inline-block !important;
     }
-    #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
+    aside ol li > a > *:first-child:not(:last-child),
+    nav ol li > a > *:first-child:not(:last-child) {
         margin-right: 0.75rem !important;
     }
     
-    /* Sidebar text visibility - applied globally */
+    /* Sidebar text visibility - UNIVERSAL */
+    aside ol li a,
+    nav ol li a,
     #nav-sidebar a,
-    #nav-sidebar-inner a,
-    #nav-sidebar ol li a {
+    #nav-sidebar-inner a {
         color: rgba(255, 255, 255, 0.85) !important;
     }
+    aside ol li a:hover,
+    nav ol li a:hover,
     #nav-sidebar a:hover,
     #nav-sidebar-inner a:hover {
         color: rgba(255, 255, 255, 1) !important;
@@ -55,27 +66,37 @@
         font-weight: 500 !important;
     }
     
-    /* Sidebar active/selected state highlighting - light purple background, white bold text for better contrast */
+    /* Sidebar active/selected state highlighting - UNIVERSAL */
+    aside ol li.selected > a,
+    aside ol li[class*="selected"] > a,
+    aside ol li > a[aria-current="page"],
+    aside ol li > a.active,
+    nav ol li.selected > a,
+    nav ol li > a[aria-current="page"],
+    nav ol li > a.active,
+    #nav-sidebar ol li.selected > a,
+    #nav-sidebar ol li > a[aria-current="page"],
     #nav-sidebar-inner ol li.selected > a,
-    #nav-sidebar-inner ol li[class*="selected"] > a,
-    #nav-sidebar-inner ol li > a[aria-current="page"],
-    #nav-sidebar-inner ol li > a.active,
-    #nav-sidebar-inner a[aria-current="page"],
-    #nav-sidebar-inner a.active {
-        background-color: rgba(139, 92, 246, 0.4) !important; /* medium purple with opacity */
-        color: #ffffff !important; /* white text for better contrast */
-        font-weight: 700 !important; /* bold */
+    #nav-sidebar-inner ol li > a[aria-current="page"] {
+        background-color: rgba(139, 92, 246, 0.4) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 0.375rem !important;
     }
-    #nav-sidebar-inner ol li.selected > a:hover,
-    #nav-sidebar-inner ol li > a[aria-current="page"]:hover,
-    #nav-sidebar-inner ol li > a.active:hover {
-        background-color: rgba(139, 92, 246, 0.5) !important; /* slightly darker purple */
+    aside ol li.selected > a:hover,
+    aside ol li > a[aria-current="page"]:hover,
+    aside ol li > a.active:hover,
+    nav ol li > a[aria-current="page"]:hover {
+        background-color: rgba(139, 92, 246, 0.5) !important;
     }
-    /* Also style icons in active items */
-    #nav-sidebar-inner ol li.selected > a .material-symbols-outlined,
-    #nav-sidebar-inner ol li > a.active .material-symbols-outlined,
-    #nav-sidebar-inner ol li > a[aria-current="page"] .material-symbols-outlined {
-        color: #ffffff !important; /* white icons for better contrast */
+    /* Also style icons in active items - UNIVERSAL */
+    aside ol li.selected > a .material-symbols-outlined,
+    aside ol li > a.active .material-symbols-outlined,
+    aside ol li > a[aria-current="page"] span,
+    nav ol li > a[aria-current="page"] span,
+    #nav-sidebar ol li > a[aria-current="page"] span,
+    #nav-sidebar-inner ol li > a[aria-current="page"] span {
+        color: #ffffff !important;
     }
     
     /* Fix dropdown/select borders with consistent width */
@@ -212,29 +233,40 @@
     if (existing) existing.remove();
     
     const css = `
-        /* Sidebar spacing - applied globally on all admin pages */
-        #nav-sidebar-inner ol li > a.flex.items-center,
-        #nav-sidebar-inner ol li > a[class*="flex"],
-        #nav-sidebar-inner a.flex.items-center {
+        /* Sidebar spacing - applied globally on all admin pages - UNIVERSAL SELECTORS */
+        aside ol li > a,
+        aside ol li > a[class*="flex"],
+        nav ol li > a,
+        nav ol li > a[class*="flex"],
+        #nav-sidebar ol li > a,
+        #nav-sidebar-inner ol li > a {
             gap: 0.75rem !important;
             padding: 0.5rem 1rem !important;
+            display: flex !important;
+            align-items: center !important;
         }
-        #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
-        #nav-sidebar-inner a > span.material-symbols-outlined,
-        #nav-sidebar-inner span.material-symbols-outlined:first-child {
+        aside ol li > a > span.material-symbols-outlined,
+        aside ol li > a > span[class*="material"],
+        nav ol li > a > span.material-symbols-outlined,
+        #nav-sidebar ol li > a > span.material-symbols-outlined,
+        #nav-sidebar-inner ol li > a > span.material-symbols-outlined {
             margin-right: 0.75rem !important;
             display: inline-block !important;
         }
-        #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
+        aside ol li > a > *:first-child:not(:last-child),
+        nav ol li > a > *:first-child:not(:last-child) {
             margin-right: 0.75rem !important;
         }
         
-        /* Sidebar text visibility - applied globally */
+        /* Sidebar text visibility - applied globally - UNIVERSAL */
+        aside ol li a,
+        nav ol li a,
         #nav-sidebar a,
-        #nav-sidebar-inner a,
-        #nav-sidebar ol li a {
+        #nav-sidebar-inner a {
             color: rgba(255, 255, 255, 0.85) !important;
         }
+        aside ol li a:hover,
+        nav ol li a:hover,
         #nav-sidebar a:hover,
         #nav-sidebar-inner a:hover {
             color: rgba(255, 255, 255, 1) !important;
@@ -263,27 +295,37 @@
             font-weight: 500 !important;
         }
         
-        /* Sidebar active/selected state highlighting - light purple background, white bold text for better contrast */
+        /* Sidebar active/selected state highlighting - UNIVERSAL */
+        aside ol li.selected > a,
+        aside ol li[class*="selected"] > a,
+        aside ol li > a[aria-current="page"],
+        aside ol li > a.active,
+        nav ol li.selected > a,
+        nav ol li > a[aria-current="page"],
+        nav ol li > a.active,
+        #nav-sidebar ol li.selected > a,
+        #nav-sidebar ol li > a[aria-current="page"],
         #nav-sidebar-inner ol li.selected > a,
-        #nav-sidebar-inner ol li[class*="selected"] > a,
-        #nav-sidebar-inner ol li > a[aria-current="page"],
-        #nav-sidebar-inner ol li > a.active,
-        #nav-sidebar-inner a[aria-current="page"],
-        #nav-sidebar-inner a.active {
-            background-color: rgba(139, 92, 246, 0.4) !important; /* medium purple with opacity */
-            color: #ffffff !important; /* white text for better contrast */
-            font-weight: 700 !important; /* bold */
+        #nav-sidebar-inner ol li > a[aria-current="page"] {
+            background-color: rgba(139, 92, 246, 0.4) !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0.375rem !important;
         }
-        #nav-sidebar-inner ol li.selected > a:hover,
-        #nav-sidebar-inner ol li > a[aria-current="page"]:hover,
-        #nav-sidebar-inner ol li > a.active:hover {
-            background-color: rgba(139, 92, 246, 0.5) !important; /* slightly darker purple */
+        aside ol li.selected > a:hover,
+        aside ol li > a[aria-current="page"]:hover,
+        aside ol li > a.active:hover,
+        nav ol li > a[aria-current="page"]:hover {
+            background-color: rgba(139, 92, 246, 0.5) !important;
         }
-        /* Also style icons in active items */
-        #nav-sidebar-inner ol li.selected > a .material-symbols-outlined,
-        #nav-sidebar-inner ol li > a.active .material-symbols-outlined,
-        #nav-sidebar-inner ol li > a[aria-current="page"] .material-symbols-outlined {
-            color: #ffffff !important; /* white icons for better contrast */
+        /* Also style icons in active items - UNIVERSAL */
+        aside ol li.selected > a .material-symbols-outlined,
+        aside ol li > a.active .material-symbols-outlined,
+        aside ol li > a[aria-current="page"] span,
+        nav ol li > a[aria-current="page"] span,
+        #nav-sidebar ol li > a[aria-current="page"] span,
+        #nav-sidebar-inner ol li > a[aria-current="page"] span {
+            color: #ffffff !important;
         }
         
         /* Fix action buttons - override Tailwind vertical spacing */
@@ -335,7 +377,8 @@
     // Mark active sidebar items based on current URL (run after DOM loads)
     function markActiveSidebarItems() {
         const currentPath = window.location.pathname;
-        const sidebarLinks = document.querySelectorAll('#nav-sidebar-inner a[href]');
+        // Use universal selectors to find sidebar links
+        const sidebarLinks = document.querySelectorAll('aside ol li a[href], nav ol li a[href], #nav-sidebar a[href], #nav-sidebar-inner a[href]');
         
         sidebarLinks.forEach(function(link) {
             try {
