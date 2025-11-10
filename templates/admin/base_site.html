@@ -220,6 +220,31 @@
         gap: 0.5rem !important;
         align-items: center !important;
     }
+    
+    /* Fix True/False icons in tables */
+    .material-symbols-outlined,
+    span[class*="material-symbols"],
+    img[src*="icon-yes"],
+    img[src*="icon-no"],
+    img[src*="icon-unknown"] {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    /* Ensure boolean fields show icons */
+    td.field-is_active,
+    td.field-is_completed,
+    td[class*="field-is_"],
+    td[class*="field-has_"] {
+        font-size: 1.25rem !important;
+    }
+    td.field-is_active span,
+    td.field-is_completed span,
+    td[class*="field-is_"] span,
+    td[class*="field-has_"] span {
+        display: inline-block !important;
+        visibility: visible !important;
+    }
 </style>
 {% endblock %}
 
@@ -355,6 +380,31 @@
             flex-direction: row !important;
             gap: 0.5rem !important;
             align-items: center !important;
+        }
+        
+        /* Fix True/False icons in tables */
+        .material-symbols-outlined,
+        span[class*="material-symbols"],
+        img[src*="icon-yes"],
+        img[src*="icon-no"],
+        img[src*="icon-unknown"] {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        /* Ensure boolean fields show icons */
+        td.field-is_active,
+        td.field-is_completed,
+        td[class*="field-is_"],
+        td[class*="field-has_"] {
+            font-size: 1.25rem !important;
+        }
+        td.field-is_active span,
+        td.field-is_completed span,
+        td[class*="field-is_"] span,
+        td[class*="field-has_"] span {
+            display: inline-block !important;
+            visibility: visible !important;
         }
     `;
     
