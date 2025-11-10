@@ -79,9 +79,18 @@
     `;
     
     const style = document.createElement('style');
-    style.id = 'global-admin-styles';
+    style.id = 'app-index-admin-styles';
     style.textContent = css;
-    document.head.appendChild(style);
+    
+    if (document.head) {
+        document.head.appendChild(style);
+        console.log('[Merlin App Index] Styles injected');
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.head.appendChild(style);
+            console.log('[Merlin App Index] Styles injected (delayed)');
+        });
+    }
     
     // Inject site branding - always use fixed positioning for reliability
     function injectSiteBranding() {
@@ -119,7 +128,16 @@
     } else {
         tryInjectBranding();
     }
-    window.addEventListener('load', injectSiteBranding);
+    window.addEventListener('load', function() {
+        injectSiteBranding();
+        console.log('[Merlin App Index] Site branding injected');
+    });
+    
+    // Additional failsafe
+    setTimeout(function() {
+        injectSiteBranding();
+        console.log('[Merlin App Index] Failsafe branding injection');
+    }, 1000);
 })();
 </script>
 {{ block.super }}

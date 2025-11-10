@@ -207,8 +207,9 @@
 <script>
 // Inject global CSS as fallback (Unfold may not pass extrastyle through)
 (function() {
-    // Only inject if not already injected (avoid duplicates)
-    if (document.getElementById('global-admin-styles')) return;
+    // Force remove any existing to ensure fresh injection
+    const existing = document.getElementById('global-admin-styles');
+    if (existing) existing.remove();
     
     const css = `
         /* Sidebar spacing - applied globally on all admin pages */
@@ -318,7 +319,18 @@
     const style = document.createElement('style');
     style.id = 'global-admin-styles';
     style.textContent = css;
-    document.head.appendChild(style);
+    
+    // Force inject at the very end of head to override everything
+    if (document.head) {
+        document.head.appendChild(style);
+        console.log('[Merlin Admin] Global styles injected');
+    } else {
+        // Fallback if head doesn't exist yet
+        document.addEventListener('DOMContentLoaded', function() {
+            document.head.appendChild(style);
+            console.log('[Merlin Admin] Global styles injected (delayed)');
+        });
+    }
     
     // Mark active sidebar items based on current URL (run after DOM loads)
     function markActiveSidebarItems() {
@@ -353,6 +365,12 @@
     } else {
         markActiveSidebarItems();
     }
+    
+    // Also run on window load as additional fallback
+    window.addEventListener('load', function() {
+        markActiveSidebarItems();
+        console.log('[Merlin Admin] Active sidebar items marked');
+    });
     
     // Inject site branding - always use fixed positioning for reliability
     function injectSiteBranding() {
@@ -390,7 +408,17 @@
     } else {
         tryInjectBranding();
     }
-    window.addEventListener('load', injectSiteBranding);
+    window.addEventListener('load', function() {
+        injectSiteBranding();
+        console.log('[Merlin Admin] Site branding injected');
+    });
+    
+    // Additional failsafe - run after a delay
+    setTimeout(function() {
+        injectSiteBranding();
+        markActiveSidebarItems();
+        console.log('[Merlin Admin] Failsafe injection completed');
+    }, 1000);
 })();
 </script>
 {% endblock %}
