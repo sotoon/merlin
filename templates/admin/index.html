@@ -8,41 +8,92 @@
 // Inject CSS into head section for reliable styling
 (function() {
     const css = `
-        /* Sidebar spacing - GLOBAL fix */
+        /* Sidebar spacing - ensure it works on dashboard homepage */
         #nav-sidebar-inner ol li > a.flex.items-center,
         #nav-sidebar-inner ol li > a[class*="flex"],
         #nav-sidebar-inner a.flex.items-center {
-            gap: 0.5rem !important;
+            gap: 0.75rem !important;
             padding: 0.5rem 1rem !important;
         }
         #nav-sidebar-inner ol li > a > span.material-symbols-outlined,
         #nav-sidebar-inner a > span.material-symbols-outlined,
         #nav-sidebar-inner span.material-symbols-outlined:first-child {
-            margin-right: 0.5rem !important;
+            margin-right: 0.75rem !important;
+            display: inline-block !important;
         }
         #nav-sidebar-inner ol li > a.flex.items-center > *:first-child:not(:last-child) {
-            margin-right: 0.5rem !important;
+            margin-right: 0.75rem !important;
         }
         
-        /* Sidebar text visibility on staging */
-        #nav-sidebar a,
-        #nav-sidebar-inner a,
-        #nav-sidebar ol li a {
-            color: rgba(255, 255, 255, 0.85) !important;
-        }
-        #nav-sidebar a:hover {
-            color: rgba(255, 255, 255, 1) !important;
-        }
-        
-        /* Fix header - ensure site name shows in top right */
-        #site-name {
-            display: block !important;
+        /* Fix header - ensure site name shows on dashboard */
+        #site-name,
+        header #site-name,
+        .header #site-name {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
             visibility: visible !important;
             opacity: 1 !important;
         }
         #site-name a {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
             color: inherit !important;
             text-decoration: none !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Sidebar active/selected state highlighting - light purple background, white bold text for better contrast */
+        #nav-sidebar-inner ol li.selected > a,
+        #nav-sidebar-inner ol li[class*="selected"] > a,
+        #nav-sidebar-inner ol li > a[aria-current="page"],
+        #nav-sidebar-inner ol li > a.active,
+        #nav-sidebar-inner a[aria-current="page"],
+        #nav-sidebar-inner a.active {
+            background-color: rgba(139, 92, 246, 0.4) !important; /* medium purple with opacity */
+            color: #ffffff !important; /* white text for better contrast */
+            font-weight: 700 !important; /* bold */
+        }
+        #nav-sidebar-inner ol li.selected > a:hover,
+        #nav-sidebar-inner ol li > a[aria-current="page"]:hover,
+        #nav-sidebar-inner ol li > a.active:hover {
+            background-color: rgba(139, 92, 246, 0.5) !important; /* slightly darker purple */
+        }
+        /* Also style icons in active items */
+        #nav-sidebar-inner ol li.selected > a .material-symbols-outlined,
+        #nav-sidebar-inner ol li > a.active .material-symbols-outlined,
+        #nav-sidebar-inner ol li > a[aria-current="page"] .material-symbols-outlined {
+            color: #ffffff !important; /* white icons for better contrast */
+        }
+        
+        /* Fix action buttons - override Tailwind vertical spacing */
+        .space-y-0 > * + *,
+        .space-y-1 > * + *,
+        .space-y-2 > * + *,
+        .space-y-3 > * + *,
+        .space-y-4 > * + *,
+        [class*="space-y"] > * + * {
+            margin-top: 0 !important;
+            margin-left: 0.5rem !important;
+        }
+        
+        /* Force horizontal layout for button containers */
+        .flex.flex-col.space-y-2,
+        .flex.flex-col.space-y-1,
+        .flex.flex-col[class*="space-y"],
+        div[class*="flex"][class*="flex-col"][class*="space-y"] {
+            flex-direction: row !important;
+            gap: 0.5rem !important;
+        }
+        
+        /* Target any div with multiple buttons/links */
+        div:has(> a:nth-child(2)),
+        div:has(> button:nth-child(2)) {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 0.5rem !important;
+            align-items: center !important;
         }
         
         /* Fix Note dropdown width */
@@ -93,6 +144,44 @@
     const style = document.createElement('style');
     style.textContent = css;
     document.head.appendChild(style);
+    
+    // Inject site branding - always use fixed positioning for reliability
+    function injectSiteBranding() {
+        // Remove any existing injected branding to avoid duplicates
+        const existing = document.getElementById('injected-site-name');
+        if (existing) existing.remove();
+        
+        // Check if template-provided site-name exists and has content
+        const templateSiteName = document.getElementById('site-name');
+        if (templateSiteName && templateSiteName.innerHTML.trim() && templateSiteName.offsetParent !== null) {
+            // Template provided it and it's visible, ensure it's styled correctly
+            templateSiteName.style.cssText = 'display: flex !important; align-items: center !important; gap: 0.5rem !important; visibility: visible !important; opacity: 1 !important;';
+            return;
+        }
+        
+        // Always inject with fixed positioning - most reliable
+        const brandingHTML = '<a href="/admin/" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #ffffff; font-weight: 500; height: 100%;"><span class="material-symbols-outlined" style="font-size: 1.25rem; background-color: rgba(139, 92, 246, 0.6); padding: 0.5rem; border-radius: 0.5rem; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;">home</span><span style="display: flex; align-items: center; line-height: 1; font-size: 1.125rem;">Merlin Control Center</span></a>';
+        
+        const siteName = document.createElement('div');
+        siteName.id = 'injected-site-name';
+        siteName.style.cssText = 'position: fixed !important; top: 1rem !important; right: 1rem !important; z-index: 9999 !important; display: flex !important; align-items: center !important; background: rgba(0, 0, 0, 0.85) !important; padding: 0.75rem 1rem !important; border-radius: 0.5rem !important; color: #ffffff !important; height: auto !important;';
+        siteName.innerHTML = brandingHTML;
+        document.body.appendChild(siteName);
+    }
+    
+    // Run multiple times to catch different load states
+    function tryInjectBranding() {
+        injectSiteBranding();
+        setTimeout(injectSiteBranding, 100);
+        setTimeout(injectSiteBranding, 500);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInjectBranding);
+    } else {
+        tryInjectBranding();
+    }
+    window.addEventListener('load', injectSiteBranding);
 })();
 </script>
 <!-- CUSTOM DASHBOARD TEMPLATE LOADED -->
