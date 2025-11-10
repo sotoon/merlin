@@ -221,7 +221,27 @@
         align-items: center !important;
     }
     
-    /* Fix True/False icons in tables */
+    /* Fix True/False icons in tables - SVG icons */
+    td svg,
+    td svg.block,
+    td div svg,
+    tbody td svg {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        min-width: 1.25rem !important;
+        min-height: 1.25rem !important;
+    }
+    /* Ensure SVG paths are visible */
+    td svg path,
+    td svg circle,
+    td svg rect {
+        fill: currentColor !important;
+        stroke: currentColor !important;
+    }
+    /* Material symbols fallback */
     .material-symbols-outlined,
     span[class*="material-symbols"],
     img[src*="icon-yes"],
@@ -230,20 +250,6 @@
         display: inline-block !important;
         visibility: visible !important;
         opacity: 1 !important;
-    }
-    /* Ensure boolean fields show icons */
-    td.field-is_active,
-    td.field-is_completed,
-    td[class*="field-is_"],
-    td[class*="field-has_"] {
-        font-size: 1.25rem !important;
-    }
-    td.field-is_active span,
-    td.field-is_completed span,
-    td[class*="field-is_"] span,
-    td[class*="field-has_"] span {
-        display: inline-block !important;
-        visibility: visible !important;
     }
 </style>
 {% endblock %}
@@ -382,7 +388,27 @@
             align-items: center !important;
         }
         
-        /* Fix True/False icons in tables */
+        /* Fix True/False icons in tables - SVG icons */
+        td svg,
+        td svg.block,
+        td div svg,
+        tbody td svg {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+            min-width: 1.25rem !important;
+            min-height: 1.25rem !important;
+        }
+        /* Ensure SVG paths are visible */
+        td svg path,
+        td svg circle,
+        td svg rect {
+            fill: currentColor !important;
+            stroke: currentColor !important;
+        }
+        /* Material symbols fallback */
         .material-symbols-outlined,
         span[class*="material-symbols"],
         img[src*="icon-yes"],
@@ -391,20 +417,6 @@
             display: inline-block !important;
             visibility: visible !important;
             opacity: 1 !important;
-        }
-        /* Ensure boolean fields show icons */
-        td.field-is_active,
-        td.field-is_completed,
-        td[class*="field-is_"],
-        td[class*="field-has_"] {
-            font-size: 1.25rem !important;
-        }
-        td.field-is_active span,
-        td.field-is_completed span,
-        td[class*="field-is_"] span,
-        td[class*="field-has_"] span {
-            display: inline-block !important;
-            visibility: visible !important;
         }
     `;
     
