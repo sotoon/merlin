@@ -262,6 +262,41 @@
         injectSiteBranding();
         console.log('[Merlin Dashboard] Failsafe branding injection');
     }, 1000);
+    
+    // Convert True/False text to icons
+    function convertBooleanFieldsToIcons() {
+        const allCells = document.querySelectorAll('tbody td');
+        let converted = 0;
+        
+        allCells.forEach(function(cell) {
+            const span = cell.querySelector('span');
+            if (span && span.textContent) {
+                const text = span.textContent.trim();
+                
+                if (text === 'True') {
+                    span.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                    span.style.color = '#10b981';
+                    converted++;
+                } else if (text === 'False') {
+                    span.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                    span.style.color = '#ef4444';
+                    converted++;
+                }
+            }
+        });
+        
+        if (converted > 0) {
+            console.log('[Merlin Dashboard] Converted ' + converted + ' boolean fields to icons');
+        }
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', convertBooleanFieldsToIcons);
+    } else {
+        convertBooleanFieldsToIcons();
+    }
+    window.addEventListener('load', convertBooleanFieldsToIcons);
+    setTimeout(convertBooleanFieldsToIcons, 500);
 })();
 </script>
 <!-- CUSTOM DASHBOARD TEMPLATE LOADED -->
