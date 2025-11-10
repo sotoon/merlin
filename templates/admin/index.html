@@ -142,8 +142,18 @@
     `;
     
     const style = document.createElement('style');
+    style.id = 'dashboard-admin-styles';
     style.textContent = css;
-    document.head.appendChild(style);
+    
+    if (document.head) {
+        document.head.appendChild(style);
+        console.log('[Merlin Dashboard] Styles injected');
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.head.appendChild(style);
+            console.log('[Merlin Dashboard] Styles injected (delayed)');
+        });
+    }
     
     // Inject site branding - always use fixed positioning for reliability
     function injectSiteBranding() {
@@ -181,7 +191,16 @@
     } else {
         tryInjectBranding();
     }
-    window.addEventListener('load', injectSiteBranding);
+    window.addEventListener('load', function() {
+        injectSiteBranding();
+        console.log('[Merlin Dashboard] Site branding injected');
+    });
+    
+    // Additional failsafe
+    setTimeout(function() {
+        injectSiteBranding();
+        console.log('[Merlin Dashboard] Failsafe branding injection');
+    }, 1000);
 })();
 </script>
 <!-- CUSTOM DASHBOARD TEMPLATE LOADED -->
