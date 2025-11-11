@@ -37,6 +37,7 @@ from api.models.timeline import (
     PayBand,
 )
 from api.serializers.note import get_current_user
+from api.services import grant_feedback_access, grant_feedback_request_access
 
 
 # ────────────────────────────────────────────────────────────────
@@ -63,6 +64,41 @@ def handle_committee_members_changed(sender, instance, action, pk_set, **kwargs)
 
 @receiver(m2m_changed, sender=Note.mentioned_users.through)
 def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
+    """
+    Handle changes to Note.mentioned_users and update ACLs accordingly.
+    Only process post_* actions to ensure the M2M relationship is already updated.
+    """
+    # Only run after the change is committed
+    if action not in ("post_add", "post_remove", "post_clear"):
+        return
+    
+    # For FEEDBACK_REQUEST notes, use the dedicated service function
+    if instance.type == NoteType.FEEDBACK_REQUEST:
+        # Get the requestees from the FeedbackRequest
+        try:
+            feedback_request = instance.feedback_request
+            requestees = [link.user for link in feedback_request.requestees.all()]
+            mentioned_users = list(instance.mentioned_users.all())
+            grant_feedback_request_access(instance, requestees, mentioned_users)
+        except Exception:
+            # If feedback_request doesn't exist, fall back to default behavior
+            NoteUserAccess.ensure_note_predefined_accesses(instance)
+        return
+    
+    # For FEEDBACK notes, use the dedicated service function
+    if instance.type == NoteType.FEEDBACK:
+        try:
+            feedback = instance.feedback
+            receiver = feedback.receiver
+            mentioned_users = list(instance.mentioned_users.all())
+            feedback_request = feedback.feedback_request
+            grant_feedback_access(instance, receiver, mentioned_users, feedback_request)
+        except Exception:
+            # If feedback doesn't exist, fall back to default behavior
+            NoteUserAccess.ensure_note_predefined_accesses(instance)
+        return
+    
+    # For all other note types, use the default access granting logic
     NoteUserAccess.ensure_note_predefined_accesses(instance)
 
 
