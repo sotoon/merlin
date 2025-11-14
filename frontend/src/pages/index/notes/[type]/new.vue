@@ -10,11 +10,12 @@
 
     <PStepper
       v-if="noteType === NOTE_TYPE.proposal"
-      class="mt-6"
+      class="my-6"
       :model-value="0"
     >
       <PStep title="پیش‌نویس" />
       <PStep title="بازبینی و ثبت‌نهایی" />
+      <PStep title="نتیجه" />
     </PStepper>
 
     <NoteForm
