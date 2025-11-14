@@ -29,6 +29,15 @@
       </div>
     </div>
 
+    <PStepper
+      v-if="note.type === NOTE_TYPE.proposal"
+      class="mt-6"
+      :model-value="1"
+    >
+      <PStep title="پیش‌نویس" />
+      <PStep title="بازبینی و ثبت‌نهایی" />
+    </PStepper>
+
     <div
       v-if="note.type === NOTE_TYPE.proposal"
       class="mt-6 flex flex-wrap items-center justify-between gap-4"
@@ -224,6 +233,8 @@ import {
   PInlineConfirm,
   PText,
   PTooltip,
+  PStepper,
+  PStep,
 } from '@pey/core';
 import {
   PeyCircleTickOutlineIcon,

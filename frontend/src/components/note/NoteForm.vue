@@ -255,5 +255,3 @@ const onSubmit = handleSubmit((values, ctx) => {
   emit('submit', values, ctx);
 });
 </script>
-
-<!-- NoteForm component with proposal type selection for proposal notes. -->
