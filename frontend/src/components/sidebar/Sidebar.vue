@@ -11,11 +11,13 @@
         <ul class="space-y-2">
           <li>
             <SidebarLinkGroup
+              guide-key="notes"
               :title="t('common.notes')"
               :is-active="isNotesGroupActive"
             >
               <li>
                 <SidebarLink
+                  id="sidebar-notes-goals"
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.goal]"
                   :label="t('common.goals')"
                   :to="{
@@ -28,6 +30,7 @@
 
               <li>
                 <SidebarLink
+                  id="sidebar-notes-forms"
                   icon="i-mdi-form"
                   :label="t('common.forms')"
                   :to="{ name: 'forms' }"
@@ -39,6 +42,7 @@
                 class="relative pr-8 before:absolute before:bottom-0 before:right-5 before:top-0 before:my-1 before:w-px before:bg-gray-20"
               >
                 <SidebarLink
+                  id="sidebar-notes-my-forms"
                   icon="i-mdi-chart-bar"
                   :label="t('common.results')"
                   :to="{ name: 'my-forms' }"
@@ -50,11 +54,13 @@
 
           <li>
             <SidebarLinkGroup
+              guide-key="promotion"
               :title="t('common.promotion')"
               :is-active="isPromotionGroupActive"
             >
               <li>
                 <SidebarLink
+                  id="sidebar-promotion-promotion"
                   :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.promotion]"
                   :label="t('proposalType.promotion')"
                   :to="{
@@ -79,6 +85,7 @@
               </li> -->
               <li>
                 <SidebarLink
+                  id="sidebar-promotion-mapping"
                   :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.mapping]"
                   :label="t('proposalType.mapping')"
                   :to="{
@@ -91,6 +98,7 @@
               </li>
               <li>
                 <SidebarLink
+                  id="sidebar-promotion-evaluation"
                   :icon="PROPOSAL_TYPE_ICON[PROPOSAL_TYPE.evaluation]"
                   :label="t('proposalType.evaluation')"
                   :to="{
@@ -106,12 +114,14 @@
 
           <li>
             <SidebarLinkGroup
+              guide-key="feedback"
               :has-badge="!!newFeedbackCount || !!newAdhocFeedbackCount"
               :title="t('common.feedback')"
               :is-active="isFeedbackGroupActive"
             >
               <li>
                 <SidebarLink
+                  id="sidebar-feedback-feedback-request"
                   :badge-count="newFeedbackCount"
                   icon="i-mdi-comment-check"
                   :label="t('common.feedbackRequest')"
@@ -121,6 +131,7 @@
               </li>
               <li>
                 <SidebarLink
+                  id="sidebar-feedback-adhoc-feedback"
                   :badge-count="newAdhocFeedbackCount"
                   icon="i-mdi-comment-quote-outline"
                   :label="t('feedback.adhocFeedback')"
@@ -130,6 +141,7 @@
               </li>
               <li>
                 <SidebarLink
+                  id="sidebar-feedback-message"
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.message]"
                   :label="t('noteType.message')"
                   :to="{
@@ -144,11 +156,13 @@
 
           <li>
             <SidebarLinkGroup
+              guide-key="personal"
               :title="t('common.personal')"
               :is-active="isPersonalGroupActive"
             >
               <li>
                 <SidebarLink
+                  id="sidebar-personal-meetings"
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.meeting]"
                   :label="t('common.meetings')"
                   :to="{
@@ -161,6 +175,7 @@
 
               <li>
                 <SidebarLink
+                  id="sidebar-personal-templates"
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.template]"
                   :label="t('common.templates')"
                   :to="{ name: 'templates' }"
@@ -170,6 +185,7 @@
 
               <li v-if="profilePermissions?.ui_hints.show_performance_table">
                 <SidebarLink
+                  id="sidebar-personal-performance-table"
                   icon="i-mdi-chart-line"
                   :label="t('common.performanceTable')"
                   :to="{ name: 'performance-list' }"
@@ -181,12 +197,14 @@
 
           <li>
             <SidebarLinkGroup
+              guide-key="my-team"
               :has-badge="!!newOneOnOneCount"
               :title="t('common.myTeam')"
               :is-active="isMyTeamGroupActive"
             >
               <li v-if="isTeamLeader">
                 <SidebarLink
+                  id="sidebar-my-team-my-team"
                   icon="i-mdi-account-group"
                   :label="t('common.myTeam')"
                   :to="{ name: 'my-team' }"
@@ -195,6 +213,7 @@
               </li>
               <li>
                 <SidebarLink
+                  id="sidebar-my-team-one-on-one"
                   :badge-count="newOneOnOneCount"
                   icon="i-mdi-account-supervisor"
                   :label="t('common.oneOnOne')"

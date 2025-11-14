@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { PText, PButton } from '@pey/core';
+import { SIDEBAR_TOUR_STEPS } from '~/constants/sidebarGuide';
 
 interface Props {
   title: string;
   hasBadge?: boolean;
   isActive?: boolean;
+  guideKey?: string;
 }
 
 const props = defineProps<Props>();
@@ -12,6 +14,11 @@ const props = defineProps<Props>();
 const isCollapsed = ref(true);
 const contentRef = ref<HTMLElement>();
 const contentHeight = ref(0);
+
+const { start: startTour } = useIntro(
+  SIDEBAR_TOUR_STEPS[props.guideKey || ''] || [],
+  `sidebar-guide-${props.guideKey}`,
+);
 
 const updateContentHeight = () => {
   if (contentRef.value) {
@@ -28,6 +35,12 @@ watch(
   },
   { immediate: true },
 );
+
+watch(isCollapsed, (newVal) => {
+  if (!newVal) {
+    startTour();
+  }
+});
 
 onMounted(updateContentHeight);
 onUpdated(updateContentHeight);
