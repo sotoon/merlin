@@ -8,7 +8,6 @@
     class="w-fit"
     body-class="px-0 py-0"
     side="right"
-    @click="sidebarOpen = false"
   >
     <Sidebar />
   </PSheet>

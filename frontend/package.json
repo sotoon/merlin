@@ -24,6 +24,7 @@
     "@vueuse/core": "^13.7.0",
     "@vueuse/router": "^10.9.0",
     "dayjs": "^1.11.13",
+    "intro.js": "^8.3.2",
     "jalaliday": "^3.1.0",
     "nuxt": "^3.10.3",
     "sass": "^1.75.0",

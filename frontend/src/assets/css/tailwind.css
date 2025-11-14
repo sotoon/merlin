@@ -7,3 +7,17 @@
     text-align: initial;
   }
 }
+
+.intro-button {
+  @apply rounded bg-primary-10 px-3 py-1;
+  font-size: 14px !important;
+}
+
+.introjs-tooltipReferenceLayer * {
+  font-family: IRANYekan, sans-serif !important;
+}
+
+.introjs-tooltiptext {
+  padding: 10px 1.25rem !important;
+  font-size: 14px !important;
+}
