@@ -31,11 +31,12 @@
 
     <PStepper
       v-if="note.type === NOTE_TYPE.proposal"
-      class="mt-6"
-      :model-value="1"
+      class="my-6"
+      :model-value="note.submit_status === NOTE_SUBMIT_STATUS.reviewed ? 2 : 1"
     >
       <PStep title="پیش‌نویس" />
       <PStep title="بازبینی و ثبت‌نهایی" />
+      <PStep title="نتیجه" />
     </PStepper>
 
     <div
