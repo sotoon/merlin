@@ -8,6 +8,16 @@
       </PHeading>
     </div>
 
+    <PStepper
+      v-if="noteType === NOTE_TYPE.proposal"
+      class="my-6"
+      :model-value="0"
+    >
+      <PStep title="پیش‌نویس" />
+      <PStep title="بازبینی و ثبت‌نهایی" />
+      <PStep title="نتیجه" />
+    </PStepper>
+
     <NoteForm
       :note-type="noteType"
       :is-submitting="isPending"
@@ -18,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PBox, PHeading } from '@pey/core';
+import { PBox, PHeading, PStepper, PStep } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-create' });
