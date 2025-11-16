@@ -32,82 +32,78 @@
     <PStepper
       v-if="note.type === NOTE_TYPE.proposal"
       class="my-6"
-      :model-value="note.submit_status === NOTE_SUBMIT_STATUS.reviewed ? 2 : 1"
+      :model-value="
+        note.submit_status === NOTE_SUBMIT_STATUS.reviewed ||
+        (note.submit_status === NOTE_SUBMIT_STATUS.final && isOwner)
+          ? 2
+          : 1
+      "
     >
       <PStep title="پیش‌نویس" />
-      <PStep title="بازبینی و ثبت‌نهایی" />
-      <PStep title="نتیجه" />
+      <PStep :title="'بازبینی و ثبت‌نهایی'" />
+      <PStep
+        :title="
+          note.submit_status === NOTE_SUBMIT_STATUS.final && isOwner
+            ? t('note.submitStatus.pending')
+            : 'نتیجه'
+        "
+      />
     </PStepper>
 
     <div
-      v-if="note.type === NOTE_TYPE.proposal"
+      v-if="
+        note.type === NOTE_TYPE.proposal &&
+        note.submit_status === NOTE_SUBMIT_STATUS.initial
+      "
       class="mt-6 flex flex-wrap items-center justify-between gap-4"
     >
-      <template v-if="note.submit_status === NOTE_SUBMIT_STATUS.initial">
-        <PChip
-          class="whitespace-nowrap"
-          color="warning"
-          :icon="PeyCreateIcon"
-          :label="t('note.submitStatus.initial')"
-        />
+      <PChip
+        class="whitespace-nowrap"
+        color="warning"
+        :icon="PeyCreateIcon"
+        :label="t('note.submitStatus.initial')"
+      />
 
-        <PTooltip
-          v-if="note.access_level.can_edit"
-          :model-value="finalSubmitHintVisibility"
-          placement="right"
-        >
-          <template #content>
-            <PText as="p" class="max-w-sm">
-              {{ t('note.finalSubmitProposalHint') }}
-            </PText>
-          </template>
+      <PTooltip
+        v-if="note.access_level.can_edit"
+        :model-value="finalSubmitHintVisibility"
+        placement="right"
+      >
+        <template #content>
+          <PText as="p" class="max-w-sm">
+            {{ t('note.finalSubmitProposalHint') }}
+          </PText>
+        </template>
 
-          <div>
-            <PInlineConfirm
-              confirm-button-color="primary"
-              :confirm-button-text="t('note.finalSubmit')"
-              @confirm="finalizeNoteSubmission"
+        <div>
+          <PInlineConfirm
+            confirm-button-color="primary"
+            :confirm-button-text="t('note.finalSubmit')"
+            @confirm="finalizeNoteSubmission"
+          >
+            <template #text>
+              <PText as="p" class="text-gray-80">
+                {{ t('note.confirmSubmitProposal') }}
+              </PText>
+
+              <PText as="p" class="mt-2 text-gray-80">
+                {{ t('note.confirmSubmitProposalMessage') }}
+              </PText>
+            </template>
+
+            <PButton
+              type="button"
+              class="whitespace-nowrap"
+              color="primary"
+              :icon-start="PeyCircleTickOutlineIcon"
+              :loading="updatingNote"
+              variant="fill"
             >
-              <template #text>
-                <PText as="p" class="text-gray-80">
-                  {{ t('note.confirmSubmitProposal') }}
-                </PText>
-
-                <PText as="p" class="mt-2 text-gray-80">
-                  {{ t('note.confirmSubmitProposalMessage') }}
-                </PText>
-              </template>
-
-              <PButton
-                type="button"
-                class="whitespace-nowrap"
-                color="primary"
-                :icon-start="PeyCircleTickOutlineIcon"
-                :loading="updatingNote"
-                variant="fill"
-              >
-                {{ t('note.finalSubmit') }}
-              </PButton>
-            </PInlineConfirm>
-          </div>
-        </PTooltip>
-      </template>
-
-      <PChip
-        v-else-if="note.submit_status === NOTE_SUBMIT_STATUS.final"
-        class="whitespace-nowrap"
-        color="secondary"
-        :icon="PeyClockIcon"
-        :label="t('note.submitStatus.pending')"
-      />
-
-      <PChip
-        v-else
-        class="whitespace-nowrap"
-        color="success"
-        :icon="PeyCircleTickOutlineIcon"
-        :label="t('note.submitStatus.reviewed')"
-      />
+              {{ t('note.finalSubmit') }}
+            </PButton>
+          </PInlineConfirm>
+        </div>
+      </PTooltip>
     </div>
 
     <div class="mt-6 flex flex-wrap items-center gap-4">
@@ -337,4 +333,6 @@ const noteTypeIcon = computed(() => {
       ? NOTE_TYPE_ICON[props.note.type]
       : 'i-mdi-note-text';
 });
+
+const isOwner = computed(() => profile.value?.uuid === props.note.owner_uuid);
 </script>

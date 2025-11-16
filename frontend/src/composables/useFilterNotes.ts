@@ -21,6 +21,7 @@ export const useFilterNotes = (notes: Ref<Note[]> | (() => Note[])) => {
   });
   const teamFilter = useRouteQuery('my-team');
   const unreadFilter = useRouteQuery('unread');
+  const proposalTypeFilter = useRouteQuery<string>('proposal_type');
 
   const filteredNotes = computed(() =>
     toValue(notes).filter(
@@ -38,7 +39,9 @@ export const useFilterNotes = (notes: Ref<Note[]> | (() => Note[])) => {
         note.period === (periodFilter.value ?? note.period) &&
         (!teamFilter.value ||
           myTeam.value?.find((user) => user.email === note.owner)) &&
-        (!unreadFilter.value || !note.read_status),
+        (!unreadFilter.value || !note.read_status) &&
+        (!proposalTypeFilter.value ||
+          note.proposal_type === proposalTypeFilter.value),
     ),
   );
 
