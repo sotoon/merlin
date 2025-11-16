@@ -235,7 +235,6 @@ import {
 } from '@pey/core';
 import {
   PeyCircleTickOutlineIcon,
-  PeyClockIcon,
   PeyCreateIcon,
   PeyEditIcon,
   PeyLinkIcon,
