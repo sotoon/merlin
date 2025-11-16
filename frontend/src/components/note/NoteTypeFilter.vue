@@ -46,7 +46,7 @@ const typeOptions = computed(() => [
   { label: t('common.all') },
   { label: t('noteType.goal'), value: NOTE_TYPE.goal },
   { label: t('noteType.meeting'), value: NOTE_TYPE.meeting },
-  { label: t('noteType.proposal'), value: NOTE_TYPE.proposal },
+  { label: t('common.promotion'), value: NOTE_TYPE.proposal },
   { label: t('noteType.message'), value: NOTE_TYPE.message },
   { label: t('noteType.feedback'), value: NOTE_TYPE.feedback },
 ]);
