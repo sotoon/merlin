@@ -13,9 +13,9 @@
       class="my-6"
       :model-value="0"
     >
-      <PStep title="پیش‌نویس" />
-      <PStep title="بازبینی و ثبت‌نهایی" />
-      <PStep title="نتیجه" />
+      <PStep :title="t('stepper.initial')" />
+      <PStep :title="t('stepper.final')" />
+      <PStep :title="t('stepper.reviewed')" />
     </PStepper>
 
     <NoteForm

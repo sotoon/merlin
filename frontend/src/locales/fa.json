@@ -315,5 +315,11 @@
   },
   "performance": {
     "getPerformanceTableError": "خطا در دریافت جدول عملکرد"
+  },
+  "stepper": {
+    "initial": "پیش‌نویس",
+    "final": "بازبینی و ثبت‌نهایی",
+    "pending": "در حال بررسی",
+    "reviewed": "بررسی کمیته"
   }
 }
