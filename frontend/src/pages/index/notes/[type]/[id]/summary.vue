@@ -10,7 +10,7 @@
       <PStepper
         v-if="note.type === NOTE_TYPE.proposal"
         class="my-6"
-        :model-value="1"
+        :model-value="2"
       >
         <PStep :title="t('stepper.initial')" />
         <PStep :title="t('stepper.final')" />

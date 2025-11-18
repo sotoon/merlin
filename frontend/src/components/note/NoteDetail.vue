@@ -35,7 +35,7 @@
       :model-value="
         note.submit_status === NOTE_SUBMIT_STATUS.reviewed
           ? 3
-          : note.submit_status === NOTE_SUBMIT_STATUS.final && isOwner
+          : note.submit_status === NOTE_SUBMIT_STATUS.final
             ? 2
             : 1
       "
