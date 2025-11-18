@@ -33,19 +33,20 @@
       v-if="note.type === NOTE_TYPE.proposal"
       class="my-6"
       :model-value="
-        note.submit_status === NOTE_SUBMIT_STATUS.reviewed ||
-        (note.submit_status === NOTE_SUBMIT_STATUS.final && isOwner)
-          ? 2
-          : 1
+        note.submit_status === NOTE_SUBMIT_STATUS.reviewed
+          ? 3
+          : note.submit_status === NOTE_SUBMIT_STATUS.final && isOwner
+            ? 2
+            : 1
       "
     >
-      <PStep title="پیش‌نویس" />
-      <PStep :title="'بازبینی و ثبت‌نهایی'" />
+      <PStep :title="t('stepper.initial')" />
+      <PStep :title="t('stepper.final')" />
       <PStep
         :title="
           note.submit_status === NOTE_SUBMIT_STATUS.final && isOwner
-            ? t('note.submitStatus.pending')
-            : 'نتیجه'
+            ? t('stepper.pending')
+            : t('stepper.reviewed')
         "
       />
     </PStepper>
