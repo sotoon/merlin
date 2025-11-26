@@ -13,7 +13,6 @@ function createGuiderTitle() {
 export function useIntro(
   steps: MaybeRef<Omit<TourStep, 'title' | 'position' | 'scrollTo'>[]>,
   guideKey: string,
-  options?: { disableScrolling?: boolean },
 ) {
   const intro = inject('intro') as typeof introJs;
   const introInstance = intro.tour();
@@ -40,7 +39,7 @@ export function useIntro(
         doneLabel: 'پایان',
         showBullets: false,
         buttonClass: 'intro-button',
-        scrollToElement: !options?.disableScrolling,
+        scrollToElement: false,
       });
     },
     { immediate: true, deep: true },
