@@ -4,7 +4,7 @@ import type { MaybeRef } from 'vue';
 
 function createGuiderTitle() {
   return `<img 
-        src="/merlin.jpg" 
+        src="/merlin.png" 
         alt="Merlin" 
         style="width: 35px; height: 35px; border-radius: 50%; margin-right: auto; margin-left: -34px;" 
     />`;
