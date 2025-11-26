@@ -185,7 +185,6 @@ import {
   PInput,
   PListbox,
   PListboxOption,
-  PText,
   PTooltip,
 } from '@pey/core';
 import { PeyInfoIcon } from '@pey/icons';
