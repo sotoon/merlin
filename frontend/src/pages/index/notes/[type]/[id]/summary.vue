@@ -6,20 +6,31 @@
 
     <PLoading v-if="getSummariesPending" class="text-primary" :size="20" />
 
-    <NoteSummaryForm
-      v-else
-      :note="note"
-      :summary="summaries?.[0]"
-      :show-committee-fields="note.type === NOTE_TYPE.proposal"
-      :is-submitting="isPending"
-      @submit="handleSubmit"
-      @cancel="handleCancel"
-    />
+    <template v-else>
+      <PStepper
+        v-if="note.type === NOTE_TYPE.proposal"
+        class="my-6"
+        :model-value="2"
+      >
+        <PStep :title="t('stepper.initial')" />
+        <PStep :title="t('stepper.final')" />
+        <PStep :title="t('stepper.reviewed')" />
+      </PStepper>
+
+      <NoteSummaryForm
+        :note="note"
+        :summary="summaries?.[0]"
+        :show-committee-fields="note.type === NOTE_TYPE.proposal"
+        :is-submitting="isPending"
+        @submit="handleSubmit"
+        @cancel="handleCancel"
+      />
+    </template>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { PHeading, PLoading } from '@pey/core';
+import { PHeading, PLoading, PStepper, PStep } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-summary' });

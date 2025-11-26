@@ -81,12 +81,18 @@ class LoginView(APIView):
         },
     )
     def post(self, request, *args, **kwargs):
+        from django.utils import timezone
+        
         email = request.data.get("email")
         password = request.data.get("password")
 
         user = User.objects.filter(email=email).first()
 
         if user and user.check_password(password):
+            # Update last_login to track main app logins
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+            
             refresh = RefreshToken.for_user(user)
             refresh["name"] = user.name
             refresh["email"] = user.email
@@ -159,15 +165,19 @@ class BepaCallbackView(APIView):
         name = user_info.get("name")
         email = user_info.get("email")
 
+        from django.utils import timezone
+        
         user, created = User.objects.get_or_create(email=email)
 
         if not user.name:
             user.name = name
-            user.save()
 
         if created:
             user.set_unusable_password()
-            user.save()
+        
+        # Update last_login to track BEPA logins
+        user.last_login = timezone.now()
+        user.save()
 
         refresh = RefreshToken.for_user(user)
         refresh["name"] = user.name

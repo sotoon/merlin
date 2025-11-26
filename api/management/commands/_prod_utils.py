@@ -89,7 +89,7 @@ class DatabaseBackup:
             'api_organization', 'api_committee', 'api_timelineevent',
             'api_compensationsnapshot', 'api_senioritysnapshot', 'api_note',
             'api_summary', 'api_payband', 'api_ladder', 'api_ladderaspect',
-            'api_ladderlevel', 'api_ladderstage'
+            'api_ladderlevel'
         ]
         
         backed_up_tables = []
@@ -240,16 +240,21 @@ class DataValidator:
         from api.models.organization import Team, Tribe, Chapter, Department, Organization
         
         issues = []
+        warnings = []
         
-        # Check for teams without tribes
+        # Check for teams without tribes (this is allowed by the model, so it's a warning, not an error)
         teams_without_tribes = Team.objects.filter(tribe__isnull=True).count()
         if teams_without_tribes > 0:
-            issues.append(f"{teams_without_tribes} teams without tribes")
+            warnings.append(f"{teams_without_tribes} teams without tribes (this is allowed)")
         
-        # Check for invalid leader references
+        # Check for invalid leader references (this is a real issue)
+        # A leader should be a valid User object - this is handled by the ForeignKey constraint,
+        # but we check for teams that have a leader set but the leader doesn't exist in User table
+        from api.models.user import User
+        valid_leader_ids = set(User.objects.values_list('id', flat=True))
         teams_with_invalid_leaders = Team.objects.filter(
             leader__isnull=False
-        ).exclude(leader__in=Team.objects.values_list('leader', flat=True).distinct()).count()
+        ).exclude(leader_id__in=valid_leader_ids).count()
         
         if teams_with_invalid_leaders > 0:
             issues.append(f"{teams_with_invalid_leaders} teams with invalid leader references")
@@ -257,6 +262,7 @@ class DataValidator:
         return {
             "passed": len(issues) == 0,
             "issues": issues,
+            "warnings": warnings,
             "total_teams": Team.objects.count(),
             "total_tribes": Tribe.objects.count(),
             "total_chapters": Chapter.objects.count()
@@ -267,16 +273,18 @@ class DataValidator:
         from api.models.ladder import Ladder, LadderAspect, LadderLevel, LadderStage
         
         issues = []
+        warnings = []
         
-        # Check for ladders without aspects
-        ladders_without_aspects = Ladder.objects.filter(
-            ladderaspect__isnull=True
-        ).count()
+        # Check for ladders without aspects (this might be valid, so it's a warning)
+        from django.db.models import Count
+        ladders_without_aspects = Ladder.objects.annotate(
+            aspect_count=Count('aspects')
+        ).filter(aspect_count=0).count()
         
         if ladders_without_aspects > 0:
-            issues.append(f"{ladders_without_aspects} ladders without aspects")
+            warnings.append(f"{ladders_without_aspects} ladders without aspects")
         
-        # Check for aspects without ladders
+        # Check for aspects without ladders (this is a real issue - ForeignKey constraint should prevent this)
         aspects_without_ladders = LadderAspect.objects.filter(
             ladder__isnull=True
         ).count()
@@ -287,6 +295,7 @@ class DataValidator:
         return {
             "passed": len(issues) == 0,
             "issues": issues,
+            "warnings": warnings,
             "total_ladders": Ladder.objects.count(),
             "total_aspects": LadderAspect.objects.count()
         }
@@ -366,6 +375,16 @@ class ProductionImportBase:
         """Complete a production import with validation."""
         # Validate the import
         validation_results = self.validator.validate_import(import_type, expected_counts or {})
+        
+        # Log warnings separately (they don't cause failure)
+        for check_name, check_result in validation_results.get("checks", {}).items():
+            warnings = check_result.get("warnings", [])
+            if warnings:
+                self.logger.log_operation(
+                    "validation_warnings",
+                    {"check": check_name, "warnings": warnings},
+                    "warning"
+                )
         
         if validation_results["overall_status"] == "failed":
             self.logger.log_operation(

@@ -1,0 +1,12 @@
+<div id="site-name">
+    {% if site_dropdown %}
+        <span class="material-symbols-outlined" style="font-size: 1.25rem; vertical-align: middle;">home</span>
+        {{ site_header|default:_('Django administration') }}
+    {% else %}
+        <a href="{% url 'admin:index' %}" style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="material-symbols-outlined" style="font-size: 1.25rem;">home</span>
+            <span>{{ site_header|default:_('Django administration') }}</span>
+        </a>
+    {% endif %}
+</div>
+

@@ -70,12 +70,26 @@ class CompensationSnapshot(MerlinBaseModel):
 
 
 class SenioritySnapshot(MerlinBaseModel):
+    class SeniorityLevel(models.TextChoices):
+        JUNIOR = "JUNIOR", "Junior"
+        MID = "MID", "Mid"
+        SENIOR = "SENIOR", "Senior"
+        PRINCIPAL = "PRINCIPAL", "Principal"
+
     user = models.ForeignKey("api.User", on_delete=models.CASCADE, related_name="seniority_snapshots")
     ladder = models.ForeignKey(Ladder, on_delete=models.PROTECT, null=True, blank=True)
     title = models.CharField(max_length=256)
     overall_score = models.FloatField(default=0)
     details_json = models.JSONField(default=dict, blank=True)
     stages_json = models.JSONField(default=dict, blank=True)
+    seniority_level = models.CharField(
+        max_length=20,
+        choices=SeniorityLevel.choices,
+        null=True,
+        blank=True,
+        verbose_name="Seniority Level",
+        help_text="Seniority classification (Junior/Mid/Senior/Principal) for data analytics",
+    )
     effective_date = models.DateField()
     source_event = models.ForeignKey("api.TimelineEvent", null=True, blank=True, on_delete=models.SET_NULL)
     is_redacted = models.BooleanField(default=False)

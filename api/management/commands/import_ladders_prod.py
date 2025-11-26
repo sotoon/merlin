@@ -63,19 +63,37 @@ class Command(BaseCommand):
                     with row_savepoint(dry_run):
                         try:
                             # Determine what to import based on flags and CSV content
-                            if ladders_only or self._is_ladder_row(row):
+                            if ladders_only:
                                 result = self._process_ladder(row, idx, prod_import, dry_run, force_update)
                                 created += result.get('created', 0)
                                 updated += result.get('updated', 0)
                                 skipped += result.get('skipped', 0)
 
-                            elif aspects_only or self._is_aspect_row(row):
+                            elif aspects_only:
                                 result = self._process_aspect(row, idx, prod_import, dry_run, force_update)
                                 created += result.get('created', 0)
                                 updated += result.get('updated', 0)
                                 skipped += result.get('skipped', 0)
 
-                            elif levels_only or self._is_level_row(row):
+                            elif levels_only:
+                                result = self._process_level(row, idx, prod_import, dry_run, force_update)
+                                created += result.get('created', 0)
+                                updated += result.get('updated', 0)
+                                skipped += result.get('skipped', 0)
+
+                            elif self._is_ladder_row(row):
+                                result = self._process_ladder(row, idx, prod_import, dry_run, force_update)
+                                created += result.get('created', 0)
+                                updated += result.get('updated', 0)
+                                skipped += result.get('skipped', 0)
+
+                            elif self._is_aspect_row(row):
+                                result = self._process_aspect(row, idx, prod_import, dry_run, force_update)
+                                created += result.get('created', 0)
+                                updated += result.get('updated', 0)
+                                skipped += result.get('skipped', 0)
+
+                            elif self._is_level_row(row):
                                 result = self._process_level(row, idx, prod_import, dry_run, force_update)
                                 created += result.get('created', 0)
                                 updated += result.get('updated', 0)
@@ -96,11 +114,12 @@ class Command(BaseCommand):
                                 {"row": idx, "error": str(e)},
                                 "error"
                             )
-
-            if dry_run:
-                transaction.set_rollback(True)
-                self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
-            else:
+                
+                if dry_run:
+                    transaction.set_rollback(True)
+                    self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
+            
+            if not dry_run:
                 # Complete production import with validation
                 if validate:
                     expected_counts = {
@@ -232,54 +251,72 @@ class Command(BaseCommand):
 
     def _process_level(self, row, idx, prod_import, dry_run, force_update):
         """PRODUCTION-SAFE: Process level creation/update."""
-        level_number = (row.get("level_number") or "").strip()
-        level_name = (row.get("level_name") or row.get("level_title") or "").strip()
-        level_description = (row.get("level_description") or "").strip()
+        from api.management.commands._import_utils import normalize_stage, parse_float_or_none
+        
         ladder_code = (row.get("ladder_code") or "").strip()
+        aspect_code = (row.get("aspect_code") or "").strip()
+        level_str = (row.get("level") or "").strip()
+        stage_str = (row.get("stage") or "").strip()
+        weight_str = (row.get("weight") or "1.0").strip()
 
-        if not level_number or not level_name or not ladder_code:
+        if not ladder_code or not aspect_code or not level_str:
             return {"skipped": 1}
 
         if not dry_run:
             try:
-                level_num = float(level_number)
+                level_int = int(level_str)
+                weight_float = parse_float_or_none(weight_str) or 1.0
             except ValueError:
                 prod_import.logger.log_operation(
-                    "invalid_level_number",
-                    {"level_number": level_number, "level_name": level_name},
+                    "invalid_level_data",
+                    {"level": level_str, "ladder": ladder_code, "aspect": aspect_code},
                     "warning"
                 )
                 return {"skipped": 1}
+
+            # Normalize stage
+            stage = normalize_stage(stage_str) if stage_str else LadderStage.EARLY
 
             # Get the ladder (PRODUCTION-SAFE: Only get, no deletion)
             ladder = Ladder.objects.filter(code=ladder_code).first()
             if not ladder:
                 prod_import.logger.log_operation(
                     "ladder_not_found_for_level",
-                    {"level_number": level_number, "ladder_code": ladder_code},
+                    {"level": level_int, "ladder_code": ladder_code},
                     "warning"
                 )
                 return {"skipped": 1}
 
-            level, level_created = LadderLevel.objects.update_or_create(
-                number=level_num,
+            # Get the aspect (PRODUCTION-SAFE: Only get, no deletion)
+            aspect = LadderAspect.objects.filter(ladder=ladder, code=aspect_code).first()
+            if not aspect:
+                prod_import.logger.log_operation(
+                    "aspect_not_found_for_level",
+                    {"level": level_int, "aspect_code": aspect_code, "ladder": ladder_code},
+                    "warning"
+                )
+                return {"skipped": 1}
+
+            ladder_level, level_created = LadderLevel.objects.update_or_create(
                 ladder=ladder,
+                aspect=aspect,
+                level=level_int,
+                stage=stage,
                 defaults={
-                    "name": level_name,
-                    "description": level_description,
+                    "weight": weight_float,
                 }
             )
             
             if level_created:
                 prod_import.logger.log_operation(
                     "level_created",
-                    {"number": level_num, "name": level_name, "ladder": ladder_code}
+                    {"level": level_int, "stage": stage, "aspect": aspect_code, "ladder": ladder_code}
                 )
                 return {"created": 1}
             else:
                 prod_import.logger.log_operation(
                     "level_updated",
-                    {"number": level_num, "name": level_name, "ladder": ladder_code}
+                    {"level": level_int, "stage": stage, "aspect": aspect_code, "ladder": ladder_code}
                 )
                 return {"updated": 1}
         

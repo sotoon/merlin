@@ -69,7 +69,7 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
     if has_role(viewer, {RoleType.HR_MANAGER, RoleType.CEO, RoleType.MAINTAINER}):
         return qs
 
-    # CTO/VP: all technical users (by ladder, chapter, or org category)
+    # CTO/VP: all technical users (by ladder, chapter, or org category) + direct reports
     if has_role(viewer, {RoleType.CTO, RoleType.VP}):
         return (
             qs.annotate(_ladder_code=latest_sen_ladder_code)
@@ -78,6 +78,7 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
                 | Q(team__category="TECH")
                 | Q(team__tribe__category="TECH")
                 | Q(chapter__name__in=["DevOps", "Front"])
+                | Q(leader=viewer)  # Include direct reports
             )
         )
 
@@ -94,13 +95,13 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
             )
         )
 
-    # CFO: Finance tribe only
+    # CFO: Finance tribe + direct reports
     if has_role(viewer, {RoleType.CFO}):
-        return qs.filter(team__tribe__name="Finance")
+        return qs.filter(Q(team__tribe__name="Finance") | Q(leader=viewer))
 
-    # Sales Manager: users in Sales department
+    # Sales Manager: users in Sales department + direct reports
     if has_role(viewer, {RoleType.SALES_MANAGER}):
-        return qs.filter(team__name="Sales")
+        return qs.filter(Q(team__name="Sales") | Q(leader=viewer))
 
     # Directors/Principals (treat principals as directors): tribe-scoped + ladder/category
     if has_role(viewer, {RoleType.PRODUCT_DIRECTOR, RoleType.ENGINEERING_DIRECTOR}):
@@ -129,15 +130,21 @@ def get_visible_users_for_viewer(viewer: User, as_of: Optional[date] = None) -> 
                 | Q(team__category="TECH")
                 | Q(team__tribe__category="TECH")
                 | Q(chapter__name__in=["DevOps", "Front"])
+                | Q(leader=viewer)  # Include direct reports
             )
 
-        # Product director
+        # Product director: tribe-scoped + direct reports
         return tribe_scoped.filter(
             Q(_ladder_code__in=PRODUCT_LADDERS)
             | Q(team__category="PRODUCT")
             | Q(team__tribe__category="PRODUCT")
             | Q(chapter__name__in=["Product"])
+            | Q(leader=viewer)  # Include direct reports
         )
+
+    # Agile coaches: users who have this viewer as their agile coach + direct reports
+    if qs.filter(agile_coach=viewer).exists():
+        return qs.filter(Q(agile_coach=viewer) | Q(leader=viewer))
 
     # Team leaders: users who have this viewer as their direct leader
     if qs.filter(leader=viewer).exists():
@@ -258,6 +265,9 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
     team_id = Subquery(latest_org_qs.values("team_id")[:1])
     tribe_name = Subquery(latest_org_qs.values("team__tribe__name")[:1])
     tribe_id = Subquery(latest_org_qs.values("team__tribe_id")[:1])
+    
+    # Seniority level from latest seniority snapshot
+    seniority_level = Subquery(latest_sen_qs.values("seniority_level")[:1])
 
     is_mapped = Exists(SenioritySnapshot.objects.filter(user=OuterRef("pk")))
 
@@ -282,6 +292,7 @@ def build_personnel_performance_queryset(viewer: User, as_of: Optional[date]):
             _team_id=team_id,
             _tribe_name=tribe_name,
             _tribe_id=tribe_id,
+            _seniority_level=seniority_level,
             _is_mapped=is_mapped,
         )
         .select_related("team", "leader", "team__tribe")

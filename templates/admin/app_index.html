@@ -1,0 +1,242 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<script>
+// Ensure sidebar spacing CSS is applied on app index pages (like /admin/api/)
+(function() {
+    // Check if global styles already injected
+    if (document.getElementById('global-admin-styles')) return;
+    
+    const css = `
+        /* Sidebar spacing - UNIVERSAL SELECTORS */
+        aside ol li > a,
+        aside ol li > a[class*="flex"],
+        nav ol li > a,
+        nav ol li > a[class*="flex"],
+        #nav-sidebar ol li > a,
+        #nav-sidebar-inner ol li > a {
+            gap: 0.75rem !important;
+            padding: 0.5rem 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        aside ol li > a > span.material-symbols-outlined,
+        aside ol li > a > span[class*="material"],
+        nav ol li > a > span.material-symbols-outlined,
+        #nav-sidebar ol li > a > span.material-symbols-outlined,
+        #nav-sidebar-inner ol li > a > span.material-symbols-outlined {
+            margin-right: 0.75rem !important;
+            display: inline-block !important;
+        }
+        aside ol li > a > *:first-child:not(:last-child),
+        nav ol li > a > *:first-child:not(:last-child) {
+            margin-right: 0.75rem !important;
+        }
+        
+        /* Sidebar text visibility - UNIVERSAL */
+        aside ol li a,
+        nav ol li a,
+        #nav-sidebar a,
+        #nav-sidebar-inner a {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+        aside ol li a:hover,
+        nav ol li a:hover,
+        #nav-sidebar a:hover,
+        #nav-sidebar-inner a:hover {
+            color: rgba(255, 255, 255, 1) !important;
+        }
+        
+        /* Sidebar active/selected state highlighting - UNIVERSAL */
+        aside ol li.selected > a,
+        aside ol li[class*="selected"] > a,
+        aside ol li > a[aria-current="page"],
+        aside ol li > a.active,
+        nav ol li.selected > a,
+        nav ol li > a[aria-current="page"],
+        nav ol li > a.active,
+        #nav-sidebar ol li.selected > a,
+        #nav-sidebar ol li > a[aria-current="page"],
+        #nav-sidebar-inner ol li.selected > a,
+        #nav-sidebar-inner ol li > a[aria-current="page"] {
+            background-color: rgba(139, 92, 246, 0.4) !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0.375rem !important;
+        }
+        aside ol li.selected > a:hover,
+        aside ol li > a[aria-current="page"]:hover,
+        aside ol li > a.active:hover,
+        nav ol li > a[aria-current="page"]:hover {
+            background-color: rgba(139, 92, 246, 0.5) !important;
+        }
+        /* Also style icons in active items - UNIVERSAL */
+        aside ol li.selected > a .material-symbols-outlined,
+        aside ol li > a.active .material-symbols-outlined,
+        aside ol li > a[aria-current="page"] span,
+        nav ol li > a[aria-current="page"] span,
+        #nav-sidebar ol li > a[aria-current="page"] span,
+        #nav-sidebar-inner ol li > a[aria-current="page"] span {
+            color: #ffffff !important;
+        }
+        
+        /* Fix action buttons - override Tailwind vertical spacing */
+        .space-y-0 > * + *,
+        .space-y-1 > * + *,
+        .space-y-2 > * + *,
+        .space-y-3 > * + *,
+        .space-y-4 > * + *,
+        [class*="space-y"] > * + * {
+            margin-top: 0 !important;
+            margin-left: 0.5rem !important;
+        }
+        
+        /* Force horizontal layout for button containers */
+        .flex.flex-col.space-y-2,
+        .flex.flex-col.space-y-1,
+        .flex.flex-col[class*="space-y"],
+        div[class*="flex"][class*="flex-col"][class*="space-y"] {
+            flex-direction: row !important;
+            gap: 0.5rem !important;
+        }
+        
+        /* Target any div with multiple buttons/links */
+        div:has(> a:nth-child(2)),
+        div:has(> button:nth-child(2)) {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 0.5rem !important;
+            align-items: center !important;
+        }
+        
+        /* Fix True/False icons in tables - SVG icons */
+        td svg,
+        td svg.block,
+        td div svg,
+        tbody td svg {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+            min-width: 1.25rem !important;
+            min-height: 1.25rem !important;
+        }
+        td svg path,
+        td svg circle,
+        td svg rect {
+            fill: currentColor !important;
+            stroke: currentColor !important;
+        }
+        .material-symbols-outlined,
+        span[class*="material-symbols"],
+        img[src*="icon-yes"],
+        img[src*="icon-no"],
+        img[src*="icon-unknown"] {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+    `;
+    
+    const style = document.createElement('style');
+    style.id = 'app-index-admin-styles';
+    style.textContent = css;
+    
+    if (document.head) {
+        document.head.appendChild(style);
+        console.log('[Merlin App Index] Styles injected');
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.head.appendChild(style);
+            console.log('[Merlin App Index] Styles injected (delayed)');
+        });
+    }
+    
+    // Inject site branding - always use fixed positioning for reliability
+    function injectSiteBranding() {
+        // Remove any existing injected branding to avoid duplicates
+        const existing = document.getElementById('injected-site-name');
+        if (existing) existing.remove();
+        
+        // Check if template-provided site-name exists and has content
+        const templateSiteName = document.getElementById('site-name');
+        if (templateSiteName && templateSiteName.innerHTML.trim() && templateSiteName.offsetParent !== null) {
+            // Template provided it and it's visible, ensure it's styled correctly
+            templateSiteName.style.cssText = 'display: flex !important; align-items: center !important; gap: 0.5rem !important; visibility: visible !important; opacity: 1 !important;';
+            return;
+        }
+        
+        // Always inject with fixed positioning - most reliable
+        const brandingHTML = '<a href="/admin/" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #ffffff; font-weight: 500; height: 100%;"><span class="material-symbols-outlined" style="font-size: 1.25rem; background-color: rgba(139, 92, 246, 0.6); padding: 0.5rem; border-radius: 0.5rem; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;">home</span><span style="display: flex; align-items: center; line-height: 1; font-size: 1.125rem;">Merlin Control Center</span></a>';
+        
+        const siteName = document.createElement('div');
+        siteName.id = 'injected-site-name';
+        siteName.style.cssText = 'position: fixed !important; top: 1rem !important; right: 1rem !important; z-index: 9999 !important; display: flex !important; align-items: center !important; background: rgba(0, 0, 0, 0.85) !important; padding: 0.75rem 1rem !important; border-radius: 0.5rem !important; color: #ffffff !important; height: auto !important;';
+        siteName.innerHTML = brandingHTML;
+        document.body.appendChild(siteName);
+    }
+    
+    // Run multiple times to catch different load states
+    function tryInjectBranding() {
+        injectSiteBranding();
+        setTimeout(injectSiteBranding, 100);
+        setTimeout(injectSiteBranding, 500);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInjectBranding);
+    } else {
+        tryInjectBranding();
+    }
+    window.addEventListener('load', function() {
+        injectSiteBranding();
+        console.log('[Merlin App Index] Site branding injected');
+    });
+    
+    // Additional failsafe
+    setTimeout(function() {
+        injectSiteBranding();
+        console.log('[Merlin App Index] Failsafe branding injection');
+    }, 1000);
+    
+    // Convert True/False text to icons
+    function convertBooleanFieldsToIcons() {
+        const allCells = document.querySelectorAll('tbody td');
+        let converted = 0;
+        
+        allCells.forEach(function(cell) {
+            const span = cell.querySelector('span');
+            if (span && span.textContent) {
+                const text = span.textContent.trim();
+                
+                if (text === 'True') {
+                    span.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                    span.style.color = '#10b981';
+                    converted++;
+                } else if (text === 'False') {
+                    span.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                    span.style.color = '#ef4444';
+                    converted++;
+                }
+            }
+        });
+        
+        if (converted > 0) {
+            console.log('[Merlin App Index] Converted ' + converted + ' boolean fields to icons');
+        }
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', convertBooleanFieldsToIcons);
+    } else {
+        convertBooleanFieldsToIcons();
+    }
+    window.addEventListener('load', convertBooleanFieldsToIcons);
+    setTimeout(convertBooleanFieldsToIcons, 500);
+})();
+</script>
+{{ block.super }}
+{% endblock %}
+
