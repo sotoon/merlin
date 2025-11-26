@@ -136,7 +136,21 @@ const formSchema = computed(() => {
       </VeeField>
     </div>
 
-    <PSwitch v-model="isStructured" :label="t('feedback.structuredFeedback')" />
+    <div class="flex items-center gap-x-2 text-md">
+      <PSwitch
+        v-model="isStructured"
+        :label="t('feedback.structuredFeedback')"
+      />
+      <PTooltip>
+        <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+        <template #content>
+          <div class="max-w-sm">
+            با انتخاب بازخورد ساختاریافته، پاسخ‌دهنده‌ها مجاب به استفاده از
+            ساختار انتخابی شما برای نوشتن بازخوردشون خواهندبود.
+          </div>
+        </template>
+      </PTooltip>
+    </div>
 
     <VeeField
       v-if="isStructured"
@@ -173,7 +187,7 @@ const formSchema = computed(() => {
       <PTooltip>
         <PeyInfoIcon class="h-5 w-5 text-gray-50" />
         <template #content>
-          <div class="max-w-sm">
+          <div class="max-w-sm text-md">
             با انتخاب درخواست عمومی، لینکی در اختیار شما قرار خواهد گرفت که هر
             کاربر دیگری با استفاده از آن می‌تواند برای شما بازخورد بنویسد.
           </div>
@@ -192,7 +206,7 @@ const formSchema = computed(() => {
         <PTooltip>
           <PeyInfoIcon class="h-5 w-5 text-gray-50" />
           <template #content>
-            <div class="max-w-sm">
+            <div class="max-w-sm text-md">
               افرادی که در این بخش وارد می‌کنید، می‌تونن بازخوردشون رو برای شما
               بنویسن.
               <br />
@@ -218,7 +232,7 @@ const formSchema = computed(() => {
 
     <div>
       <div class="mb-1 flex items-center gap-x-2">
-        <label id="mentioned-users-label">
+        <label>
           <PText class="block cursor-default" variant="caption1" weight="bold">
             {{ t('note.mentionedUsers') }}
           </PText>
@@ -226,7 +240,7 @@ const formSchema = computed(() => {
         <PTooltip>
           <PeyInfoIcon class="h-5 w-5 text-gray-50" />
           <template #content>
-            <div class="max-w-sm">
+            <div class="max-w-sm text-md">
               افرادی که در این بخش وارد می‌کنید، می‌تونن درخواست شما رو به همراه
               تمام بازخوردهای وارد شده توسط دیگران مشاهده کنن.
               <br />
@@ -238,11 +252,7 @@ const formSchema = computed(() => {
         </PTooltip>
       </div>
       <VeeField v-slot="{ componentField }" name="mentioned_users">
-        <UserSelect
-          v-bind="componentField"
-          aria-labelledby="mentioned-users-label"
-          multiple
-        />
+        <UserSelect v-bind="componentField" multiple />
       </VeeField>
     </div>
 

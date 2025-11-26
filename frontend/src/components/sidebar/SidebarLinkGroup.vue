@@ -7,6 +7,7 @@ interface Props {
   hasBadge?: boolean;
   isActive?: boolean;
   guideKey?: string;
+  guideConditions?: Record<string, boolean>;
 }
 
 const props = defineProps<Props>();
@@ -15,8 +16,20 @@ const isCollapsed = ref(true);
 const contentRef = ref<HTMLElement>();
 const contentHeight = ref(0);
 
+const tourSteps = computed(() => {
+  const allSteps = SIDEBAR_TOUR_STEPS[props.guideKey || ''] || [];
+
+  const filteredSteps = props.guideConditions
+    ? allSteps.filter(
+        (step) => !step.visibility || props.guideConditions?.[step.visibility],
+      )
+    : allSteps;
+
+  return filteredSteps.map((step, index) => ({ ...step, step: index + 1 }));
+});
+
 const { start: startTour } = useIntro(
-  SIDEBAR_TOUR_STEPS[props.guideKey || ''] || [],
+  tourSteps,
   `sidebar-guide-${props.guideKey}`,
 );
 

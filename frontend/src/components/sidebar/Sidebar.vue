@@ -11,6 +11,7 @@
         <ul class="space-y-2">
           <li>
             <SidebarLinkGroup
+              id="sidebar-notes"
               guide-key="notes"
               :title="t('common.notes')"
               :is-active="isNotesGroupActive"
@@ -54,6 +55,7 @@
 
           <li>
             <SidebarLinkGroup
+              id="sidebar-promotion"
               guide-key="promotion"
               :title="t('common.promotion')"
               :is-active="isPromotionGroupActive"
@@ -114,6 +116,7 @@
 
           <li>
             <SidebarLinkGroup
+              id="sidebar-feedback"
               guide-key="feedback"
               :has-badge="!!newFeedbackCount || !!newAdhocFeedbackCount"
               :title="t('common.feedback')"
@@ -139,9 +142,9 @@
                   :is-active="isAdhocFeedbackActive"
                 />
               </li>
+              <!-- TODO: message is deprecated -->
               <li>
                 <SidebarLink
-                  id="sidebar-feedback-message"
                   :icon="NOTE_TYPE_ICON[NOTE_TYPE.message]"
                   :label="t('noteType.message')"
                   :to="{
@@ -156,9 +159,14 @@
 
           <li>
             <SidebarLinkGroup
+              id="sidebar-personal"
               guide-key="personal"
               :title="t('common.personal')"
               :is-active="isPersonalGroupActive"
+              :guide-conditions="{
+                showPerformanceTable:
+                  !!profilePermissions?.ui_hints.show_performance_table,
+              }"
             >
               <li>
                 <SidebarLink
@@ -172,7 +180,6 @@
                   :is-active="isMeetingActive"
                 />
               </li>
-
               <li>
                 <SidebarLink
                   id="sidebar-personal-templates"
@@ -182,7 +189,6 @@
                   :is-active="isTemplatesActive"
                 />
               </li>
-
               <li v-if="profilePermissions?.ui_hints.show_performance_table">
                 <SidebarLink
                   id="sidebar-personal-performance-table"
@@ -197,10 +203,12 @@
 
           <li>
             <SidebarLinkGroup
+              id="sidebar-my-team"
               guide-key="my-team"
               :has-badge="!!newOneOnOneCount"
               :title="t('common.myTeam')"
               :is-active="isMyTeamGroupActive"
+              :guide-conditions="{ isTeamLeader: isTeamLeader }"
             >
               <li v-if="isTeamLeader">
                 <SidebarLink
@@ -228,28 +236,25 @@
 
       <div class="flex flex-col space-y-2 border-t border-gray-10 pt-2">
         <SidebarLink
+          id="sidebar-messages"
           :badge-count="newMessagesCount"
           icon="i-mdi-message-text"
           :label="t('common.messages')"
           :to="{ name: 'messages' }"
           :is-active="isMessagesActive"
+          @click="startMessagesTour"
         />
 
         <SidebarLink
+          id="sidebar-users"
           icon="i-mdi-account-group-outline"
           :label="t('common.users')"
           :to="{ name: 'user-list' }"
           :is-active="isUsersActive"
+          @click="startUsersTour"
         />
 
-        <SidebarLink
-          external
-          icon="i-mdi-help-circle"
-          :label="t('common.performanceManagementGuide')"
-          :to="GUIDE_DRIVE_LINK"
-        />
-
-        <SidebarProfileLink />
+        <SidebarProfileLink id="sidebar-profile" @click="startProfileTour" />
       </div>
     </div>
   </nav>
@@ -257,6 +262,7 @@
 
 <script lang="ts" setup>
 import { PScrollbar, PText } from '@pey/core';
+import { SIDEBAR_TOUR_STEPS } from '~/constants/sidebarGuide';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -268,6 +274,24 @@ const { data: messages } = useGetNotes({
 const isTeamLeader = useIsTeamLeader();
 const { data: profile } = useGetProfile();
 const { data: profilePermissions } = useGetProfilePermissions();
+
+const { start: startMessagesTour } = useIntro(
+  SIDEBAR_TOUR_STEPS.messages || [],
+  'sidebar-guide-messages',
+  { disableScrolling: true },
+);
+
+const { start: startUsersTour } = useIntro(
+  SIDEBAR_TOUR_STEPS.users || [],
+  'sidebar-guide-users',
+  { disableScrolling: true },
+);
+
+const { start: startProfileTour } = useIntro(
+  SIDEBAR_TOUR_STEPS.profile || [],
+  'sidebar-guide-profile',
+  { disableScrolling: true },
+);
 
 const isProposalActive = (proposalType: ProposalType) => {
   return (
