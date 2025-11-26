@@ -203,10 +203,17 @@ const staticColumns = ref([
   },
   {
     key: 'overall_level',
-    label: 'سطح کلی',
+    label: 'سطح لدر',
     sortable: true,
     filterable: true,
     filter: { type: 'numeric' as const },
+  },
+  {
+    key: 'seniority_level',
+    label: 'سطح سنیوریتی',
+    sortable: true,
+    filterable: true,
+    filter: { type: 'string' as const },
   },
   {
     key: 'pay_band',

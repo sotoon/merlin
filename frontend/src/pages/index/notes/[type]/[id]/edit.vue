@@ -8,6 +8,16 @@
       </PHeading>
     </div>
 
+    <PStepper
+      v-if="note.type === NOTE_TYPE.proposal"
+      class="my-6"
+      :model-value="0"
+    >
+      <PStep :title="t('stepper.initial')" />
+      <PStep :title="t('stepper.final')" />
+      <PStep :title="t('stepper.reviewed')" />
+    </PStepper>
+
     <NoteForm
       :note="note"
       :note-type="note.type"
@@ -19,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import { PHeading } from '@pey/core';
+import { PHeading, PStepper, PStep } from '@pey/core';
 import type { SubmissionContext } from 'vee-validate';
 
 definePageMeta({ name: 'note-edit' });

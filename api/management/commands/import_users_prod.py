@@ -50,39 +50,54 @@ class Command(BaseCommand):
             created = updated = skipped = users_with_roles = 0
             errors = []
 
-            # PASS 1: Create/update all users first without relationships
-            with transaction.atomic():
-                for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
-                    with row_savepoint(dry_run):
-                        try:
-                            # Extract user data
-                            name = (row.get("Name") or "").strip()
-                            email = (row.get("Email") or "").strip()
-                            gmail = (row.get("Gmail") or "").strip()
-                            phone = (row.get("Phone") or "").strip() if "Phone" in row else ""
-                            role_name = (row.get("Role") or "").strip()
+            # Wrap everything in atomic block for dry-run, or use separate blocks for real import
+            if dry_run:
+                # For dry-run, wrap everything in one atomic block so we can rollback at the end
+                with transaction.atomic():
+                    # PASS 1: Create/update all users first without relationships
+                    for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
+                        with row_savepoint(dry_run):
+                            try:
+                                # Extract user data
+                                name = (row.get("Name") or "").strip()
+                                email = (row.get("Email") or "").strip()
+                                gmail = (row.get("Gmail") or "").strip()
+                                phone = (row.get("Phone") or "").strip() if "Phone" in row else ""
+                                role_name = (row.get("Role") or "").strip()
 
-                            if not email:
-                                skipped += 1
-                                prod_import.logger.log_operation(
-                                    "user_skipped",
-                                    {"row": idx, "reason": "No email provided"},
-                                    "warning"
-                                )
-                                continue
+                                if not email:
+                                    skipped += 1
+                                    prod_import.logger.log_operation(
+                                        "user_skipped",
+                                        {"row": idx, "reason": "No email provided"},
+                                        "warning"
+                                    )
+                                    continue
 
-                            # Create or get user (PRODUCTION-SAFE: No deletion)
-                            if not dry_run:
-                                user, user_created = User.objects.update_or_create(
-                                    email=email,
-                                    defaults={
-                                        "name": name,
-                                        "gmail": gmail,
-                                        "phone": phone,
-                                        "username": email,
-                                        "is_active": True,
-                                    }
-                                )
+                                # Create or get user (PRODUCTION-SAFE: No deletion)
+                                # Use case-insensitive email lookup to avoid duplicates
+                                existing_user = User.objects.filter(email__iexact=email).first()
+                                if existing_user:
+                                    # Update existing user
+                                    user = existing_user
+                                    user_created = False
+                                    user.name = name
+                                    user.gmail = gmail
+                                    user.phone = phone
+                                    user.username = email
+                                    user.is_active = True
+                                    user.save(update_fields=["name", "gmail", "phone", "username", "is_active"])
+                                else:
+                                    # Create new user
+                                    user = User.objects.create(
+                                        email=email,
+                                        name=name,
+                                        gmail=gmail,
+                                        phone=phone,
+                                        username=email,
+                                        is_active=True,
+                                    )
+                                    user_created = True
 
                                 if user_created:
                                     created += 1
@@ -100,183 +115,412 @@ class Command(BaseCommand):
                                 if role_name:
                                     users_with_roles += 1
 
-                        except Exception as e:
-                            errors.append(f"Row {idx}: {str(e)}")
-                            prod_import.logger.log_operation(
-                                "user_creation_failed",
-                                {"row": idx, "email": email, "error": str(e)},
-                                "error"
-                            )
-
-            # PASS 2: Set organizational assignments and relationships (PRODUCTION-SAFE)
-            with transaction.atomic():
-                for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
-                    with row_savepoint(dry_run):
-                        try:
-                            email = (row.get("Email") or "").strip()
-                            team_name = (row.get("Team") or "").strip()
-                            tribe_name = (row.get("Tribe") or "").strip()
-                            chapter_name = (row.get("Chapter") or "").strip()
-                            leader_email = (row.get("Leader") or "").strip()
-                            agile_coach_email = (row.get("PR") or "").strip() or (row.get("Agile Coach") or "").strip()
-                            role_name = (row.get("Role") or "").strip()
-
-                            if not email:
-                                continue
-
-                            if dry_run:
-                                continue
-
-                            user = User.objects.filter(email=email).first()
-                            if not user:
+                            except Exception as e:
+                                errors.append(f"Row {idx}: {str(e)}")
                                 prod_import.logger.log_operation(
-                                    "user_not_found",
-                                    {"email": email, "row": idx},
-                                    "warning"
+                                    "user_creation_failed",
+                                    {"row": idx, "email": email, "error": str(e)},
+                                    "error"
                                 )
-                                continue
 
-                            # Update organizational assignments (PRODUCTION-SAFE: Only update, no deletion)
-                            organization = Organization.objects.first()  # Use the first organization
-                            team_obj = None
-                            tribe_obj = None
-                            chapter_obj = None
-                            department_obj = None
+                    # PASS 2: Set organizational assignments and relationships (PRODUCTION-SAFE)
+                    for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
+                        with row_savepoint(dry_run):
+                            try:
+                                email = (row.get("Email") or "").strip()
+                                team_name = (row.get("Team") or "").strip()
+                                tribe_name = (row.get("Tribe") or "").strip()
+                                chapter_name = (row.get("Chapter") or "").strip()
+                                leader_email = (row.get("Leader") or "").strip()
+                                agile_coach_email = (row.get("PR") or "").strip() or (row.get("Agile Coach") or "").strip()
+                                role_name = (row.get("Role") or "").strip()
 
-                            if team_name:
-                                team_obj = Team.objects.filter(name=team_name).first()
-                                if team_obj:
-                                    # Update team assignment
-                                    if user.team != team_obj or force_update:
-                                        user.team = team_obj
-                                        department_obj = team_obj.department
-                                        
-                                        # Tribe comes from team automatically (via property)
-                                        # Get chapter from team's tribe's department if available
-                                        if team_obj.tribe and team_obj.tribe.department:
-                                            chapter_obj = Chapter.objects.filter(department=team_obj.tribe.department).first()
-                                        
-                                        prod_import.logger.log_operation(
-                                            "team_assignment_updated",
-                                            {"user": email, "team": team_name}
-                                        )
-                                else:
+                                if not email:
+                                    continue
+
+                                user = User.objects.filter(email__iexact=email).first()
+                                if not user:
                                     prod_import.logger.log_operation(
-                                        "team_not_found",
-                                        {"user": email, "team": team_name},
+                                        "user_not_found",
+                                        {"email": email, "row": idx},
                                         "warning"
                                     )
-                            
-                            elif tribe_name:
-                                tribe_obj = Tribe.objects.filter(name=tribe_name).first()
-                                if tribe_obj:
-                                    # Update tribe assignment (no team)
-                                    if user.team != None or force_update:
-                                        user.team = None
-                                        department_obj = tribe_obj.department
-                                        
-                                        prod_import.logger.log_operation(
-                                            "tribe_assignment_updated",
-                                            {"user": email, "tribe": tribe_name}
-                                        )
-                                else:
-                                    prod_import.logger.log_operation(
-                                        "tribe_not_found",
-                                        {"user": email, "tribe": tribe_name},
-                                        "warning"
-                                    )
+                                    continue
 
-                            # Set chapter assignment (PRODUCTION-SAFE: Only update, no deletion)
-                            if chapter_name:
-                                chapter_obj = Chapter.objects.filter(name=chapter_name).first()
-                                if chapter_obj:
-                                    if user.chapter != chapter_obj or force_update:
+                                # Update organizational assignments (PRODUCTION-SAFE: Only update, no deletion)
+                                organization = Organization.objects.first()  # Use the first organization
+                                team_obj = None
+                                tribe_obj = None
+                                chapter_obj = None
+                                department_obj = None
+
+                                if team_name:
+                                    team_obj = Team.objects.filter(name=team_name).first()
+                                    if team_obj:
+                                        # Update team assignment
+                                        if user.team != team_obj or force_update:
+                                            user.team = team_obj
+                                            department_obj = team_obj.department
+                                            
+                                            # Tribe comes from team automatically (via property)
+                                            # Get chapter from team's tribe's department if available
+                                            if team_obj.tribe and team_obj.tribe.department:
+                                                chapter_obj = Chapter.objects.filter(department=team_obj.tribe.department).first()
+                                            
+                                            prod_import.logger.log_operation(
+                                                "team_assignment_updated",
+                                                {"user": email, "team": team_name}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "team_not_found",
+                                            {"user": email, "team": team_name},
+                                            "warning"
+                                        )
+                                
+                                elif tribe_name:
+                                    tribe_obj = Tribe.objects.filter(name=tribe_name).first()
+                                    if tribe_obj:
+                                        # Update tribe assignment (no team)
+                                        if user.team != None or force_update:
+                                            user.team = None
+                                            department_obj = tribe_obj.department
+                                            
+                                            prod_import.logger.log_operation(
+                                                "tribe_assignment_updated",
+                                                {"user": email, "tribe": tribe_name}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "tribe_not_found",
+                                            {"user": email, "tribe": tribe_name},
+                                            "warning"
+                                        )
+
+                                # Set chapter assignment (PRODUCTION-SAFE: Only update, no deletion)
+                                if chapter_name:
+                                    chapter_obj = Chapter.objects.filter(name=chapter_name).first()
+                                    if chapter_obj:
+                                        if user.chapter != chapter_obj or force_update:
+                                            user.chapter = chapter_obj
+                                            prod_import.logger.log_operation(
+                                                "chapter_assignment_updated",
+                                                {"user": email, "chapter": chapter_name}
+                                            )
+                                    else:
+                                        # Create chapter if it doesn't exist
+                                        chapter_obj = Chapter.objects.create(name=chapter_name)
                                         user.chapter = chapter_obj
                                         prod_import.logger.log_operation(
-                                            "chapter_assignment_updated",
+                                            "chapter_created_and_assigned",
                                             {"user": email, "chapter": chapter_name}
                                         )
                                 else:
-                                    # Create chapter if it doesn't exist
-                                    chapter_obj = Chapter.objects.create(name=chapter_name)
-                                    user.chapter = chapter_obj
+                                    if user.chapter is not None or force_update:
+                                        user.chapter = None  # Clear chapter if no chapter specified
+                                        prod_import.logger.log_operation(
+                                            "chapter_cleared",
+                                            {"user": email}
+                                        )
+
+                                # Update organizational fields (PRODUCTION-SAFE: Only update, no deletion)
+                                if force_update or user.department != department_obj:
+                                    user.department = department_obj  # Update department assignment
+                                    user.organization = organization
+                                    user.save(update_fields=["team", "chapter", "department", "organization"])
+                                    
                                     prod_import.logger.log_operation(
-                                        "chapter_created_and_assigned",
-                                        {"user": email, "chapter": chapter_name}
-                                    )
-                            else:
-                                if user.chapter is not None or force_update:
-                                    user.chapter = None  # Clear chapter if no chapter specified
-                                    prod_import.logger.log_operation(
-                                        "chapter_cleared",
-                                        {"user": email}
+                                        "org_fields_updated",
+                                        {"user": email, "chapter": user.chapter.name if user.chapter else None, "department": department_obj.name if department_obj else None}
                                     )
 
-                            # Update organizational fields (PRODUCTION-SAFE: Only update, no deletion)
-                            if force_update or user.department != department_obj:
-                                user.department = department_obj  # Update department assignment
-                                user.organization = organization
-                                user.save(update_fields=["team", "chapter", "department", "organization"])
-                                
+                                # Update leader relationship (PRODUCTION-SAFE: Only update, no deletion)
+                                if leader_email:
+                                    leader = User.objects.filter(email__iexact=leader_email).first()
+                                    if leader:
+                                        if user.leader != leader or force_update:
+                                            user.leader = leader
+                                            user.save(update_fields=["leader"])
+                                            
+                                            prod_import.logger.log_operation(
+                                                "leader_assignment_updated",
+                                                {"user": email, "leader": leader_email}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "leader_not_found",
+                                            {"user": email, "leader": leader_email},
+                                            "warning"
+                                        )
+
+                                # Update agile coach (PRODUCTION-SAFE: Only update, no deletion)
+                                if agile_coach_email:
+                                    agile_coach = User.objects.filter(email__iexact=agile_coach_email).first()
+                                    if agile_coach:
+                                        if user.agile_coach != agile_coach or force_update:
+                                            user.agile_coach = agile_coach
+                                            user.save(update_fields=["agile_coach"])
+                                            
+                                            prod_import.logger.log_operation(
+                                                "agile_coach_assignment_updated",
+                                                {"user": email, "agile_coach": agile_coach_email}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "agile_coach_not_found",
+                                            {"user": email, "agile_coach": agile_coach_email},
+                                            "warning"
+                                        )
+
+                                # Assign roles (PRODUCTION-SAFE: Only update, no deletion)
+                                if role_name:
+                                    self._assign_user_role_prod(user, role_name, prod_import)
+
+                            except Exception as e:
+                                errors.append(f"Row {idx} (relationships): {str(e)}")
                                 prod_import.logger.log_operation(
-                                    "org_fields_updated",
-                                    {"user": email, "chapter": user.chapter.name if user.chapter else None, "department": department_obj.name if department_obj else None}
+                                    "relationship_update_failed",
+                                    {"row": idx, "email": email, "error": str(e)},
+                                    "error"
+                                )
+                    
+                    # Rollback the entire atomic block for dry-run
+                    transaction.set_rollback(True)
+                    self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
+            else:
+                # For real import, use separate atomic blocks for better granularity
+                # PASS 1: Create/update all users first without relationships
+                with transaction.atomic():
+                    for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
+                        with row_savepoint(dry_run):
+                            try:
+                                # Extract user data
+                                name = (row.get("Name") or "").strip()
+                                email = (row.get("Email") or "").strip()
+                                gmail = (row.get("Gmail") or "").strip()
+                                phone = (row.get("Phone") or "").strip() if "Phone" in row else ""
+                                role_name = (row.get("Role") or "").strip()
+
+                                if not email:
+                                    skipped += 1
+                                    prod_import.logger.log_operation(
+                                        "user_skipped",
+                                        {"row": idx, "reason": "No email provided"},
+                                        "warning"
+                                    )
+                                    continue
+
+                                # Create or get user (PRODUCTION-SAFE: No deletion)
+                                # Use case-insensitive email lookup to avoid duplicates
+                                existing_user = User.objects.filter(email__iexact=email).first()
+                                if existing_user:
+                                    # Update existing user
+                                    user = existing_user
+                                    user_created = False
+                                    user.name = name
+                                    user.gmail = gmail
+                                    user.phone = phone
+                                    user.username = email
+                                    user.is_active = True
+                                    user.save(update_fields=["name", "gmail", "phone", "username", "is_active"])
+                                else:
+                                    # Create new user
+                                    user = User.objects.create(
+                                        email=email,
+                                        name=name,
+                                        gmail=gmail,
+                                        phone=phone,
+                                        username=email,
+                                        is_active=True,
+                                    )
+                                    user_created = True
+
+                                if user_created:
+                                    created += 1
+                                    prod_import.logger.log_operation(
+                                        "user_created",
+                                        {"email": email, "name": name}
+                                    )
+                                else:
+                                    updated += 1
+                                    prod_import.logger.log_operation(
+                                        "user_updated",
+                                        {"email": email, "name": name}
+                                    )
+                                
+                                if role_name:
+                                    users_with_roles += 1
+
+                            except Exception as e:
+                                errors.append(f"Row {idx}: {str(e)}")
+                                prod_import.logger.log_operation(
+                                    "user_creation_failed",
+                                    {"row": idx, "email": email, "error": str(e)},
+                                    "error"
                                 )
 
-                            # Update leader relationship (PRODUCTION-SAFE: Only update, no deletion)
-                            if leader_email:
-                                leader = User.objects.filter(email=leader_email).first()
-                                if leader:
-                                    if user.leader != leader or force_update:
-                                        user.leader = leader
-                                        user.save(update_fields=["leader"])
-                                        
-                                        prod_import.logger.log_operation(
-                                            "leader_assignment_updated",
-                                            {"user": email, "leader": leader_email}
-                                        )
-                                else:
+                # PASS 2: Set organizational assignments and relationships (PRODUCTION-SAFE)
+                with transaction.atomic():
+                    for idx, row in enumerate(open_csv(csv_path, encoding=encoding, delimiter=delimiter), start=2):
+                        with row_savepoint(dry_run):
+                            try:
+                                email = (row.get("Email") or "").strip()
+                                team_name = (row.get("Team") or "").strip()
+                                tribe_name = (row.get("Tribe") or "").strip()
+                                chapter_name = (row.get("Chapter") or "").strip()
+                                leader_email = (row.get("Leader") or "").strip()
+                                agile_coach_email = (row.get("PR") or "").strip() or (row.get("Agile Coach") or "").strip()
+                                role_name = (row.get("Role") or "").strip()
+
+                                if not email:
+                                    continue
+
+                                user = User.objects.filter(email__iexact=email).first()
+                                if not user:
                                     prod_import.logger.log_operation(
-                                        "leader_not_found",
-                                        {"user": email, "leader": leader_email},
+                                        "user_not_found",
+                                        {"email": email, "row": idx},
                                         "warning"
                                     )
+                                    continue
 
-                            # Update agile coach (PRODUCTION-SAFE: Only update, no deletion)
-                            if agile_coach_email:
-                                agile_coach = User.objects.filter(email=agile_coach_email).first()
-                                if agile_coach:
-                                    if user.agile_coach != agile_coach or force_update:
-                                        user.agile_coach = agile_coach
-                                        user.save(update_fields=["agile_coach"])
-                                        
+                                # Update organizational assignments (PRODUCTION-SAFE: Only update, no deletion)
+                                organization = Organization.objects.first()  # Use the first organization
+                                team_obj = None
+                                tribe_obj = None
+                                chapter_obj = None
+                                department_obj = None
+
+                                if team_name:
+                                    team_obj = Team.objects.filter(name=team_name).first()
+                                    if team_obj:
+                                        # Update team assignment
+                                        if user.team != team_obj or force_update:
+                                            user.team = team_obj
+                                            department_obj = team_obj.department
+                                            
+                                            # Tribe comes from team automatically (via property)
+                                            # Get chapter from team's tribe's department if available
+                                            if team_obj.tribe and team_obj.tribe.department:
+                                                chapter_obj = Chapter.objects.filter(department=team_obj.tribe.department).first()
+                                            
+                                            prod_import.logger.log_operation(
+                                                "team_assignment_updated",
+                                                {"user": email, "team": team_name}
+                                            )
+                                    else:
                                         prod_import.logger.log_operation(
-                                            "agile_coach_assignment_updated",
-                                            {"user": email, "agile_coach": agile_coach_email}
+                                            "team_not_found",
+                                            {"user": email, "team": team_name},
+                                            "warning"
+                                        )
+                                
+                                elif tribe_name:
+                                    tribe_obj = Tribe.objects.filter(name=tribe_name).first()
+                                    if tribe_obj:
+                                        # Update tribe assignment (no team)
+                                        if user.team != None or force_update:
+                                            user.team = None
+                                            department_obj = tribe_obj.department
+                                            
+                                            prod_import.logger.log_operation(
+                                                "tribe_assignment_updated",
+                                                {"user": email, "tribe": tribe_name}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "tribe_not_found",
+                                            {"user": email, "tribe": tribe_name},
+                                            "warning"
+                                        )
+
+                                # Set chapter assignment (PRODUCTION-SAFE: Only update, no deletion)
+                                if chapter_name:
+                                    chapter_obj = Chapter.objects.filter(name=chapter_name).first()
+                                    if chapter_obj:
+                                        if user.chapter != chapter_obj or force_update:
+                                            user.chapter = chapter_obj
+                                            prod_import.logger.log_operation(
+                                                "chapter_assignment_updated",
+                                                {"user": email, "chapter": chapter_name}
+                                            )
+                                    else:
+                                        # Create chapter if it doesn't exist
+                                        chapter_obj = Chapter.objects.create(name=chapter_name)
+                                        user.chapter = chapter_obj
+                                        prod_import.logger.log_operation(
+                                            "chapter_created_and_assigned",
+                                            {"user": email, "chapter": chapter_name}
                                         )
                                 else:
+                                    if user.chapter is not None or force_update:
+                                        user.chapter = None  # Clear chapter if no chapter specified
+                                        prod_import.logger.log_operation(
+                                            "chapter_cleared",
+                                            {"user": email}
+                                        )
+
+                                # Update organizational fields (PRODUCTION-SAFE: Only update, no deletion)
+                                if force_update or user.department != department_obj:
+                                    user.department = department_obj  # Update department assignment
+                                    user.organization = organization
+                                    user.save(update_fields=["team", "chapter", "department", "organization"])
+                                    
                                     prod_import.logger.log_operation(
-                                        "agile_coach_not_found",
-                                        {"user": email, "agile_coach": agile_coach_email},
-                                        "warning"
+                                        "org_fields_updated",
+                                        {"user": email, "chapter": user.chapter.name if user.chapter else None, "department": department_obj.name if department_obj else None}
                                     )
 
-                            # Assign roles (PRODUCTION-SAFE: Only update, no deletion)
-                            if role_name:
-                                self._assign_user_role_prod(user, role_name, prod_import)
+                                # Update leader relationship (PRODUCTION-SAFE: Only update, no deletion)
+                                if leader_email:
+                                    leader = User.objects.filter(email__iexact=leader_email).first()
+                                    if leader:
+                                        if user.leader != leader or force_update:
+                                            user.leader = leader
+                                            user.save(update_fields=["leader"])
+                                            
+                                            prod_import.logger.log_operation(
+                                                "leader_assignment_updated",
+                                                {"user": email, "leader": leader_email}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "leader_not_found",
+                                            {"user": email, "leader": leader_email},
+                                            "warning"
+                                        )
 
-                        except Exception as e:
-                            errors.append(f"Row {idx} (relationships): {str(e)}")
-                            prod_import.logger.log_operation(
-                                "relationship_update_failed",
-                                {"row": idx, "email": email, "error": str(e)},
-                                "error"
-                            )
+                                # Update agile coach (PRODUCTION-SAFE: Only update, no deletion)
+                                if agile_coach_email:
+                                    agile_coach = User.objects.filter(email__iexact=agile_coach_email).first()
+                                    if agile_coach:
+                                        if user.agile_coach != agile_coach or force_update:
+                                            user.agile_coach = agile_coach
+                                            user.save(update_fields=["agile_coach"])
+                                            
+                                            prod_import.logger.log_operation(
+                                                "agile_coach_assignment_updated",
+                                                {"user": email, "agile_coach": agile_coach_email}
+                                            )
+                                    else:
+                                        prod_import.logger.log_operation(
+                                            "agile_coach_not_found",
+                                            {"user": email, "agile_coach": agile_coach_email},
+                                            "warning"
+                                        )
 
-            if dry_run:
-                transaction.set_rollback(True)
-                self.stdout.write(self.style.WARNING("Dry-run complete (no changes committed)."))
-            else:
+                                # Assign roles (PRODUCTION-SAFE: Only update, no deletion)
+                                if role_name:
+                                    self._assign_user_role_prod(user, role_name, prod_import)
+
+                            except Exception as e:
+                                errors.append(f"Row {idx} (relationships): {str(e)}")
+                                prod_import.logger.log_operation(
+                                    "relationship_update_failed",
+                                    {"row": idx, "email": email, "error": str(e)},
+                                    "error"
+                                )
+
                 # Complete production import with validation
                 if validate:
                     expected_counts = {

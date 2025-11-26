@@ -55,6 +55,8 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",
+    "unfold.contrib.import_export",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -87,7 +89,7 @@ ROOT_URLCONF = "merlin.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR.parent / "templates"],  # templates is in project root, not merlin/merlin
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -158,6 +160,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "api.authentication.ApiKeyAuthentication",
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -228,3 +231,33 @@ BEPA_REDIRECT_URI = os.getenv("BEPA_REDIRECT_URI", "")
 SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
 
 AUTH_USER_MODEL = "api.User"
+
+# Import admin sidebar configuration with error handling
+try:
+    from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG
+except Exception:
+    UNFOLD_SIDEBAR_CONFIG = {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [],
+    }
+
+UNFOLD = {
+    "SITE_TITLE": "Merlin Admin",
+    "SITE_HEADER": "Merlin Control Center",
+    "SITE_URL": "/",
+    "SITE_ICON": None,
+    "SITE_LOGO": None,
+    "SITE_SYMBOL": "settings",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "ENVIRONMENT": None,
+    "DASHBOARD_CALLBACK": "merlin.dashboard.dashboard_callback",
+    "LOGIN": {
+        "image": None,
+        "redirect_after": None,
+    },
+    "STYLES": [],
+    "SCRIPTS": [],
+    "SIDEBAR": UNFOLD_SIDEBAR_CONFIG,
+}

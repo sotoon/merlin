@@ -45,6 +45,7 @@
             <NotePeriodFilter :notes="newNotes" />
             <NoteTeamFilter v-if="isTeamLeader" />
             <NoteReadStatusFilter />
+            <NoteProposalTypeFilter v-if="typeFilter === NOTE_TYPE.proposal" />
           </template>
         </NoteListControls>
       </template>

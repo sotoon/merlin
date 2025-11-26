@@ -37,6 +37,7 @@ from api.models.timeline import (
     PayBand,
 )
 from api.serializers.note import get_current_user
+from api.services import grant_feedback_access, grant_feedback_request_access
 
 
 # ────────────────────────────────────────────────────────────────
@@ -63,6 +64,41 @@ def handle_committee_members_changed(sender, instance, action, pk_set, **kwargs)
 
 @receiver(m2m_changed, sender=Note.mentioned_users.through)
 def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
+    """
+    Handle changes to Note.mentioned_users and update ACLs accordingly.
+    Only process post_* actions to ensure the M2M relationship is already updated.
+    """
+    # Only run after the change is committed
+    if action not in ("post_add", "post_remove", "post_clear"):
+        return
+    
+    # For FEEDBACK_REQUEST notes, use the dedicated service function
+    if instance.type == NoteType.FEEDBACK_REQUEST:
+        # Get the requestees from the FeedbackRequest
+        try:
+            feedback_request = instance.feedback_request
+            requestees = [link.user for link in feedback_request.requestees.all()]
+            mentioned_users = list(instance.mentioned_users.all())
+            grant_feedback_request_access(instance, requestees, mentioned_users)
+        except Exception:
+            # If feedback_request doesn't exist, fall back to default behavior
+            NoteUserAccess.ensure_note_predefined_accesses(instance)
+        return
+    
+    # For FEEDBACK notes, use the dedicated service function
+    if instance.type == NoteType.FEEDBACK:
+        try:
+            feedback = instance.feedback
+            receiver = feedback.receiver
+            mentioned_users = list(instance.mentioned_users.all())
+            feedback_request = feedback.feedback_request
+            grant_feedback_access(instance, receiver, mentioned_users, feedback_request)
+        except Exception:
+            # If feedback doesn't exist, fall back to default behavior
+            NoteUserAccess.ensure_note_predefined_accesses(instance)
+        return
+    
+    # For all other note types, use the default access granting logic
     NoteUserAccess.ensure_note_predefined_accesses(instance)
 
 
@@ -676,6 +712,21 @@ def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stag
     # Calculate overall score
     overall = round(sum(details.values()) / len(details), 1) if details else 0
 
+    # Preserve seniority_level from latest snapshot OR use Summary's value if provided
+    # Priority: Summary.seniority_level > preserved from previous snapshot
+    if hasattr(instance, 'seniority_level') and instance.seniority_level:
+        preserved_seniority_level = instance.seniority_level
+    else:
+        # Get the most recent snapshot (including same-day) to preserve seniority_level
+        latest_for_seniority = SenioritySnapshot.objects.filter(
+            user=instance.note.owner,
+            effective_date__lte=effective_date,
+        )
+        if canonical_event:
+            latest_for_seniority = latest_for_seniority.exclude(source_event=canonical_event)
+        latest_for_seniority = latest_for_seniority.order_by("-effective_date", "-date_created").first()
+        preserved_seniority_level = latest_for_seniority.seniority_level if latest_for_seniority else None
+
     # Upsert: update existing snapshot at the same effective_date, otherwise create
     existing_sen = SenioritySnapshot.objects.filter(
         user=instance.note.owner,
@@ -687,9 +738,11 @@ def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stag
         existing_sen.stages_json = stages_json
         existing_sen.overall_score = overall
         existing_sen.title = instance.performance_label if getattr(instance, "performance_label", None) else existing_sen.title
+        # Use Summary's seniority_level if provided, otherwise preserve from previous snapshot
+        existing_sen.seniority_level = preserved_seniority_level
         if canonical_event and existing_sen.source_event_id != canonical_event.id:
             existing_sen.source_event = canonical_event
-        existing_sen.save(update_fields=["details_json", "stages_json", "overall_score", "title", "source_event"])
+        existing_sen.save(update_fields=["details_json", "stages_json", "overall_score", "title", "seniority_level", "source_event"])
     else:
         SenioritySnapshot.objects.create(
             user=instance.note.owner,
@@ -698,6 +751,7 @@ def _persist_seniority_snapshot(instance: Summary, latest_snapshot, deltas, stag
             details_json=details,
             stages_json=stages_json,
             overall_score=overall,
+            seniority_level=preserved_seniority_level,
             title=instance.performance_label if getattr(instance, "performance_label", None) else "",
             source_event=canonical_event,
         )
