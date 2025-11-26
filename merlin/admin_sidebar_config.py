@@ -196,6 +196,27 @@ UNFOLD_SIDEBAR_CONFIG = {
                 },
             ],
         },
+        {
+            "title": "Email Notification",
+            "separator": True,
+            "items": [
+                {
+                    "title": "قالب‌های ایمیل",
+                    "icon": "email",
+                    "link": _make_link('admin:api_emailtemplate_changelist'),
+                },
+                {
+                    "title": "تریگرهای ایمیل",
+                    "icon": "notifications_active",
+                    "link": _make_link('admin:api_emailtrigger_changelist'),
+                },
+                {
+                    "title": "لاگ ایمیل‌های ارسالی",
+                    "icon": "history",
+                    "link": _make_link('admin:api_emaillog_changelist'),
+                },
+            ],
+        },
     ],
 }
 

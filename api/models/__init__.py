@@ -12,6 +12,7 @@ from .timeline import *
 from .ladder import *
 from .performance_tables import *
 from .api_key import *
+from .email import *
 
 # Not aggregating __all__ to avoid circular imports issues; wildcard import covers public symbols.
 __all__ = []

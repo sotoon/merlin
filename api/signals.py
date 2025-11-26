@@ -72,6 +72,15 @@ def handle_mentioned_users_changed(sender, instance, action, pk_set, **kwargs):
     if action not in ("post_add", "post_remove", "post_clear"):
         return
     
+    # Send email notifications when users are added to mentions
+    if action == "post_add" and pk_set:
+        from api.services.email import notify_mentioned_users
+        try:
+            notify_mentioned_users(instance, list(pk_set))
+        except Exception:
+            # Don't fail the signal if email notification fails
+            pass
+    
     # For FEEDBACK_REQUEST notes, use the dedicated service function
     if instance.type == NoteType.FEEDBACK_REQUEST:
         # Get the requestees from the FeedbackRequest

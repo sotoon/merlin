@@ -9,6 +9,7 @@ from . import (
     role,
     performance_tables,
     api_key,
+    email,
 )
 
 from .base import *
@@ -21,6 +22,7 @@ from .feedback import *
 from .role import *
 from .performance_tables import *
 from .api_key import *
+from .email import *
 
 __all__ = (
     base.__all__
@@ -33,4 +35,5 @@ __all__ = (
     + role.__all__
     + performance_tables.__all__
     + api_key.__all__
+    + email.__all__
 )

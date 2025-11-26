@@ -232,6 +232,33 @@ SIGNUP_DISABLED = os.getenv("MERLIN_SIGNUP_DISABLED", "false")
 
 AUTH_USER_MODEL = "api.User"
 
+# ────────────────────────────────────────────────────────────────
+# Celery Configuration
+# ────────────────────────────────────────────────────────────────
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# ────────────────────────────────────────────────────────────────
+# Email Configuration
+# ────────────────────────────────────────────────────────────────
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'mail.sotoon.ir')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '465'))
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True').lower() == 'true'
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False').lower() == 'true'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'merlin@sotoon.ir')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', ' ')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# Frontend URL for email links
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+
 # Import admin sidebar configuration with error handling
 try:
     from merlin.admin_sidebar_config import UNFOLD_SIDEBAR_CONFIG
