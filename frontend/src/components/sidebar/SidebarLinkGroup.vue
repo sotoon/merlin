@@ -8,13 +8,28 @@ interface Props {
   isActive?: boolean;
   guideKey?: string;
   guideConditions?: Record<string, boolean>;
+  id?: string;
 }
 
 const props = defineProps<Props>();
 
+const registerCloseGroup = inject<
+  ((id: string, closeFn: () => void) => void) | undefined
+>('registerCloseGroup', undefined);
+const closeAllGroupsExcept = inject<((id: string) => void) | undefined>(
+  'closeAllGroupsExcept',
+  undefined,
+);
+
 const isCollapsed = ref(true);
 const contentRef = ref<HTMLElement>();
 const contentHeight = ref(0);
+
+if (props.id && registerCloseGroup) {
+  registerCloseGroup(props.id, () => {
+    isCollapsed.value = true;
+  });
+}
 
 const tourSteps = computed(() => {
   const allSteps = SIDEBAR_TOUR_STEPS[props.guideKey || ''] || [];
@@ -51,7 +66,18 @@ watch(
 
 watch(isCollapsed, (newVal) => {
   if (!newVal) {
-    startTour();
+    if (
+      props.guideKey &&
+      !localStorage.getItem(`sidebar-guide-${props.guideKey}`) &&
+      props.id &&
+      closeAllGroupsExcept
+    ) {
+      closeAllGroupsExcept(props.id);
+    }
+
+    setTimeout(() => {
+      startTour();
+    }, 300);
   }
 });
 
@@ -62,6 +88,7 @@ onUpdated(updateContentHeight);
 <template>
   <div>
     <PButton
+      :id="id"
       variant="ghost"
       color="gray"
       class="w-full items-center justify-between"

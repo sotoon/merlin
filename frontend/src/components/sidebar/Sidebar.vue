@@ -268,6 +268,23 @@
 import { PScrollbar, PText } from '@pey/core';
 import { SIDEBAR_TOUR_STEPS } from '~/constants/sidebarGuide';
 
+const scrollbarRef = ref<HTMLElement>();
+provide('scrollbarRef', scrollbarRef);
+
+const closeGroupFns = new Map<string, () => void>();
+const registerCloseGroup = (id: string, closeFn: () => void) => {
+  closeGroupFns.set(id, closeFn);
+};
+const closeAllGroupsExcept = (exceptId: string) => {
+  closeGroupFns.forEach((closeFn, id) => {
+    if (id !== exceptId) {
+      closeFn();
+    }
+  });
+};
+provide('registerCloseGroup', registerCloseGroup);
+provide('closeAllGroupsExcept', closeAllGroupsExcept);
+
 const { t } = useI18n();
 const route = useRoute();
 const { data: messages } = useGetNotes({
@@ -282,19 +299,16 @@ const { data: profilePermissions } = useGetProfilePermissions();
 const { start: startMessagesTour } = useIntro(
   SIDEBAR_TOUR_STEPS.messages || [],
   'sidebar-guide-messages',
-  { disableScrolling: true },
 );
 
 const { start: startUsersTour } = useIntro(
   SIDEBAR_TOUR_STEPS.users || [],
   'sidebar-guide-users',
-  { disableScrolling: true },
 );
 
 const { start: startProfileTour } = useIntro(
   SIDEBAR_TOUR_STEPS.profile || [],
   'sidebar-guide-profile',
-  { disableScrolling: true },
 );
 
 const isProposalActive = (proposalType: ProposalType) => {
