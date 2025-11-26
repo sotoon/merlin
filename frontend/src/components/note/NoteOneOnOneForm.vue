@@ -409,10 +409,28 @@ useStoreDraft({
       </div>
 
       <VeeField v-slot="{ componentField }" name="linked_notes">
+        <label class="mb-2 flex items-center gap-2 text-md font-bold">
+          {{ t('note.relatedNotes') }}
+          <PTooltip>
+            <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+            <template #content>
+              <div class="max-w-sm">
+                این جا می‌تونید یادداشت‌های دیگری از هر نوع که به این یادداشت‌
+                شما ارتباط دارن اضافه کنید. این کار منجر به دسترسی‌پذیری بهتر
+                اون یادداشت‌ها برای تمام افرادی که دسترسی دیدن این مستند رو دارن
+                می‌شه.
+                <br />
+                دقت کنید که دسترسی‌ها به یادداشت‌های لینک‌شده به طور خودکار
+                <b>اعطا نمی‌شه</b> و برای این که افرادی که زیر این متن شما منشن
+                شدن بتونن متون لینک‌شده‌ی شما رو مشاهده کنن، باید زیر اون‌ها هم
+                منشن شده‌باشن.
+              </div>
+            </template>
+          </PTooltip>
+        </label>
         <PListbox
           v-bind="componentField"
           hide-details
-          :label="t('note.relatedNotes')"
           :loading="isNotesLoading"
           multiple
           searchable

@@ -9,6 +9,7 @@ import {
   PListboxOption,
   PInput,
   PDatePickerInput,
+  PTooltip,
 } from '@pey/core';
 import {
   PeyRetryIcon,
@@ -16,6 +17,7 @@ import {
   PeyCircleCloseIcon,
   PeyCloudDownloadIcon,
   PeySearchIcon,
+  PeyInfoIcon,
 } from '@pey/icons';
 import CustomTable from '~/components/shared/CustomTable.vue';
 import dayjs from '~/utils/dayjs';
@@ -376,7 +378,21 @@ const handleFilterChanged = (filters: Record<string, any>) => {
           </template>
         </PInput>
 
-        <PDatePickerInput v-model="asOfDate" type="jalali" hide-details />
+        <label class="flex items-center gap-2 text-md font-bold">
+          <PDatePickerInput v-model="asOfDate" type="jalali" hide-details />
+          <PTooltip>
+            <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+            <template #content>
+              <div class="font-normal max-w-sm">
+                با انتخاب تاریخ در اینجا، تمام اطلاعات موجود در جدول بنا به
+                تاریخی که وارد کردید به‌روزرسانی خواهندشد. به عنوان مثال با
+                انتخاب تاریخ ۱۴۰۴/۰۶/۱۰ تمام مقادیر جدول به آخرین مقادیر معتبر
+                در اون تاریخ تغییر خواهندکرد. (یعنی اگر در اون تاریخ به جدول
+                نگاه می‌کردید این مقادیر رو می‌دیدید)
+              </div>
+            </template>
+          </PTooltip>
+        </label>
       </div>
 
       <CustomTable

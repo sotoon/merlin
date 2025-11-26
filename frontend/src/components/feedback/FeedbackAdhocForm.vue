@@ -141,27 +141,19 @@ watch(isStructured, (newValue) => {
     <PLoading v-if="isFormsLoading" class="mx-auto text-primary" />
     <template v-else>
       <div>
-        <div class="mb-1 flex items-center gap-x-2">
-          <label id="receivers-label">
-            <PText
-              class="block cursor-default"
-              variant="caption1"
-              weight="bold"
-            >
-              {{ t('feedback.selectReceiver') }}
-              <span class="text-danger">*</span>
-            </PText>
-          </label>
+        <label class="mb-2 flex items-center gap-2 text-md font-bold">
+          {{ t('feedback.selectReceiver') }}
+          <span class="text-danger">*</span>
           <PTooltip>
             <PeyInfoIcon class="h-5 w-5 text-gray-50" />
             <template #content>
-              <div class="max-w-sm">
-                افرادی که در این بخش وارد می‌کنید، بازخورد شما را دریافت خواهند
-                کرد.
+              <div class="font-normal max-w-sm">
+                افرادی که در این بخش وارد می‌کنید، گیرنده‌ی اصلی بازخورد شما
+                هستن. بازخورد شما خطاب به این افراد خواهدبود.
               </div>
             </template>
           </PTooltip>
-        </div>
+        </label>
         <VeeField
           v-slot="{ componentField }"
           name="receiver_ids"
@@ -169,7 +161,6 @@ watch(isStructured, (newValue) => {
         >
           <UserSelect
             v-bind="componentField"
-            aria-labelledby="receivers-label"
             multiple
             required
             value-key="uuid"
@@ -178,39 +169,38 @@ watch(isStructured, (newValue) => {
       </div>
 
       <div>
-        <div class="mb-1 flex items-center gap-x-2">
-          <label id="mentioned-users-label">
-            <PText
-              class="block cursor-default"
-              variant="caption1"
-              weight="bold"
-            >
-              {{ t('note.mentionedUsers') }}
-            </PText>
-          </label>
+        <label class="mb-2 flex items-center gap-2 text-md font-bold">
+          {{ t('note.mentionedUsers') }}
           <PTooltip>
             <PeyInfoIcon class="h-5 w-5 text-gray-50" />
             <template #content>
-              <div class="max-w-sm">
+              <div class="font-normal max-w-sm">
                 افرادی که در این بخش وارد می‌کنید، می‌تونن بازخورد شما رو مشاهده
                 کنند.
               </div>
             </template>
           </PTooltip>
-        </div>
+        </label>
         <VeeField v-slot="{ componentField }" name="mentioned_users">
-          <UserSelect
-            v-bind="componentField"
-            aria-labelledby="mentioned-users-label"
-            multiple
-          />
+          <UserSelect v-bind="componentField" multiple />
         </VeeField>
       </div>
 
-      <PSwitch
-        v-model="isStructured"
-        :label="t('feedback.structuredFeedback')"
-      />
+      <div class="flex items-center gap-x-2 text-md font-bold">
+        <PSwitch
+          v-model="isStructured"
+          :label="t('feedback.structuredFeedback')"
+        />
+        <PTooltip>
+          <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+          <template #content>
+            <div class="font-normal max-w-sm">
+              با انتخاب بازخورد ساختاریافته، می‌تونید از ساختارهای از پیش‌تعریف
+              شده در مرلین برای نگارش بازخوردتون استفاده کنید.
+            </div>
+          </template>
+        </PTooltip>
+      </div>
 
       <VeeField
         v-if="isStructured"

@@ -24,7 +24,19 @@
     </VeeField>
 
     <VeeField v-slot="{ componentField }" name="mentioned_users">
-      <UserSelect v-bind="componentField" :label="t('note.share')" multiple />
+      <label class="mb-2 flex items-center gap-2 text-md font-bold">
+        {{ t('note.share') }}
+        <PTooltip>
+          <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+          <template #content>
+            <div class="font-normal max-w-sm">
+              با به اشتراک گذاشتن این قالب با دیگران، علاوه بر شما اون‌ها هم
+              می‌تونن حین نوشتن یادداشت‌های مختلف از این قالب استفاده کنن.
+            </div>
+          </template>
+        </PTooltip>
+      </label>
+      <UserSelect v-bind="componentField" multiple />
     </VeeField>
 
     <div class="flex flex-wrap items-center justify-end gap-4 pt-8">
@@ -52,7 +64,8 @@
 </template>
 
 <script lang="ts" setup>
-import { PButton, PInput } from '@pey/core';
+import { PButton, PInput, PTooltip } from '@pey/core';
+import { PeyInfoIcon } from '@pey/icons';
 import type { SubmissionContext } from 'vee-validate';
 
 const props = defineProps<{

@@ -16,10 +16,17 @@
     </VeeField>
 
     <div class="space-y-4 py-2">
-      <label id="content-label">
-        <PText class="block cursor-default" variant="caption1" weight="bold">
-          {{ t('common.content') }}
-        </PText>
+      <label class="mb-2 flex items-center gap-2 text-md font-bold">
+        {{ t('common.content') }}
+        <PTooltip>
+          <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+          <template #content>
+            <div class="max-w-sm">
+              می‌تونید از قالب‌های پیش‌ساخته استفاده کنید. برای تعریف قالب‌های
+              دلخواه خودتون، به بخش میز کار در منوی کناری مراجعه کنید.
+            </div>
+          </template>
+        </PTooltip>
       </label>
 
       <NoteTemplateSelect
@@ -35,7 +42,6 @@
         <Editor
           :model-value="value"
           :placeholder="t('note.writeNoteContent')"
-          aria-labelledby="content-label"
           @update:model-value="handleChange"
         />
       </VeeField>
@@ -43,11 +49,20 @@
 
     <div>
       <VeeField v-slot="{ componentField }" name="mentioned_users">
-        <UserSelect
-          v-bind="componentField"
-          :label="t('note.mentionedUsers')"
-          multiple
-        />
+        <label class="mb-2 flex items-center gap-2 text-md font-bold">
+          {{ t('note.mentionedUsers') }}
+          <PTooltip>
+            <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+            <template #content>
+              <div class="max-w-sm">
+                با منشن کردن دیگر کاربرها، می‌تونید دسترسی مشاهده‌ی متن‌تون رو
+                به اون‌ها بدید. افراد منشن‌ شده می‌تونن برای شما نظر ثبت کنن.
+                اما قادر به مشاهده‌ی نظرات دیگران نیستن.
+              </div>
+            </template>
+          </PTooltip>
+        </label>
+        <UserSelect v-bind="componentField" multiple />
       </VeeField>
     </div>
 
@@ -103,10 +118,28 @@
 
     <div>
       <VeeField v-slot="{ componentField }" name="linked_notes">
+        <label class="mb-2 flex items-center gap-2 text-md font-bold">
+          {{ t('note.relatedNotes') }}
+          <PTooltip>
+            <PeyInfoIcon class="h-5 w-5 text-gray-50" />
+            <template #content>
+              <div class="max-w-sm">
+                این جا می‌تونید یادداشت‌های دیگری از هر نوع که به این یادداشت‌
+                شما ارتباط دارن اضافه کنید. این کار منجر به دسترسی‌پذیری بهتر
+                اون یادداشت‌ها برای تمام افرادی که دسترسی دیدن این مستند رو دارن
+                می‌شه.
+                <br />
+                دقت کنید که دسترسی‌ها به یادداشت‌های لینک‌شده به طور خودکار
+                <b>اعطا نمی‌شه</b> و برای این که افرادی که زیر این متن شما منشن
+                شدن بتونن متون لینک‌شده‌ی شما رو مشاهده کنن، باید زیر اون‌ها هم
+                منشن شده‌باشن.
+              </div>
+            </template>
+          </PTooltip>
+        </label>
         <PListbox
           v-bind="componentField"
           hide-details
-          :label="t('note.relatedNotes')"
           :loading="isNotesLoading"
           multiple
           searchable
@@ -153,7 +186,9 @@ import {
   PListbox,
   PListboxOption,
   PText,
+  PTooltip,
 } from '@pey/core';
+import { PeyInfoIcon } from '@pey/icons';
 import type { SubmissionContext } from 'vee-validate';
 
 const YEARS = [1402, 1403, 1404, 1405, 1406];

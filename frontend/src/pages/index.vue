@@ -1,7 +1,6 @@
 <template>
   <div>
     <NuxtPage />
-    <GuideNotifyDialog />
   </div>
 </template>
 
