@@ -1,10 +1,10 @@
 <template>
   <nav class="flex h-full w-64 flex-col overflow-hidden pb-4">
     <NuxtLink
-      class="flex items-center justify-center gap-2 pb-4 pt-2 shadow"
+      class="flex items-center justify-center gap-2 pb-2 pt-2 shadow"
       to="/"
     >
-      <img src="/merlin.png" alt="Merlin" class="h-10 w-10" />
+      <img src="/merlin.png" alt="Merlin" class="size-10" />
       <PText as="p" class="text-center" weight="bold" variant="subtitle">
         {{ t('common.appName') }}
       </PText>
