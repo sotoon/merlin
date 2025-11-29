@@ -219,7 +219,7 @@ const {
     date: props.note?.date ? new Date(props.note.date) : undefined,
     year: props.note?.year || YEARS[1],
     period: props.note?.period || 0,
-    linked_notes: props.note?.linked_notes || [],
+    linked_notes: props.note?.linked_notes?.map((note) => note.uuid) || [],
     proposal_type:
       props.note?.proposal_type ||
       (route.query.proposal_type as ProposalType) ||

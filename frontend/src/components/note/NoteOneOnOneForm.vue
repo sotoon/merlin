@@ -19,18 +19,19 @@ const props = defineProps<{
   isSubmitting?: boolean;
 }>();
 
+// Override linked_notes type since backend expects string[] (UUIDs), not LinkedNoteRequest[]
+type OneOnOneFormValues = Omit<Schema<'OneOnOneRequest'>, 'linked_notes'> & {
+  linked_notes?: string[];
+};
+
 const emit = defineEmits<{
-  submit: [
-    values: Schema<'OneOnOneRequest'>,
-    ctx: SubmissionContext<Schema<'OneOnOneRequest'>>,
-  ];
+  submit: [values: OneOnOneFormValues, ctx: SubmissionContext<OneOnOneFormValues>];
   cancel: [];
 }>();
 
 const { t } = useI18n();
-const { meta, handleSubmit, setValues, values } = useForm<
-  Schema<'OneOnOneRequest'>
->({
+
+const { meta, handleSubmit, setValues, values } = useForm<OneOnOneFormValues>({
   initialValues: {
     tags: props.oneOnOne?.tags || [],
     personal_summary: props.oneOnOne?.personal_summary || '',
@@ -40,7 +41,8 @@ const { meta, handleSubmit, setValues, values } = useForm<
     actions: props.oneOnOne?.actions || '',
     leader_vibe: props.oneOnOne?.leader_vibe,
     extra_notes: props.oneOnOne?.extra_notes || '',
-    linked_notes: props.oneOnOne?.note?.linked_notes || [],
+    linked_notes:
+      props.oneOnOne?.note?.linked_notes?.map((note) => note.uuid) || [],
   },
   validationSchema: {
     personal_summary: '',

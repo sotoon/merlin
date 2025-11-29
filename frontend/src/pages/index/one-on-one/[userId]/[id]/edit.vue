@@ -16,11 +16,17 @@ const { mutate: updateOneOnOne, isPending } = useUpdateOneOnOne({
   oneOnOneId: props.oneOnOne.id,
 });
 
+// Type with corrected linked_notes (string[] instead of LinkedNoteRequest[])
+type OneOnOneFormValues = Omit<Schema<'OneOnOneRequest'>, 'linked_notes'> & {
+  linked_notes?: string[];
+};
+
 const handleSubmit = (
-  values: Schema<'OneOnOneRequest'>,
-  ctx: SubmissionContext<Schema<'OneOnOneRequest'>>,
+  values: OneOnOneFormValues,
+  ctx: SubmissionContext<OneOnOneFormValues>,
 ) => {
-  updateOneOnOne(values, {
+  // Cast to Schema type for API call - the runtime values are compatible
+  updateOneOnOne(values as Schema<'PatchedOneOnOneRequest'>, {
     onSuccess: () => {
       navigateTo({
         name: 'one-on-one-id',

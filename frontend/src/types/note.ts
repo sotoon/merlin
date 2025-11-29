@@ -51,12 +51,12 @@ export interface NoteFormValues
     | 'mentioned_users'
     | 'year'
     | 'period'
-    | 'linked_notes'
     | 'proposal_type'
   > {
   content: string;
   date?: Date;
   title: string;
+  linked_notes?: string[];
 }
 
 export interface NoteTemplateFormValues
