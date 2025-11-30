@@ -29,6 +29,11 @@ UNFOLD_SIDEBAR_CONFIG = {
                     "link": _make_link('admin:api_note_changelist'),
                 },
                 {
+                    "title": "جمع‌بندی‌ها",
+                    "icon": "summarize",
+                    "link": _make_link('admin:api_summary_changelist'),
+                },
+                {
                     "title": "نظرها",
                     "icon": "comment",
                     "link": _make_link('admin:api_comment_changelist'),
